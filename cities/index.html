@@ -19,7 +19,12 @@
 <link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
-<script src="../brand/mingo.js?v=202610242200"></script>
+<script src="../brand/mingo.js?v=202610242300"></script>
+<script src="../brand/account.js?v=202610242300"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="firebase-config.js?v=202610242300"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -296,7 +301,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .respanel .gm-hello{margin:-4px 0 -6px}
 .corner .mingo{width:auto;height:88%}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610242200">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610242300">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -521,7 +526,7 @@ function saveDaily(){if(S&&S.dayof)return; // a grid played on its day, opened f
   if(S&&S.daily)try{localStorage.setItem('cc-daily',JSON.stringify({date:S.daily,S}))}catch(e){}
   if(S&&S.daily&&S.over)recordDaily(S)}
 /* ---- daily stats: one entry per played day {date:{s:score,c:squares,n:size}}, kept on the device
-   and, when signed in with Google, in Firebase (users/<uid>/daily) so they follow you to other devices ---- */
+   and, when signed in with Google, in Firebase (users/<uid>/cities/daily) so they follow you to other devices ---- */
 function loadHist(){try{return JSON.parse(localStorage.getItem('cc-hist')||'{}')||{}}catch(e){return {}}}
 function saveHist(h){try{localStorage.setItem('cc-hist',JSON.stringify(h))}catch(e){}}
 // entry: s points, c squares, n grid size, g squares got ("1" or "0" each), d device that played it, f 1 when finished
@@ -543,7 +548,7 @@ function recordDaily(s){if(TESTDAY)return;const h=loadHist(),e=dailyEntry(s,1),t
   if(ACCT_TODAY&&ACCT_TODAY.d===ME&&ACCT_TODAY.f===1&&ACCT_TODAY.j){submitLB(s.daily,e);return}
   if(dailyUp===USER.uid+s.daily)return;
   dailyUp=USER.uid+s.daily;const full={...e,j:JSON.stringify(s)};
-  db.ref('users/'+USER.uid+'/daily/'+s.daily).transaction(cur=>!cur||!cur.d||cur.d===ME?full:undefined)
+  db.ref('users/'+USER.uid+'/cities/daily/'+s.daily).transaction(cur=>!cur||!cur.d||cur.d===ME?full:undefined)
     .then(r=>{if(r.committed)submitLB(s.daily,e)}).catch(()=>{dailyUp=''})}
 // another device of the account finished today's grid: take its whole game, so this device shows exactly the same
 // the account decides: it replaces whatever this device has for today, even a game finished here.
@@ -552,20 +557,20 @@ function adoptDaily(a){if(!a||a.f!==1||!a.j)return;const loc=loadDaily();
   if(!otherDevice(a)){if(loc)return;try{const s=JSON.parse(a.j);if(s&&s.daily===todayKey()&&s.over){localStorage.setItem('cc-daily',JSON.stringify({date:s.daily,S:s}));if(S&&S.daily===todayKey()&&!S.over)S=null}}catch(e){}return}
   if(loc&&loc.S.over&&loc.S.adopted===a.d+a.s)return;
   try{const s=JSON.parse(a.j);if(s&&s.daily===todayKey()&&s.over){s.adopted=a.d+a.s;localStorage.setItem('cc-daily',JSON.stringify({date:s.daily,S:s}));if(S&&S.daily===todayKey())S=null}}catch(e){}}
-/* ---- daily ranking: leaderboard/<date>/<uid> = {name, s, c, t}; anyone can read it, each account
+/* ---- daily ranking: lb/citygrid/<date>/<uid> = {name, s, c, t}; anyone can read it, each account
    writes its own result once (Firebase rules refuse a second write) ---- */
 let LB=null,lbRef=null,lbDate=null,lbSent='';
 function submitLB(date,e){if(!USER||!db||TESTDAY||date!==todayKey()||e.f!==1||e.d!==ME)return;
   if(LB&&LB[USER.uid]||lbSent===USER.uid+date)return;lbSent=USER.uid+date;
-  db.ref('leaderboard/'+date+'/'+USER.uid).set({name:(PROFILE||setup.user||'Player').slice(0,16),s:e.s,c:e.c,t:TS()}).catch(()=>{})}
+  db.ref('lb/citygrid/'+date+'/'+USER.uid).set({name:(PROFILE||setup.user||'Player').slice(0,16),s:e.s,c:e.c,t:TS()}).catch(()=>{})}
 function watchLB(){if(!FB_OK||TESTDAY||!initFB())return;const k=todayKey();if(lbDate===k)return;
-  if(lbRef)lbRef.off();lbDate=k;LB=null;lbRef=db.ref('leaderboard/'+k);
+  if(lbRef)lbRef.off();lbDate=k;LB=null;lbRef=db.ref('lb/citygrid/'+k);
   lbRef.on('value',s=>{LB=s.val()||{};if(!S||S.daily)render()},()=>{})}
 // ranking order: more points first, then more squares, then whoever finished first
 function lbRows(src){return Object.entries(src||LB||{}).map(([uid,v])=>({uid,...v})).sort((a,b)=>b.s-a.s||b.c-a.c||(a.t||0)-(b.t||0))}
 // a past day's ranking (archive games): read once, only to look at it
 const LBD={};
-function pastLB(date){if(LBD[date]===undefined&&initFB()){LBD[date]=null;db.ref('leaderboard/'+date).once('value').then(s=>{LBD[date]=s.val()||{};if(S&&S.daily===date)render()}).catch(()=>{})}return LBD[date]}
+function pastLB(date){if(LBD[date]===undefined&&initFB()){LBD[date]=null;db.ref('lb/citygrid/'+date).once('value').then(s=>{LBD[date]=s.val()||{};if(S&&S.daily===date)render()}).catch(()=>{})}return LBD[date]}
 // ranking table: the top 10, plus your own row if you are further down (today's, or a past day's for archive games)
 function lbView(date){if(!FB_OK||TESTDAY)return '';
   if(date){const src=pastLB(date);if(!src)return `<section class="panel lb"><span class="label">Ranking of grid #${dayNumber(date)}</span><p class="hint">Loading…</p></section>`;
@@ -585,7 +590,7 @@ function dailyStatsFrom(h){const days=Object.keys(h).sort(),day=k=>Math.round(Da
   const set=new Set(days.map(day));while(set.has(d)){streak++;d--}
   return {played:days.length,streak,best:days.length?Math.max(...days.map(k=>h[k].s)):0}}
 /* ---- Solo and With friends games: one entry per finished game, kept on the device and, when signed in,
-   in users/<uid>/games; a public summary of all three modes is published in profiles/<uid> ---- */
+   in users/<uid>/cities/games; a public summary of all three modes is published in gprofiles/citygrid/<uid> ---- */
 function loadGames(){try{return JSON.parse(localStorage.getItem('cc-games')||'[]')||[]}catch(e){return []}}
 function saveGames(g){try{localStorage.setItem('cc-games',JSON.stringify(g.slice(-1000)))}catch(e){}}
 function recordGame(){if(!S||!S.over||S.daily||!S.gid||TEST)return;if(S.mode!=='solo'&&S.mode!=='online')return;
@@ -594,9 +599,9 @@ function recordGame(){if(!S||!S.over||S.daily||!S.gid||TEST)return;if(S.mode!=='
   else{if(S.me<0)return;const sc=S.players.map(p=>p.score||0),mine=sc[S.me],better=sc.filter(x=>x>mine).length,tie=sc.filter(x=>x===mine).length>1;
     e={id:S.gid,m:'f',n:S.n,d:S.diff||'normal',s:mine,c:S.players[S.me].cells||0,np:S.players.length,r:better+1,w:better===0&&!tie?1:0,dr:better===0&&tie?1:0,t:todayKey()}}
   games.push(e);saveGames(games);
-  if(USER&&db)db.ref('users/'+USER.uid+'/games/'+e.id).set(e).catch(()=>{});
+  if(USER&&db)db.ref('users/'+USER.uid+'/cities/games/'+e.id).set(e).catch(()=>{});
   publishSoon()}
-function syncGames(){if(!USER||!db)return Promise.resolve();const ref=db.ref('users/'+USER.uid+'/games');
+function syncGames(){if(!USER||!db)return Promise.resolve();const ref=db.ref('users/'+USER.uid+'/cities/games');
   return ref.once('value').then(snap=>{const remote=snap.val()||{},local=loadGames(),ids=new Set(local.map(g=>g.id)),up={};
     for(const [k,v] of Object.entries(remote))if(!ids.has(k)){local.push({...v,id:k});ids.add(k)}
     for(const g of local)if(!remote[g.id])up[g.id]=g;
@@ -620,7 +625,7 @@ function computeStats(hist,games){
 let pubTimer=null;
 function publishSoon(){clearTimeout(pubTimer);pubTimer=setTimeout(publishProfile,1500)}
 function publishProfile(){if(!USER||!db||!PROFILE)return;
-  db.ref('profiles/'+USER.uid).set({name:PROFILE,...computeStats(loadHist(),loadGames()),u:TS()}).catch(()=>{})}
+  db.ref('gprofiles/citygrid/'+USER.uid).set({name:PROFILE,...computeStats(loadHist(),loadGames()),u:TS()}).catch(()=>{})}
 // today's grid is built once per day and kept, so the home screen can show it before you play
 let dailyCache=null;
 // a day listed in DAILY_FIXED always gets that grid; it is rebuilt from the category labels and checked again
@@ -652,19 +657,19 @@ function playDaily(){
   ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};
   startTurn(true);render();
   // signed in: claim today's try for this device as soon as the game starts; if another device got there first, stop
-  if(USER&&db&&!TESTDAY){const mine=S,ref=db.ref('users/'+USER.uid+'/daily/'+key);
+  if(USER&&db&&!TESTDAY){const mine=S,ref=db.ref('users/'+USER.uid+'/cities/daily/'+key);
     ref.transaction(cur=>!cur||!cur.d?dailyEntry(mine,0):cur.d===ME?cur:undefined).then(r=>{
       if(!r.committed&&otherDevice(r.snapshot.val())&&S===mine){S=null;try{localStorage.removeItem('cc-daily')}catch(e){}
         toast('You already played today\'s grid with this account on another device.','bad');render()}}).catch(()=>{})}
 }
 /* ---- archive: past daily grids, one try each (per account when signed in, otherwise per device).
-   Games are kept in bl-arch on the device and in users/<uid>/archive/<date> (with the whole game, like today's grid).
+   Games are kept in bl-arch on the device and in users/<uid>/cities/archive/<date> (with the whole game, like today's grid).
    They count neither for the daily ranking nor for the streak. ---- */
 function loadArch(){try{return JSON.parse(localStorage.getItem('cc-arch')||'{}')||{}}catch(e){return {}}}
 function saveArchGame(s){const a=loadArch();a[s.daily]=s;try{localStorage.setItem('cc-arch',JSON.stringify(a))}catch(e){}}
 let ARCH_REMOTE=null,archBack='home';const archUp=new Set();
 function syncArch(){if(!USER||!db)return;const uid=USER.uid;
-  db.ref('users/'+uid+'/archive').once('value').then(s=>{if(!USER||USER.uid!==uid)return;ARCH_REMOTE=s.val()||{};
+  db.ref('users/'+uid+'/cities/archive').once('value').then(s=>{if(!USER||USER.uid!==uid)return;ARCH_REMOTE=s.val()||{};
     const a=loadArch();let ch=false;
     for(const [k,v] of Object.entries(ARCH_REMOTE))if(otherDevice(v)&&v.f===1&&v.j&&!(a[k]&&a[k].over&&a[k].adopted===v.d+v.s)){
       try{const g=JSON.parse(v.j);g.adopted=v.d+v.s;a[k]=g;ch=true}catch(e){}}
@@ -673,7 +678,7 @@ function syncArch(){if(!USER||!db)return;const uid=USER.uid;
 function recordArchive(s){if(!USER||!db||TESTDAY||archUp.has(s.daily))return;
   const r=(ARCH_REMOTE||{})[s.daily];if(r&&r.d===ME&&r.f===1&&r.j)return;
   archUp.add(s.daily);const full={...dailyEntry(s,1),j:JSON.stringify(s)};
-  db.ref('users/'+USER.uid+'/archive/'+s.daily).transaction(cur=>!cur||!cur.d||cur.d===ME?full:undefined)
+  db.ref('users/'+USER.uid+'/cities/archive/'+s.daily).transaction(cur=>!cur||!cur.d||cur.d===ME?full:undefined)
     .then(x=>{if(x.committed&&ARCH_REMOTE)ARCH_REMOTE[s.daily]=full}).catch(()=>archUp.delete(s.daily))}
 // the day's own try (from the daily stats: this device's or the account's): an archive grid you played on its day
 const onDay=k=>loadHist()[k]||null;
@@ -711,14 +716,14 @@ function playArchive(k){const a=loadArch(),r=(ARCH_REMOTE||{})[k];
   startTurn(true);render();window.scrollTo(0,0);
   // signed in: claim this grid's try for this device; if another device got there first, stop
   if(USER&&db&&!TESTDAY){const mine=S;
-    db.ref('users/'+USER.uid+'/archive/'+k).transaction(cur=>!cur||!cur.d?dailyEntry(mine,0):cur.d===ME?cur:undefined).then(x=>{
+    db.ref('users/'+USER.uid+'/cities/archive/'+k).transaction(cur=>!cur||!cur.d?dailyEntry(mine,0):cur.d===ME?cur:undefined).then(x=>{
       if(!x.committed&&otherDevice(x.snapshot.val())&&S===mine){S=null;const b=loadArch();delete b[k];try{localStorage.setItem('cc-arch',JSON.stringify(b))}catch(e){}
         toast('You already played this grid with this account on another device.','bad');screen='archive';render()}}).catch(()=>{})}}
 // a grid you played on its day: show that game (kept on this device for yesterday, or in the account), never replay it
 function showOnDay(k){const e=onDay(k),open=g=>{if(!g||g.daily!==k){toast(e.f===0?'You started this grid on its day. One try per grid.':`You played this grid on its day: ${e.s} points.`);return}
     ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};screen='home';S={...g,archive:true,dayof:true,over:true};render();window.scrollTo(0,0)};
   try{const d=JSON.parse(localStorage.getItem('cc-daily')||'null');if(d&&d.date===k&&d.S){open(d.S);return}}catch(x){}
-  if(USER&&db)db.ref('users/'+USER.uid+'/daily/'+k+'/j').once('value').then(v=>{let g=null;try{g=JSON.parse(v.val())}catch(x){}open(g)}).catch(()=>open(null));
+  if(USER&&db)db.ref('users/'+USER.uid+'/cities/daily/'+k+'/j').once('value').then(v=>{let g=null;try{g=JSON.parse(v.val())}catch(x){}open(g)}).catch(()=>open(null));
   else open(null)}
 // big or hard grids can take a second to build: show a note first so the screen does not look frozen
 function buildThenStart(){if(setup.n===5||setup.diff!=='normal')toast('Building a grid that can always be completed…');setTimeout(startGame,40)}
@@ -855,7 +860,7 @@ try{ME=localStorage.getItem('cc-pid')||''}catch(e){}
 if(!ME){ME='p'+Math.random().toString(36).slice(2,10);try{localStorage.setItem('cc-pid',ME)}catch(e){}}
 function initFB(){
   if(!FB_OK||db)return!!db;
-  try{firebase.initializeApp(FIREBASE_CONFIG);db=firebase.database();db.ref('.info/serverTimeOffset').on('value',s=>{offset=s.val()||0})}catch(e){console.error(e);return false}
+  try{if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);db=firebase.database();db.ref('.info/serverTimeOffset').on('value',s=>{offset=s.val()||0})}catch(e){console.error(e);return false}
   return true;
 }
 const TS=()=>firebase.database.ServerValue.TIMESTAMP;
@@ -879,7 +884,7 @@ function saveProfile(v){const name=(v||'').trim().slice(0,16);if(!name){toast('T
 const AUTH_OK=FB_OK&&typeof firebase.auth==='function';
 // keep the account's entry for today up to date, so another device that starts today's grid locks it here at once
 function watchToday(){if(acctRef){acctRef.off();acctRef=null}ACCT_TODAY=null;if(!USER||!db||TESTDAY)return;
-  acctRef=db.ref('users/'+USER.uid+'/daily/'+todayKey());
+  acctRef=db.ref('users/'+USER.uid+'/cities/daily/'+todayKey());
   acctRef.on('value',s=>{ACCT_TODAY=s.val();
     if(otherDevice(ACCT_TODAY)){const h=loadHist(),{j,...entry}=ACCT_TODAY;h[todayKey()]=entry;saveHist(h)}
     adoptDaily(ACCT_TODAY);
@@ -900,7 +905,7 @@ function signOut(){if(!AUTH_OK)return;firebase.auth().signOut().then(()=>{
   S=null;screen='home';ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};editingUser=false;render();window.scrollTo(0,0)}).catch(()=>{})}
 // merge the stats saved in your account with the ones on this device and save both ways;
 // a day already in the account always wins (one try per account), days only on this device are uploaded
-function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/daily');
+function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/cities/daily');
   ref.once('value').then(snap=>{const remote=snap.val()||{},local=loadHist(),up={};
     for(const [k,v] of Object.entries(remote)){const {j,...r}=v;local[k]=r} // the stats don't need the whole game (j)
     adoptDaily(remote[todayKey()]);
@@ -910,7 +915,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/da
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202610242200';
+const APP_VERSION='202610242300';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
@@ -1182,7 +1187,7 @@ function seg(name,opts,val){return `<div class="seg" role="group">${opts.map(([v
 let STATS_UID=null,statsBack='home';const statsCache={};
 function openStats(uid){STATS_UID=uid||null;if(screen!=='stats')statsBack=screen;screen='stats';ui.reveal=-1;
   if(STATS_UID&&!(USER&&STATS_UID===USER.uid)&&statsCache[STATS_UID]===undefined&&initFB())
-    db.ref('profiles/'+STATS_UID).once('value').then(s=>{statsCache[STATS_UID]=s.val()||null;render()}).catch(()=>{statsCache[STATS_UID]=null;render()});
+    db.ref('gprofiles/citygrid/'+STATS_UID).once('value').then(s=>{statsCache[STATS_UID]=s.val()||null;render()}).catch(()=>{statsCache[STATS_UID]=null;render()});
   render();window.scrollTo(0,0)}
 function statsView(){
   const mine=!STATS_UID||(USER&&STATS_UID===USER.uid);let st,name;
@@ -1594,7 +1599,7 @@ function bind(){
   // test reset: forget today's game on this device and, when signed in, in the account too (the public ranking keeps its first result)
   if($('dreset'))$('dreset').onclick=()=>{try{localStorage.removeItem('cc-daily');const h=loadHist();delete h[todayKey()];saveHist(h)}catch(e){}
     dailyCache=null;S=null;dailyUp='';
-    if(USER&&db&&!TESTDAY)db.ref('users/'+USER.uid+'/daily/'+todayKey()).remove().catch(()=>{});
+    if(USER&&db&&!TESTDAY)db.ref('users/'+USER.uid+'/cities/daily/'+todayKey()).remove().catch(()=>{});
     toast('Today\'s grid reset (test mode).','good');render()};
   app.querySelectorAll('[data-dcell]').forEach(b=>b.onclick=()=>{const ci=+b.dataset.dcell;playDaily();
     if(S&&S.daily&&!S.over&&S.cells[ci].o<0){ui.sel=ci;ui.query='';render()}});

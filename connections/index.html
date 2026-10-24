@@ -19,7 +19,8 @@
 <link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
-<script src="../brand/mingo.js?v=202610242200"></script>
+<script src="../brand/mingo.js?v=202610242300"></script>
+<script src="../brand/account.js?v=202610242300"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -77,7 +78,7 @@
 .lp.me{border-color:var(--sea)}
 .primary[disabled]{opacity:.5;cursor:default}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610242200">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610242300">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -169,7 +170,7 @@ function save(){if(!S)return;
   if(S.mode==='online'){if(S.over&&S.ms==null)S.ms=Math.max(0,now()-((room&&room.startAt)||now()));
     keep('cx-online',{code:S.code,round:S.round,S});pushProgress();return}
   if(S.mode==='daily'){store('cx-daily',{date:S.date,over:S.over,S});
-    if(S.over){const h=load('cx-hist',{});if(!h[S.date]){h[S.date]={w:S.won?1:0,m:S.mistakes};store('cx-hist',h)}}}
+    if(S.over){const h=load('cx-hist',{});if(!h[S.date]){h[S.date]={w:S.won?1:0,m:S.mistakes};store('cx-hist',h);if(!TESTDAY)Geomingo.account.done('connections')}}}
   else store('cx-free',S)}
 function openDaily(){view='game';mode='daily';S=dailySaved()||newGame('daily',seedOf('connections-daily-'+todayKey()));sel=[];render()}
 function openFree(seed){view='game';mode='free';const f=load('cx-free',null);
@@ -190,7 +191,7 @@ let db=null,offset=0,room=null,roomRef=null,roomCode=null,joining=false,joinCode
 const TS=()=>firebase.database.ServerValue.TIMESTAMP;
 const now=()=>Date.now()+offset;
 function initFB(){if(!FB_OK)return false;if(db)return true;
-  try{firebase.initializeApp(FIREBASE_CONFIG);db=firebase.database();db.ref('.info/serverTimeOffset').on('value',s=>{offset=s.val()||0});
+  try{if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);db=firebase.database();db.ref('.info/serverTimeOffset').on('value',s=>{offset=s.val()||0});
     // back online: mark me as here again, and as away when the connection drops
     db.ref('.info/connected').on('value',s=>{if(!s.val()||!roomRef)return;const ref=roomRef,on=ref.child('players/'+ME+'/on');
       on.onDisconnect().set(false);ref.child('players/'+ME).once('value',p=>{if(p.exists()&&ref===roomRef)on.set(true)})})}
@@ -361,7 +362,7 @@ function homeHTML(){const key=todayKey(),num=dayNum(key,CX_FIRST),d=dailySaved()
   const hi=d&&d.over?Geomingo.hello(d.won?'happy':'think',d.won?'Stamped for today.'+(st>1?' '+st+'-day streak.':''):'Rough crossing today.',`Today's puzzle is done. Next one in ${nextIn()}.`)
     :d?Geomingo.hello('think','Your puzzle is waiting.','Tap a country to carry on. One try.')
     :Geomingo.hello('pass','GeoPass ready.','Tap a country to start. Every group you find is a stamp. One try, the same 16 for everyone.');
-  return header('Connec<span>tions</span>','',true)+`<section class="home">${hi}${daily}
+  return header('Connec<span>tions</span>','',true)+`<section class="home">${hi}${Geomingo.account.userHTML()}${daily}${d&&d.over?rankingHTML():''}
     <div class="hrow"><button class="hcard" data-go="free"><span class="ht">Solo</span><span class="hs">Practice on unlimited puzzles, at your pace.</span></button>
     <!-- With friends is switched off for now (the online rooms code stays for later; a shared ?room= link still opens a room) -->
     <div class="hcard soon" aria-disabled="true"><span class="ht">With friends</span><span class="hs">Play online, 2 to ${MAX_PLAYERS} players.</span><span class="hm">(coming soon)</span></div></div></section>
@@ -412,7 +413,12 @@ function resultHTML(){const v=verdict();
     <pre class="sharebox" id="share">${esc(shareText())}</pre>
     <div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="ghost" id="again" style="flex:1">${S.mode==='daily'?'Practice puzzle':'New puzzle'}</button></div>
     ${nextGameHTML('connections')}
-    ${S.mode==='daily'?`<span class="label">Your daily puzzles</span>${statsHTML()}`:''}</section>`}
+    ${S.mode==='daily'?`<span class="label">Your daily puzzles</span>${statsHTML()}`:''}</section>${S.mode==='daily'?rankingHTML():''}`}
+// today's ranking (signed-in players, first try of the day): groups found, then fewer mistakes, then who finished first
+const rankingHTML=()=>Geomingo.account.rankingHTML('connections',{what:'puzzle',score:r=>[r.s===4?'Solved':r.s+'/4',r.m+' mistake'+(r.m===1?'':'s')]});
+// signed in or out, today's result arrived from another device, the ranking moved: show it (not while typing)
+Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&S&&S.mode==='daily'){const d=dailySaved();if(d){S=d;sel=[];liveKey=''}}
+  if(!typing&&(view==='home'||view==='game'&&S&&S.over))render()});
 // the room's ranking, live while the others finish; the next game starts when everyone still here is done
 function roomResultHTML(){const list=ranked(),cur=list.filter(p=>p.cur),pos=cur.findIndex(p=>p.pid===ME)+1;
   const waiting=cur.some(p=>!p.done&&p.on!==false);
