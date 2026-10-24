@@ -315,3 +315,19 @@ button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
 /* in the dark, navy pieces get a thin edge so they stand out from the page */
 :root[data-theme="dark"] .gm-big:not(.coral):not(.pink):not(.ghost),:root[data-theme="dark"] .gm-pass{box-shadow:inset 0 0 0 1px var(--line)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .gm-big:not(.coral):not(.pink):not(.ghost),:root:not([data-theme="light"]) .gm-pass{box-shadow:inset 0 0 0 1px var(--line)}}
+
+/* ---------- the account (brand/account.js): header button, its menu, the name window ---------- */
+.gm-acctslot{display:contents}
+.gm-acct{min-height:44px;min-width:44px;padding:0 12px;border-radius:10px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;
+  font-family:var(--display);font-weight:800;font-stretch:105%;font-size:13px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;flex:none}
+.gm-acct.me{padding:0;width:44px;border-radius:50%;border:0;background:var(--coral);color:var(--on-coral);font-size:19px;letter-spacing:0}
+.gm-acct:hover{border-color:var(--coral-text)}
+.gm-ascrim{position:fixed;inset:0;z-index:48}
+.gm-amenu{position:fixed;z-index:49;width:min(290px,calc(100vw - 16px));background:var(--page);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.gm-amenu b{font-family:var(--display);font-weight:800;font-stretch:92%;font-size:20px;text-transform:uppercase;line-height:1.1}
+.gm-amenu small{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis}
+.gm-amenu p{margin:8px 0 10px;font-size:14px;color:var(--muted)}
+.gm-amenu .gm-big{min-height:44px;font-size:15px}
+.gm-input{min-height:50px;border:1.5px solid var(--ink);border-radius:8px;background:var(--bg);color:var(--ink);padding:10px 14px;font-size:17px;width:100%}
+.gm-namebox .gm-rbody{gap:10px}
+.lb .ghost[data-gm-signin]{align-self:flex-start;margin-top:8px}

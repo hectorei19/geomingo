@@ -85,8 +85,10 @@ function pass(){let p=json('gm-pass');
 const hsh=s=>{let h=7;for(const ch of String(s))h=(h*31+ch.charCodeAt(0))%9973;return h};
 const INK=['var(--green)','var(--blue)','var(--violet)','var(--coral-text)'];
 // one stamp: stamp('borderline','Strasbourg','FR') when a right answer lands
-function stamp(g,t,s){const p=pass();p.n++;p.list.push({g,t:String(t),s:s?String(s):'',d:dayKey()});p.list=p.list.slice(-240);
-  store.set('gm-pass',JSON.stringify(p));refreshPass();return p.n}
+// whoever listens (../brand/account.js keeps the GeoPass in your account) hears of every new stamp
+const stampHooks=[];
+function stamp(g,t,s){const p=pass(),x={g,t:String(t),s:s?String(s):'',d:dayKey()};p.n++;p.list.push(x);p.list=p.list.slice(-240);
+  store.set('gm-pass',JSON.stringify(p));refreshPass();stampHooks.forEach(f=>{try{f(x)}catch(e){}});return p.n}
 const stamps=()=>pass().n;
 const stampsToday=g=>pass().list.filter(x=>x.d===dayKey()&&(!g||x.g===g)).length;
 // a stamp: name, small line, optional flag picture; a player class (c0…c5) gives the player's ink instead
@@ -132,10 +134,12 @@ const ICO={back:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" str
 const logo='<span class="gm-logo">geo<span>mingo</span></span>';
 const passBtn=()=>{const n=stamps();return '<button class="gm-pass" data-gm-pass aria-label="Open your GeoPass: '+n+' stamps" title="Your GeoPass"><i aria-hidden="true">✦</i><span class="gm-pw">GEOPASS</span><b>'+fmt(n)+'</b></button>'};
 const themeBtn=()=>'';
+// the account button (Sign in, or your initial): ../brand/account.js fills it in once it knows who is playing
+const acctSlot=()=>'<span class="gm-acctslot" data-gm-acctslot>'+(window.Geomingo&&Geomingo.acctHTML?Geomingo.acctHTML():'')+'</span>';
 function header(o){o=o||{};
-  if(!o.game)return '<header class="gm-top"><h1 class="gm-logo">geo<span>mingo</span></h1><span class="gm-spacer"></span>'+passBtn()+themeBtn()+'</header>';
+  if(!o.game)return '<header class="gm-top"><h1 class="gm-logo">geo<span>mingo</span></h1><span class="gm-spacer"></span>'+passBtn()+acctSlot()+themeBtn()+'</header>';
   const g=GAMES.find(x=>x.name===o.game),gate=g?'Gate '+g.gate:'',sub=[gate,o.coord].filter(Boolean).join(' · ');
-  return '<header class="gm-top"><a class="gm-home" href="'+HOME+'" aria-label="All Geomingo games">'+ICO.back+logo+'</a><span class="gm-spacer"></span>'+passBtn()+themeBtn()+'</header>'+
+  return '<header class="gm-top"><a class="gm-home" href="'+HOME+'" aria-label="All Geomingo games">'+ICO.back+logo+'</a><span class="gm-spacer"></span>'+passBtn()+acctSlot()+themeBtn()+'</header>'+
     '<div class="gm-bar"><h2 class="gm-title" id="brand" role="link" tabindex="0" title="'+esc(o.game)+' home">'+esc(o.game)+(sub?'<small>'+esc(sub)+'</small>':'')+'</h2><span class="gm-spacer"></span>'+(o.menu||'')+'</div>'}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-gm-theme],[data-gm-pass]');if(!t)return;e.preventDefault();
   if(t.hasAttribute('data-gm-theme'))toggleTheme();else openPass()});
@@ -191,5 +195,5 @@ function mini(list,cols){return '<div class="gm-mini" style="grid-template-colum
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
   days,streak,pass,stamp,stamps,stampsToday,stampHTML,openPass,mingo,hello,header,passBtn,themeBtn,toggleTheme,currentTheme,
-  resultWindow,closeWindow,mini,esc,share:name=>'Geomingo · '+name};
+  resultWindow,openWindow,closeWindow,mini,esc,refreshPass,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();

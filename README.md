@@ -28,9 +28,21 @@ One source for every game. The games load these files from `../brand/`:
 
 - `geomingo.css` – the travel / passport look: colour tokens (paper, navy cover, coral, gold, stamp inks; light and dark, `data-theme`), the fonts Archivo, Public Sans and Courier Prime, the brand components (`gm-*`: header with the GeoPass button, theme button, Mingo's bubble, departures board, stamps, big buttons, result card, GeoPass booklet, toast) and the games' common pieces (panel, buttons, grid, answer sheet, Menu) in the brand's look. Load it after the game's own styles.
 - `mingo.js` – `window.Geomingo`: Mingo in his poses (`mingo('pass'|'happy'|'sad'|'think'|'head', width)`), his speech bubble (`hello`), the shared header (`header`), the result card (`resultWindow`), the GeoPass (`stamp`, `stamps`, `stampsToday`, `openPass`), the list of games with their gates, "played today" and today's score (`GAMES`, `result`, `nextGame`) and the streak. Load it in the `<head>`, before the page's own scripts: it applies the saved light/dark choice before anything is drawn.
+- `account.js` – `Geomingo.account`: one Google sign-in for the whole site (Firebase project borderline-90920; the sign-in is shared by every page because they are one website). It adds the header button (Sign in, or your initial with Sign out), and for Connections, Top 10 and Silhouette the "Playing as … / Sign in to join the daily ranking" banner (`userHTML`), today's ranking (`rankingHTML`) and the saving of each daily result (`done(game)`, called by the game when today's puzzle ends). Load it right after `mingo.js`; it loads the Firebase SDK itself on pages that don't. Countries and Cities keep their own sign-in code and share the same account and name.
 - `icons/` – favicon and app icons (Mingo's head), `og.png` – the picture shown when a link is shared, `site.webmanifest`.
 
 Saved on the device by the brand (new keys; the games' own keys never change): `gm-theme` (light or dark, for every game), `gm-days` (days with at least one daily game played, for the streak; filled in the first time from the games' histories) and `gm-pass` (the GeoPass: total stamps and the last 240, one stamp per right answer in any game; filled in the first time from the games' histories).
+
+## The account (Firebase Realtime Database)
+
+Signing in is optional. With an account, everything below follows you to every device; signing out leaves the device clean (the account keeps it all):
+
+- `users/<uid>/profile` – your name, chosen once, shown in every ranking (the same one Countries has always used)
+- `users/<uid>/pass`, `users/<uid>/days` – the GeoPass and the days played (the streak), for every game
+- `users/<uid>/hist/<game>/<date>` – the daily results of Connections (`connections`), Top 10 (`top10`) and Silhouette (`sil-easy`, `sil-normal`, `sil-hard`), with today's whole game, so another device shows the same one (one try per account)
+- `lb/<game>/<date>/<uid>` – each game's public daily ranking (`{name, s, m, t}`: more `s` first, then fewer `m`, then who finished first); each account writes its result once. Cities uses `lb/citygrid/…`, `users/<uid>/cities/…` and `gprofiles/citygrid/…`; Countries keeps `leaderboard/…`, `users/<uid>/daily…` and `profiles/…`.
+
+The rules are in `countries/database.rules.json`: paste them in Firebase → Realtime Database → Rules and Publish after changing them.
 
 A game marked `soon:true` in `GAMES` (`brand/mingo.js`) shows as "Coming soon" and is left out of the menus.
 

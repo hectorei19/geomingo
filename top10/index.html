@@ -26,7 +26,8 @@
 <link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
-<script src="../brand/mingo.js?v=202610242200"></script>
+<script src="../brand/mingo.js?v=202610242300"></script>
+<script src="../brand/account.js?v=202610242300"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -63,7 +64,7 @@
 .lives i{background:var(--flamingo)}
 .lives .cnt{font-family:var(--body);font-weight:800}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610242200">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610242300">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -133,7 +134,7 @@ let S=null,mode='daily',view='home',query='',fresh=null,typing=false;
 const dailySaved=()=>{const d=load('t10-daily',null);return d&&d.date===todayKey()?d.S:null};
 function save(){if(!S||S.mode==='online')return;
   if(S.mode==='daily'){store('t10-daily',{date:S.date,over:S.over,S});
-    if(S.over){const h=load('t10-hist',{});if(!h[S.date]){h[S.date]={f:S.found.length,l:S.lives};store('t10-hist',h)}}}
+    if(S.over){const h=load('t10-hist',{});if(!h[S.date]){h[S.date]={f:S.found.length,l:S.lives};store('t10-hist',h);if(!TESTDAY)Geomingo.account.done('top10')}}}
   else store('t10-free',S)}
 // today's game, saved or new (a new one is saved at the first answer)
 function dailyGame(){const d=dailySaved();return d&&d.date===todayKey()?d:newGame('daily',dailyList(todayKey()))}
@@ -352,7 +353,7 @@ function homeHTML(){const key=todayKey(),num=dayNum(key,T10_FIRST),d=dailySaved(
   const st=Geomingo.streak();
   const hi=d&&d.over?Geomingo.hello(d.found.length>=6?'happy':'think',d.found.length>=6?'Stamped for today.'+(st>1?' '+st+'-day streak.':''):'Rough crossing today.',`Today's list is done. Next one in ${nextIn()}.`)
     :moodHTML(tKey(),d?'think':'pass',d?'Your list is waiting.':'GeoPass ready.',d?'Keep going: type a country. One try.':'Type a country to start. Every one in the top 10 is a stamp. One try, the same ranking for everyone.');
-  return header('Top <span>10</span>','',true)+`<section class="home">${hi}${daily}
+  return header('Top <span>10</span>','',true)+`<section class="home">${hi}${Geomingo.account.userHTML()}${daily}${d&&d.over?rankingHTML():''}
     <div class="hrow"><button class="hcard" data-go="free"><span class="ht">Solo</span><span class="hs">Practice on unlimited lists, at your pace.</span></button>
     <!-- With friends is switched off for now (the online rooms code stays for later; a shared ?room= link still opens a room) -->
     <div class="hcard soon" aria-disabled="true"><span class="ht">With friends</span><span class="hs">Play online, 2 to ${MAXP} players.</span><span class="hm">(coming soon)</span></div></div></section>
@@ -421,7 +422,12 @@ function resultHTML(){const v=verdict();
     <pre class="sharebox" id="share">${esc(shareText())}</pre>
     <div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="ghost" id="again" style="flex:1">${S.mode==='daily'?'Practice list':'New list'}</button></div>
     ${nextGameHTML('top10')}
-    ${S.mode==='daily'?`<span class="label">Your daily lists</span>${statsHTML()}`:''}</section>`}
+    ${S.mode==='daily'?`<span class="label">Your daily lists</span>${statsHTML()}`:''}</section>${S.mode==='daily'?rankingHTML():''}`}
+// today's ranking (signed-in players, first try of the day): countries found, then fewer misses, then who finished first
+const rankingHTML=()=>Geomingo.account.rankingHTML('top10',{what:'list',score:r=>[r.s+'/10',r.m?r.m+' miss'+(r.m===1?'':'es'):'no misses']});
+// signed in or out, today's result arrived from another device, the ranking moved: show it (not while typing)
+Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&S&&S.mode==='daily'){const d=dailySaved();if(d){S=d;liveKey=''}}
+  if(!typing&&!roomCode&&(view==='home'||view==='game'&&S&&S.over))render()});
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Each round is a ranking of countries made from real figures, for example "The 10 most populous countries" or "The 10 countries with the longest coastline".</li>
   <li>Name the ten countries in the ranking, in any order. Each one you find appears in its place, with its figure.</li>

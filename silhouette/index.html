@@ -19,7 +19,8 @@
 <link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
-<script src="../brand/mingo.js?v=202610242200"></script>
+<script src="../brand/mingo.js?v=202610242300"></script>
+<script src="../brand/account.js?v=202610242300"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -72,7 +73,7 @@
 .ready{display:flex}
 @media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610242200">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610242300">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -173,7 +174,7 @@ const dailyAll=()=>{const d=load('sil-daily',null);return d&&d.date===todayKey()
 function dailyGame(diff){const d=dailyAll();
   return d[diff]||{diff,date:todayKey(),num:dayNum(todayKey(),DAILY_FIRST),qs:dailyBoard(todayKey(),diff),sel:0,over:false}}
 function dailySave(){if(!D)return;const d=dailyAll();d[D.diff]=D;d.over=d.over||D.over;store('sil-daily',d);
-  if(D.over){const h=load('sil-hist',{}),day=h[D.date]||{};if(day[D.diff]==null){day[D.diff]=D.qs.filter(q=>q.st==='right').length;h[D.date]=day;store('sil-hist',h)}}}
+  if(D.over){const h=load('sil-hist',{}),day=h[D.date]||{};if(day[D.diff]==null){day[D.diff]=D.qs.filter(q=>q.st==='right').length;h[D.date]=day;store('sil-hist',h);if(!TESTDAY)Geomingo.account.done('sil-'+D.diff)}}}
 function dailyPick(code){const q=D.qs[D.sel];if(!q||q.st!=='play')return;
   const res=answer(q,code);query='';typing=res==='wrong';
   if(res!=='wrong'){const next=D.qs.findIndex((x,i)=>i>D.sel&&x.st==='play'),any=D.qs.findIndex(x=>x.st==='play');
@@ -208,7 +209,12 @@ function dailyResultHTML(G){const r=rightOf(G),v=verdict(G);
     <div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="ghost" data-go="train" style="flex:1">Training</button></div>
     ${['easy','normal','hard'].filter(v=>!(dailyAll()[v]||{}).over).length?`<p class="hint">Also today: ${['easy','normal','hard'].filter(v=>!(dailyAll()[v]||{}).over).map(v=>`<button class="linkbtn" data-dd="${v}" style="padding:0">${DIFF_NAME[v]}</button>`).join(' · ')}</p>`:''}
     ${nextGameHTML('silhouette')}
-    <span class="label">Your daily boards</span>${statsHTML()}</section>`}
+    <span class="label">Your daily boards</span>${statsHTML()}</section>${rankingHTML(G.diff)}`}
+// today's ranking of each level (signed-in players, first try of the day): shapes named, then fewer wrong tries, then who finished first
+const rankingHTML=diff=>Geomingo.account.rankingHTML('sil-'+diff,{title:"Today's ranking · "+DIFF_NAME[diff],what:DIFF_NAME[diff]+' board',score:r=>[r.s+'/9',r.m+' wrong '+(r.m===1?'try':'tries')]});
+// signed in or out, today's boards arrived from another device, the ranking moved: show it (not while typing)
+Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&D.date===todayKey()){D=dailyGame(D.diff);liveKey=''}
+  if(!typing&&!roomCode&&(view==='home'||view==='daily'&&D&&D.over))render()});
 function openDaily(diff){if(diff)store('sil-ddiff',diff);D=dailyGame(diff||load('sil-ddiff','normal'));query='';view='daily';render();window.scrollTo(0,0)}
 function dailyHTML(){let h=header('Silhou<span>ette</span>','Daily #'+D.num);
   h+=`<div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Today's shapes</span></div>`+dailyTabs(D.diff);
@@ -470,7 +476,7 @@ function homeHTML(){const key=todayKey(),diff=load('sil-ddiff','normal');
     daily=`<button class="hcard" id="daily"><span class="hm">Today's shapes #${D.num} · ${DIFF_NAME[D.diff]} · done</span><span class="dsum"><span class="dsq" aria-hidden="true">${D.qs.map(q=>`<i class="${q.st==='right'?(q.tries.length?'mid':'on'):'bad'}"></i>`).join('')}</span><span class="dtxt"><span class="ht">${rightOf(D)} of 9</span><span class="hs">shapes named</span></span><span class="dstats"><span><b>${streakOf(h)}</b>streak</span><span><b>${Object.keys(h).length}</b>played</span></span></span><span class="hs">Tap to see the board and share your result.</span><span class="hm">Next board in ${nextIn()}</span></button>`}
   else daily=`<div class="hcard ac play"><span class="hm">#${D.num} · ${dateLabel(key)}</span><span class="ht">Today's shapes</span><span class="hs">${D.qs.some(q=>q.st!=='play')?'You started it: keep going.':'Nine countries, the same for everyone. Tap a shape or type to start.'}</span>${dailyPlayHTML(D)}</div>`;
   const hello=D.over?Geomingo.hello(verdict(D).pose,'Done for today: '+rightOf(D)+' of 9.','Next board in '+nextIn()+'. Try another level or Training.'):dailyMood();
-  return header('Silhou<span>ette</span>','',true)+`<section class="home">${hello}${dailyTabs(D.diff)}${daily}
+  return header('Silhou<span>ette</span>','',true)+`<section class="home">${hello}${Geomingo.account.userHTML()}${dailyTabs(D.diff)}${daily}${D.over?rankingHTML(D.diff):''}
     <div class="hrow"><button class="hcard" data-go="train"><span class="ht">Training</span><span class="hs">Unlimited shapes, at the level you choose.</span></button>
     <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to 6 players, each on their own phone.</span></button></div></section>
     ${quickRules(' Full rules in <b>How to play</b>.')}`}
