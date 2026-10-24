@@ -16,10 +16,10 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="../brand/icons/favicon.svg?v=202610242100" type="image/svg+xml">
-<link rel="icon" href="../brand/icons/favicon-32.png?v=202610242100" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242100">
-<script src="../brand/mingo.js?v=202610242100"></script>
+<link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
+<link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
+<script src="../brand/mingo.js?v=202610242200"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -295,7 +295,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .respanel .gm-hello{margin:-4px 0 -6px}
 .corner .mingo{width:auto;height:88%}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610242100">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610242200">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -1089,7 +1089,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/da
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202610242100';
+const APP_VERSION='202610242200';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
@@ -1417,8 +1417,9 @@ function confirmPlayers(){
 // home: three ways to play. 'solo' and 'friends' are the settings screens behind two of them
 let screen='home';
 const screenFor=s=>!s?'home':s.archive?'archive':s.daily?'home':s.mode==='solo'?'solo':'friends';
-// top-left corner of a board: Mingo's head (the daily number is in the title)
-const cornerHTML=day=>`<div class="corner" aria-hidden="true">${Geomingo.mingo('head',30)}</div>`;
+// top-left corner of a board: the daily grid shows its number (GRID #3), other games Mingo's head
+const cornerHTML=day=>day?`<div class="corner dnum" aria-label="Grid number ${day}"><span class="dl">Grid</span><span class="dn${day>=100?' long':''}">#${day}</span></div>`
+  :`<div class="corner" aria-hidden="true">${Geomingo.mingo('head',30)}</div>`;
 // a right answer on the grid: a passport stamp with the flag, the name, its code and its points
 const stampCell=(c,cell,cls)=>Geomingo.stampHTML(c.n,c.c+' · +'+((cell.p||0)+(cell.sb||0)),cls,FLAGS[c.c]);
 // today's grid shown open on the home screen: tapping a square starts (or continues) the daily game there
