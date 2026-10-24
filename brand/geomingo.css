@@ -1,4 +1,4 @@
-/* Geomingo: the brand shared by every game (hectorei19.github.io/geomingo/<game>/ loads ../brand/geomingo.css).
+/* Geomingo: the brand shared by every game (geomingo.com/<game>/ loads ../brand/geomingo.css).
    The look is travel paperwork: Mingo travels with a GeoPass and every right answer is a stamp in it.
    1. tokens (light and dark, data-theme)  2. names the games' own styles already use, pointed at the tokens
    3. brand components (gm-*)  4. the games' common pieces (panel, buttons, grid, sheet, menu…) in the brand's look.

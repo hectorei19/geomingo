@@ -4,7 +4,7 @@
 (function(){
 'use strict';
 const SRC=document.currentScript&&document.currentScript.src||location.href;
-const HOME=new URL('../',SRC).href;          // the Geomingo home page (hectorei19.github.io/geomingo/)
+const HOME=new URL('../',SRC).href;          // the Geomingo home page (geomingo.com/)
 const ROOT=HOME;                             // the games live in folders of the home page
 
 /* ---------- light / dark: the choice is kept for every game (gm-theme) ---------- */
