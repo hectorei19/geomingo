@@ -1090,7 +1090,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/da
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202610242300';
+const APP_VERSION='202610250100';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
@@ -1130,6 +1130,8 @@ async function joinRoom(raw){
     const res=await ref.transaction(r=>{
       if(!r)return r;
       r.players=r.players||{};
+      // Countries' rooms carry no game name; the other games' rooms (Cities, Connections, Top 10, Silhouette) do
+      if(r.game){why='other';return}
       if(r.v&&r.v!==APP_VERSION){why='version';return}
       if(r.players[ME]){r.players[ME].name=roomName();r.players[ME].on=true;if(USER)r.players[ME].uid=USER.uid;return r}
       if(r.status!=='lobby'){why='started';return}
@@ -1139,7 +1141,7 @@ async function joinRoom(raw){
     const val=res.snapshot.val();
     if(!val){toast('No room called '+code+'. Check the code.','bad');return}
     if(!res.committed||!val.players||!val.players[ME]){
-      toast(why==='version'?'You and the host have different versions of the game. Both of you reload the page, then try again.':why==='full'?'Room '+code+' already has 6 players.':why==='started'?'That game has already started. Ask the host for a rematch.':'Could not join '+code+'.','bad');return}
+      toast(why==='other'?code+' is a room of another game. Open that game to join it.':why==='version'?'You and the host have different versions of the game. Both of you reload the page, then try again.':why==='full'?'Room '+code+' already has 6 players.':why==='started'?'That game has already started. Ask the host for a rematch.':'Could not join '+code+'.','bad');return}
     listenRoom(code);
   }catch(e){console.error(e);toast('Could not join. Check the connection and try again.','bad')}
   finally{joining=false}
@@ -1263,7 +1265,7 @@ function lobbyView(){
   const r=room,order=lobbyOrder(r),isHost=r.host===ME;
   const link=location.origin+location.pathname+'?room='+roomCode;
   return `<section class="panel namecard"><span class="label">Room code</span><p class="roomcode">${roomCode}</p>
-    <p class="hint">Friends open this site, choose <b>Online</b>, then type this code under Join. Or send them the link:</p>
+    <p class="hint">Friends open this site, choose <b>With friends</b>, then type this code under Join. Or send them the link:</p>
     <pre class="sharebox" id="linkbox">${esc(link)}</pre>
     <button class="ghost" id="copylink">Copy link</button>
     ${versionOK(r)?'':'<p class="hint" style="color:var(--bad)">This room was made with a different version of the game. Reload the page; if it still shows this, ask the host to reload and create a new room.</p>'}

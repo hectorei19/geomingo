@@ -228,7 +228,7 @@ async function joinRoom(raw){
     const val=res.snapshot.val();
     if(!val){toast('No room called '+code+'. Check the code.','bad');return}
     if(!res.committed||!val.players||!val.players[ME]){
-      toast(why==='other'?code+' is a room of another game (Countries?). Open that game to join it.':why==='version'?'You and the host have different versions of the game. Both of you reload the page, then try again.':why==='full'?'Room '+code+' already has '+MAXP+' players.':why==='started'?'That game has already started. Ask the host for a rematch.':'Could not join '+code+'.','bad');return}
+      toast(why==='other'?code+' is a room of another game. Open that game to join it.':why==='version'?'You and the host have different versions of the game. Both of you reload the page, then try again.':why==='full'?'Room '+code+' already has '+MAXP+' players.':why==='started'?'That game has already started. Ask the host for a rematch.':'Could not join '+code+'.','bad');return}
     listenRoom(code)}catch(e){console.error(e);toast('Could not join. Check the connection and try again.','bad')}
   finally{joining=false}}
 function listenRoom(code){
@@ -355,8 +355,7 @@ function homeHTML(){const key=todayKey(),num=dayNum(key,T10_FIRST),d=dailySaved(
     :moodHTML(tKey(),d?'think':'pass',d?'Your list is waiting.':'GeoPass ready.',d?'Keep going: type a country. One try.':'Type a country to start. Every one in the top 10 is a stamp. One try, the same ranking for everyone.');
   return header('Top <span>10</span>','',true)+`<section class="home">${hi}${Geomingo.account.userHTML()}${daily}${d&&d.over?rankingHTML():''}
     <div class="hrow"><button class="hcard" data-go="free"><span class="ht">Solo</span><span class="hs">Practice on unlimited lists, at your pace.</span></button>
-    <!-- With friends is switched off for now (the online rooms code stays for later; a shared ?room= link still opens a room) -->
-    <div class="hcard soon" aria-disabled="true"><span class="ht">With friends</span><span class="hs">Play online, 2 to ${MAXP} players.</span><span class="hm">(coming soon)</span></div></div></section>
+    <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to ${MAXP} players.</span></button></div></section>
     ${quickRules(' Full rules in <b>How to play</b>.')}`}
 function goHome(){if(roomCode){if(!confirm('Leave the room and go to the home screen?'))return;leaveRoom().then(()=>{view='home';render()});return}
   view='home';toastMsg=null;drawToast();query='';render();window.scrollTo(0,0)}
@@ -437,7 +436,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Today's list</b>: the same for everyone, new every day at midnight CET, open on the home screen. One try, saved on this device.</li>
   <li><b>Solo</b>: unlimited practice lists. Share sends a link to the same list.</li>
-  <li><b>With friends</b>: online rooms, coming soon.</li></ul>`}
+  <li><b>With friends</b>: online, 2 to ${MAXP} players, each on their own phone. The host creates a room and shares its code or link. You take turns naming a country: one in the top 10 scores a point for you, one outside costs one of your ${LIVES} lives. The round ends when the ten are found, everyone is out of lives or everyone passes. Most points wins.</li></ul>`}
 function drawSugg(){const u=$('sugg');if(u){u.innerHTML=suggHTML();u.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>guess(b.dataset.g))}}
 function bind(){
   if($('daily'))$('daily').onclick=openDaily;
