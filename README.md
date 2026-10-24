@@ -1,18 +1,18 @@
 # Geomingo
 
-Daily geography games. Better with friends. Home page live at https://hectorei19.github.io/geomingo/
+Daily geography games. Better with friends. Home page live at https://geomingo.com/
 
-- Countries: https://hectorei19.github.io/geomingo/countries/
-- Cities: https://hectorei19.github.io/geomingo/cities/
-- Connections: https://hectorei19.github.io/geomingo/connections/
-- Top 10: https://hectorei19.github.io/geomingo/top10/
-- Silhouette: https://hectorei19.github.io/geomingo/silhouette/
+- Countries: https://geomingo.com/countries/
+- Cities: https://geomingo.com/cities/
+- Connections: https://geomingo.com/connections/
+- Top 10: https://geomingo.com/top10/
+- Silhouette: https://geomingo.com/silhouette/
 
 `index.html` is the home page, styled as a departures board: Mingo counts today's stamps, one trip per game with its gate (A1, A2, B1, B2, C1) and its real state ("Play" or "✓ score"), and Play with friends (rooms in Countries and Silhouette). "Played today" reads each game's own save on this device, so it only works on the live site (same origin as the games).
 
 ## Layout
 
-Everything is one website, one repository (published with GitHub Pages from `main`, root folder):
+Everything is one website, one repository (published with GitHub Pages from `main`, root folder, at https://geomingo.com/ — the domain is in `CNAME`):
 
 - `index.html` – the home page; `brand/` – the shared Geomingo look (below)
 - `countries/` – Countries (formerly Country Grid / Borderline), with `firebase-config.js`, `database.rules.json` and `version.json`
@@ -20,7 +20,7 @@ Everything is one website, one repository (published with GitHub Pages from `mai
 - `connections/`, `top10/`, `silhouette/` – the smaller games, each with its own `index.html` and `firebase-config.js`
 - `shared/` – files used by Connections, Top 10 and Silhouette: `style.css`, `games.js`, `minigames.js`, and `data.js` (the country data of Connections and Top 10)
 
-The games moved here from their own repositories (hectorei19/country-grid, city-grid, connections, top10, silhouette, and geo-games for the home page), which keep their history. Saved progress (localStorage) carries over, since it is the same website (hectorei19.github.io). Rooms still use the Firebase project borderline-90920.
+The games moved here from their own repositories (hectorei19/country-grid, city-grid, connections, top10, silhouette, and geo-games for the home page), which keep their history. Saved progress (localStorage) belongs to the website address, so saves made on the old hectorei19.github.io addresses do not show on geomingo.com. Rooms still use the Firebase project borderline-90920.
 
 ## The brand: `brand/`
 

@@ -1,10 +1,10 @@
 # Connections (Geomingo)
 
-Part of [Geomingo](https://hectorei19.github.io/geomingo/). Colours, fonts, Mingo, the header and the result window come from `../brand/`; `games.js`, `minigames.js` and `style.css` are shared with the other small games in `../shared/`.
+Part of [Geomingo](https://geomingo.com/). Colours, fonts, Mingo, the header and the result window come from `../brand/`; `games.js`, `minigames.js` and `style.css` are shared with the other small games in `../shared/`.
 
 Geography puzzle: 16 countries, four hidden groups of four. Pick four that share a category (a region, a flag, a language, a name...) and submit. Four mistakes and the game ends. Colours go from easiest to trickiest: yellow, green, blue, purple.
 
-Part of [Geomingo](https://hectorei19.github.io/geomingo/), daily geography games: [Countries](https://hectorei19.github.io/geomingo/countries/), [Cities](https://hectorei19.github.io/geomingo/cities/), [Connections](https://hectorei19.github.io/geomingo/connections/) and [Top 10](https://hectorei19.github.io/geomingo/top10/).
+Part of [Geomingo](https://geomingo.com/), daily geography games: [Countries](https://geomingo.com/countries/), [Cities](https://geomingo.com/cities/), [Connections](https://geomingo.com/connections/) and [Top 10](https://geomingo.com/top10/).
 
 - The page opens on today's puzzle, as Countries (formerly Country Grid) opens on today's grid: tap a country to start.
 - Today's puzzle: the same for everyone, new at midnight CET (Spain), one try. Solo: unlimited practice puzzles; a shared practice link (`?p=123`) opens the same puzzle.
@@ -22,4 +22,4 @@ Files:
 
 Publishing a new version: change the `?v=` number after the files in `index.html`, so phones load the new files.
 
-Data sources and licences: see Credits in [Countries](https://hectorei19.github.io/geomingo/countries/).
+Data sources and licences: see Credits in [Countries](https://geomingo.com/countries/).

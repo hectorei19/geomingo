@@ -1,6 +1,6 @@
 # Countries (Geomingo)
 
-Part of [Geomingo](https://hectorei19.github.io/geomingo/), daily geography games. The game was called Country Grid (and Borderline before that); the saved data keep those names (`bl-` keys, Firebase project borderline-90920).
+Part of [Geomingo](https://geomingo.com/), daily geography games. The game was called Country Grid (and Borderline before that); the saved data keep those names (`bl-` keys, Firebase project borderline-90920).
 
 Geography grid game: name a country or territory that matches each row and column (250 to choose from). Every grid is checked so it can always be completed, whatever answers are given.
 Today's grid (one 4×4 Normal grid a day for everyone), Solo (unlimited grids), or With friends (online rooms, up to 4 phones) via Firebase Realtime Database.

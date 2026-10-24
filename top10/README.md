@@ -1,10 +1,10 @@
 # Top 10 (Geomingo)
 
-Part of [Geomingo](https://hectorei19.github.io/geomingo/). Colours, fonts, Mingo, the header and the result window come from `../brand/`; `games.js`, `minigames.js` and `style.css` are shared with the other small games in `../shared/`.
+Part of [Geomingo](https://geomingo.com/). Colours, fonts, Mingo, the header and the result window come from `../brand/`; `games.js`, `minigames.js` and `style.css` are shared with the other small games in `../shared/`.
 
 Geography quiz: name the ten countries of a ranking ("The 10 most populous countries", "The 10 countries with the longest coastline"...). A country outside the top 10 costs one of 3 lives.
 
-Part of [Geomingo](https://hectorei19.github.io/geomingo/), daily geography games: [Countries](https://hectorei19.github.io/geomingo/countries/), [Cities](https://hectorei19.github.io/geomingo/cities/), [Connections](https://hectorei19.github.io/geomingo/connections/) and [Top 10](https://hectorei19.github.io/geomingo/top10/).
+Part of [Geomingo](https://geomingo.com/), daily geography games: [Countries](https://geomingo.com/countries/), [Cities](https://geomingo.com/cities/), [Connections](https://geomingo.com/connections/) and [Top 10](https://geomingo.com/top10/).
 
 - The page opens on today's list, open and playable on the home screen (like Countries' grid), with Solo and With friends below.
 - Today's list: the same for everyone, new at midnight CET (Spain), one try. Lists come in a shuffled order, so none repeats until all have been used.
@@ -23,4 +23,4 @@ Files:
 
 Publishing a new version: change the `?v=` number after the four files in `index.html`, so phones load the new files.
 
-Data sources and licences: see Credits in [Countries](https://hectorei19.github.io/geomingo/countries/).
+Data sources and licences: see Credits in [Countries](https://geomingo.com/countries/).
