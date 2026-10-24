@@ -88,9 +88,10 @@ function stamp(g,t,s){const p=pass();p.n++;p.list.push({g,t:String(t),s:s?String
   store.set('gm-pass',JSON.stringify(p));refreshPass();return p.n}
 const stamps=()=>pass().n;
 const stampsToday=g=>pass().list.filter(x=>x.d===dayKey()&&(!g||x.g===g)).length;
-function stampHTML(t,sub,cls){const r=(hsh(t)%15)-7;
+// a stamp: name, small line, optional flag picture; a player class (c0…c5) gives the player's ink instead
+function stampHTML(t,sub,cls,flag){const r=(hsh(t)%15)-7,own=/\bc\d\b/.test(cls||'');
   const L=Math.max(...String(t).split(' ').map(w=>w.length)),fs=L>11?10:L>8?12:14; // long names get smaller, never cut in half
-  return '<span class="gm-stamp '+(cls||'')+'" style="color:'+INK[hsh(sub+t)%4]+';--r:'+r+'deg"><b style="font-size:'+fs+'px">'+esc(t)+'</b>'+(sub?'<small>'+esc(sub)+'</small>':'')+'</span>'}
+  return '<span class="gm-stamp '+(cls||'')+'" style="'+(own?'':'color:'+INK[hsh(t)%4]+';')+'--r:'+r+'deg">'+(flag?'<img class="sf" src="'+esc(flag)+'" alt="">':'')+'<b class="sn" style="font-size:'+fs+'px">'+esc(t)+'</b>'+(sub?'<small>'+esc(sub)+'</small>':'')+'</span>'}
 function refreshPass(){const n=stamps();document.querySelectorAll('[data-gm-pass]').forEach(b=>{const x=b.querySelector('b');if(x)x.textContent=fmt(n);b.setAttribute('aria-label','Open your GeoPass: '+n+' stamps')})}
 addEventListener('storage',e=>{if(e.key==='gm-theme')applyTheme();if(e.key==='gm-pass')refreshPass()});
 
@@ -155,10 +156,10 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElement
 /* the result card, like a boarding pass:
    resultWindow({game:'borderline', pose, title:'Mingo's line', num:'1,240', unit:'Points', mini, line, share:fn, next, allDone, close:'See the grid', onClose}) */
 function resultWindow(o){const g=game(o.game)||{name:o.gameName||''},nx=o.next||null,st=o.game?stampsToday(o.game):0;
-  const line=o.line!=null?o.line:(st?st+' new stamp'+(st===1?'':'s')+' in the GeoPass today':'');
+  const line=o.line!=null?o.line:[st?st+' new stamp'+(st===1?'':'s'):'',o.stat||''].filter(Boolean).join(' · ');
   const html='<div class="gm-res"><div class="gm-band">'+mingo('head',26)+'<b>'+esc(g.name)+' · landed</b></div><div class="gm-rbody">'+
     '<div class="gm-rtop">'+mingo(o.pose||'happy',70)+'<div><span class="gm-lab">'+esc(o.unit||'Score')+'</span>'+(o.num!=null?'<span class="gm-num">'+esc(o.num)+'</span>':'')+'</div>'+(o.mini||'')+'</div>'+
-    (o.title?'<p class="gm-say">'+esc(o.title)+'</p>':'')+(line?'<p class="gm-line">'+esc(line)+'</p>':'')+(o.sub?'<p class="gm-line" style="color:var(--muted)">'+esc(o.sub)+'</p>':'')+
+    (o.room&&o.title?'<p class="gm-say">'+esc(o.title)+'</p>':'')+(line?'<p class="gm-line">'+esc(line)+'</p>':'')+'<hr class="gm-rsep">'+
     (st?'<button class="gm-big" data-gm-act="pass">See them in the GeoPass</button>':'')+
     (o.share?'<button class="gm-big coral" data-gm-act="share">'+esc(o.shareLabel||'Share result')+'</button>':'')+
     (nx?'<a class="gm-big ghost" href="'+esc(nx.href)+'">Next: '+esc(nx.name)+'</a>':(o.allDone?'<p class="gm-note">That was the last game today. New boards at midnight, Spain time.</p>':''))+

@@ -115,9 +115,9 @@ a.gm-card:hover{border-color:var(--ink)}
 .gm-ctext b{font-family:var(--display);font-weight:800;font-stretch:90%;font-size:20px;text-transform:uppercase;display:flex;align-items:center;gap:8px;line-height:1.1}
 .gm-ctext span{font-size:13px;color:var(--muted)}
 .gm-new{font-family:var(--type);font-weight:700;font-size:10px;padding:1px 5px;border:1.5px solid var(--coral-text);color:var(--coral-text);border-radius:3px;transform:rotate(-4deg);letter-spacing:0;font-stretch:100%}
-.gm-state{font-family:var(--type);font-size:12px;font-weight:700;text-transform:uppercase;white-space:nowrap;min-height:36px;display:inline-flex;align-items:center;padding:0 16px;border-radius:999px;background:var(--coral);color:var(--on-coral);font-family:var(--display);font-weight:800;font-stretch:95%;font-size:14px;letter-spacing:.06em}
+.gm-state{font-family:var(--type);font-size:12px;font-weight:700;text-transform:uppercase;white-space:nowrap;color:var(--blue);letter-spacing:.02em}
 .gm-state.done{min-height:0;background:none;color:var(--green);border:2px solid var(--green);padding:2px 6px;border-radius:4px;transform:rotate(-6deg);font-family:var(--type);font-weight:700;font-size:12px;letter-spacing:0;font-stretch:100%}
-.gm-state.soon{background:none;color:var(--muted);border:1px dashed var(--muted);font-family:var(--type);font-weight:700;font-size:11px;letter-spacing:0}
+.gm-state.soon{color:var(--muted)}
 
 /* buttons: navy (main), coral (action), outline */
 .gm-big{display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:8px 16px;border-radius:10px;border:0;background:var(--cover);color:var(--cover-ink);
@@ -150,6 +150,7 @@ a.gm-card:hover{border-color:var(--ink)}
 .gm-rtop>div{flex:1 1 auto;min-width:min-content}
 .gm-num{display:block;font-family:var(--display);font-weight:900;font-stretch:85%;font-size:56px;line-height:.9;font-variant-numeric:tabular-nums}
 .gm-line{font-family:var(--type);font-size:14px;margin:0}
+.gm-rsep{border:0;border-top:1px dashed var(--line);margin:2px -18px 0}
 .gm-say{font-family:var(--display);font-weight:800;font-stretch:92%;font-size:18px;text-transform:uppercase;letter-spacing:.02em;margin:0;line-height:1.15}
 .gm-mini{display:grid;gap:3px;justify-content:center;align-self:flex-end}
 .gm-mini i{width:16px;height:16px;border-radius:3px;border:1px dashed var(--muted)}
@@ -255,23 +256,23 @@ button.hcard:hover,button.hcard:active{border-color:var(--ink);background:var(--
 .cbrand span{color:var(--coral-text)}
 .cell{border:1px dashed var(--muted);border-radius:8px;background:transparent;transition:background .15s ease}
 .b5 .cell{border-radius:6px}
-.cell .plus{opacity:.55}
-.cell .plus::before,.cell .plus::after{background:var(--muted);border-radius:1px}
-.cell .plus::before{height:2px}.cell .plus::after{width:2px}
+.cell .plus{width:auto;max-width:none;aspect-ratio:auto;opacity:1}
+.cell .plus::after{display:none}
+.cell .plus::before{content:"+";position:static;transform:none;background:none;width:auto;height:auto;font-family:var(--type);font-size:13px;color:var(--muted)}
 button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
 .cell.sel{background:var(--guil);border:1.5px solid var(--coral-text);box-shadow:none}
 .cell.miss{border-style:solid;border-color:var(--line);background:none;opacity:.6}
-.cell.flag{border:1px solid var(--line);padding:0;background:none;display:block;position:relative;overflow:hidden}
-.flagbox{--pc:var(--blue);position:absolute;inset:6%;width:auto;height:auto;margin:0;border:2.5px solid var(--pc);border-radius:7px;box-shadow:none;color:var(--pc);background-color:transparent;
-  background-size:40% auto;background-position:50% 30%;transform:rotate(var(--r,-3deg));opacity:.92;display:flex;align-items:flex-end;justify-content:center}
-.board .cell:nth-child(4n+1) .flagbox{--r:3deg}.board .cell:nth-child(4n+2) .flagbox{--r:-5deg}.board .cell:nth-child(4n+3) .flagbox{--r:2deg}
-.flagbox:not(.c0):not(.c1):not(.c2):not(.c3):not(.c4):not(.c5){--pc:var(--green)}
-.board .cell:nth-child(3n) .flagbox:not(.c0):not(.c1):not(.c2):not(.c3):not(.c4):not(.c5){--pc:var(--blue)}
-.board .cell:nth-child(5n) .flagbox:not(.c0):not(.c1):not(.c2):not(.c3):not(.c4):not(.c5){--pc:var(--violet)}
-.board .cell:nth-child(7n) .flagbox:not(.c0):not(.c1):not(.c2):not(.c3):not(.c4):not(.c5){--pc:var(--coral-text)}
-.b5 .flagbox{border-width:2px;border-radius:5px}
-.flagbox .nm{background:none;color:currentColor;font-family:var(--display);font-weight:900;font-stretch:80%;text-transform:uppercase;line-height:1;padding:0 2px 4px;text-shadow:none}
-.cell.new .flagbox{animation:gm-thud .3s cubic-bezier(.2,1.6,.4,1) both}
+.cell.flag{border:1px solid var(--line);border-style:solid;padding:0;background:none;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:default}
+/* a right answer on the grid: a passport stamp (flag, name, code and points), rotated, in an ink colour; in rooms the owner's colour */
+.cell.flag .gm-stamp{width:88%;max-height:92%;padding:5px 3px 4px;gap:2px}
+.cell.flag .gm-stamp b{line-height:1}
+.cell.flag .gm-stamp small{font-size:10px;white-space:nowrap;letter-spacing:-.02em}
+.cell.flag .gm-stamp .sn{display:block;max-width:100%;overflow-wrap:normal}
+.gm-stamp .sf{display:block;height:15px;width:auto;max-width:70%;border-radius:2px;box-shadow:0 0 0 1px color-mix(in srgb,currentColor 35%,transparent);margin-bottom:1px}
+.b3 .cell.flag .gm-stamp b{font-size:17px}.b3 .gm-stamp .sf{height:20px}
+.b5 .cell.flag .gm-stamp{border-width:2px;border-radius:5px;padding:3px 2px}.b5 .gm-stamp .sf{height:11px}.b5 .cell.flag .gm-stamp small{font-size:8px}
+.gm-stamp.c0{color:var(--p0)}.gm-stamp.c1{color:var(--p1)}.gm-stamp.c2{color:var(--p2)}.gm-stamp.c3{color:var(--p3)}.gm-stamp.c4{color:var(--p4)}.gm-stamp.c5{color:var(--p5)}
+.cell.new .gm-stamp{animation:gm-thud .3s cubic-bezier(.2,1.6,.4,1) both}
 .pts{position:absolute;top:2px;right:3px;z-index:1;background:var(--page);line-height:1.1;color:var(--muted);font-family:var(--type);font-weight:700;border-radius:0;padding:0}
 .cell .cnt,.cell .val{font-family:var(--type);font-weight:700}
 .actions .ghost{min-height:44px}

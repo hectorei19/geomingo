@@ -23,10 +23,10 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="../brand/icons/favicon.svg?v=202610240100" type="image/svg+xml">
-<link rel="icon" href="../brand/icons/favicon-32.png?v=202610240100" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610240100">
-<script src="../brand/mingo.js?v=202610240100"></script>
+<link rel="icon" href="../brand/icons/favicon.svg?v=202610241900" type="image/svg+xml">
+<link rel="icon" href="../brand/icons/favicon-32.png?v=202610241900" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610241900">
+<script src="../brand/mingo.js?v=202610241900"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -63,7 +63,7 @@
 .lives i{background:var(--flamingo)}
 .lives .cnt{font-family:var(--body);font-weight:800}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610240100">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610241900">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -413,7 +413,7 @@ function verdict(){const f=S.found.length;
     :f>=6?{pose:'think',t:'So close. '+f+' of 10.',s:'No lives left. The full list is below.'}:{pose:'sad',t:'Rough crossing, this one.',s:f+' of 10 found. The full list is below.'}}
 function resultWindow(){const v=verdict(),daily=S.mode==='daily';
   return {game:'top10',pose:v.pose,title:v.t,num:S.found.length+'/10',unit:'Found',mini:Geomingo.mini(S.top.map(c=>S.found.includes(c)),5),
-    sub:listById(S.list).title+'.'+(daily?` Next list in ${nextIn()}.`:''),share:()=>share(shareMessage()),next:daily?Geomingo.nextGame('top10'):null,allDone:daily,close:'See the list'}}
+    stat:S.lives+' '+(S.lives===1?'life':'lives')+' left',share:()=>share(shareMessage()),next:daily?Geomingo.nextGame('top10'):null,allDone:daily,close:'See the list'}}
 function resultHTML(){const v=verdict();
   const head=S.won?(S.lives===LIVES?'Perfect ten!':'All ten found'):`${S.found.length} of 10`;
   return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Top 10 #'+S.num:'Practice list'}</span><p class="big">${head}</p>
