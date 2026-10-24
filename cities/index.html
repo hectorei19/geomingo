@@ -16,10 +16,10 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="../brand/icons/favicon.svg?v=202610242000" type="image/svg+xml">
-<link rel="icon" href="../brand/icons/favicon-32.png?v=202610242000" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242000">
-<script src="../brand/mingo.js?v=202610242000"></script>
+<link rel="icon" href="../brand/icons/favicon.svg?v=202610242100" type="image/svg+xml">
+<link rel="icon" href="../brand/icons/favicon-32.png?v=202610242100" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242100">
+<script src="../brand/mingo.js?v=202610242100"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -296,7 +296,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .respanel .gm-hello{margin:-4px 0 -6px}
 .corner .mingo{width:auto;height:88%}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610242000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610242100">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -910,7 +910,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/da
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202610242000';
+const APP_VERSION='202610242100';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
@@ -1158,8 +1158,9 @@ function fitHeaders(){
   // country names on guessed squares: shrink a name until no word is cut and it stays below the corner badges
   // stamps on guessed squares: shrink the name (and the small line) until no word is cut and the stamp fits its square
   document.querySelectorAll('.cell.flag .gm-stamp').forEach(st=>{const nm=st.querySelector('.sn'),sm=st.querySelector('small');if(!nm)return;
-    const room=st.clientHeight;let f=Math.min(24,Math.round(st.clientWidth*.21)),k=0;nm.style.fontSize=f+'px';
-    while((nm.scrollWidth>nm.clientWidth+0.5||st.scrollHeight>room+0.5)&&f>6&&k++<60){f-=.5;nm.style.fontSize=f+'px'}
+    const fl=!!st.querySelector('.sf'),room=st.clientHeight*(fl?.55:1);let f=Math.min(fl?18:24,Math.round(st.clientWidth*(fl?.17:.21))),k=0;nm.style.fontSize=f+'px';
+    const tall=()=>fl?nm.offsetHeight+(sm?sm.offsetHeight:0)>room:st.scrollHeight>room+0.5;
+    while((nm.scrollWidth>nm.clientWidth+0.5||tall())&&f>6&&k++<60){f-=.5;nm.style.fontSize=f+'px'}
     if(sm){sm.style.fontSize='';let g=parseFloat(getComputedStyle(sm).fontSize),j=0;while(sm.scrollWidth>st.clientWidth-4&&g>6&&j++<20){g-=.5;sm.style.fontSize=g+'px'}}});
 }
 try{document.fonts&&document.fonts.ready.then(()=>fitHeaders())}catch(e){}
