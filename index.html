@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Geomingo · Daily geography games</title>
+<meta name="description" content="Daily geography puzzles, better with friends. Countries, Cities, Connections, Top 10 and Silhouette: new boards every day at midnight, Spain time. Every right answer is a stamp in your GeoPass.">
+<meta name="theme-color" content="#F6F8F5">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Geomingo">
+<meta property="og:title" content="Geomingo · Daily geography games">
+<meta property="og:description" content="Daily geography puzzles, better with friends. Every right answer is a stamp in your GeoPass.">
+<meta property="og:url" content="https://hectorei19.github.io/geomingo/">
+<meta property="og:image" content="https://hectorei19.github.io/geomingo/brand/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="brand/icons/favicon.svg?v=202610240100" type="image/svg+xml">
+<link rel="icon" href="brand/icons/favicon-32.png?v=202610240100" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="brand/icons/apple-touch-icon.png?v=202610240100">
+<link rel="manifest" href="brand/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
+<link rel="stylesheet" href="brand/geomingo.css?v=202610240100">
+<script src="brand/mingo.js?v=202610240100"></script>
+<style>
+/* Home page: today's departures. Mingo says how the GeoPass is doing, then one line per game with its gate, then Play with friends */
+.app{max-width:460px;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:max(18px,env(safe-area-inset-top,0px)) calc(40px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+footer{display:flex;flex-direction:column;gap:4px;align-items:center;padding-top:6px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="top"></div>
+  <main style="display:flex;flex-direction:column;gap:14px">
+    <div id="hello"></div>
+    <div class="gm-head"><span class="gm-lab" id="dep">Departures</span><h2>Today's games</h2></div>
+    <ul class="gm-games" id="games"></ul>
+    <a class="gm-big" id="friends" href="countries/?friends">Play with friends</a>
+    <p class="gm-note">Rooms for 2 to 6 phones, in Countries and Silhouette.</p>
+  </main>
+  <footer>
+    <p class="gm-note"><b>Daily geography puzzles, better with friends.</b></p>
+    <p class="gm-note">New boards every day at midnight, Spain time. Your results and your GeoPass are saved on this device only.</p>
+  </footer>
+</div>
+
+<script>
+const G=Geomingo,esc=G.esc;
+function draw(){
+  const live=G.live(),res=live.map(g=>G.result(g.id)),n=res.filter(r=>r.done).length,N=live.length,left=N-n;
+  const ms=G.msToMidnight(),next=String(Math.floor(ms/36e5)).padStart(2,'0')+':'+String(Math.floor(ms%36e5/6e4)).padStart(2,'0');
+  const set=(id,h)=>{const el=document.getElementById(id);if(el.innerHTML!==h)el.innerHTML=h}; // redraw only what changed (keeps keyboard focus)
+  set('top',G.header());
+  const st=G.stampsToday(),all=G.stamps(),gl=left===1?'One game left today.':left+' games left today.';
+  set('hello',
+    n===0&&!st?G.hello('pass','GeoPass ready',N+' games today. Every right answer is a new stamp.')
+    :n===N?G.hello('happy',st?st+' new stamp'+(st===1?'':'s')+' today':'All games played','Mingo\'s GeoPass holds '+all.toLocaleString('en')+'. New boards at midnight.')
+    :G.hello('happy',st?st+' new stamp'+(st===1?'':'s')+' today':n+' of '+N+' played','Mingo\'s GeoPass holds '+all.toLocaleString('en')+'. '+gl));
+  set('dep','Departures · '+esc(G.dateText(G.dayKey(),{weekday:'short',day:'numeric',month:'short'}))+' · next board in '+next);
+  set('games',G.GAMES.map(g=>{
+    const r=g.soon?{}:G.result(g.id),fresh=g.id==='silhouette';
+    const state=g.soon?'<span class="gm-state soon">Soon</span>':r.done?'<span class="gm-state done">✓ '+esc(r.label)+'</span>':'<span class="gm-state">Play</span>';
+    const inner='<span class="gm-gate">GATE<b>'+g.gate+'</b></span><span class="gm-ctext"><b>'+esc(g.name)+(fresh?' <span class="gm-new">NEW</span>':'')+'</b><span>'+esc(g.hint)+'</span></span>'+state;
+    return g.soon?'<li><div class="gm-card soon" aria-disabled="true">'+inner+'</div></li>'
+      :'<li><a class="gm-card" href="'+g.href+'" aria-label="'+esc(g.name)+', gate '+g.gate+': '+(r.done?'played today, '+esc(r.label):'play')+'">'+inner+'</a></li>'}).join(''))}
+draw();
+setInterval(draw,30000);
+// coming back from a game in the same tab, or a new day while the page is open
+addEventListener('pageshow',draw);addEventListener('focus',draw);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)draw()});
+</script>
+</body>
+</html>

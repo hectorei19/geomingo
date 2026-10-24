@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en" data-game="connections">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>Connections · Geomingo</title>
+<meta name="description" content="16 countries, 4 hidden groups of 4: a region, a flag, a language… Find them with 4 mistakes at most. A new puzzle every day. Daily geography games from Geomingo.">
+<meta name="theme-color" content="#F6F8F5">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Geomingo">
+<meta property="og:title" content="Connections · Geomingo">
+<meta property="og:description" content="16 countries, 4 hidden groups. A new puzzle every day.">
+<meta property="og:url" content="https://hectorei19.github.io/geomingo/connections/">
+<meta property="og:image" content="https://hectorei19.github.io/geomingo/brand/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../brand/icons/favicon.svg?v=202610240100" type="image/svg+xml">
+<link rel="icon" href="../brand/icons/favicon-32.png?v=202610240100" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610240100">
+<script src="../brand/mingo.js?v=202610240100"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
+<link rel="stylesheet" href="../shared/style.css?v=202610240100">
+<style>
+/* Connections: 16 tiles in a 4 × 4 grid; found groups become coloured bars on top */
+.cx-board{display:flex;flex-direction:column;gap:8px}
+.cx-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.tile{aspect-ratio:1.25;min-width:0;background:var(--sheet);border:1px solid var(--rule);border-radius:6px;box-shadow:var(--shadow);padding:4px;
+  font-weight:700;font-size:.92rem;line-height:1.1;text-align:center;display:flex;align-items:center;justify-content:center;overflow-wrap:break-word;hyphens:auto;-webkit-hyphens:auto}
+.tile:hover{border-color:var(--sea)}
+.tile{transition:transform .12s,background-color .12s}
+.tile:active{transform:scale(.96)}
+.cx-grid .tile.on{background:var(--sea);color:var(--sheet);border-color:var(--sea);transform:translateY(-2px);box-shadow:0 4px 10px color-mix(in srgb,var(--sea) 35%,transparent)}
+/* a group found: its four tiles turn over and show their flags, then join the group's bar */
+.tile.turn{transform:rotateY(90deg);transition:transform .22s ease-in}
+.tile.flipped{flex-direction:column;gap:4px;background:var(--gc-soft)!important;border:1.5px solid var(--gc)!important;color:var(--ink)!important;transform:none;transition:transform .22s ease-out}
+.tile .tflag{width:58%;max-width:56px;aspect-ratio:4/3;object-fit:cover;border-radius:3px;box-shadow:0 0 0 1px var(--rule)}
+.tile.long{font-size:.78rem}
+@media (max-width:420px){.tile{font-size:.8rem}.tile.long{font-size:.68rem}.cx-grid,.cx-board{gap:6px}}
+.grp{border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;background:var(--gc-soft);border:1.5px solid var(--gc);text-align:center;animation:pop .35s cubic-bezier(.3,1.6,.6,1)}
+.grp .gl{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:1.25rem;line-height:1.05;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:2px}
+.grp .gl .ib{font-family:var(--ui);font-size:.75rem}
+.grp .gm{font-size:.92rem;font-weight:600}
+.grp .gm img{margin-right:3px}
+.grp.miss{opacity:.8;border-style:dashed}
+.g0{--gc:var(--p2);--gc-soft:var(--p2-soft)}.g1{--gc:var(--p4);--gc-soft:var(--p4-soft)}.g2{--gc:var(--p1);--gc-soft:var(--p1-soft)}.g3{--gc:var(--p3);--gc-soft:var(--p3-soft)}
+.lives{display:flex;align-items:center;justify-content:center;gap:8px;font-size:.95rem;color:var(--ink-2)}
+.lives i{width:12px;height:12px;border-radius:50%;background:var(--ink)}
+.lives i.off{background:transparent;box-shadow:inset 0 0 0 1.5px var(--rule)}
+.cx-actions{display:flex;gap:8px}.cx-actions button{flex:1}
+.cx-actions .primary{padding:10px}
+.primary:disabled{opacity:.4;cursor:default}
+.modes{max-width:320px;width:100%;align-self:center}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.cx-grid.shake .tile.on{animation:shake .3s}
+/* Geomingo look for the tiles: rounded, the same colour; a picked tile turns ink */
+.tile{border:2px solid var(--line);border-radius:14px;box-shadow:none;font-weight:800;background:var(--surface)}
+.tile:hover{border-color:var(--ink)}
+.cx-grid .tile.on{background:var(--ink);color:var(--bg);border-color:var(--ink);box-shadow:0 6px 14px -8px rgba(27,34,56,.6)}
+.grp{border-radius:14px;border-width:2px}
+.grp .gl{font-family:var(--display);font-weight:600;text-transform:none;letter-spacing:0}
+.lives i{background:var(--flamingo)}
+.cx-actions button{font-size:15px;padding-inline:8px}
+/* home screen, as in Countries: today's puzzle open (tap a country to start), then Solo and With friends, then quick rules */
+.dsq i.g0,.dsq i.g1,.dsq i.g2,.dsq i.g3{background:var(--gc)}
+.hcard .cx-board{width:100%;margin-top:8px}
+.hcard.soon{opacity:.55;box-shadow:none}
+/* With friends: name, room lobby, live progress of every player, ranking */
+.nameinp{border:1px solid var(--rule);background:var(--paper);border-radius:4px;padding:10px;font-size:1rem;width:100%}
+.chip .pin{width:10px;height:10px}
+.chip small{font-family:var(--mono);font-size:.72rem;color:var(--ink-2);font-weight:500}
+.chip.done{border-color:var(--sea)}
+.lp .rk{font-family:var(--mono);color:var(--ink-2);min-width:1.2em}
+.lp.me{border-color:var(--sea)}
+.primary[disabled]{opacity:.5;cursor:default}
+</style>
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610240100">
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<footer class="foot"><a class="linkbtn" href="../countries/">Data and sources: Credits in Countries</a></footer>
+<div id="layer"></div>
+
+<script src="../shared/data.js?v=202610192300"></script>
+<script src="../shared/games.js?v=202610240100"></script>
+<script src="../shared/minigames.js?v=202610240100"></script>
+<!-- With friends: online rooms in Countries' Firebase Realtime Database -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js?v=202610192300"></script>
+<script>
+/* ---- the puzzle ----
+   Four hidden categories from Countries' CATS, four countries each. Every country fits its own category and
+   none of the other three, so there is only one way to split the 16 into groups.
+   Colour = difficulty: yellow (well-known themes), green, blue, purple (the trickiest: names and capitals). */
+const CX_FIRST='2026-10-19',MAX_MISTAKES=4;
+const TEMOJI=['🟨','🟩','🟦','🟪'];
+const TIER_OF={region:0,lang:0,money:0,pol:0,flagc:1,flags:1,sea:1,border:1,sport:1,hist:1,geo2:1,geo:2,people:2,dev:2,geo3:2,sport2:2,pol2:2,misc:2,name:3,cap:3};
+const TIER0=new Set(['Landlocked','Island nation (no land borders)']);
+const SKIP=new Set(['Is a territory (not independent)']);
+// independent countries only: territories never appear
+const SOV=C.filter(c=>!c.t).map(c=>c.i);
+const POOLS=[[],[],[],[]];
+CATS.forEach(k=>{if(SKIP.has(k.label))return;const t=TIER0.has(k.label)?0:TIER_OF[k.fam];if(t==null)return;
+  if(SOV.filter(i=>k.set[i]).length>=4)POOLS[t].push(k)});
+function buildPuzzleV1(seed){const r=rngFrom(seed);
+  for(let a=0;a<3000;a++){
+    const ks=POOLS.map(p=>p[Math.floor(r()*p.length)]);
+    if(new Set(ks.map(k=>k.fam)).size<4)continue;
+    const groups=[];
+    for(let g=0;g<4;g++){const ex=SOV.filter(i=>ks[g].set[i]&&ks.every((k,h)=>h===g||!k.set[i]));
+      if(ex.length<4)break;
+      // better-known countries (1 million people or more) when the category has enough of them
+      const big=ex.filter(i=>(DATA.pop[C[i].c]||0)>=1e6);
+      groups.push({k:ks[g].id,t:g,m:shuffle(big.length>=4?big:ex,r).slice(0,4).map(i=>C[i].c)})}
+    if(groups.length===4)return {seed,groups,order:shuffle(groups.flatMap(g=>g.m),r)}}
+  return null}
+// Since 2026-10-25: no other four of the 16 share a category, so the only set of four that works is a real group.
+// Every category of up to 40 countries is checked, plus three broad ones players reach for first (Africa, Europe, landlocked);
+// broader ones (flag has blue…) cannot all be avoided, so a guess that shares one is explained instead (see submit).
+// Groups come only from those checked categories. Daily puzzles before that day keep the old way, so they stay as they were.
+const STRICT_FROM='2026-10-25',CHECK_MAX=40,CHECK_ALSO=new Set(['Landlocked','In Africa','In Europe']);
+const sizeOf=k=>SOV.filter(i=>k.set[i]).length;
+const CHECKED=CATS.filter(k=>!SKIP.has(k.label)&&(sizeOf(k)<=CHECK_MAX||CHECK_ALSO.has(k.label)));
+const CHECKED_OF=new Map(SOV.map(i=>[i,CHECKED.filter(k=>k.set[i])]));
+const POOLS2=POOLS.map(p=>p.filter(k=>sizeOf(k)<=CHECK_MAX||k.label==='Landlocked'));
+const isBig=i=>(DATA.pop[C[i].c]||0)>=1e6;
+// fill the 16 one country at a time (better-known countries first), never letting a category outside the puzzle reach four
+function pickClean(ks,ex,r){
+  for(let b=0;b<6;b++){const cnt=new Map(),ms=[[],[],[],[]];
+    const cand=ex.map(e=>[...shuffle(e.filter(isBig),r),...shuffle(e.filter(i=>!isBig(i)),r)]);
+    let ok=true;
+    for(let n=0;n<4&&ok;n++)for(let g=0;g<4&&ok;g++){
+      const pick=cand[g].find(i=>!ms[g].includes(i)&&CHECKED_OF.get(i).every(k=>ks.includes(k)||(cnt.get(k)||0)<3));
+      if(pick==null){ok=false;break}
+      ms[g].push(pick);CHECKED_OF.get(pick).forEach(k=>cnt.set(k,(cnt.get(k)||0)+1))}
+    if(ok)return ms}
+  return null}
+function buildPuzzle(seed,strict){if(!strict)return buildPuzzleV1(seed);
+  const r=rngFrom(seed);
+  for(let a=0;a<1500;a++){
+    const ks=POOLS2.map(p=>p[Math.floor(r()*p.length)]);
+    if(new Set(ks.map(k=>k.fam)).size<4)continue;
+    const ex=ks.map((kg,g)=>SOV.filter(i=>kg.set[i]&&ks.every((k,h)=>h===g||!k.set[i])));
+    if(ex.some(e=>e.length<4))continue;
+    const ms=pickClean(ks,ex,r);if(!ms)continue;
+    const groups=ms.map((m,g)=>({k:ks[g].id,t:g,m:m.map(i=>C[i].c)}));
+    return {seed,groups,order:shuffle(groups.flatMap(g=>g.m),r)}}
+  return buildPuzzleV1(seed)}
+// four countries that share a category which is not one of the groups (the first one found, narrowest first)
+const NARROW=CATS.filter(k=>!SKIP.has(k.label)).sort((a,b)=>sizeOf(a)-sizeOf(b));
+function sharedCategory(S,cs){const used=new Set(S.groups.map(g=>g.k)),ids=cs.map(c=>byCode[c].i);
+  return NARROW.find(k=>!used.has(k.id)&&ids.every(i=>k.set[i]))}
+// a game: the puzzle plus what happened (groups found in order, every guess, mistakes)
+function newGame(mode,seed){const p=buildPuzzle(seed,mode!=='daily'||todayKey()>=STRICT_FROM);if(!p)return null;
+  const S={mode,seed,groups:p.groups,left:p.order,found:[],guesses:[],mistakes:0,over:false,won:false};
+  if(mode==='daily'){S.date=todayKey();S.num=dayNum(S.date,CX_FIRST)}
+  return S}
+const groupOf=(S,c)=>S.groups.findIndex(g=>g.m.includes(c));
+
+/* ---- state ---- */
+// view: 'home', 'game' (today's puzzle or Solo), 'friends' (create or join a room) or 'room' (a room's lobby and its game)
+let S=null,sel=[],mode='daily',view='home';
+const dailySaved=()=>{const d=load('cx-daily',null);return d&&d.date===todayKey()?d.S:null};
+function save(){if(!S)return;
+  if(S.mode==='online'){if(S.over&&S.ms==null)S.ms=Math.max(0,now()-((room&&room.startAt)||now()));
+    keep('cx-online',{code:S.code,round:S.round,S});pushProgress();return}
+  if(S.mode==='daily'){store('cx-daily',{date:S.date,over:S.over,S});
+    if(S.over){const h=load('cx-hist',{});if(!h[S.date]){h[S.date]={w:S.won?1:0,m:S.mistakes};store('cx-hist',h)}}}
+  else store('cx-free',S)}
+function openDaily(){view='game';mode='daily';S=dailySaved()||newGame('daily',seedOf('connections-daily-'+todayKey()));sel=[];render()}
+function openFree(seed){view='game';mode='free';const f=load('cx-free',null);
+  S=seed==null&&f&&!f.over?f:newGame('free',seed==null?Math.floor(Math.random()*1e9):seed);sel=[];save();render()}
+// today's puzzle before it is started, for the home screen
+let dailyCache=null;
+const dailyPreview=()=>{const k=todayKey();if(!dailyCache||dailyCache.date!==k)dailyCache=newGame('daily',seedOf('connections-daily-'+k));return dailyCache};
+
+/* ---- With friends: online rooms in Countries' Firebase database (rooms/ABCD, next to Countries' own rooms) ----
+   Everyone in a room plays the same puzzle at the same time, each on their own phone, and sees how the others are doing.
+   Ranking: solved first, then fewer mistakes, then faster; unsolved by groups found. */
+const FB_OK=typeof firebase!=='undefined'&&!!(window.FIREBASE_CONFIG&&FIREBASE_CONFIG.apiKey);
+const MAX_PLAYERS=8,ROOM_GAME='connections';
+// these are kept even in test mode (store() skips them there)
+function keep(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+const ME=(()=>{let id=load('cx-pid','');if(!id){id=Math.random().toString(36).slice(2,12);keep('cx-pid',id)}return id})();
+let db=null,offset=0,room=null,roomRef=null,roomCode=null,joining=false,joinCode='',myName=load('cx-name','')||(playerName()==='Guest'?'':playerName().slice(0,16)),leaveArmed=false;
+const TS=()=>firebase.database.ServerValue.TIMESTAMP;
+const now=()=>Date.now()+offset;
+function initFB(){if(!FB_OK)return false;if(db)return true;
+  try{firebase.initializeApp(FIREBASE_CONFIG);db=firebase.database();db.ref('.info/serverTimeOffset').on('value',s=>{offset=s.val()||0});
+    // back online: mark me as here again, and as away when the connection drops
+    db.ref('.info/connected').on('value',s=>{if(!s.val()||!roomRef)return;const ref=roomRef,on=ref.child('players/'+ME+'/on');
+      on.onDisconnect().set(false);ref.child('players/'+ME).once('value',p=>{if(p.exists()&&ref===roomRef)on.set(true)})})}
+  catch(e){console.error(e);return false}
+  return true}
+const randRoom=()=>Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random()*24)]).join('');
+function needName(){const el=$('fname');if(el)myName=el.value.trim().slice(0,16);
+  if(!myName){toast('Type your name first.','bad');if(el)el.focus();return true}
+  keep('cx-name',myName);return false}
+const lobbyOrder=r=>Object.keys(r.players||{}).filter(k=>r.players[k].name).sort((a,b)=>(r.players[a].t||0)-(r.players[b].t||0));
+const pinStyle=i=>`background:var(--p${i%6})`;
+async function createRoom(){
+  if(needName())return;
+  if(!initFB()){toast('Online play could not load. Check the connection and reload the page.','bad');return}
+  try{let code='';
+    for(let i=0;i<8;i++){code=randRoom();const ex=await db.ref('rooms/'+code).get();if(!ex.exists())break}
+    await db.ref('rooms/'+code).set({game:ROOM_GAME,host:ME,created:TS(),status:'lobby',round:0,players:{[ME]:{name:myName,t:TS(),on:true}}});
+    listenRoom(code)}
+  catch(e){console.error(e);toast('Could not create the room. Check the connection and try again.','bad')}}
+async function joinRoom(raw){
+  const code=(raw||'').toUpperCase().replace(/[^A-Z]/g,'');
+  if(code.length!==4){toast('Room codes have 4 letters.','bad');return}
+  if(needName())return;
+  if(!initFB()){toast('Online play could not load. Check the connection and reload the page.','bad');return}
+  if(joining)return;joining=true;
+  try{let why='';
+    // late arrivals are welcome: they play the current puzzle (their time still counts from the start)
+    const res=await db.ref('rooms/'+code).transaction(r=>{why='';
+      if(!r)return r;
+      if(r.game!==ROOM_GAME){why='other';return}
+      r.players=r.players||{};
+      if(r.players[ME]&&r.players[ME].name){r.players[ME].name=myName;r.players[ME].on=true;return r}
+      if(lobbyOrder(r).length>=MAX_PLAYERS){why='full';return}
+      r.players[ME]={name:myName,t:now(),on:true};return r});
+    const val=res.snapshot.val();
+    if(!val||why==='other'||val.game!==ROOM_GAME){toast('No Connections room called '+code+'. Check the code.','bad');return}
+    if(!res.committed||!val.players||!val.players[ME]){toast(why==='full'?`Room ${code} already has ${MAX_PLAYERS} players.`:'Could not join '+code+'.','bad');return}
+    joinCode='';listenRoom(code)}
+  catch(e){console.error(e);toast('Could not join. Check the connection and try again.','bad')}
+  finally{joining=false}}
+// resume: reopening the page goes back to the room you were in; if it is gone, quietly to the home screen
+function listenRoom(code,resume){
+  if(roomRef)roomRef.off();
+  roomCode=code;roomRef=db.ref('rooms/'+code);keep('cx-room',code);view='room';leaveArmed=false;
+  const ref=roomRef;let first=true;
+  ref.child('players/'+ME+'/on').onDisconnect().set(false);
+  ref.on('value',snap=>{if(ref!==roomRef)return;const r=snap.val();
+    if(!r||!r.players||!r.players[ME]||!r.players[ME].name){const was=roomCode;dropRoom();
+      if(resume&&first){view='home'}else{view='friends';toast(r?'You are no longer in room '+was+'.':'Room '+was+' was closed.','bad')}
+      render();return}
+    first=false;room=r;syncRoom()})}
+function dropRoom(){if(roomRef){roomRef.off();try{roomRef.child('players/'+ME+'/on').onDisconnect().cancel()}catch(e){}}
+  room=null;roomRef=null;roomCode=null;if(S&&S.mode==='online')S=null;keep('cx-room',null)}
+async function leaveRoom(home){const ref=roomRef;
+  if(ref){try{await ref.transaction(x=>{if(!x||!x.players)return x;
+    // in the lobby you leave the list; during a game your result stays, marked offline. Nobody left: the room is deleted
+    if(x.status==='lobby')delete x.players[ME];else if(x.players[ME])x.players[ME].on=false;
+    const here=lobbyOrder(x).filter(k=>x.players[k].on!==false);
+    if(!here.length)return null;
+    if(x.host===ME)x.host=here[0];return x})}catch(e){}}
+  dropRoom();keep('cx-online',null);view=home?'home':'friends';sel=[];render()}
+function syncRoom(){const r=room;mode='online';
+  if(r.status==='play'&&r.seed!=null){
+    if(!S||S.mode!=='online'||S.code!==roomCode||S.round!==r.round){
+      const k=load('cx-online',null);
+      S=k&&k.code===roomCode&&k.round===r.round?k.S:newGame('online',r.seed);
+      if(S){S.code=roomCode;S.round=r.round;sel=[];leaveArmed=false;save()}}}
+  else if(S&&S.mode==='online')S=null;
+  if(view==='room'&&!turning)render()}
+// my progress, for the others' screens: groups found, mistakes, finished, and the colour rows of my guesses
+function pushProgress(){if(!roomRef||!S||S.mode!=='online'||S.code!==roomCode)return;
+  const p={r:S.round,f:S.found.length,m:S.mistakes,done:S.over,won:S.won,on:true};if(S.over)p.ms=S.ms||0;
+  roomRef.child('players/'+ME).update(p).catch(()=>{})}
+// the host starts the first game; after a game anyone can start the next one once everyone has finished
+async function startRound(){if(!roomRef||!room)return;
+  let seed;do{seed=Math.floor(Math.random()*1e9)}while(!buildPuzzle(seed,true));
+  const round=(room.round||0)+1;
+  try{await roomRef.transaction(x=>{if(!x)return x;if((x.round||0)>=round)return;
+    x.status='play';x.round=round;x.seed=seed;x.startAt=now();return x})}
+  catch(e){toast('Could not start the game. Check the connection.','bad')}}
+const roomPlayers=()=>lobbyOrder(room).map((pid,i)=>{const p=room.players[pid];return {pid,i,...p,cur:p.r===room.round}});
+const fmtTime=ms=>{const s=Math.round((ms||0)/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+const rankKey=p=>!p.cur?[3,0,0]:p.done&&p.won?[0,p.m||0,p.ms||0]:p.done?[1,-(p.f||0),p.m||0]:[2,-(p.f||0),p.m||0];
+function ranked(){return roomPlayers().sort((a,b)=>{const x=rankKey(a),y=rankKey(b);for(let i=0;i<3;i++)if(x[i]!==y[i])return x[i]-y[i];return 0})}
+function scoresHTML(){return `<div class="scores" aria-label="Players">${roomPlayers().map(p=>`<span class="chip${p.cur&&p.done?' done':''}${p.on===false?' off':''}"><span class="pin" style="${pinStyle(p.i)}"></span>${esc(p.name)}<small>${!p.cur?'joining':p.done?(p.won?'✓ '+fmtTime(p.ms):(p.f||0)+'/4 ✗'):(p.f||0)+'/4 · '+(p.m||0)+' ✗'}</small></span>`).join('')}</div>`}
+function lobbyHTML(){const r=room,order=lobbyOrder(r),isHost=r.host===ME;
+  return header('Connec<span>tions</span>','Room '+roomCode)+`<section class="panel namecard">
+    <div class="backline"><button class="linkbtn" id="leave">← Leave</button><span class="ht">With friends</span></div>
+    <span class="label">Room code</span><p class="roomcode">${roomCode}</p>
+    <p class="hint">Friends open Connections, choose <b>With friends</b> and type this code. Or send them the link:</p>
+    <pre class="sharebox" id="linkbox">${esc(pageLink('?room='+roomCode))}</pre>
+    <button class="ghost" id="copylink">Copy link</button>
+    <span class="label">Players ${order.length}/${MAX_PLAYERS}</span>
+    <div class="players">${order.map((pid,i)=>{const p=r.players[pid];return `<div class="lp ${p.on===false?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)}<span class="tag">${[pid===r.host?'host':'',pid===ME?'you':'',p.on===false?'offline':''].filter(Boolean).join(' · ')}</span></div>`}).join('')}</div>
+    <p class="hint">Everyone gets the same 16 countries at the same time. Solving it counts first, then fewer mistakes, then speed.</p>
+    ${isHost?`<button class="primary" id="ostart" ${order.length<2?'disabled':''}>${order.length<2?'Waiting for players…':'Start game'}</button>`:'<p class="hint">Waiting for the host to start the game.</p>'}
+  </section>`}
+function friendsHTML(){return header('Connec<span>tions</span>','')+`<section class="panel">
+    <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">With friends</span></div>
+    <p class="hint">Play online, 2 to ${MAX_PLAYERS} players, each on their own phone. Everyone gets the same puzzle at the same time and sees how the others are doing.</p>
+    <div class="field"><label class="label" for="fname">Your name</label><input class="nameinp" id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(myName)}"></div>
+    ${FB_OK?'':'<p class="hint">Online play could not load. Check the connection and reload the page.</p>'}
+    <div class="field"><button class="primary" id="create" ${FB_OK?'':'disabled'}>Create room</button></div>
+    <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(joinCode)}" autocomplete="off"><button class="ghost" id="join" ${FB_OK?'':'disabled'}>Join</button></div></div>
+  </section>`}
+
+/* ---- moves ---- */
+function tap(c){if(!S||S.over||turning)return;const i=sel.indexOf(c);
+  if(i>=0)sel.splice(i,1);else if(sel.length<4)sel.push(c);render()}
+// Mingo's key for the game on screen (his bubble and the result window belong to one game)
+const cxKey=()=>S?S.mode+':'+(S.date||S.seed)+':'+(S.code||'')+':'+(S.round||''):'';
+const leftTxt=()=>{const l=MAX_MISTAKES-S.mistakes;return l+' mistake'+(l===1?'':'s')+' left.'};
+function submit(){if(!S||S.over||turning||sel.length!==4)return;
+  const key=sel.slice().sort().join();
+  if(S.guesses.some(g=>g.slice().sort().join()===key)){say(cxKey(),'think','Hold on.','You already tried these four. Swap one.');render();return}
+  const gs=sel.map(c=>groupOf(S,c)),counts={};gs.forEach(g=>counts[g]=(counts[g]||0)+1);
+  const best=Math.max(...Object.values(counts));
+  // four that really share something, but not one of the groups: explain it and don't count a mistake
+  const other=best<4&&sharedCategory(S,sel);
+  if(other){dialog('Not one of the groups',`<p>Good eye: all four fit <b>${esc(other.label)}</b>. But that is not one of this puzzle's groups.</p><p>Every country belongs to exactly one group, and only one way of splitting all 16 into four groups works. Keep these four apart and look for the split where the other twelve fit too.</p><p class="hint">No mistake counted.</p>`,'Keep playing');return}
+  S.guesses.push(sel.slice());
+  if(best===4){const g=gs[0],picked=sel.slice();S.found.push(g);S.left=S.left.filter(c=>!picked.includes(c));sel=[];
+    if(S.found.length===4){S.over=true;S.won=true}
+    const left=4-S.found.length;
+    Geomingo.stamp('connections',CATS[S.groups[g].k].label);
+    say(cxKey(),'happy','Stamped: '+CATS[S.groups[g].k].label+'.',left?left+' group'+(left===1?'':'s')+' to go.':'All four groups found.');
+    save();turnOver(picked,S.groups[g].t,()=>render());return}
+  S.mistakes++;
+  if(S.mistakes>=MAX_MISTAKES){S.over=true;S.won=false;sel=[];save();render();return}
+  if(best===3)say(cxKey(),'think','One away.','Three of these four belong together. '+leftTxt());
+  else say(cxKey(),'sad','Denied entry.',"That's not a group. "+leftTxt());
+  save();render(true)}
+
+// the four tiles of a group just found turn over to show their flags in the group's colour, then the bar replaces them
+let turning=false;
+function turnOver(cs,t,done){const els=cs.map(c=>app.querySelector(`.cx-grid [data-c="${c}"]`)).filter(Boolean);
+  if(els.length!==4||matchMedia('(prefers-reduced-motion:reduce)').matches){done();return}
+  turning=true;els.forEach(e=>{e.classList.remove('on');e.classList.add('turn')});
+  setTimeout(()=>{els.forEach(e=>{const c=e.dataset.c;e.innerHTML=`<img class="tflag" src="${FLAGS[c]}" alt=""><span>${esc(byCode[c].n)}</span>`;
+    e.classList.remove('turn');e.classList.add('flipped','g'+t)})},230);
+  setTimeout(()=>{turning=false;done()},1100)}
+
+/* ---- share ---- */
+function shareText(){const rows=S.guesses.map(g=>g.map(c=>TEMOJI[S.groups[groupOf(S,c)].t]).join(''));
+  const G=Geomingo.share('Connections'),head=S.mode==='daily'?`${G} #${S.num}`:S.mode==='online'?`${G} (with friends)`:`${G} (practice)`;
+  return head+' — '+(S.won?`solved with ${S.mistakes} mistake${S.mistakes===1?'':'s'}`:`${S.found.length}/4 groups`)+'\n'+rows.join('\n')}
+const shareLink=()=>S.mode==='free'?pageLink('?p='+S.seed):pageLink();
+const shareMessage=()=>shareText()+'\n\n'+(S.mode==='daily'?"Play today's puzzle: ":S.mode==='online'?'Play Connections: ':'Play this puzzle: ')+shareLink();
+
+/* ---- render ---- */
+const groupHTML=(g,miss)=>{const k=CATS[g.k];
+  return `<div class="grp g${g.t}${miss?' miss':''}"><span class="gl">${esc(k.label)}<button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></span>
+    <span class="gm">${g.m.map(c=>`<span style="white-space:nowrap"><img class="mini" src="${FLAGS[c]}" alt="">${esc(byCode[c].n)}</span>`).join(' · ')}</span></div>`};
+const tileHTML=(c,attr)=>{const n=byCode[c].n,on=attr==='data-c'&&sel.includes(c);
+  return `<button class="tile${on?' on':''}${n.length>12||n.split(' ').some(w=>w.length>10)?' long':''}" ${attr}="${c}" aria-pressed="${on}" lang="en">${esc(n)}</button>`};
+function statsHTML(){const h=load('cx-hist',{}),days=Object.keys(h),won=days.filter(k=>h[k].w).length;
+  return `<div class="stgrid"><div class="st"><b>${days.length}</b><span>played</span></div><div class="st"><b>${days.length?Math.round(won/days.length*100):0}%</b><span>solved</span></div><div class="st"><b>${streakOf(h)}</b><span>streak</span></div></div>`}
+const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
+// today's puzzle open on the home screen, as Countries' grid: tapping a country starts (or continues) it with that country picked
+function dailyBoard(d){const g=d||dailyPreview();if(!g)return '';
+  return `<div class="cx-board">${g.found.map(i=>groupHTML(g.groups[i])).join('')}<div class="cx-grid">${g.left.map(c=>tileHTML(c,'data-dc')).join('')}</div></div>`}
+function homeHTML(){const key=todayKey(),num=dayNum(key,CX_FIRST),d=dailySaved(),h=load('cx-hist',{}),days=Object.keys(h);
+  const daily=d&&d.over
+    // played: one row per guess in the colours of its groups, like the shared result; tap to see the groups
+    ?`<button class="hcard" id="daily"><span class="hm">Today's puzzle #${num} · done</span><span class="dsum"><span class="dsq" style="grid-template-columns:repeat(4,1fr)" aria-hidden="true">${d.guesses.flat().map(c=>`<i class="g${d.groups[groupOf(d,c)].t}"></i>`).join('')}</span><span class="dtxt"><span class="ht">${d.won?'Solved':d.found.length+' of 4'}</span><span class="hs">${d.won?`${d.mistakes} mistake${d.mistakes===1?'':'s'}`:'groups found'}</span></span><span class="dstats"><span><b>${streakOf(h)}</b>streak</span><span><b>${days.length}</b>played</span><span><b>${days.length?Math.round(days.filter(k=>h[k].w).length/days.length*100):0}%</b>solved</span></span></span><span class="hs">Tap to see the groups and share your result.</span><span class="hm">Next puzzle in ${nextIn()}</span></button>`
+    :`<div class="hcard ac"><span class="hm">#${num} · ${dateLabel(key)}</span><span class="ht">Today's puzzle</span><span class="hs">${d?'You started it: tap a country to continue.':'The same 16 countries for everyone, one try. Tap a country to start.'}</span>${dailyBoard(d)}</div>`;
+  const st=Geomingo.streak();
+  const hi=d&&d.over?Geomingo.hello(d.won?'happy':'think',d.won?'Stamped for today.'+(st>1?' '+st+'-day streak.':''):'Rough crossing today.',`Today's puzzle is done. Next one in ${nextIn()}.`)
+    :d?Geomingo.hello('think','Your puzzle is waiting.','Tap a country to carry on. One try.')
+    :Geomingo.hello('pass','GeoPass ready.','Tap a country to start. Every group you find is a stamp. One try, the same 16 for everyone.');
+  return header('Connec<span>tions</span>','',true)+`<section class="home">${hi}${daily}
+    <div class="hrow"><button class="hcard" data-go="free"><span class="ht">Solo</span><span class="hs">Practice on unlimited puzzles, at your pace.</span></button>
+    <!-- With friends is switched off for now (the online rooms code stays for later; a shared ?room= link still opens a room) -->
+    <div class="hcard soon" aria-disabled="true"><span class="ht">With friends</span><span class="hs">Play online, 2 to ${MAX_PLAYERS} players.</span><span class="hm">(coming soon)</span></div></div></section>
+    <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something: a region, a flag, a language, a name… Each country is in exactly one group, and only one split works for all 16. Pick four and tap <b>Submit</b>. Four mistakes and the game ends. Full rules in <b>How to play</b>.</p></section>`}
+// the logo goes home from anywhere; in a room that means leaving it (in the middle of a game, tap twice)
+function goHome(){if(roomRef){if(S&&S.mode==='online'&&!S.over&&!leaveArmed){leaveArmed=true;render();toast('Tap again to leave the room.');return}
+    leaveRoom(true);return}
+  view='home';toastMsg=null;drawToast();sel=[];render()}
+function render(keepShake){
+  if(view==='home'){app.innerHTML=homeHTML();bind();return}
+  if(view==='friends'){app.innerHTML=friendsHTML();bind();return}
+  if(view==='room'&&(!room||room.status!=='play'||!S||S.mode!=='online')){
+    app.innerHTML=room?lobbyHTML():header('Connec<span>tions</span>','')+`<section class="panel"><p class="hint">Connecting to the room…</p></section>`;bind();return}
+  if(!S){app.innerHTML=header('Connections','')+`<section class="panel"><p class="hint">Could not build a puzzle. Try again later.</p></section>`;bind();return}
+  const on=S.mode==='online';
+  const coord=S.mode==='daily'?'Daily #'+S.num:on?'Room '+roomCode:'Solo';
+  let h=header('Connec<span>tions</span>',coord);
+  h+=`<div class="backline">${on?`<button class="linkbtn" id="leave">${leaveArmed?'Tap again to leave':'← Leave'}</button>`:'<button class="linkbtn" id="home">← Back</button>'}<span class="ht">${S.mode==='daily'?"Today's puzzle":on?'With friends':'Solo'}</span></div>`;
+  if(on)h+=scoresHTML();
+  watchResult(cxKey(),S.over,resultWindow);
+  if(S.over)h+=on?roomResultHTML():resultHTML();
+  else h+=moodHTML(cxKey(),'pass','4 stamps to win.','Pick four countries that share something, then Submit. '+leftTxt());
+  h+=`<div class="cx-board">`;
+  S.found.forEach(g=>h+=groupHTML(S.groups[g]));
+  if(S.over)S.groups.forEach((g,i)=>{if(!S.found.includes(i))h+=groupHTML(g,true)});
+  else h+=`<div class="cx-grid${keepShake?' shake':''}">${S.left.map(c=>tileHTML(c,'data-c')).join('')}</div>`;
+  h+=`</div>`;
+  if(!S.over){
+    h+=`<div class="lives" aria-label="${MAX_MISTAKES-S.mistakes} mistakes left">Mistakes left ${Array.from({length:MAX_MISTAKES},(_,i)=>`<i class="${i<MAX_MISTAKES-S.mistakes?'':'off'}"></i>`).join('')}</div>
+    <div class="cx-actions"><button class="ghost" id="shuf">Shuffle</button><button class="ghost" id="desel" ${sel.length?'':'disabled'}>Deselect all</button><button class="primary" id="submit" ${sel.length===4?'':'disabled'}>Submit</button></div>
+    <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something: a region, a flag, a language, a name… Each country is in exactly one group, and only one split works for all 16. Pick four and tap <b>Submit</b>. Four mistakes and the game ends.</p></section>`}
+  app.innerHTML=h;bind();
+}
+// Mingo's verdict, for the result panel and the result window
+function verdict(){const n=S.mistakes;
+  return S.won?(n?{pose:'happy',t:'Landed. All four groups.',s:'All four groups, '+n+' mistake'+(n===1?'':'s')+'.'}:{pose:'happy',t:'Full page. Not a single mistake.',s:'All four groups found.'})
+    :{pose:'sad',t:'Rough crossing. Better luck tomorrow.',s:'You found '+S.found.length+' of 4 groups.'}}
+function resultWindow(){const v=verdict(),daily=S.mode==='daily';
+  if(S.mode==='online'){const list=ranked().filter(p=>p.cur),pos=list.findIndex(p=>p.pid===ME)+1;
+    return {game:'connections',pose:v.pose,title:v.t,num:pos?'#'+pos:null,unit:pos?'of '+list.length+' in room '+roomCode:'',share:()=>share(shareMessage()),close:'See the ranking'}}
+  return {game:'connections',pose:v.pose,title:v.t,num:S.found.length+'/4',unit:'Groups · '+S.mistakes+' mistake'+(S.mistakes===1?'':'s'),
+    mini:`<div class="gm-mini" style="grid-template-columns:repeat(4,20px)" aria-hidden="true">${S.guesses.flat().map(c=>`<i class="g${S.groups[groupOf(S,c)].t}" style="background:var(--gc)"></i>`).join('')}</div>`,
+    sub:daily?`Next puzzle in ${nextIn()}.`:'',share:()=>share(shareMessage()),next:daily?Geomingo.nextGame('connections'):null,allDone:daily,close:'See the groups'}}
+function resultHTML(){const v=verdict();
+  const head=S.won?(S.mistakes?`Solved with ${S.mistakes} mistake${S.mistakes===1?'':'s'}`:'Perfect!'):'Better luck next time';
+  return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Connections #'+S.num:'Practice puzzle'}</span><p class="big">${head}</p>
+    <p class="hint">${S.won?'You found all four groups.':`You found ${S.found.length} of 4 groups.`} ${S.mode==='daily'?`Next puzzle in ${nextIn()}.`:''}</p>
+    <pre class="sharebox" id="share">${esc(shareText())}</pre>
+    <div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="ghost" id="again" style="flex:1">${S.mode==='daily'?'Practice puzzle':'New puzzle'}</button></div>
+    ${nextGameHTML('connections')}
+    ${S.mode==='daily'?`<span class="label">Your daily puzzles</span>${statsHTML()}`:''}</section>`}
+// the room's ranking, live while the others finish; the next game starts when everyone still here is done
+function roomResultHTML(){const list=ranked(),cur=list.filter(p=>p.cur),pos=cur.findIndex(p=>p.pid===ME)+1;
+  const waiting=cur.some(p=>!p.done&&p.on!==false);
+  const head=S.won?(pos===1&&!waiting?'You win!':`Solved in ${fmtTime(S.ms)}`):'Better luck next time';
+  return `<section class="panel">${Geomingo.hello(S.won?'happy':'sad',S.won?(pos===1&&!waiting?'You win. First through the gate.':'Solved. Now wait for the others.'):'So close.',waiting?'Some players are still playing.':'Everyone has finished.',{key:'res'})}<span class="label">Room ${roomCode} · game ${S.round}</span><p class="big">${head}</p>
+    <div class="players">${list.map((p,k)=>`<div class="lp${p.pid===ME?' me':''}${p.on===false?' off':''}"><span class="rk">${p.cur?k+1:''}</span><span class="pin" style="${pinStyle(p.i)}"></span>${esc(p.name)}<span class="tag">${!p.cur?'joining':p.done?(p.won?`solved · ${p.m||0} mistake${p.m===1?'':'s'} · ${fmtTime(p.ms)}`:`${p.f||0} of 4 groups`):p.on===false?'left':'playing…'}</span></div>`).join('')}</div>
+    <pre class="sharebox" id="share">${esc(shareText())}</pre>
+    <div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="primary" id="rematch" style="flex:1" ${waiting?'disabled':''}>${waiting?'Waiting for the others…':'Play again'}</button></div>
+  </section>`}
+function rulesHTML(){return `<h3>The idea</h3><ul>
+  <li>There are 16 countries. They form <b>four groups of four</b>, and each group shares a hidden category, for example "Uses the euro" or "Flag has a crescent moon".</li>
+  <li>Every country belongs to exactly one group: it fits its own category and none of the other three.</li>
+  <li>There is only <b>one way</b> to split all 16 into four groups. Sometimes four countries share something else too (all have blue on the flag, say). That is not a group: the game tells you so and it does not count as a mistake.</li>
+  <li>Only independent countries appear, never territories.</li></ul>
+  <h3>Playing</h3><ul>
+  <li>Tap four countries and then <b>Submit</b>. If they share a category, the group is revealed with its name and colour.</li>
+  <li>If not, it costs one of your <b>${MAX_MISTAKES} mistakes</b>. "One away…" means three of the four belong together.</li>
+  <li><b>Shuffle</b> moves the tiles around; <b>Deselect all</b> clears your choice.</li>
+  <li>Colours go from easiest to trickiest: ${TEMOJI.join(' ')} (yellow, green, blue, purple).</li>
+  <li>Tap <span class="ib">i</span> on a group to read exactly what its category means. The categories and data are the same as in Countries.</li></ul>
+  <h3>Modes</h3><ul>
+  <li><b>Today's puzzle</b>: the same for everyone, new every day at midnight CET. One try, saved on this device.</li>
+  <li><b>Solo</b>: unlimited practice puzzles. Share sends a link to the same puzzle.</li>
+  <li><b>With friends</b>: online, 2 to ${MAX_PLAYERS} players, each on their own phone. One creates a room and shares its code or link. Everyone plays the same puzzle at the same time and sees the others' progress. Solving it counts first, then fewer mistakes, then speed.</li></ul>`}
+function copyText(t,okMsg){const manual=()=>{const el=$('linkbox');if(el){const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r)}toast('Copy blocked. Select the link and copy it.')};
+  try{navigator.clipboard.writeText(t).then(()=>toast(okMsg,'good'),manual)}catch(e){manual()}}
+function bind(){
+  app.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>tap(b.dataset.c));
+  app.querySelectorAll('[data-dc]').forEach(b=>b.onclick=()=>{openDaily();tap(b.dataset.dc)});
+  if($('daily'))$('daily').onclick=openDaily;
+  app.querySelectorAll('[data-go="free"]').forEach(b=>b.onclick=()=>openFree());
+  app.querySelectorAll('[data-go="friends"]').forEach(b=>b.onclick=()=>{view='friends';render()});
+  if($('home'))$('home').onclick=goHome;
+  app.querySelectorAll('[data-info]').forEach(b=>b.onclick=()=>{const k=CATS[+b.dataset.info];dialog(esc(k.label),`<p>${esc(k.desc)}</p>`)});
+  if($('rules'))$('rules').onclick=()=>dialog('How to play',rulesHTML());
+  if($('shuf'))$('shuf').onclick=()=>{S.left=shuffle(S.left,Math.random);save();render()};
+  if($('desel'))$('desel').onclick=()=>{sel=[];render()};
+  if($('submit'))$('submit').onclick=submit;
+  if($('copy'))$('copy').onclick=()=>share(shareMessage());
+  if($('again'))$('again').onclick=()=>openFree(Math.floor(Math.random()*1e9));
+  // With friends
+  if($('fname'))$('fname').oninput=e=>{myName=e.target.value.trim().slice(0,16)};
+  if($('create'))$('create').onclick=createRoom;
+  if($('jcode')){$('jcode').oninput=e=>{joinCode=e.target.value};$('jcode').onkeydown=e=>{if(e.key==='Enter')joinRoom($('jcode').value)}}
+  if($('join'))$('join').onclick=()=>joinRoom($('jcode').value);
+  if($('copylink'))$('copylink').onclick=()=>copyText(pageLink('?room='+roomCode),'Link copied.');
+  if($('ostart'))$('ostart').onclick=startRound;
+  if($('rematch'))$('rematch').onclick=startRound;
+  // leaving in the middle of a game asks first
+  if($('leave'))$('leave').onclick=()=>{if(S&&S.mode==='online'&&!S.over&&!leaveArmed){leaveArmed=true;render();return}leaveRoom()};
+}
+
+/* ---- start: ?p=123 opens that practice puzzle, ?room=ABCD joins that room (shared links) ---- */
+(()=>{const p=TESTQ.get('p'),q=TESTQ.get('room');
+  const clean=()=>{try{history.replaceState(null,'',location.pathname)}catch(e){}};
+  if(p&&/^\d{1,10}$/.test(p)){openFree(+p);clean();return}
+  if(q&&/^[A-Za-z]{4}$/.test(q)){clean();joinCode=q.toUpperCase();view='friends';render();if(myName)joinRoom(joinCode);return}
+  const back=load('cx-room','');
+  if(back&&initFB()){listenRoom(back,true);render();return}
+  render()})();
+// a new day while the page is open: show the new puzzle when you come back
+document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(view==='home')render();else if(view==='game'&&mode==='daily'&&S&&S.date!==todayKey())openDaily()});
+</script>
+</body>
+</html>
