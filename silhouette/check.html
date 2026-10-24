@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Silhouette · all shapes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../shared/style.css">
+<style>
+/* check page: every silhouette at the size it has in the game, to look them over */
+body{margin:0}
+.wrap{max-width:980px}
+h1{font-family:var(--display);font-weight:900;text-transform:uppercase;margin:0;font-size:2rem}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar button{border:1.5px solid var(--ink);border-radius:5px;background:var(--sheet);padding:6px 12px;font-weight:600}
+.bar button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.grid h2{grid-column:1/-1;margin:10px 0 0;font-size:1rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-2)}
+figure{margin:0;background:var(--sheet);border:1.5px solid var(--rule);border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:4px}
+figure.easy{border-color:var(--sea)}
+.sil{width:100%;aspect-ratio:1;color:var(--ink);display:block}
+figcaption{font-size:.8rem;line-height:1.15;font-weight:600}
+figcaption small{display:block;font-family:var(--mono);font-weight:400;color:var(--ink-2);font-size:.65rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Silhouette: all shapes</h1>
+  <p class="hint">Every country of the game, each fitted to the same box. Blue frame: in the Easy list. The six hard cases come first.</p>
+  <div class="bar"><button id="up" aria-pressed="true">North up</button><button id="hard" aria-pressed="false">Hard (turned)</button><span class="hint" id="info"></span></div>
+  <div class="grid" id="grid"></div>
+</div>
+<script src="countries.js"></script>
+<script src="silhouette.js"></script>
+<script>
+const TRICKY=['RUS','FJI','CHL','IDN','NOR','KIR'];
+let hard=false,seed=1;
+function draw(){const rand=rng(seed),fig=c=>`<figure class="${c.e?'easy':''}">${silSVG(c.c,hard?hardTurn(rand):0)}<figcaption>${c.n}<small>${c.c} · ${c.r}${hard?'':' · '+Math.round(c.p.length/100)/10+' KB'}</small></figcaption></figure>`;
+  document.getElementById('grid').innerHTML='<h2>Hard cases</h2>'+TRICKY.map(k=>fig(byCode[k])).join('')+'<h2>All '+COUNTRIES.length+'</h2>'+COUNTRIES.map(fig).join('');
+  document.getElementById('info').textContent=COUNTRIES.length+' countries, '+COUNTRIES.filter(c=>c.e).length+' in Easy';
+  document.getElementById('up').setAttribute('aria-pressed',!hard);document.getElementById('hard').setAttribute('aria-pressed',hard)}
+document.getElementById('up').onclick=()=>{hard=false;draw()};
+document.getElementById('hard').onclick=()=>{hard=true;seed++;draw()};
+draw();
+</script>
+</body>
+</html>

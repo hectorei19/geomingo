@@ -1,0 +1,53 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "rooms": {
+      "$code": {
+        ".read": true,
+        ".write": true,
+        ".validate": "$code.matches(/^[A-Z]{4}$/)"
+      }
+    },
+    "leaderboard": {
+      "$date": {
+        ".read": "$date.matches(/^\\d{4}-\\d{2}-\\d{2}$/)",
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && !data.exists()",
+          ".validate": "newData.hasChildren(['name', 's', 'c', 't']) && newData.child('name').isString() && newData.child('name').val().length >= 1 && newData.child('name').val().length <= 16 && newData.child('s').isNumber() && newData.child('s').val() >= 0 && newData.child('s').val() <= 5000 && newData.child('c').isNumber() && newData.child('c').val() >= 0 && newData.child('c').val() <= 25 && newData.child('t').val() === now"
+        }
+      }
+    },
+    "profiles": {
+      "$uid": {
+        ".read": true,
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['name', 'd', 's', 'f']) && newData.child('name').isString() && newData.child('name').val().length <= 16"
+      }
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "profile": {
+          ".validate": "!data.exists() && newData.hasChildren(['name']) && newData.child('name').isString() && newData.child('name').val().length >= 1 && newData.child('name').val().length <= 16"
+        },
+        "games": {
+          "$id": {
+            ".validate": "newData.hasChildren(['m', 's', 'n']) && newData.child('s').isNumber() && newData.child('n').isNumber()"
+          }
+        },
+        "archive": {
+          "$date": {
+            ".validate": "$date.matches(/^\\d{4}-\\d{2}-\\d{2}$/) && newData.hasChildren(['s', 'c', 'n', 'd']) && newData.child('s').isNumber() && newData.child('c').isNumber() && newData.child('n').isNumber() && newData.child('d').isString() && (!data.exists() || data.child('d').val() === newData.child('d').val())"
+          }
+        },
+        "daily": {
+          "$date": {
+            ".validate": "$date.matches(/^\\d{4}-\\d{2}-\\d{2}$/) && newData.hasChildren(['s', 'c', 'n', 'd']) && newData.child('s').isNumber() && newData.child('c').isNumber() && newData.child('n').isNumber() && newData.child('d').isString() && (!data.exists() || !data.child('d').exists() || data.child('d').val() === newData.child('d').val())"
+          }
+        }
+      }
+    }
+  }
+}

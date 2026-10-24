@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en" data-game="silhouette">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>Silhouette · Geomingo</title>
+<meta name="description" content="Name the country from its shape. Nine new shapes every day, at three levels. Daily geography games from Geomingo.">
+<meta name="theme-color" content="#F6F8F5">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Geomingo">
+<meta property="og:title" content="Silhouette · Geomingo">
+<meta property="og:description" content="Name the country from its shape. New shapes every day.">
+<meta property="og:url" content="https://hectorei19.github.io/geomingo/silhouette/">
+<meta property="og:image" content="https://hectorei19.github.io/geomingo/brand/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../brand/icons/favicon.svg?v=202610240100" type="image/svg+xml">
+<link rel="icon" href="../brand/icons/favicon-32.png?v=202610240100" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610240100">
+<script src="../brand/mingo.js?v=202610240100"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
+<link rel="stylesheet" href="../shared/style.css?v=202610240100">
+<style>
+/* Silhouette: one big shape in a square frame, the answer box under it; the daily nine as a 3 x 3 board of small frames */
+.silbox{position:relative;width:100%;max-width:340px;align-self:center;aspect-ratio:1;background:var(--sheet);border:2px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:14px;
+  background-image:linear-gradient(var(--sea-soft) 1px,transparent 1px),linear-gradient(90deg,var(--sea-soft) 1px,transparent 1px);background-size:25% 25%;background-position:-1px -1px}
+.silbox .sil{width:100%;height:100%;display:block;color:var(--ink)}
+.silbox.right{border-color:var(--good)}.silbox.right .sil{color:var(--good)}
+.silbox.wrong{border-color:var(--bad)}.silbox.wrong .sil{color:var(--bad)}
+.silbox .turn{position:absolute;top:6px;right:8px;font-family:var(--mono);font-size:.7rem;color:var(--ink-2)}
+.play{display:flex;flex-direction:column;gap:10px;width:100%}
+.ans{display:flex;flex-direction:column;gap:6px}
+.ans input{width:100%;border:1.5px solid var(--ink);border-radius:5px;padding:12px;font-size:1.1rem;background:var(--paper)}
+.ans .sugg{max-height:none}
+.tries{display:flex;align-items:center;gap:8px;font-size:.95rem;color:var(--ink-2)}
+.tries i{width:12px;height:12px;border-radius:50%;background:var(--sea)}
+.tries i.off{background:transparent;box-shadow:inset 0 0 0 1.5px var(--rule)}
+.tries .cnt{margin-left:auto;font-family:var(--mono);font-size:.8rem}
+.missed{margin:0;font-size:.92rem;color:var(--ink-2)}
+.reveal{display:flex;align-items:center;gap:12px;background:var(--sheet);border:2px solid var(--good);border-radius:16px;padding:10px 12px}
+.reveal.wrong{border-color:var(--bad)}
+.reveal .flag{width:48px;height:36px;object-fit:cover;border-radius:3px;box-shadow:0 0 0 1px var(--rule);flex:none;background:var(--rule)}
+.reveal .rn{display:flex;flex-direction:column;min-width:0}
+.reveal .rn b{font-family:var(--display);font-weight:700;font-size:1.4rem;line-height:1.1}
+.reveal .rn small{color:var(--ink-2);font-size:.9rem}
+.reveal .rpts{margin-left:auto;font-family:var(--mono);font-size:.85rem;white-space:nowrap}
+.streak{display:flex;gap:16px;font-size:.95rem;color:var(--ink-2)}
+.streak b{font-family:var(--display);font-weight:700;font-size:1.3rem;color:var(--ink);margin-right:4px}
+.board9~.silbox{max-width:250px}
+.board9{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:340px;align-self:center}
+.board9 button{aspect-ratio:1;background:var(--sheet);border:2px dashed var(--line);border-radius:14px;padding:6px;position:relative}
+.board9 button .sil{width:100%;height:100%;display:block;color:var(--ink)}
+.board9 button.sel{border:2px solid var(--flamingo);box-shadow:0 0 0 3px color-mix(in srgb,var(--flamingo) 30%,transparent)}
+.board9 button.right{border-style:solid;border-color:var(--good);background:var(--p4-soft)}.board9 button.right .sil{color:var(--good)}
+.board9 button.wrong{border-style:solid;border-color:var(--bad);background:var(--p0-soft)}.board9 button.wrong .sil{color:var(--bad)}
+.board9 .n{position:absolute;top:3px;left:5px;font-family:var(--mono);font-size:.62rem;color:var(--ink-2)}
+.board9 .nm{position:absolute;left:3px;right:3px;bottom:3px;font-size:.66rem;font-weight:700;line-height:1.05;text-align:center;background:var(--sheet);border-radius:3px;padding:1px 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dsq{grid-template-columns:repeat(3,1fr);width:60px}
+.dsq i.mid{background:var(--p2)}
+.dsq i.bad{background:var(--bad)}
+.dtabs{width:100%}
+.modes{max-width:320px;width:100%;align-self:center}
+.difftag{font-family:var(--mono);font-size:.75rem;color:var(--sea);letter-spacing:.04em;text-transform:uppercase}
+.osel{width:100%;border:1.5px solid var(--ink);border-radius:5px;padding:10px;font-size:1rem;background:var(--paper)}
+.rank td:first-child,.rank th:first-child{width:28px}
+.rank td:nth-child(2),.rank th:nth-child(2){text-align:left;font-family:var(--ui);font-weight:600}
+.rank tr.me td{background:var(--sea-soft)}
+.ready{display:flex}
+@media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
+</style>
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610240100">
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<footer class="foot"><a class="linkbtn" href="../">All Geomingo games</a></footer>
+<div id="layer"></div>
+
+<script src="countries.js?v=202610230100"></script>
+<script src="silhouette.js?v=202610230100"></script>
+<script src="../shared/games.js?v=202610240100"></script>
+<script src="../shared/minigames.js?v=202610240100"></script>
+<!-- online rooms (With friends): Firebase, loaded after the page so today's board shows at once -->
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script defer src="firebase-config.js?v=202610230100"></script>
+<!-- flags appear once a shape is answered; loaded after the page so the game shows at once -->
+<script defer src="flags.js?v=202610230100"></script>
+<script>
+/* ---- one silhouette to name: the same piece in Training, Daily and With friends ----
+   A question is {c: country code, rot: turn in degrees (Hard), tries: wrong answers so far, st: 'play' | 'right' | 'wrong'}. */
+const TRIES=3,DIFF_NAME={easy:'Easy',normal:'Normal',hard:'Hard'};
+const DIFF_HINT={easy:'Well-known countries, north up',normal:'All 196 countries, north up',hard:'All 196, each shape turned'};
+const newQ=(c,rot)=>({c,rot:rot||0,tries:[],st:'play'});
+const flagSrc=c=>typeof FLAGS!=='undefined'&&FLAGS[c]?'data:image/svg+xml;utf8,'+encodeURIComponent(FLAGS[c]):'';
+const contName={EU:'Europe',AS:'Asia',AF:'Africa',NA:'North and Central America',SA:'South America',OC:'Oceania'};
+let query='',typing=false;
+// apply an answer to a question; returns 'right', 'wrong' (a miss with tries left) or 'out' (last try used)
+function answer(q,code){
+  if(code===q.c){q.st='right';return 'right'}
+  q.tries.push(code);if(q.tries.length>=TRIES){q.st='wrong';return 'out'}
+  return 'wrong'}
+function triesHTML(q){const left=TRIES-q.tries.length;
+  return `<div class="tries" aria-label="${left} tries left">Tries ${Array.from({length:TRIES},(_,i)=>`<i class="${i<left?'':'off'}"></i>`).join('')}${q.rot?`<span class="cnt">Turned shape</span>`:''}</div>`+
+    (q.tries.length?`<p class="missed">Not ${q.tries.map(c=>esc(byCode[c].n)).join(', not ')}.</p>`:'')}
+function suggHTML(q){if(!query)return '';const res=searchCountries(query,null,6);
+  if(!res.length)return `<li class="hint" style="padding:8px 2px">No country matches “${esc(query)}”.</li>`;
+  return res.map(c=>{const t=q.tries.includes(c.c);return `<li><button data-g="${c.c}" ${t?'disabled':''}>${esc(c.n)}${t?'<span class="tag">not it</span>':''}</button></li>`}).join('')}
+function answerBoxHTML(q,extra){
+  return `<div class="ans"><input id="q" placeholder="Type a country…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(query)}" aria-label="Type a country"><ul class="sugg" id="sugg">${suggHTML(q)}</ul></div>${extra||''}`}
+function revealHTML(q,note){const c=byCode[q.c],ok=q.st==='right';
+  return `<div class="reveal ${ok?'':'wrong'}"><img class="flag" src="${flagSrc(q.c)}" alt=""><span class="rn"><b>${esc(c.n)}</b><small>${ok?(q.tries.length?'Right, at try '+(q.tries.length+1):'Right, first try'):'The answer'} · ${contName[c.r]||''}</small></span>${note?`<span class="rpts">${note}</span>`:''}</div>`}
+function silBoxHTML(q,big){const cls=q.st==='right'?'right':q.st==='wrong'?'wrong':'';
+  return `<div class="silbox ${cls}${big?' pop':''}">${silSVG(q.c,q.rot)}</div>`}
+// the answer box: typing filters the list; a tap or Enter (first match) answers
+function bindAnswer(q,onPick){const box=$('q');if(!box)return;
+  const draw=()=>{const u=$('sugg');if(u){u.innerHTML=suggHTML(q);u.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>onPick(b.dataset.g))}};
+  box.oninput=e=>{query=e.target.value;draw()};
+  box.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const m=searchCountries(query,null,6).filter(c=>!q.tries.includes(c.c));if(m[0])onPick(m[0].c)}};
+  draw();
+  // the box gets the focus only once you have started, so phones do not open the keyboard on arrival
+  if(query||typing)setTimeout(()=>{box.focus();box.setSelectionRange(box.value.length,box.value.length)},0)}
+// Mingo reacts to each answer in his bubble above the shape
+const triesTxt=q=>{const n=TRIES-q.tries.length;return n+' '+(n===1?'try':'tries')+' left.'};
+function feedback(q,res,code,key){
+  if(res==='right'){Geomingo.stamp('silhouette',byCode[q.c].n);say(key,'happy','Stamped: '+byCode[q.c].n+'.',q.tries.length?'Got it on try '+(q.tries.length+1)+'.':'First try.')}
+  else if(res==='wrong')say(key,'sad','Denied entry.',`It's not ${byCode[code].n}. ${triesTxt(q)}`);
+  else say(key,'sad','It was '+byCode[q.c].n+'.',`Not ${byCode[code].n}. No tries left for this one.`)}
+const silKey=()=>view==='train'&&T?'train:'+T.diff:D?'sil:'+D.date+':'+D.diff:'';
+
+/* ---- Training: unlimited shapes, one after another, at the level you choose ----
+   Each level deals from its own shuffled deck, so no country comes back until the deck is used up. */
+let T=null;
+const trainStats=()=>load('sil-train',{});
+function trainNext(){const pool=poolOf(T.diff).map(c=>c.c);
+  if(!T.deck||!T.deck.length)T.deck=shuffled(pool,Math.random).filter(c=>c!==(T.q&&T.q.c));
+  const c=T.deck.pop();T.q=newQ(c,T.diff==='hard'?hardTurn(Math.random):0);query='';typing=false}
+function openTrain(){const st=trainStats();
+  T={diff:load('sil-diff','normal'),streak:0,deck:null,q:null,best:st};trainNext();view='train';render();window.scrollTo(0,0)}
+function trainPick(code){const q=T.q;if(q.st!=='play')return;
+  const res=answer(q,code);query='';typing=res==='wrong';
+  const st=trainStats(),s=st[T.diff]||{n:0,ok:0,best:0};
+  if(res!=='wrong'){s.n++;if(res==='right'){s.ok++;T.streak++;s.best=Math.max(s.best,T.streak)}else T.streak=0;st[T.diff]=s;store('sil-train',st)}
+  feedback(q,res,code,silKey());render()}
+function trainSkip(){const q=T.q;if(q.st!=='play')return;q.st='wrong';T.streak=0;
+  const st=trainStats(),s=st[T.diff]||{n:0,ok:0,best:0};s.n++;st[T.diff]=s;store('sil-train',st);render()}
+function trainHTML(){const q=T.q,s=trainStats()[T.diff]||{best:0},done=q.st!=='play';
+  let h=header('Silhou<span>ette</span>','Training');
+  h+=`<div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Training</span></div>`;
+  h+=`<div class="field">${seg('diff',[['easy','Easy'],['normal','Normal'],['hard','Hard']],T.diff)}<span class="hint">${DIFF_HINT[T.diff]}.</span></div>`;
+  h+=`<div class="streak"><span><b>${T.streak}</b>in a row</span><span><b>${s.best||0}</b>best at ${DIFF_NAME[T.diff]}</span></div>`;
+  h+=moodHTML(silKey(),'pass','Whose shape is this?','Training at '+DIFF_NAME[T.diff]+'. '+triesTxt(q));
+  h+=`<section class="panel play">${silBoxHTML(q,done)}`;
+  if(done)h+=revealHTML(q)+`<button class="primary" id="tnext">Next shape</button>`;
+  else h+=triesHTML(q)+answerBoxHTML(q,`<button class="ghost" id="tskip" style="align-self:flex-start">Show the answer</button>`);
+  return h+`</section>`}
+
+/* ---- Daily: nine shapes on a 3 x 3 board, the same for everyone, one board per level ----
+   Each level shuffles its countries once per cycle (same order for everyone, from the cycle number) and deals
+   nine a day, so no country comes back until the cycle is over. Hard turns come from the date. */
+const DAILY_FIRST='2026-10-22',DAILY_N=9;
+function dailyBoard(key,diff){
+  const codes=poolOf(diff).map(c=>c.c).sort(),days=Math.floor(codes.length/DAILY_N),n=dayNum(key,DAILY_FIRST)-1;
+  const cycle=Math.floor(n/days),i=((n%days)+days)%days;
+  const deck=shuffled(codes,rng(seedOf(`silhouette-${diff}-cycle-${cycle}`))).slice(i*DAILY_N,(i+1)*DAILY_N);
+  const turn=rng(seedOf(`silhouette-hard-${key}`));
+  return deck.map(c=>newQ(c,diff==='hard'?hardTurn(turn):0))}
+let D=null;
+const dailyAll=()=>{const d=load('sil-daily',null);return d&&d.date===todayKey()?d:{date:todayKey(),over:false}};
+function dailyGame(diff){const d=dailyAll();
+  return d[diff]||{diff,date:todayKey(),num:dayNum(todayKey(),DAILY_FIRST),qs:dailyBoard(todayKey(),diff),sel:0,over:false}}
+function dailySave(){if(!D)return;const d=dailyAll();d[D.diff]=D;d.over=d.over||D.over;store('sil-daily',d);
+  if(D.over){const h=load('sil-hist',{}),day=h[D.date]||{};if(day[D.diff]==null){day[D.diff]=D.qs.filter(q=>q.st==='right').length;h[D.date]=day;store('sil-hist',h)}}}
+function dailyPick(code){const q=D.qs[D.sel];if(!q||q.st!=='play')return;
+  const res=answer(q,code);query='';typing=res==='wrong';
+  if(res!=='wrong'){const next=D.qs.findIndex((x,i)=>i>D.sel&&x.st==='play'),any=D.qs.findIndex(x=>x.st==='play');
+    D.justDone=D.sel;if(any<0)D.over=true;else D.sel=next>=0?next:any}
+  feedback(q,res,code,silKey());dailySave();
+  if(D.over&&view==='home')view='daily';
+  render();if(D.over)window.scrollTo(0,0)}
+const rightOf=G=>G.qs.filter(q=>q.st==='right').length;
+const sq=q=>q.st==='right'?(q.tries.length?'🟨':'🟩'):'🟥';
+function dailyShareText(G){return `${Geomingo.share('Silhouette')} #${G.num} · ${DIFF_NAME[G.diff]} — ${rightOf(G)}/9\n${[0,3,6].map(i=>G.qs.slice(i,i+3).map(sq).join('')).join('\n')}`}
+const dailyShare=G=>dailyShareText(G)+"\n\nPlay today's Silhouette: "+pageLink();
+function boardHTML(G){const sel=G.over?-1:G.sel;
+  return `<div class="board9" role="group" aria-label="Today's nine shapes">${G.qs.map((q,i)=>{const cls=[i===sel?'sel':'',q.st==='right'?'right':q.st==='wrong'?'wrong':''].join(' ');
+    return `<button data-tile="${i}" class="${cls}" aria-label="Shape ${i+1}${q.st==='play'?'':': '+esc(byCode[q.c].n)}">${silSVG(q.c,q.rot)}<span class="n">${i+1}</span>${q.st!=='play'?`<span class="nm">${esc(byCode[q.c].n)}</span>`:''}</button>`}).join('')}</div>`}
+function dailyPlayHTML(G){const q=G.qs[G.sel],last=G.justDone!=null?G.qs[G.justDone]:null;G.justDone=null;
+  let h=boardHTML(G);
+  if(last&&last.st!=='play')h+=revealHTML(last);
+  if(!G.over&&q){h+=`<span class="label">Shape ${G.sel+1} of 9 · ${rightOf(G)} right so far</span>`+silBoxHTML(q)+triesHTML(q)+answerBoxHTML(q)}
+  return `<div class="play">${h}</div>`}
+const dailyTabs=diff=>`<div class="dtabs">${seg('ddiff',[['easy','Easy'],['normal','Normal'],['hard','Hard']].map(([v,l])=>{const g=dailyAll()[v];return [v,l+(g&&g.over?' ✓':'')]}),diff)}</div>`;
+function verdict(G){const r=rightOf(G),first=G.qs.filter(q=>q.st==='right'&&!q.tries.length).length;
+  return r===9?(first===9?{pose:'happy',t:'Full page. Nine of nine, all first try.',s:'Nine new stamps.'}:{pose:'happy',t:'Landed. Nine of nine.',s:first+' on the first try.'})
+    :r>=6?{pose:'happy',t:'Landed. '+r+' of 9.',s:'Tap a shape to see its name.'}:r>=3?{pose:'think',t:'A few gaps in the pages. '+r+' of 9.',s:'Tap a shape to see its name.'}
+    :{pose:'sad',t:'Rough crossing, this one.',s:r+' of 9. Training helps.'}}
+function resultWindow(){const G=D,v=verdict(G);
+  return {game:'silhouette',pose:v.pose,title:v.t,num:rightOf(G)+'/9',unit:'Shapes · '+DIFF_NAME[G.diff],mini:Geomingo.mini(G.qs.map(q=>q.st==='right'),3),
+    sub:`Next board in ${nextIn()}.`,share:()=>share(dailyShare(G)),next:Geomingo.nextGame('silhouette'),allDone:true,close:'See the board'}}
+function dailyResultHTML(G){const r=rightOf(G),v=verdict(G);
+  return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Silhouette #${G.num} · ${DIFF_NAME[G.diff]}</span><p class="big">${r} of 9</p>
+    <p class="hint">${r===9?'Every shape named.':'Tap a shape to see its name.'} Next board in ${nextIn()}.</p>
+    <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
+    <div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="ghost" data-go="train" style="flex:1">Training</button></div>
+    ${['easy','normal','hard'].filter(v=>!(dailyAll()[v]||{}).over).length?`<p class="hint">Also today: ${['easy','normal','hard'].filter(v=>!(dailyAll()[v]||{}).over).map(v=>`<button class="linkbtn" data-dd="${v}" style="padding:0">${DIFF_NAME[v]}</button>`).join(' · ')}</p>`:''}
+    ${nextGameHTML('silhouette')}
+    <span class="label">Your daily boards</span>${statsHTML()}</section>`}
+function openDaily(diff){if(diff)store('sil-ddiff',diff);D=dailyGame(diff||load('sil-ddiff','normal'));query='';view='daily';render();window.scrollTo(0,0)}
+function dailyHTML(){let h=header('Silhou<span>ette</span>','Daily #'+D.num);
+  h+=`<div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Today's shapes</span></div>`+dailyTabs(D.diff);
+  if(D.over)h+=dailyResultHTML(D)+`<section class="panel play">${boardHTML(D)}</section>`;
+  else h+=dailyMood()+`<section class="panel">${dailyPlayHTML(D)}</section>`;
+  return h}
+function dailyMood(){const started=D.qs.some(q=>q.st!=='play');
+  return moodHTML(silKey(),started?'think':'pass',started?'Keep going: '+rightOf(D)+' of 9 so far.':'GeoPass ready.',started?'Tap any shape to jump to it.':'Nine shapes, nine stamps to win, the same for everyone. '+TRIES+' tries each.')}
+
+/* ---- stats, rules, credits ---- */
+function statsHTML(){const h=load('sil-hist',{}),days=Object.keys(h);
+  const row=v=>{const ds=days.filter(k=>h[k][v]!=null),t=ds.reduce((x,k)=>x+h[k][v],0);return `<tr><td>${DIFF_NAME[v]}</td><td>${ds.length}</td><td>${ds.length?(t/ds.length).toFixed(1):'–'}</td><td>${ds.filter(k=>h[k][v]===9).length}</td></tr>`};
+  const tr=load('sil-train',{});
+  return `<div class="stgrid"><div class="st"><b>${days.length}</b><span>days played</span></div><div class="st"><b>${streakOf(h)}</b><span>streak</span></div></div>
+    <table class="sttab"><tr><th>Daily</th><th>Played</th><th>Average</th><th>9 of 9</th></tr>${['easy','normal','hard'].map(row).join('')}</table>
+    <table class="sttab"><tr><th>Training</th><th>Shapes</th><th>Right</th><th>Best run</th></tr>${['easy','normal','hard'].map(v=>{const s=tr[v]||{n:0,ok:0,best:0};return `<tr><td>${DIFF_NAME[v]}</td><td>${s.n}</td><td>${s.n?Math.round(s.ok/s.n*100)+'%':'–'}</td><td>${s.best}</td></tr>`}).join('')}</table>`}
+const quickRules=extra=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name the country from its shape. Every shape fills the same frame, so size is no clue. You have ${TRIES} tries per shape.${extra||''}</p></section>`;
+function rulesHTML(){return `<h3>The idea</h3><ul>
+  <li>Each shape is the outline of a country. Type its name and pick it from the list.</li>
+  <li>Every shape is drawn to fill the same frame, so a big country and a small one look the same size.</li>
+  <li>You have <b>${TRIES} tries</b> per shape. Wrong answers are listed under the frame.</li>
+  <li>Names are in English. Accents, capitals and spaces don't matter, and common other names work too (Holland, Burma, UK...).</li>
+  <li>Only independent countries, never territories. Far-off islands are left out of a shape (Hawaii, French Guiana, the Canaries) so the country does not shrink to a dot. Vatican City is not in the game.</li></ul>
+  <h3>Levels</h3><ul>
+  <li><b>Easy</b>: 54 countries most people know from maps, news and travel, north up.</li>
+  <li><b>Normal</b>: all 196 countries, north up.</li>
+  <li><b>Hard</b>: all 196, each shape turned by a random angle, so north is no clue.</li></ul>
+  <h3>Modes</h3><ul>
+  <li><b>Today's shapes</b>: nine shapes on a 3 × 3 board, the same for everyone, one board per level, new every day at midnight CET. One try each, saved on this device.</li>
+  <li><b>Training</b>: unlimited shapes at the level you choose. No country comes back until you have seen them all.</li>
+  <li><b>With friends</b>: online rooms for 2 to 6 phones. The host chooses <b>Getting harder</b> (3 Easy, 4 Normal, 3 Hard) or a continent and a level. Everyone gets the same ten shapes at the same time, ${SECS} seconds each. A right answer scores 500 points plus up to 500 for speed. The ranking shows after every shape and at the end.</li></ul>`}
+function creditsHTML(){return `<ul class="helpbox" style="padding-left:18px">
+  <li>Borders: <a href="https://github.com/topojson/world-atlas" target="_blank" rel="noopener">world-atlas</a>, from <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> 1:10m (public domain). Each country is drawn on its own map centred on itself, so no shape is stretched or cut by the date line.</li>
+  <li>Country names, other names and continents: Countries' data, from <a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a> (ODbL 1.0).</li>
+  <li>Flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a> (MIT License).</li>
+  <li>Fonts: Archivo, Public Sans and Courier Prime (Google Fonts, SIL Open Font License).</li></ul>`}
+
+/* ---- With friends: online rooms on Countries' Firebase Realtime Database ----
+   A room lives at rooms/ABCD like Countries', marked game:'silhouette' so games never open each other's rooms.
+   Everyone sees the same shape at the same time (the host deals all of them at the start, in qs); each round lasts
+   SECS seconds and ends early once everyone has named it or used their tries. A right answer scores 500, plus up to
+   500 for speed. Each phone writes only its own answer (ans/<round>/<player>); whoever is online moves the room on. */
+const FB_OK=()=>typeof firebase!=='undefined'&&typeof firebase.database==='function'&&!!(window.FIREBASE_CONFIG&&/^https:\/\//.test(FIREBASE_CONFIG.databaseURL||''));
+const ROOM_V='sil-202610230100',MAXP=6,ROUNDS=10,SECS=20,READY_MS=3000,REVEAL_MS=6000;
+const CONTS=[['all','The whole world'],['EU','Europe'],['AS','Asia'],['AF','Africa'],['NA','North and Central America'],['SA','South America'],['OC','Oceania']];
+let db=null,room=null,roomRef=null,roomCode=null,joining=false,offset=0,tick=null,O=null;
+const now=()=>Date.now()+offset;
+let ME=load('sil-pid','');if(!ME){ME='p'+Math.random().toString(36).slice(2,10);store('sil-pid',ME)}
+// the name the others see: the one typed here before, or the one used in the other games' rooms on this device
+const setup={fname:'',fmt:'ramp',cont:'all',diff:'normal',join:'',...load('sil-setup',{})};
+if(!setup.fname)try{setup.fname=(JSON.parse(localStorage.getItem('t10-setup')||'{}')||{}).fname||(JSON.parse(localStorage.getItem('bl-setup')||'{}')||{}).fname||localStorage.getItem('bl-user')||''}catch(e){}
+function initFB(){if(db)return true;if(!FB_OK())return false;
+  try{if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);db=firebase.database();db.ref('.info/serverTimeOffset').on('value',s=>{offset=s.val()||0})}catch(e){console.error(e);return false}
+  return true}
+const TS=()=>firebase.database.ServerValue.TIMESTAMP;
+const LET='ABCDEFGHJKLMNPQRSTUVWXYZ',randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*LET.length)]).join('');
+const pinStyle=i=>`background:var(--p${i%6})`;
+const lobbyOrder=r=>Object.entries(r.players||{}).sort((a,b)=>(a[1].t||0)-(b[1].t||0)).map(x=>x[0]);
+function saveSetup(){const el=$('fname');if(el)setup.fname=el.value.trim().slice(0,16);store('sil-setup',{fname:setup.fname,fmt:setup.fmt,cont:setup.cont,diff:setup.diff})}
+function needName(){saveSetup();if(setup.fname)return false;
+  toast("Type your name so your friends know who's playing.",'bad');const el=$('fname');if(el)el.focus();return true}
+const cfgText=c=>c.fmt==='ramp'?'10 rounds, getting harder: 3 Easy, 4 Normal, 3 Hard':`10 rounds · ${CONTS.find(x=>x[0]===c.cont)[1]} · ${DIFF_NAME[c.diff]}`;
+// the ten shapes of a game. Getting harder: three Easy, then four Normal countries not in the Easy list, then three turned.
+// Chosen continent and level: from that continent; when Easy has fewer than ten there, the rest of the continent fills in.
+function dealShapes(cfg){const pick=(pool,n,not)=>shuffled(pool.map(c=>c.c).filter(c=>!not.includes(c)),Math.random).slice(0,n);
+  if(cfg.fmt==='ramp'){const a=pick(poolOf('easy'),3,[]),b=pick(poolOf('normal').filter(c=>!c.e),4,a),h=pick(poolOf('normal'),3,[...a,...b]);
+    return [...a.map(c=>({c,rot:0,d:'easy'})),...b.map(c=>({c,rot:0,d:'normal'})),...h.map(c=>({c,rot:hardTurn(Math.random),d:'hard'}))]}
+  let codes=pick(poolOf(cfg.diff,cfg.cont),ROUNDS,[]);
+  if(codes.length<ROUNDS)codes=[...codes,...pick(poolOf('normal',cfg.cont),ROUNDS-codes.length,codes)];
+  return codes.map(c=>({c,rot:cfg.diff==='hard'?hardTurn(Math.random):0,d:cfg.diff}))}
+async function createRoom(){
+  if(needName())return;
+  if(!initFB()){toast('Online play is not available right now. Check the connection and reload.','bad');return}
+  try{let code='';
+    for(let i=0;i<8;i++){code=randRoom();const ex=await db.ref('rooms/'+code).get();if(!ex.exists())break}
+    await db.ref('rooms/'+code).set({game:'silhouette',v:ROOM_V,host:ME,created:TS(),cfg:{fmt:setup.fmt,cont:setup.cont,diff:setup.diff},status:'lobby',
+      players:{[ME]:{name:setup.fname,t:TS(),on:true}}});
+    listenRoom(code)}catch(e){console.error(e);toast('Could not create the room. Check the connection and try again.','bad')}}
+async function joinRoom(raw){
+  const code=(raw||'').toUpperCase().replace(/[^A-Z]/g,'');
+  if(code.length!==4){toast('Room codes have 4 letters.','bad');return}
+  if(needName())return;
+  if(!initFB()){toast('Online play is not available right now. Check the connection and reload.','bad');return}
+  if(joining)return;joining=true;
+  try{let why='';
+    const res=await db.ref('rooms/'+code).transaction(r=>{
+      if(!r)return r;
+      if(r.game!=='silhouette'){why='other';return}
+      if(r.v!==ROOM_V){why='version';return}
+      r.players=r.players||{};
+      if(r.players[ME]){r.players[ME].name=setup.fname;r.players[ME].on=true;return r}
+      if(r.status!=='lobby'){why='started';return}
+      if(Object.keys(r.players).length>=MAXP){why='full';return}
+      r.players[ME]={name:setup.fname,t:now(),on:true};return r});
+    const val=res.snapshot.val();
+    if(!val){toast('No room called '+code+'. Check the code.','bad');return}
+    if(!res.committed||!val.players||!val.players[ME]){
+      toast(why==='other'?code+' is a room of another game. Open that game to join it.':why==='version'?'You and the host have different versions of the game. Both of you reload the page, then try again.':why==='full'?'Room '+code+' already has '+MAXP+' players.':why==='started'?'That game has already started. Ask the host for a rematch.':'Could not join '+code+'.','bad');return}
+    listenRoom(code)}catch(e){console.error(e);toast('Could not join. Check the connection and try again.','bad')}
+  finally{joining=false}}
+function listenRoom(code){
+  if(roomRef)roomRef.off();
+  roomCode=code;roomRef=db.ref('rooms/'+code);view='friends';setup.join='';
+  try{localStorage.setItem('sil-room',code)}catch(e){}
+  try{const u=new URL(location.href);if(u.searchParams.has('room')){u.searchParams.delete('room');history.replaceState(null,'',u.pathname+u.search)}}catch(e){}
+  const me=roomRef.child('players/'+ME+'/on');me.onDisconnect().set(false);
+  db.ref('.info/connected').on('value',s=>{if(s.val()&&roomCode===code){me.onDisconnect().set(false);roomRef.child('players/'+ME).once('value',p=>{if(p.exists())me.set(true)})}});
+  roomRef.on('value',snap=>{const r=snap.val();
+    if(!r||!r.players||!r.players[ME]){const was=roomCode;dropRoom();
+      if(was)toast(r?'You are no longer in room '+was+'.':'Room '+was+' was closed.','bad');render();return}
+    room=r;syncRoom()})}
+function dropRoom(){
+  if(roomRef){roomRef.off();try{roomRef.child('players/'+ME+'/on').onDisconnect().cancel()}catch(e){}}
+  room=null;roomRef=null;roomCode=null;O=null;clearInterval(tick);
+  try{localStorage.removeItem('sil-room')}catch(e){}}
+async function leaveRoom(){const ref=roomRef;
+  if(ref&&room&&room.status==='lobby'){
+    try{await ref.transaction(r=>{if(!r)return r;if(r.players)delete r.players[ME];
+      const left=lobbyOrder(r);if(!left.length)return null;if(r.host===ME)r.host=left[0];return r})}catch(e){}}
+  else if(ref){try{await ref.child('players/'+ME+'/on').set(false)}catch(e){}}
+  dropRoom();view='friends';render()}
+// everyone in the game who is still online has named the shape or used their tries
+const doneOf=a=>!!a&&(a.ok||(a.tries||[]).length>=TRIES);
+function allDone(r){const ans=(r.ans||{})[r.round]||{};
+  return (r.order||[]).filter(pid=>(r.players[pid]||{}).on!==false).every(pid=>doneOf(ans[pid]))}
+// the room as a game state, rebuilt on every change
+function syncRoom(){const r=room;const prev=O;
+  if(r.status==='lobby'||!r.qs){O=null;clearInterval(tick);render();return}
+  const order=r.order||lobbyOrder(r),ans=r.ans||{};
+  const players=order.map((pid,i)=>{const p=r.players[pid]||{};let total=0;
+    for(let k=0;k<r.qs.length;k++){const a=(ans[k]||{})[pid];if(a&&a.ok&&(k<r.round||r.status!=='round'||k!==r.round))total+=a.pts||0}
+    const cur=(ans[r.round]||{})[pid]||{};
+    return {pid,i,name:p.name||'Gone',on:p.on!==false,total,cur}});
+  const q=r.qs[r.round],mine=(ans[r.round]||{})[ME]||{};
+  O={round:r.round,status:r.status,q:{c:q.c,rot:q.rot,d:q.d,tries:mine.tries||[],st:mine.ok?'right':(mine.tries||[]).length>=TRIES?'wrong':'play'},mine,
+     players,me:order.indexOf(ME),host:r.host===ME,start:r.start,end:r.end,revealEnd:r.revealEnd,n:r.qs.length,cfg:r.cfg};
+  if(!prev||prev.round!==O.round||prev.status!==O.status){query='';typing=O.status==='round'&&!TOUCH}
+  clearInterval(tick);if(O.status==='round'||O.status==='reveal')tick=setInterval(onTick,250);
+  // when only the others moved (an answer, someone going offline), redraw just their chips, so the answer box keeps its focus
+  O.key=[O.status,O.round,JSON.stringify(O.mine),r.host].join('|');
+  if(prev&&prev.key===O.key&&$('ochips')){$('ochips').innerHTML=chipsHTML();return}
+  render()}
+// a right answer: 500 points, plus up to 500 for speed (all of it when instant, none at the last second)
+const pointsFor=ms=>500+Math.round(500*Math.max(0,1-ms/(SECS*1000)));
+async function onlinePick(code){if(!O||O.status!=='round'||O.q.st!=='play')return;
+  const t=now();if(t<O.start)return;
+  if(t>O.end){toast("Time's up.",'bad');return}
+  const right=code===O.q.c,ms=t-O.start,pts=pointsFor(ms),round=O.round;let res='wrong';
+  try{const r=await roomRef.child('ans/'+round+'/'+ME).transaction(a=>{a=a||{tries:[]};a.tries=a.tries||[];
+      if(a.ok||a.tries.length>=TRIES)return;
+      if(right){a.ok=true;a.ms=ms;a.pts=pts}else a.tries.push(code);return a});
+    if(!r.committed)return;
+    const a=r.snapshot.val();res=right?'right':(a.tries||[]).length>=TRIES?'out':'wrong';
+    query='';typing=res==='wrong';
+    if(res==='right'){Geomingo.stamp('silhouette',byCode[code].n);toast(`Stamped: ${byCode[code].n}. +${pts}`,'good')}
+    else toast(`Not ${byCode[code].n}.${res==='out'?' No tries left.':` ${TRIES-a.tries.length} ${TRIES-a.tries.length===1?'try':'tries'} left.`}`,'bad');
+    if(res!=='wrong')moveOn()}
+  catch(e){console.error(e);toast('That answer did not go through. Check the connection.','bad')}}
+// moves the room on when it is time: the round ends (all done or time up), the answer has been shown long enough
+async function moveOn(){if(!roomRef||moveOn.busy)return;moveOn.busy=true;
+  try{await roomRef.transaction(r=>{if(!r)return r;const t=now();
+    if(r.status==='round'&&(t>=r.end||allDone(r))){r.status='reveal';r.revealEnd=t+REVEAL_MS;return r}
+    if(r.status==='reveal'&&t>=r.revealEnd){
+      if(r.round+1<r.qs.length){r.round++;r.status='round';r.start=t+READY_MS;r.end=r.start+SECS*1000}else{r.status='over'}
+      return r}
+    return})}catch(e){}
+  moveOn.busy=false}
+function onTick(){if(!O){clearInterval(tick);return}const t=now();
+  if(O.status==='round'){const left=O.end-t,bar=document.querySelector('.tbar'),sub=$('tleft'),wait=O.start-t;
+    if(wait>0){if(sub)sub.textContent='Get ready… '+Math.ceil(wait/1000)}
+    else{if(document.querySelector('.ready'))render();
+      if(bar)bar.style.width=Math.max(0,left/(SECS*1000)*100)+'%';if(sub)sub.textContent=Math.max(0,Math.ceil(left/1000))+' s'}
+    // the host moves the room on; if the host has gone, anyone does, a little later
+    if(left<=(O.host?0:-2500))moveOn()}
+  else if(O.status==='reveal'){const left=O.revealEnd-t,sub=$('tleft');if(sub)sub.textContent='Next shape in '+Math.max(0,Math.ceil(left/1000))+' s';
+    if(left<=(O.host?0:-2500))moveOn()}}
+async function onlineAct(kind){
+  try{await roomRef.transaction(r=>{
+    if(!r)return r;
+    if(kind==='cfg'){if(r.host!==ME||r.status!=='lobby')return;r.cfg={fmt:setup.fmt,cont:setup.cont,diff:setup.diff};return r}
+    if(kind==='start'||kind==='rematch'){if(r.host!==ME)return;
+      const order=(kind==='start'?lobbyOrder(r):(r.order||lobbyOrder(r))).filter(pid=>r.players[pid]&&(kind==='start'||r.players[pid].on!==false));
+      if(order.length<2)return;
+      r.order=order;r.v=ROOM_V;r.qs=dealShapes(r.cfg);r.ans=null;r.round=0;r.status='round';r.start=now()+READY_MS;r.end=r.start+SECS*1000;r.revealEnd=0;return r}
+    if(kind==='end'){if(r.host!==ME||r.status==='lobby')return;r.status='over';return r}
+    if(kind==='lobby'){if(r.host!==ME)return;r.status='lobby';r.order=null;r.qs=null;r.ans=null;r.round=0;return r}
+  })}catch(e){console.error(e);toast('That did not go through. Check the connection.','bad')}}
+const ranked=()=>[...O.players].sort((a,b)=>b.total-a.total||a.i-b.i);
+function friendsHTML(){
+  return header('Silhou<span>ette</span>','')+`<section class="panel">
+    <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">With friends</span></div>
+    <p class="hint">2 to ${MAXP} players, each on their own phone. The host creates a room and shares its link or code.</p>
+    <div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||'')}"></div>
+    <div class="field">${FB_OK()?'':'<p class="hint">Online play needs a connection: reload the page when you are online.</p>'}<button class="primary" id="create" ${FB_OK()?'':'disabled style="opacity:.5"'}>Create room</button></div>
+    <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK()?'':'disabled'}>Join</button></div></div>
+  </section>
+  <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Everyone gets the same shape at the same time, ${SECS} seconds each, ${TRIES} tries. A right answer scores 500 points plus up to 500 for speed: the sooner, the more. Ten shapes, most points wins.</p></section>`}
+function lobbyHTML(){const r=room,order=lobbyOrder(r),link=pageLink('?room='+roomCode),host=r.host===ME;
+  const c=host?setup:r.cfg;
+  return header('Silhou<span>ette</span>','room '+roomCode)+`<section class="panel namecard"><span class="label">Room code</span><p class="roomcode">${roomCode}</p>
+    <p class="hint">Friends open Silhouette, choose <b>With friends</b>, then type this code under Join. Or send them the link:</p>
+    <pre class="sharebox" id="linkbox">${esc(link)}</pre><button class="ghost" id="copylink">Copy link</button>
+    <span class="label">Players ${order.length}/${MAXP}</span>
+    <div class="players">${order.map((pid,i)=>{const p=r.players[pid];return `<div class="lp ${p.on===false?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)}<span class="tag">${[pid===r.host?'host':'',pid===ME?'you':'',p.on===false?'offline':''].filter(Boolean).join(' · ')}</span></div>`}).join('')}</div>
+    <span class="label">Game</span>
+    ${host?`<div class="field">${seg('fmt',[['ramp','Getting harder'],['pick','Choose']],c.fmt)}
+      ${c.fmt==='pick'?`<label class="label" for="ocont">Continent</label><select id="ocont" class="osel">${CONTS.map(([v,l])=>`<option value="${v}"${v===c.cont?' selected':''}>${l}</option>`).join('')}</select>
+      ${seg('odiff',[['easy','Easy'],['normal','Normal'],['hard','Hard']],c.diff)}`:''}</div>`:''}
+    <p class="hint">${esc(cfgText(r.cfg))} · ${SECS} s per shape</p>
+    ${host?`<button class="primary" id="ostart" ${order.length<2?'disabled style="opacity:.5"':''}>${order.length<2?'Waiting for players…':'Start game'}</button>`:'<p class="hint">Waiting for the host to start the game.</p>'}
+    <button class="ghost" id="leave">Leave room</button></section>`}
+function boardRowsHTML(roundPts){const me=ME;
+  return `<table class="sttab rank"><tr><th>#</th><th>Player</th>${roundPts?'<th>Shape</th>':''}<th>Total</th></tr>${ranked().map((p,k)=>`<tr class="${p.pid===me?'me':''}"><td>${k+1}</td><td><span class="pin" style="${pinStyle(p.i)}"></span> ${esc(p.name)}${p.on?'':' <span class="tag">offline</span>'}</td>${roundPts?`<td>${p.cur.ok?'+'+p.cur.pts:p.cur.tries&&p.cur.tries.length?'✗':'–'}</td>`:''}<td>${p.total}</td></tr>`).join('')}</table>`}
+// a chip per player: total so far, a tick once they are done with this shape
+const chipsHTML=()=>O.players.map(p=>`<span class="chip ${doneOf(p.cur)?'on':''} ${p.on?'':'off'}"><span class="pin" style="${pinStyle(p.i)}"></span>${esc(p.name)} <b>${p.total}</b>${doneOf(p.cur)?' ✓':''}</span>`).join('');
+function onlineHTML(){const q=O.q,t=now(),ready=O.status==='round'&&t<O.start;
+  let h=header('Silhou<span>ette</span>','room '+roomCode);
+  if(O.status==='over'){const rk=ranked(),best=rk[0],tie=rk.length>1&&rk[1].total===best.total;
+    h+=`<section class="panel"><span class="label">Room ${roomCode} · final ranking</span><p class="big">${tie?"It's a tie":esc(best.name)+' wins'}</p>${boardRowsHTML(false)}
+      ${O.host?`<div class="row-btns"><button class="primary" id="orematch" style="flex:1">Rematch</button><button class="ghost" id="olobby" style="flex:1">Back to room</button></div>`:'<p class="hint">Waiting for the host to start a rematch.</p>'}</section>
+      <div class="row-btns"><button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;return h}
+  h+=`<div class="status"><span class="who">Shape ${O.round+1} of ${O.n}</span><span class="difftag">${DIFF_NAME[q.d]||''}</span><span class="sub" id="tleft">${ready?'Get ready…':O.status==='reveal'?'':Math.max(0,Math.ceil((O.end-t)/1000))+' s'}</span>${O.status==='round'&&!ready?'<span class="tbar" style="width:100%"></span>':''}</div>`;
+  h+=`<div class="scores" id="ochips">${chipsHTML()}</div>`;
+  h+=`<section class="panel play">`;
+  if(ready)h+=`<div class="silbox ready"><p class="big" style="margin:auto;text-align:center;align-self:center">Get ready</p></div>`;
+  else if(O.status==='reveal'){h+=silBoxHTML({...q,st:q.st==='right'?'right':'wrong'})+revealHTML({...q,st:q.st==='right'?'right':'wrong'},q.st==='right'?'+'+O.mine.pts:'')+`<span class="label">After shape ${O.round+1}</span>`+boardRowsHTML(true)}
+  else{h+=silBoxHTML(q);
+    if(q.st==='play')h+=triesHTML(q)+answerBoxHTML(q);
+    else h+=`<p class="hint">${q.st==='right'?`Right: <b>+${O.mine.pts}</b>.`:'No tries left.'} Waiting for the others…</p>`}
+  h+=`</section><div class="row-btns">${O.host?'<button class="ghost" id="oend" style="flex:1">End game</button>':''}<button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;
+  return h}
+function bindOnline(){
+  if($('fname'))$('fname').onchange=saveSetup;
+  if($('jcode'))$('jcode').oninput=e=>{setup.join=e.target.value};
+  if($('create'))$('create').onclick=createRoom;
+  if($('join'))$('join').onclick=()=>joinRoom($('jcode').value);
+  if($('jcode'))$('jcode').onkeydown=e=>{if(e.key==='Enter')joinRoom(e.target.value)};
+  if($('copylink'))$('copylink').onclick=()=>{const t=pageLink('?room='+roomCode);
+    if(navigator.share&&TOUCH){navigator.share({text:'Play Silhouette with me: '+t}).catch(()=>{});return}
+    try{navigator.clipboard.writeText(t).then(()=>toast('Link copied.','good'),()=>toast('Copy the link above.'))}catch(e){toast('Copy the link above.')}};
+  app.querySelectorAll('[data-seg="fmt"]').forEach(b=>b.onclick=()=>{setup.fmt=b.dataset.v;saveSetup();onlineAct('cfg')});
+  app.querySelectorAll('[data-seg="odiff"]').forEach(b=>b.onclick=()=>{setup.diff=b.dataset.v;saveSetup();onlineAct('cfg')});
+  if($('ocont'))$('ocont').onchange=e=>{setup.cont=e.target.value;saveSetup();onlineAct('cfg')};
+  if($('leave'))$('leave').onclick=()=>{if(O&&O.status!=='over'&&!confirm('Leave the room? The game goes on without you.'))return;leaveRoom()};
+  if($('ostart'))$('ostart').onclick=()=>onlineAct('start');
+  if($('orematch'))$('orematch').onclick=()=>onlineAct('rematch');
+  if($('olobby'))$('olobby').onclick=()=>onlineAct('lobby');
+  if($('oend'))$('oend').onclick=()=>{if(confirm('End the game for everyone?'))onlineAct('end')};
+  if(O&&O.status==='round'&&O.q.st==='play'&&now()>=O.start)bindAnswer(O.q,onlinePick)}
+
+/* ---- home: today's board open and playable on top, then Training and With friends, as in the other games ---- */
+let view='home';
+const seg=(name,opts,val)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-seg="${name}" data-v="${v}" aria-pressed="${String(v)===String(val)}">${l}</button>`).join('')}</div>`;
+const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
+function homeHTML(){const key=todayKey(),diff=load('sil-ddiff','normal');
+  if(!D||D.date!==key||D.diff!==diff)D=dailyGame(diff);
+  let daily;
+  if(D.over){const h=load('sil-hist',{});
+    daily=`<button class="hcard" id="daily"><span class="hm">Today's shapes #${D.num} · ${DIFF_NAME[D.diff]} · done</span><span class="dsum"><span class="dsq" aria-hidden="true">${D.qs.map(q=>`<i class="${q.st==='right'?(q.tries.length?'mid':'on'):'bad'}"></i>`).join('')}</span><span class="dtxt"><span class="ht">${rightOf(D)} of 9</span><span class="hs">shapes named</span></span><span class="dstats"><span><b>${streakOf(h)}</b>streak</span><span><b>${Object.keys(h).length}</b>played</span></span></span><span class="hs">Tap to see the board and share your result.</span><span class="hm">Next board in ${nextIn()}</span></button>`}
+  else daily=`<div class="hcard ac play"><span class="hm">#${D.num} · ${dateLabel(key)}</span><span class="ht">Today's shapes</span><span class="hs">${D.qs.some(q=>q.st!=='play')?'You started it: keep going.':'Nine countries, the same for everyone. Tap a shape or type to start.'}</span>${dailyPlayHTML(D)}</div>`;
+  const hello=D.over?Geomingo.hello(verdict(D).pose,'Done for today: '+rightOf(D)+' of 9.','Next board in '+nextIn()+'. Try another level or Training.'):dailyMood();
+  return header('Silhou<span>ette</span>','',true)+`<section class="home">${hello}${dailyTabs(D.diff)}${daily}
+    <div class="hrow"><button class="hcard" data-go="train"><span class="ht">Training</span><span class="hs">Unlimited shapes, at the level you choose.</span></button>
+    <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to 6 players, each on their own phone.</span></button></div></section>
+    ${quickRules(' Full rules in <b>How to play</b>.')}`}
+function goHome(){if(roomCode){if(!confirm('Leave the room and go to the home screen?'))return;leaveRoom().then(()=>{view='home';render()});return}
+  view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
+function render(){
+  // the result window opens once, when the daily board you were playing ends (on the home screen too)
+  if(D&&!roomCode)watchResult('sil:'+D.date+':'+D.diff,D.over,resultWindow);
+  if(roomCode&&room)app.innerHTML=O?onlineHTML():lobbyHTML();
+  else if(view==='friends')app.innerHTML=friendsHTML();
+  else if(view==='train')app.innerHTML=trainHTML();
+  else if(view==='daily')app.innerHTML=dailyHTML();
+  else app.innerHTML=homeHTML();
+  bind()}
+function bind(){
+  if($('home'))$('home').onclick=goHome;
+  app.querySelectorAll('[data-go="train"]').forEach(b=>b.onclick=openTrain);
+  app.querySelectorAll('[data-go="friends"]').forEach(b=>b.onclick=()=>{view='friends';render();window.scrollTo(0,0)});
+  if(roomCode||view==='friends'){bindOnline();return}
+  if($('daily'))$('daily').onclick=()=>openDaily();
+  if($('copy'))$('copy').onclick=()=>share(dailyShare(D));
+  app.querySelectorAll('[data-dd]').forEach(b=>b.onclick=()=>openDaily(b.dataset.dd));
+  // the level of today's board: on the home screen it switches the open board; on the daily screen too
+  app.querySelectorAll('[data-seg="ddiff"]').forEach(b=>b.onclick=()=>{store('sil-ddiff',b.dataset.v);D=dailyGame(b.dataset.v);query='';typing=false;
+    if(view==='daily'||D.over&&view!=='home')view='daily';render()});
+  app.querySelectorAll('[data-tile]').forEach(b=>b.onclick=()=>{const i=+b.dataset.tile;
+    if(D.over||D.qs[i].st!=='play'){toast(byCode[D.qs[i].c].n);return}
+    D.sel=i;query='';typing=true;dailySave();render()});
+  if(view==='train'){
+    app.querySelectorAll('[data-seg="diff"]').forEach(b=>b.onclick=()=>{T.diff=b.dataset.v;store('sil-diff',T.diff);T.deck=null;T.streak=0;trainNext();render()});
+    if($('tnext'))$('tnext').onclick=()=>{trainNext();typing=true;render()};
+    if($('tskip'))$('tskip').onclick=trainSkip;
+    bindAnswer(T.q,trainPick);
+    if($('tnext')&&!TOUCH)$('tnext').focus()}
+  else if(D&&!D.over)bindAnswer(D.qs[D.sel],dailyPick)}
+// Enter on a revealed Training shape goes to the next one
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&view==='train'&&T&&T.q.st!=='play'&&!$('dok')&&e.target.id!=='q'&&document.activeElement!==$('tnext')){e.preventDefault();trainNext();typing=true;render()}});
+// once the flags have loaded, show the one of a revealed shape
+window.addEventListener('load',()=>{if(document.querySelector('.reveal .flag'))render()},{once:true});
+/* ---- start: today's board on the home screen; ?room=ABCD opens a friend's room ---- */
+(()=>{const rm=(TESTQ.get('room')||'').toUpperCase();if(/^[A-Z]{4}$/.test(rm)){view='friends';setup.join=rm}render()})();
+// back in a room after a reload (the online scripts load after the page)
+window.addEventListener('DOMContentLoaded',()=>{let code='';try{code=localStorage.getItem('sil-room')||''}catch(e){}
+  if(view==='friends')render(); // the Create and Join buttons were drawn before Firebase loaded
+  if(!code||!initFB())return;
+  db.ref('rooms/'+code).once('value').then(s=>{const r=s.val();
+    if(r&&r.game==='silhouette'&&r.players&&r.players[ME]&&!roomCode)listenRoom(code);else try{localStorage.removeItem('sil-room')}catch(e){}}).catch(()=>{})});
+// a new day while the page was in the background: today's new board
+document.addEventListener('visibilitychange',()=>{if(document.hidden||roomCode)return;if(view==='home'||view==='daily'&&D&&D.date!==todayKey()){D=null;if(view==='daily')openDaily();else render()}});
+</script>
+</body>
+</html>
