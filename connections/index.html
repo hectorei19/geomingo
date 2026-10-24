@@ -471,13 +471,14 @@ function bind(){
   if($('leave'))$('leave').onclick=()=>{if(S&&S.mode==='online'&&!S.over&&!leaveArmed){leaveArmed=true;render();return}leaveRoom()};
 }
 
-/* ---- start: ?p=123 opens that practice puzzle, ?room=ABCD joins that room (shared links) ---- */
+/* ---- start: ?p=123 opens that practice puzzle, ?room=ABCD joins that room (shared links), ?friends opens With friends ---- */
 (()=>{const p=TESTQ.get('p'),q=TESTQ.get('room');
   const clean=()=>{try{history.replaceState(null,'',location.pathname)}catch(e){}};
   if(p&&/^\d{1,10}$/.test(p)){openFree(+p);clean();return}
   if(q&&/^[A-Za-z]{4}$/.test(q)){clean();joinCode=q.toUpperCase();view='friends';render();if(myName)joinRoom(joinCode);return}
   const back=load('cx-room','');
   if(back&&initFB()){listenRoom(back,true);render();return}
+  if(TESTQ.has('friends')){clean();view='friends'}
   render()})();
 // a new day while the page is open: show the new puzzle when you come back
 document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(view==='home')render();else if(view==='game'&&mode==='daily'&&S&&S.date!==todayKey())openDaily()});
