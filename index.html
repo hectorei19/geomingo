@@ -43,7 +43,7 @@ footer{display:flex;flex-direction:column;gap:4px;align-items:center;padding-top
   </main>
   <footer>
     <p class="gm-note"><b>Daily geography puzzles, better with friends.</b></p>
-    <p class="gm-note">New boards every day at midnight, Spain time. Your results and your GeoPass are saved on this device only.</p>
+    <p class="gm-note">New boards every day at midnight, Spain time. <span id="saved">Sign in to keep your results and your GeoPass on every device.</span></p>
   </footer>
 </div>
 
@@ -65,8 +65,11 @@ function draw(){
     const state=g.soon?'<span class="gm-state soon">Coming soon</span>':r.done?'<span class="gm-state done">✓ '+esc(r.label)+'</span>':'<span class="gm-state">Boarding</span>';
     const inner='<span class="gm-gate">GATE<b>'+g.gate+'</b></span><span class="gm-ctext"><b>'+esc(g.name)+(fresh?' <span class="gm-new">NEW</span>':'')+'</b><span>'+esc(g.hint)+'</span></span>'+state;
     return g.soon?'<li><div class="gm-card soon" aria-disabled="true">'+inner+'</div></li>'
-      :'<li><a class="gm-card" href="'+g.href+'" aria-label="'+esc(g.name)+', gate '+g.gate+': '+(r.done?'played today, '+esc(r.label):'play')+'">'+inner+'</a></li>'}).join(''))}
+      :'<li><a class="gm-card" href="'+g.href+'" aria-label="'+esc(g.name)+', gate '+g.gate+': '+(r.done?'played today, '+esc(r.label):'play')+'">'+inner+'</a></li>'}).join(''))
+  // where your results are kept: in the account when signed in, otherwise on this device
+  const A=G.account;set('saved',A.ready&&A.user?'Your results and your GeoPass are saved in your account.':'Sign in to keep your results and your GeoPass on every device.')}
 draw();
+G.account.onChange(draw);
 setInterval(draw,30000);
 // coming back from a game in the same tab, or a new day while the page is open
 addEventListener('pageshow',draw);addEventListener('focus',draw);
