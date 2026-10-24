@@ -53,6 +53,8 @@
 .lives i.off{background:transparent;box-shadow:inset 0 0 0 1.5px var(--rule)}
 .cx-actions{display:flex;gap:8px}.cx-actions button{flex:1}
 .cx-actions .primary{padding:10px}
+.cx-hintbtn{align-self:center}
+.cx-cats ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
 .primary:disabled{opacity:.4;cursor:default}
 .modes{max-width:320px;width:100%;align-self:center}
 @keyframes shake{0%,100%{transform:none}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
@@ -312,7 +314,7 @@ function submit(){if(!S||S.over||turning||sel.length!==4)return;
   const best=Math.max(...Object.values(counts));
   // four that really share something, but not one of the groups: explain it and don't count a mistake
   const other=best<4&&sharedCategory(S,sel);
-  if(other){dialog('Not one of the groups',`<p>Good eye: all four fit <b>${esc(other.label)}</b>. But that is not one of this puzzle's groups.</p><p>Every country belongs to exactly one group, and only one way of splitting all 16 into four groups works. Keep these four apart and look for the split where the other twelve fit too.</p><p class="hint">No mistake counted.</p>`,'Keep playing');return}
+  if(other){say(cxKey(),'think','Not a group.',`All four fit "${other.label}", but that is not one of this puzzle's groups. No mistake counted.`);render();return}
   S.guesses.push(sel.slice());
   if(best===4){const g=gs[0],picked=sel.slice();S.found.push(g);S.left=S.left.filter(c=>!picked.includes(c));sel=[];
     if(S.found.length===4){S.over=true;S.won=true}
@@ -338,7 +340,7 @@ function turnOver(cs,t,done){const els=cs.map(c=>app.querySelector(`.cx-grid [da
 /* ---- share ---- */
 function shareText(){const rows=S.guesses.map(g=>g.map(c=>TEMOJI[S.groups[groupOf(S,c)].t]).join(''));
   const G=Geomingo.share('Connections'),head=S.mode==='daily'?`${G} #${S.num}`:S.mode==='online'?`${G} (with friends)`:`${G} (practice)`;
-  return head+' — '+(S.won?`solved with ${S.mistakes} mistake${S.mistakes===1?'':'s'}`:`${S.found.length}/4 groups`)+'\n'+rows.join('\n')}
+  return head+(S.hint?' · categories shown':'')+' — '+(S.won?`solved with ${S.mistakes} mistake${S.mistakes===1?'':'s'}`:`${S.found.length}/4 groups`)+'\n'+rows.join('\n')}
 const shareLink=()=>S.mode==='free'?pageLink('?p='+S.seed):pageLink();
 const shareMessage=()=>shareText()+'\n\n'+(S.mode==='daily'?"Play today's puzzle: ":S.mode==='online'?'Play Connections: ':'Play this puzzle: ')+shareLink();
 
@@ -393,9 +395,14 @@ function render(keepShake){
   if(!S.over){
     h+=`<div class="lives" aria-label="${MAX_MISTAKES-S.mistakes} mistakes left">Mistakes left ${Array.from({length:MAX_MISTAKES},(_,i)=>`<i class="${i<MAX_MISTAKES-S.mistakes?'':'off'}"></i>`).join('')}</div>
     <div class="cx-actions"><button class="ghost" id="shuf">Shuffle</button><button class="ghost" id="desel" ${sel.length?'':'disabled'}>Deselect all</button><button class="primary" id="submit" ${sel.length===4?'':'disabled'}>Submit</button></div>
+    ${catsHTML()}
     <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something: a region, a flag, a language, a name… Each country is in exactly one group, and only one split works for all 16. Pick four and tap <b>Submit</b>. Four mistakes and the game ends.</p></section>`}
   app.innerHTML=h;bind();
 }
+// optional help: the names of the four categories, in no particular order (not which country goes where)
+function catsHTML(){if(!S.hint)return `<button class="linkbtn cx-hintbtn" id="hint">Stuck? Show the 4 categories</button>`;
+  const ks=S.groups.map(g=>CATS[g.k]).sort((a,b)=>a.label.localeCompare(b.label));
+  return `<section class="panel cx-cats"><span class="label">The 4 categories</span><ul>${ks.map(k=>`<li>${esc(k.label)} <button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></li>`).join('')}</ul></section>`}
 // Mingo's verdict, for the result panel and the result window
 function verdict(){const n=S.mistakes;
   return S.won?(n?{pose:'happy',t:'Landed. All four groups.',s:'All four groups, '+n+' mistake'+(n===1?'':'s')+'.'}:{pose:'happy',t:'Full page. Not a single mistake.',s:'All four groups found.'})
@@ -431,7 +438,7 @@ function roomResultHTML(){const list=ranked(),cur=list.filter(p=>p.cur),pos=cur.
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>There are 16 countries. They form <b>four groups of four</b>, and each group shares a hidden category, for example "Uses the euro" or "Flag has a crescent moon".</li>
   <li>Every country belongs to exactly one group: it fits its own category and none of the other three.</li>
-  <li>There is only <b>one way</b> to split all 16 into four groups. Sometimes four countries share something else too (all have blue on the flag, say). That is not a group: the game tells you so and it does not count as a mistake.</li>
+  <li>There is only <b>one way</b> to split all 16 into four groups. Sometimes four countries share something else too (all have blue on the flag, say). That is not a group: Mingo tells you so and it does not count as a mistake. Stuck? <b>Show the 4 categories</b> lists their names (your shared result says so).</li>
   <li>Only independent countries appear, never territories.</li></ul>
   <h3>Playing</h3><ul>
   <li>Tap four countries and then <b>Submit</b>. If they share a category, the group is revealed with its name and colour.</li>
@@ -457,6 +464,7 @@ function bind(){
   if($('shuf'))$('shuf').onclick=()=>{S.left=shuffle(S.left,Math.random);save();render()};
   if($('desel'))$('desel').onclick=()=>{sel=[];render()};
   if($('submit'))$('submit').onclick=submit;
+  if($('hint'))$('hint').onclick=()=>{S.hint=true;save();render()};
   if($('copy'))$('copy').onclick=()=>share(shareMessage());
   if($('again'))$('again').onclick=()=>openFree(Math.floor(Math.random()*1e9));
   // With friends
