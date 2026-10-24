@@ -9,9 +9,10 @@ const ROOT=HOME;                             // the games live in folders of the
 
 /* ---------- light / dark: the choice is kept for every game (gm-theme) ---------- */
 const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}};
-function applyTheme(){const t=store.get('gm-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);else document.documentElement.removeAttribute('data-theme')}
+// Geomingo is dark only (Héctor, 2026-10-24): the light tokens stay in the CSS but are never used
+function applyTheme(){document.documentElement.setAttribute('data-theme','dark')}
 applyTheme();
-function currentTheme(){const t=document.documentElement.getAttribute('data-theme');return t||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
+function currentTheme(){return 'dark'}
 function toggleTheme(){const next=currentTheme()==='dark'?'light':'dark';store.set('gm-theme',next);applyTheme();
   document.querySelectorAll('[data-gm-theme]').forEach(b=>b.setAttribute('aria-pressed',String(next==='dark')))}
 
@@ -88,9 +89,10 @@ function stamp(g,t,s){const p=pass();p.n++;p.list.push({g,t:String(t),s:s?String
   store.set('gm-pass',JSON.stringify(p));refreshPass();return p.n}
 const stamps=()=>pass().n;
 const stampsToday=g=>pass().list.filter(x=>x.d===dayKey()&&(!g||x.g===g)).length;
-function stampHTML(t,sub,cls){const r=(hsh(t)%15)-7;
+// a stamp: name, small line, optional flag picture; a player class (c0…c5) gives the player's ink instead
+function stampHTML(t,sub,cls,flag){const r=(hsh(t)%15)-7,own=/\bc\d\b/.test(cls||'');
   const L=Math.max(...String(t).split(' ').map(w=>w.length)),fs=L>11?10:L>8?12:14; // long names get smaller, never cut in half
-  return '<span class="gm-stamp '+(cls||'')+'" style="color:'+INK[hsh(sub+t)%4]+';--r:'+r+'deg"><b style="font-size:'+fs+'px">'+esc(t)+'</b>'+(sub?'<small>'+esc(sub)+'</small>':'')+'</span>'}
+  return '<span class="gm-stamp '+(cls||'')+'" style="'+(own?'':'color:'+INK[hsh(t)%4]+';')+'--r:'+r+'deg">'+(flag?'<img class="sf" src="'+esc(flag)+'" alt="">':'')+'<b class="sn" style="font-size:'+fs+'px">'+esc(t)+'</b>'+(sub?'<small>'+esc(sub)+'</small>':'')+'</span>'}
 function refreshPass(){const n=stamps();document.querySelectorAll('[data-gm-pass]').forEach(b=>{const x=b.querySelector('b');if(x)x.textContent=fmt(n);b.setAttribute('aria-label','Open your GeoPass: '+n+' stamps')})}
 addEventListener('storage',e=>{if(e.key==='gm-theme')applyTheme();if(e.key==='gm-pass')refreshPass()});
 
@@ -129,7 +131,7 @@ const ICO={back:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" str
   sun:'<svg class="sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'};
 const logo='<span class="gm-logo">geo<span>mingo</span></span>';
 const passBtn=()=>{const n=stamps();return '<button class="gm-pass" data-gm-pass aria-label="Open your GeoPass: '+n+' stamps" title="Your GeoPass"><i aria-hidden="true">✦</i><span class="gm-pw">GEOPASS</span><b>'+fmt(n)+'</b></button>'};
-const themeBtn=()=>'<button class="gm-icon gm-theme" data-gm-theme aria-pressed="'+(currentTheme()==='dark')+'" aria-label="Dark mode" title="Light or dark">'+ICO.moon+ICO.sun+'</button>';
+const themeBtn=()=>'';
 function header(o){o=o||{};
   if(!o.game)return '<header class="gm-top"><h1 class="gm-logo">geo<span>mingo</span></h1><span class="gm-spacer"></span>'+passBtn()+themeBtn()+'</header>';
   const g=GAMES.find(x=>x.name===o.game),gate=g?'Gate '+g.gate:'',sub=[gate,o.coord].filter(Boolean).join(' · ');
@@ -155,10 +157,10 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElement
 /* the result card, like a boarding pass:
    resultWindow({game:'borderline', pose, title:'Mingo's line', num:'1,240', unit:'Points', mini, line, share:fn, next, allDone, close:'See the grid', onClose}) */
 function resultWindow(o){const g=game(o.game)||{name:o.gameName||''},nx=o.next||null,st=o.game?stampsToday(o.game):0;
-  const line=o.line!=null?o.line:(st?st+' new stamp'+(st===1?'':'s')+' in the GeoPass today':'');
+  const line=o.line!=null?o.line:[st?st+' new stamp'+(st===1?'':'s'):'',o.stat||''].filter(Boolean).join(' · ');
   const html='<div class="gm-res"><div class="gm-band">'+mingo('head',26)+'<b>'+esc(g.name)+' · landed</b></div><div class="gm-rbody">'+
     '<div class="gm-rtop">'+mingo(o.pose||'happy',70)+'<div><span class="gm-lab">'+esc(o.unit||'Score')+'</span>'+(o.num!=null?'<span class="gm-num">'+esc(o.num)+'</span>':'')+'</div>'+(o.mini||'')+'</div>'+
-    (o.title?'<p class="gm-say">'+esc(o.title)+'</p>':'')+(line?'<p class="gm-line">'+esc(line)+'</p>':'')+(o.sub?'<p class="gm-line" style="color:var(--muted)">'+esc(o.sub)+'</p>':'')+
+    (o.room&&o.title?'<p class="gm-say">'+esc(o.title)+'</p>':'')+(line?'<p class="gm-line">'+esc(line)+'</p>':'')+'<hr class="gm-rsep">'+
     (st?'<button class="gm-big" data-gm-act="pass">See them in the GeoPass</button>':'')+
     (o.share?'<button class="gm-big coral" data-gm-act="share">'+esc(o.shareLabel||'Share result')+'</button>':'')+
     (nx?'<a class="gm-big ghost" href="'+esc(nx.href)+'">Next: '+esc(nx.name)+'</a>':(o.allDone?'<p class="gm-note">That was the last game today. New boards at midnight, Spain time.</p>':''))+

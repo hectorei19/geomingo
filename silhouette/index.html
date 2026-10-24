@@ -6,7 +6,7 @@
 <style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 <title>Silhouette · Geomingo</title>
 <meta name="description" content="Name the country from its shape. Nine new shapes every day, at three levels. Daily geography games from Geomingo.">
-<meta name="theme-color" content="#F6F8F5">
+<meta name="theme-color" content="#151E30">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Geomingo">
 <meta property="og:title" content="Silhouette · Geomingo">
@@ -16,10 +16,10 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="../brand/icons/favicon.svg?v=202610240100" type="image/svg+xml">
-<link rel="icon" href="../brand/icons/favicon-32.png?v=202610240100" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610240100">
-<script src="../brand/mingo.js?v=202610240100"></script>
+<link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
+<link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
+<script src="../brand/mingo.js?v=202610242200"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -72,7 +72,7 @@
 .ready{display:flex}
 @media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610240100">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610242200">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -199,7 +199,7 @@ function verdict(G){const r=rightOf(G),first=G.qs.filter(q=>q.st==='right'&&!q.t
     :r>=6?{pose:'happy',t:'Landed. '+r+' of 9.',s:'Tap a shape to see its name.'}:r>=3?{pose:'think',t:'A few gaps in the pages. '+r+' of 9.',s:'Tap a shape to see its name.'}
     :{pose:'sad',t:'Rough crossing, this one.',s:r+' of 9. Training helps.'}}
 function resultWindow(){const G=D,v=verdict(G);
-  return {game:'silhouette',pose:v.pose,title:v.t,num:rightOf(G)+'/9',unit:'Shapes · '+DIFF_NAME[G.diff],mini:Geomingo.mini(G.qs.map(q=>q.st==='right'),3),
+  return {game:'silhouette',pose:v.pose,title:v.t,num:rightOf(G)+'/9',unit:'Shapes',stat:DIFF_NAME[G.diff],mini:Geomingo.mini(G.qs.map(q=>q.st==='right'),3),
     sub:`Next board in ${nextIn()}.`,share:()=>share(dailyShare(G)),next:Geomingo.nextGame('silhouette'),allDone:true,close:'See the board'}}
 function dailyResultHTML(G){const r=rightOf(G),v=verdict(G);
   return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Silhouette #${G.num} · ${DIFF_NAME[G.diff]}</span><p class="big">${r} of 9</p>

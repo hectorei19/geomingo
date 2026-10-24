@@ -6,7 +6,7 @@
 <style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 <title>Countries · Geomingo</title>
 <meta name="description" content="Fill the grid with countries: each square must match its row and its column. A new grid every day, solo or with friends. Daily geography games from Geomingo.">
-<meta name="theme-color" content="#F6F8F5">
+<meta name="theme-color" content="#151E30">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Geomingo">
 <meta property="og:title" content="Countries · Geomingo">
@@ -16,10 +16,10 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="../brand/icons/favicon.svg?v=202610240100" type="image/svg+xml">
-<link rel="icon" href="../brand/icons/favicon-32.png?v=202610240100" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610240100">
-<script src="../brand/mingo.js?v=202610240100"></script>
+<link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
+<link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
+<script src="../brand/mingo.js?v=202610242200"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -295,7 +295,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .respanel .gm-hello{margin:-4px 0 -6px}
 .corner .mingo{width:auto;height:88%}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610240100">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610242200">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -1089,7 +1089,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/da
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202610240100';
+const APP_VERSION='202610242200';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
@@ -1336,10 +1336,12 @@ function fitHeaders(){
   if(cb){cb.style.fontSize='';const box=cb.parentElement;let h=parseFloat(getComputedStyle(cb).fontSize),k=0;
     while(cb.scrollWidth>box.clientWidth-parseFloat(getComputedStyle(box).paddingLeft)*2&&h>8&&k++<40){h-=.5;cb.style.fontSize=h+'px'}}
   // country names on guessed squares: shrink a name until no word is cut and it stays below the corner badges
-  document.querySelectorAll('.flagbox .nm').forEach(nm=>{nm.style.fontSize='';
-    const box=nm.parentElement,room=box.clientHeight*.5;
-    let s=parseFloat(getComputedStyle(nm).fontSize),k=0;
-    while((nm.scrollWidth>nm.clientWidth+0.5||nm.offsetHeight>room)&&s>6&&k++<30){s-=.5;nm.style.fontSize=s+'px'}});
+  // stamps on guessed squares: shrink the name (and the small line) until no word is cut and the stamp fits its square
+  document.querySelectorAll('.cell.flag .gm-stamp').forEach(st=>{const nm=st.querySelector('.sn'),sm=st.querySelector('small');if(!nm)return;
+    const fl=!!st.querySelector('.sf'),room=st.clientHeight*(fl?.55:1);let f=Math.min(fl?18:24,Math.round(st.clientWidth*(fl?.17:.21))),k=0;nm.style.fontSize=f+'px';
+    const tall=()=>fl?nm.offsetHeight+(sm?sm.offsetHeight:0)>room:st.scrollHeight>room+0.5;
+    while((nm.scrollWidth>nm.clientWidth+0.5||tall())&&f>6&&k++<60){f-=.5;nm.style.fontSize=f+'px'}
+    if(sm){sm.style.fontSize='';let g=parseFloat(getComputedStyle(sm).fontSize),j=0;while(sm.scrollWidth>st.clientWidth-4&&g>6&&j++<20){g-=.5;sm.style.fontSize=g+'px'}}});
 }
 try{document.fonts&&document.fonts.ready.then(()=>fitHeaders())}catch(e){}
 addEventListener('resize',()=>{clearTimeout(fitHeaders.t);fitHeaders.t=setTimeout(fitHeaders,120)});
@@ -1415,9 +1417,11 @@ function confirmPlayers(){
 // home: three ways to play. 'solo' and 'friends' are the settings screens behind two of them
 let screen='home';
 const screenFor=s=>!s?'home':s.archive?'archive':s.daily?'home':s.mode==='solo'?'solo':'friends';
-// top-left corner of a board: the daily grid shows its number (GRID #3), other games Mingo
+// top-left corner of a board: the daily grid shows its number (GRID #3), other games Mingo's head
 const cornerHTML=day=>day?`<div class="corner dnum" aria-label="Grid number ${day}"><span class="dl">Grid</span><span class="dn${day>=100?' long':''}">#${day}</span></div>`
   :`<div class="corner" aria-hidden="true">${Geomingo.mingo('head',30)}</div>`;
+// a right answer on the grid: a passport stamp with the flag, the name, its code and its points
+const stampCell=(c,cell,cls)=>Geomingo.stampHTML(c.n,c.c+' · +'+((cell.p||0)+(cell.sb||0)),cls,FLAGS[c.c]);
 // today's grid shown open on the home screen: tapping a square starts (or continues) the daily game there
 function dailyBoard(saved){
   const dg=saved?null:dailyGrid();if(!saved&&!dg)return '';
@@ -1427,7 +1431,7 @@ function dailyBoard(saved){
   rows.forEach((rk,i)=>{
     h+=`<div class="hd rowh" data-info="${rk}" role="button" tabindex="0" aria-label="${esc(CATS[rk].label)}: explain"><span class="ref">${rowRef(i)}</span><span class="ht">${titleWithInfo(CATS[rk].short)}</span></div>`;
     for(let j=0;j<n;j++){const ci=i*n+j,cell=saved&&saved.cells[ci];
-      if(cell&&cell.o>=0){const c=byCode[cell.c];h+=`<div class="cell taken flag"><span class="flagbox" style="background-image:url('${FLAGS[c.c]}')"><span class="pts">+${(cell.p||0)+(cell.sb||0)}</span><span class="nm">${esc(c.n)}</span></span></div>`}
+      if(cell&&cell.o>=0){const c=byCode[cell.c];h+=`<div class="cell taken flag">${stampCell(c,cell,'')}</div>`}
       else h+=`<button class="cell" data-dcell="${ci}" aria-label="Square ${colRef(j)+rowRef(i)}: start today's grid"><span class="plus"></span></button>`}
   });
   return h+`</div></div>`;
@@ -1519,7 +1523,7 @@ function gameView(){
       const ci=i*n+j,cell=S.cells[ci];
       const ref=colRef(j)+rowRef(i);
       if(cell.o>=0){const c=byCode[cell.c];
-        h+=`<button class="cell taken flag ${ui.fresh===ci?'new':''}" data-cell="${ci}" aria-label="${ref}: ${esc(c.n)}"><span class="flagbox ${S.mode==='solo'?'':'c'+cell.o}" style="background-image:url('${FLAGS[c.c]}')"><span class="pts">+${(cell.p||0)+(cell.sb||0)}</span><span class="nm">${esc(c.n)}</span></span></button>`;
+        h+=`<button class="cell taken flag ${ui.fresh===ci?'new':''}" data-cell="${ci}" aria-label="${ref}: ${esc(c.n)}">${stampCell(c,cell,S.mode==='solo'?'':'c'+cell.o)}</button>`;
       }else if(S.over){
         h+=`<button class="cell miss" data-cell="${ci}" aria-label="${ref}: show answers"><span class="nm">${S.answers[ci].length} possible</span></button>`;
       }else h+=`<button class="cell ${ui.sel===ci?'sel':''}" data-cell="${ci}" aria-label="Square ${ref}"><span class="plus"></span></button>`;
@@ -1584,7 +1588,7 @@ function watchResult(){if(!S){liveKey='';return}const k=gameKey();
   if(!S.over){liveKey=k;return}
   if(liveKey!==k)return;liveKey='';
   const v=verdict(),me=S.mode==='online'&&S.me>=0?S.players[S.me]:S.players[0],n=S.n;
-  setTimeout(()=>Geomingo.resultWindow({game:'borderline',pose:v.pose,title:v.t,num:me.score.toLocaleString('en'),unit:'Points',
+  setTimeout(()=>Geomingo.resultWindow({game:'borderline',pose:v.pose,title:v.t,num:me.score.toLocaleString('en'),unit:'Points',stat:me.cells+' of '+n*n+' squares',room:S.mode!=='solo',
     mini:Geomingo.mini(S.cells.map(c=>S.mode==='online'?c.o===S.me:c.o>=0),n),
     sub:S.daily&&!S.archive?"Share it: friends play today's grid with their own one try.":'',
     share:shareResult,next:S.daily&&!S.archive?Geomingo.nextGame('borderline'):null,allDone:S.daily&&!S.archive,close:'See the grid'}),500)}
