@@ -227,7 +227,8 @@ async function joinRoom(raw){
       if(lobbyOrder(r).length>=MAX_PLAYERS){why='full';return}
       r.players[ME]={name:myName,t:now(),on:true};return r});
     const val=res.snapshot.val();
-    if(!val||why==='other'||val.game!==ROOM_GAME){toast('No Connections room called '+code+'. Check the code.','bad');return}
+    if(!val){toast('No room called '+code+'. Check the code.','bad');return}
+    if(why==='other'||val.game!==ROOM_GAME){toast(code+' is a room of another game. Open that game to join it.','bad');return}
     if(!res.committed||!val.players||!val.players[ME]){toast(why==='full'?`Room ${code} already has ${MAX_PLAYERS} players.`:'Could not join '+code+'.','bad');return}
     joinCode='';listenRoom(code)}
   catch(e){console.error(e);toast('Could not join. Check the connection and try again.','bad')}
@@ -364,8 +365,7 @@ function homeHTML(){const key=todayKey(),num=dayNum(key,CX_FIRST),d=dailySaved()
     :Geomingo.hello('pass','GeoPass ready.','Tap a country to start. Every group you find is a stamp. One try, the same 16 for everyone.');
   return header('Connec<span>tions</span>','',true)+`<section class="home">${hi}${Geomingo.account.userHTML()}${daily}${d&&d.over?rankingHTML():''}
     <div class="hrow"><button class="hcard" data-go="free"><span class="ht">Solo</span><span class="hs">Practice on unlimited puzzles, at your pace.</span></button>
-    <!-- With friends is switched off for now (the online rooms code stays for later; a shared ?room= link still opens a room) -->
-    <div class="hcard soon" aria-disabled="true"><span class="ht">With friends</span><span class="hs">Play online, 2 to ${MAX_PLAYERS} players.</span><span class="hm">(coming soon)</span></div></div></section>
+    <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to ${MAX_PLAYERS} players.</span></button></div></section>
     <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something: a region, a flag, a language, a name… Each country is in exactly one group, and only one split works for all 16. Pick four and tap <b>Submit</b>. Four mistakes and the game ends. Full rules in <b>How to play</b>.</p></section>`}
 // the logo goes home from anywhere; in a room that means leaving it (in the middle of a game, tap twice)
 function goHome(){if(roomRef){if(S&&S.mode==='online'&&!S.over&&!leaveArmed){leaveArmed=true;render();toast('Tap again to leave the room.');return}
