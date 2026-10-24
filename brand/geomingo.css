@@ -264,15 +264,17 @@ button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
 .cell.miss{border-style:solid;border-color:var(--line);background:none;opacity:.6}
 .cell.flag{border:1px solid var(--line);border-style:solid;padding:0;background:none;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:default}
 /* a right answer on the grid: a passport stamp (flag, name, code and points), rotated, in an ink colour; in rooms the owner's colour */
-.cell.flag .gm-stamp{width:88%;max-height:92%;padding:5px 3px 4px;gap:2px}
+.cell.flag .gm-stamp{position:absolute;inset:4px;width:auto;--r:0deg;transform:none;padding:3px 2px;gap:2px;justify-content:safe center;overflow:hidden}
 .cell.flag .gm-stamp b{line-height:1}
-.cell.flag .gm-stamp small{font-size:10px;white-space:nowrap;letter-spacing:-.02em}
+.cell.flag .gm-stamp small{font-size:11px;white-space:nowrap;letter-spacing:-.02em}
 .cell.flag .gm-stamp .sn{display:block;max-width:100%;overflow-wrap:normal}
 .gm-stamp .sf{display:block;height:15px;width:auto;max-width:70%;border-radius:2px;box-shadow:0 0 0 1px color-mix(in srgb,currentColor 35%,transparent);margin-bottom:1px}
-.b3 .cell.flag .gm-stamp b{font-size:17px}.b3 .gm-stamp .sf{height:20px}
-.b5 .cell.flag .gm-stamp{border-width:2px;border-radius:5px;padding:3px 2px}.b5 .gm-stamp .sf{height:11px}.b5 .cell.flag .gm-stamp small{font-size:8px}
+.cell.flag .gm-stamp .sf{height:auto;width:34%;aspect-ratio:3/2;object-fit:cover;max-width:none;flex-shrink:0}
+.b3 .cell.flag .gm-stamp small{font-size:13px}
+.b5 .cell.flag .gm-stamp{inset:3px;border-width:2px;border-radius:5px;padding:2px}.b5 .cell.flag .gm-stamp small{font-size:8px}
 .gm-stamp.c0{color:var(--p0)}.gm-stamp.c1{color:var(--p1)}.gm-stamp.c2{color:var(--p2)}.gm-stamp.c3{color:var(--p3)}.gm-stamp.c4{color:var(--p4)}.gm-stamp.c5{color:var(--p5)}
-.cell.new .gm-stamp{animation:gm-thud .3s cubic-bezier(.2,1.6,.4,1) both}
+.cell.new .gm-stamp{animation:gm-thud-flat .3s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes gm-thud-flat{from{transform:scale(1.4);opacity:0}to{transform:none;opacity:.9}}
 .pts{position:absolute;top:2px;right:3px;z-index:1;background:var(--page);line-height:1.1;color:var(--muted);font-family:var(--type);font-weight:700;border-radius:0;padding:0}
 .cell .cnt,.cell .val{font-family:var(--type);font-weight:700}
 .actions .ghost{min-height:44px}

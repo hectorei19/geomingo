@@ -9,9 +9,10 @@ const ROOT=HOME;                             // the games live in folders of the
 
 /* ---------- light / dark: the choice is kept for every game (gm-theme) ---------- */
 const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}};
-function applyTheme(){const t=store.get('gm-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);else document.documentElement.removeAttribute('data-theme')}
+// Geomingo is dark only (Héctor, 2026-10-24): the light tokens stay in the CSS but are never used
+function applyTheme(){document.documentElement.setAttribute('data-theme','dark')}
 applyTheme();
-function currentTheme(){const t=document.documentElement.getAttribute('data-theme');return t||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
+function currentTheme(){return 'dark'}
 function toggleTheme(){const next=currentTheme()==='dark'?'light':'dark';store.set('gm-theme',next);applyTheme();
   document.querySelectorAll('[data-gm-theme]').forEach(b=>b.setAttribute('aria-pressed',String(next==='dark')))}
 
@@ -130,7 +131,7 @@ const ICO={back:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" str
   sun:'<svg class="sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'};
 const logo='<span class="gm-logo">geo<span>mingo</span></span>';
 const passBtn=()=>{const n=stamps();return '<button class="gm-pass" data-gm-pass aria-label="Open your GeoPass: '+n+' stamps" title="Your GeoPass"><i aria-hidden="true">✦</i><span class="gm-pw">GEOPASS</span><b>'+fmt(n)+'</b></button>'};
-const themeBtn=()=>'<button class="gm-icon gm-theme" data-gm-theme aria-pressed="'+(currentTheme()==='dark')+'" aria-label="Dark mode" title="Light or dark">'+ICO.moon+ICO.sun+'</button>';
+const themeBtn=()=>'';
 function header(o){o=o||{};
   if(!o.game)return '<header class="gm-top"><h1 class="gm-logo">geo<span>mingo</span></h1><span class="gm-spacer"></span>'+passBtn()+themeBtn()+'</header>';
   const g=GAMES.find(x=>x.name===o.game),gate=g?'Gate '+g.gate:'',sub=[gate,o.coord].filter(Boolean).join(' · ');
