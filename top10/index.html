@@ -27,11 +27,11 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
 <script src="../brand/mingo.js?v=202610251900"></script>
-<script src="../brand/account.js?v=202610251930"></script>
+<script src="../brand/account.js?v=202610252300"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="../shared/style.css?v=202610240100">
+<link rel="stylesheet" href="../shared/style.css?v=202610252300">
 <style>
 /* Top 10: a ranked list with ten empty rows that fill in as you name the countries */
 .t10q{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:1.9rem;line-height:1;letter-spacing:.02em;margin:0;text-wrap:balance}
@@ -63,12 +63,17 @@
 .t10list .val{font-family:var(--body);font-weight:700}
 .lives i{background:var(--flamingo)}
 .lives .cnt{font-family:var(--body);font-weight:800}
+/* today's list on the home screen: the question and its ten empty places (a preview; tapping opens the list) */
+.hcard .t10q{display:block;margin:6px 0 2px}
+.t10peek{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:100%;margin-top:6px}
+.t10peek i{font-style:normal;font-family:var(--display);font-weight:700;color:var(--flamingo-text);border:2px dashed var(--line);border-radius:10px;padding:8px 0;text-align:center}
+.t10peek i.on{background:var(--lagoon-soft);border-style:solid}
 </style>
 <link rel="stylesheet" href="../brand/geomingo.css?v=202610251900">
 </head>
 <body>
 <div class="wrap" id="app"></div>
-<footer class="foot"><a class="linkbtn" href="../countries/">Data and sources: Credits in Countries</a></footer>
+<footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
 <!-- online rooms (With friends): Firebase, loaded after the page so today's list shows at once -->
@@ -77,7 +82,7 @@
 <script defer src="firebase-config.js?v=202610192300"></script>
 <script src="../shared/data.js?v=202610192300"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202610251400"></script>
+<script src="../shared/minigames.js?v=202610252300"></script>
 <script>
 /* ---- the rankings ----
    Only numbers Countries already uses (DATA and the country data), with the sources named in its Credits.
@@ -174,26 +179,45 @@ function soloList(){const seen=new Set(load('t10-seen',[])),cur=S&&S.list;
   if(!o.length){store('t10-seen',[]);o=LISTS.filter(x=>x.id!==cur)}
   return o[Math.floor(Math.random()*o.length)]}
 function markSeen(id){const s=load('t10-seen',[]);if(!s.includes(id)){s.push(id);store('t10-seen',s)}}
-function newGame(mode,l){
+function newGame(mode,l,day){
   const S={mode,list:l.id,top:topCodes(l),found:[],wrong:[],lives:LIVES,over:false,won:false};
-  if(mode==='daily'){S.date=todayKey();S.num=dayNum(S.date,T10_FIRST)}
+  if(mode==='daily'||mode==='archive'){S.date=day||todayKey();S.num=dayNum(S.date,T10_FIRST)}
   return S}
 
 /* ---- state ----
-   view: 'home' (today's list open and playable, then Solo and With friends), 'game' (a list on its own screen) or 'friends' (online rooms) */
+   view: 'home' (today's list, then Solo and With friends), 'game' (a list on its own screen), 'solo' (Solo's start screen),
+   'archive' (past daily lists) or 'friends' (online rooms) */
 let S=null,mode='daily',view='home',query='',fresh=null,typing=false;
 const dailySaved=()=>{const d=load('t10-daily',null);return d&&d.date===todayKey()?d.S:null};
 function save(){if(!S||S.mode==='online')return;
   if(S.mode==='daily'){store('t10-daily',{date:S.date,over:S.over,S});
     if(S.over){const h=load('t10-hist',{});if(!h[S.date]){h[S.date]={f:S.found.length,l:S.lives};store('t10-hist',h);if(!TESTDAY)Geomingo.account.done('top10')}}}
+  else if(S.mode==='archive'){const a=load('t10-arch',{});a[S.date]=S;store('t10-arch',a)}
   else store('t10-free',S)}
 // today's game, saved or new (a new one is saved at the first answer)
 function dailyGame(){const d=dailySaved();return d&&d.date===todayKey()?d:newGame('daily',dailyList(todayKey()))}
 function openDaily(){view='game';mode='daily';S=dailyGame();query='';render();window.scrollTo(0,0)}
-function openFree(id){view='game';mode='free';const f=load('t10-free',null);
-  if(!id&&f&&!f.over&&listById(f.list))S=f;
+function openFree(id,fresh){view='game';mode='free';const f=load('t10-free',null);
+  if(!id&&!fresh&&f&&!f.over&&listById(f.list))S=f;
   else{const l=id&&listById(id)||soloList();S=newGame('free',l);markSeen(l.id)}
   query='';save();render();window.scrollTo(0,0)}
+// Solo: a screen to start from, as in every game (an unfinished practice list can be continued)
+function openSolo(){view='solo';query='';render();window.scrollTo(0,0)}
+function soloHTML(){const f=load('t10-free',null),open=f&&!f.over&&listById(f.list);
+  return header('Top <span>10</span>','Solo')+`<section class="panel">
+    <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Solo</span></div>
+    <p class="hint">Practice on unlimited lists, at your pace. A different list each time until you have played them all; Share sends a link to the same list.</p>
+    ${open?`<button class="ghost" id="cont">Continue your list (${f.found.length}/10)</button>`:''}
+    <button class="primary" id="start">Start game</button></section>${quickRules(' Full rules in <b>How to play</b>.')}`}
+// the archive: past daily lists, one try each on this device
+const archDay=k=>{const e=load('t10-hist',{})[k];return e?e.f+'/10':null};
+function openArchive(){view='archive';query='';render();window.scrollTo(0,0)}
+function playArchive(k){if(archDay(k)){toast('You played this list on its day.');return}
+  const a=load('t10-arch',{});view='game';mode='archive';
+  S=a[k]&&listById(a[k].list)?a[k]:newGame('archive',dailyList(k),k);query='';save();render();window.scrollTo(0,0)}
+const archiveView=()=>header('Top <span>10</span>','Archive')+archiveHTML({first:T10_FIRST,label:'List',num:k=>dayNum(k,T10_FIRST),
+  played:archDay,saved:k=>load('t10-arch',{})[k]||null,
+  done:g=>[g.found.length+'/10',`<span class="dsq" style="grid-template-columns:repeat(5,1fr)" aria-hidden="true">${tiles(g).map(on=>`<i class="${on?'on':''}"></i>`).join('')}</span>`]});
 
 /* ---- the search box: names only, found by their first letters, like Countries ---- */
 function matches(q){const k=N(q),l=listById(S.list);if(!k)return[];return SOVC.filter(c=>(!l.reg||l.reg.in(c))&&(c.k.startsWith(k)||c.ak.some(a=>a.startsWith(k)))).slice(0,8)}
@@ -212,9 +236,7 @@ function guess(code){if(!S||S.over)return;const c=byCode[code];
   const i=S.top.indexOf(code);
   if(i>=0){S.found.push(code);fresh=code;Geomingo.stamp('top10',c.n,'#'+placeOf(listById(S.list),code));if(S.found.length>=10){S.over=true;S.won=true}}
   else{S.wrong.push(code);S.lives--;if(S.lives<=0)S.over=true}
-  // today's list played on the home screen: when it ends, the result opens on its own screen
-  if(S.over&&view==='home')view='game';
-  save();render();if(S.over)window.scrollTo(0,0);
+    save();render();if(S.over)window.scrollTo(0,0);
   if(i>=0){if(!S.over){say(tKey(),'happy','Stamped: '+c.n+', #'+placeOf(listById(S.list),code)+'.',(10-S.found.length)+' to go.');render()}return}
   const r=placeOf(listById(S.list),code)-1;
   if(!S.over){say(tKey(),'sad','Denied entry.',`${c.n} is not in the top 10${r>=0?` (it is #${r+1})`:' (no figure for it)'}. `+livesTxt());render()}}
@@ -224,9 +246,9 @@ function guess(code){if(!S||S.over)return;const c=byCode[code];
 const tiles=st=>st.top.length>10?Array.from({length:10},(_,i)=>i<st.found.length):st.top.map(c=>st.found.includes(c));
 function shareText(){const l=listById(S.list);
   const sq=tiles(S).map(on=>on?'🟩':'⬜').join(''),hearts='❤️'.repeat(S.lives)+'🖤'.repeat(LIVES-S.lives);
-  return `${S.mode==='daily'?Geomingo.share('Top 10')+' #'+S.num:Geomingo.share('Top 10')+' (practice)'} — ${S.found.length}/10\n${l.title}\n${sq} ${hearts}`}
-const shareLink=()=>S.mode==='daily'?pageLink():pageLink('?l='+S.list);
-const shareMessage=()=>shareText()+'\n\n'+(S.mode==='daily'?"Play today's Top 10: ":'Play this list: ')+shareLink();
+  return `${Geomingo.share('Top 10')+(S.mode==='daily'?' #'+S.num:S.mode==='archive'?' #'+S.num+' (archive)':' (practice)')} — ${S.found.length}/10\n${l.title}\n${sq} ${hearts}`}
+const shareLink=()=>S.mode==='free'?pageLink('?l='+S.list):pageLink();
+const shareMessage=()=>shareText()+'\n\n'+(S.mode==='free'?'Play this list: ':"Play today's Top 10: ")+shareLink();
 
 /* ---- online rooms (With friends), on the same Firebase Realtime Database as Countries ----
    A room lives at rooms/ABCD, like Countries', marked game:'top10' so the two games never open each other's rooms.
@@ -375,15 +397,14 @@ function onTick(){if(!S||S.mode!=='online'||S.over||!S.timer){clearInterval(tick
   if(left<=-400)tryTimeout(S.turn,S.deadline)}
 
 /* ---- render ---- */
-function statsHTML(){const h=load('t10-hist',{}),days=Object.keys(h),tot=days.reduce((x,k)=>x+h[k].f,0);
-  return `<div class="stgrid"><div class="st"><b>${days.length}</b><span>played</span></div><div class="st"><b>${days.length?(tot/days.length).toFixed(1):0}</b><span>found on average</span></div><div class="st"><b>${streakOf(h)}</b><span>streak</span></div></div>`}
+const t10Average=h=>{const days=Object.keys(h);return days.length?(days.reduce((x,k)=>x+h[k].f,0)/days.length).toFixed(1)+'/10':'–'};
+function statsHTML(){const h=load('t10-hist',{});return statTiles(Object.keys(h).length,t10Average(h),streakOf(h))}
 const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
 const seg=(name,opts,val)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-seg="${name}" data-v="${v}" aria-pressed="${String(v)===String(val)}">${l}</button>`).join('')}</div>`;
 // the list being played: its title, the lives (or whose turn it is), the search box, the ten rows and the wrong answers
 function askHTML(tkt){const l=listById(S.list),on=S.mode==='online';
   let h=`<p class="t10q">${esc(l.title)}</p>${S.top.length>10?`<p class="hint" style="margin:0">${S.top.length} countries share the places down to 10th: any of them counts. Find 10 to win.</p>`:''}<button class="linkbtn" id="src" style="align-self:flex-start;padding:0">Where the numbers come from</button>`;
   if(S.over)return h;
-  if(!on&&!tkt)h+=`<div class="lives" aria-label="${S.lives} lives left">Lives ${Array.from({length:LIVES},(_,i)=>`<i class="${i<S.lives?'':'off'}"></i>`).join('')}<span class="cnt">${S.found.length}/10 found</span></div>`;
   if(!on||S.turn===S.me)h+=`<div class="t10in"><input id="q" placeholder="Type a country…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(query)}" aria-label="Type a country"><ul class="sugg" id="sugg">${suggHTML()}</ul></div>`;
   if(on&&S.turn===S.me)h+=`<button class="ghost" id="opass" style="align-self:flex-start">Pass</button>`;
   if(!on)h+=giveUpHTML();
@@ -400,25 +421,27 @@ function homeHTML(){const key=todayKey(),num=dayNum(key,T10_FIRST),d=dailySaved(
   let daily;
   if(d&&d.over)
     // played: green for the places you found, grey for the rest, like the shared result; tap to see the list
-    daily=`<button class="hcard" id="daily"><span class="hm">Today's list #${num} · done</span><span class="dsum"><span class="dsq" style="grid-template-columns:repeat(5,1fr)" aria-hidden="true">${tiles(d).map(on=>`<i class="${on?'on':''}"></i>`).join('')}</span><span class="dtxt"><span class="ht">${d.found.length} of 10</span><span class="hs">${d.won?`${d.lives} li${d.lives===1?'fe':'ves'} left`:'countries found'}</span></span><span class="dstats"><span><b>${streakOf(h)}</b>streak</span><span><b>${days.length}</b>played</span><span><b>${days.reduce((m,k)=>Math.max(m,h[k].f),0)}</b>best</span></span></span><span class="hs">Tap to see the full list and share your result.</span><span class="hm">Next list in ${nextIn()}</span></button>`;
+    daily=`<button class="hcard" id="daily"><span class="hm">Today's list #${num} · done</span><span class="dsum"><span class="dsq" style="grid-template-columns:repeat(5,1fr)" aria-hidden="true">${tiles(d).map(on=>`<i class="${on?'on':''}"></i>`).join('')}</span><span class="dtxt"><span class="ht">${d.found.length} of 10</span><span class="hs">${d.won?`${d.lives} li${d.lives===1?'fe':'ves'} left`:'countries found'}</span></span>${dstatsHTML(streakOf(h),days.length,t10Average(h))}</span><span class="hs">Tap to see the full list and share your result.</span><span class="hm">Next list in ${nextIn()}</span></button>`;
   else{
-    // not played yet: today's list is open right here, as Countries shows today's grid
-    mode='daily';if(!S||S.mode!=='daily'||S.date!==key)S=dailyGame();
-    daily=`<div class="hcard ac play"><span class="hm">#${num} · ${dateLabel(key)}</span><span class="ht">Today's list</span><span class="hs">${d?'You started it: keep going.':'The same ranking for everyone, one try. Type a country to start.'}</span><div class="dplay">${askHTML()}${listHTML()}</div></div>`}
+    // not played yet: today's question and its ten empty places; tapping opens the list on its own screen
+    const g=dailyGame(),l=listById(g.list);
+    daily=`<button class="hcard ac" id="daily"><span class="hm">#${num} · ${dateLabel(key)}</span><span class="ht">Today's list</span><span class="hs">${d?`You started it: ${d.found.length} of 10 found. Tap to continue.`:'The same ranking for everyone, one try. Tap to start.'}</span>
+      <span class="t10q">${esc(l.title)}</span><span class="t10peek" aria-hidden="true">${g.top.slice(0,10).map((c,i)=>`<i class="${g.found.includes(c)?'on':''}">${i+1}</i>`).join('')}</span></button>`}
   const st=Geomingo.streak();
-  const hi=d&&d.over?Geomingo.hello(d.found.length>=6?'happy':'think',d.found.length>=6?'Stamped for today.'+(st>1?' '+st+'-day streak.':''):'Rough crossing today.',`Today's list is done. Next one in ${nextIn()}.`)
-    :moodHTML(tKey(),d?'think':'pass',d?'Your list is waiting.':'GeoPass ready.',d?'Keep going: type a country. One try.':'Type a country to start. Every one in the top 10 is a stamp. One try, the same ranking for everyone.');
+  const hi=d&&d.over?Geomingo.hello(d.found.length?'happy':'sad',d.found.length?'Stamped for today.'+(st>1?' '+st+'-day streak.':''):'Rough crossing today.',`Today's list is done. Next one in ${nextIn()}.`)
+    :d?Geomingo.hello('think','Your list is waiting.','Tap it to carry on. One try.')
+    :Geomingo.hello('pass','GeoPass ready.','Tap today\'s list to start. Every country in the top 10 is a stamp. One try, the same ranking for everyone.');
   return header('Top <span>10</span>','',true)+`<section class="home">${hi}${Geomingo.account.userHTML()}${daily}${d&&d.over?rankingHTML():''}
     <div class="hrow"><button class="hcard" data-go="free"><span class="ht">Solo</span><span class="hs">Practice on unlimited lists, at your pace.</span></button>
     <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to ${MAXP} players.</span></button></div></section>
     ${quickRules(' Full rules in <b>How to play</b>.')}`}
 function goHome(){if(roomCode){if(!confirm('Leave the room and go to the home screen?'))return;leaveRoom().then(()=>{view='home';render()});return}
-  view='home';toastMsg=null;drawToast();query='';render();window.scrollTo(0,0)}
+  view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
 function friendsHTML(){
   return header('Top <span>10</span>','')+`<section class="panel">
     <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">With friends</span></div>
     <p class="hint">2 to ${MAXP} players, each on their own phone. The host creates a room and shares its link or code.</p>
-    <div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||'')}"></div>
+    <div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||(Geomingo.traveller()==='Guest'?'':Geomingo.traveller()))}"></div>
     <div class="field"><span class="label">Time per turn</span>${seg('timer',TIMERS.map(t=>[t,t?t+' s':'Off']),setup.timer)}</div>
     <div class="field">${FB_OK()?'':'<p class="hint">Online play needs a connection: reload the page when you are online.</p>'}<button class="primary" id="create" ${FB_OK()?'':'disabled style="opacity:.5"'}>Create room</button></div>
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK()?'':'disabled'}>Join</button></div></div>
@@ -456,17 +479,18 @@ function render(){
   if(roomCode&&room){app.innerHTML=S&&S.mode==='online'?onlineHTML():lobbyHTML();bind();return}
   if(view==='home'){app.innerHTML=homeHTML();bind();return}
   if(view==='friends'){app.innerHTML=friendsHTML();bind();return}
+  if(view==='solo'){app.innerHTML=soloHTML();bind();return}
+  if(view==='archive'){app.innerHTML=archiveView();bind();return}
   const l=listById(S&&S.list);
   if(!S||!l){app.innerHTML=header('Top <span>10</span>','')+`<section class="panel"><p class="hint">Could not load the list. Try again later.</p></section>`;bind();return}
-  let h=header('Top <span>10</span>',S.mode==='daily'?'Daily #'+S.num:'Solo');
-  h+=`<div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">${S.mode==='daily'?"Today's list":'Solo'}</span></div>`;
+  let h=header('Top <span>10</span>',S.mode==='daily'?'Daily #'+S.num:S.mode==='archive'?'Archive #'+S.num:'Solo');
+  h+=`<div class="backline"><button class="linkbtn" id="${S.mode==='archive'?'archback':S.mode==='free'?'soloback':'home'}">← Back</button><span class="ht">${S.mode==='daily'?"Today's list":S.mode==='archive'?'List #'+S.num:'Solo'}</span></div>`;
   if(S.over)h+=resultHTML();
   else{const cell=Geomingo.tk;
     // the ticket, as in every game: Mingo on top, then who is travelling, countries found and lives left
     h+=Geomingo.ticket(moodHTML(tKey(),'pass','10 stamps to win.','In any order. A country outside the top 10 costs a life.'),
-      cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Found',S.found.length+'/10','tk-pts')+cell('Lives',S.lives,'tk-gs'))}
+      cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Found',S.found.length+'/10','tk-pts')+cell('Lives',livesHTML(S.lives,LIVES),'tk-gs'))}
   h+=`<section class="panel">${askHTML(true)}</section>${listHTML()}`;
-  if(!S.over)h+=quickRules();
   app.innerHTML=h;bind();
 }
 // Mingo's verdict, for the result panel
@@ -474,12 +498,12 @@ function verdict(){const f=S.found.length;
   return S.won?(S.lives===LIVES?{pose:'happy',t:'Full page. Perfect ten.',s:'Not a single life lost.'}:{pose:'happy',t:'Visited. All ten.',s:livesTxt()})
     :f>=6?{pose:'think',t:'So close. '+f+' of 10.',s:'No lives left. The full list is below.'}:{pose:'sad',t:'Rough crossing, this one.',s:f+' of 10 found. The full list is below.'}}
 function resultHTML(){const v=verdict();
-  const head=S.won?(S.lives===LIVES?'Perfect ten!':'All ten found'):`${S.found.length} of 10`;
-  return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Top 10 #'+S.num:'Practice list'}</span><p class="big">${head}</p>
-    <p class="hint">${S.won?`You named the whole list with ${S.lives} li${S.lives===1?'fe':'ves'} left.`:'No lives left. The full list is below.'} ${S.mode==='daily'?`Next list in ${nextIn()}.`:''}</p>
+  return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Top 10 #'+S.num:S.mode==='archive'?'Archive · Top 10 #'+S.num:'Solo list'}</span><p class="big">${S.found.length} of 10</p>
+    <p class="hint">${S.won?`You named the whole list with ${S.lives} li${S.lives===1?'fe':'ves'} left.`:S.lives?'The full list is below.':'No lives left. The full list is below.'} ${S.mode==='daily'?`Next list in ${nextIn()}.`:S.mode==='archive'?"Archive games don't count for the ranking or your streak.":''}</p>
     <pre class="sharebox" id="share">${esc(shareText())}</pre>
     ${S.mode==='daily'?`<div class="row-btns"><button class="ghost" id="copy">Share</button>${nextGameBtn('top10')}</div>
-    <button class="ghost" id="again">Practice list</button>${allPlayedHTML('top10')}`
+    <button class="ghost" id="playsolo">Play Solo</button>${allPlayedHTML('top10')}`
+    :S.mode==='archive'?`<div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="primary" id="archback" style="flex:1">Back to archive</button></div>`
     :`<div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="ghost" id="again" style="flex:1">New list</button></div>`}
     ${S.mode==='daily'?`<span class="label">Your daily lists</span>${statsHTML()}`:''}</section>${S.mode==='daily'?rankingHTML():''}`}
 // today's ranking (signed-in players, first try of the day): countries found, then fewer misses, then who finished first
@@ -496,13 +520,19 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>If countries are tied for 10th place, any of them counts: name ten to win.</li>
   <li>Only independent countries count, never territories. The figures are the same ones Countries uses; "Where the numbers come from" names the source of each list.</li></ul>
   <h3>Modes</h3><ul>
-  <li><b>Today's list</b>: the same for everyone, new every day at midnight CET, open on the home screen. One try, saved on this device.</li>
+  <li><b>Today's list</b>: the same for everyone, new every day at midnight CET. One try, saved on this device. Missed one? Play it in <b>Menu → Archive</b>.</li>
   <li><b>Solo</b>: unlimited practice lists, a different one each time until you have played them all. Share sends a link to the same list.</li>
   <li><b>With friends</b>: online, 2 to ${MAXP} players, each on their own phone. The host creates a room and shares its code or link. You take turns naming a country: one in the top 10 scores a point for you, one outside costs one of your ${LIVES} lives. The round ends when the ten are found, everyone is out of lives or everyone passes. Most points wins.</li></ul>`}
 function drawSugg(){const u=$('sugg');if(u){u.innerHTML=suggHTML();u.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>guess(b.dataset.g))}}
 function bind(){
   if($('daily'))$('daily').onclick=openDaily;
-  app.querySelectorAll('[data-go="free"]').forEach(b=>b.onclick=()=>openFree());
+  app.querySelectorAll('[data-go="free"]').forEach(b=>b.onclick=openSolo);
+  if($('start'))$('start').onclick=()=>openFree(null,true);
+  if($('cont'))$('cont').onclick=()=>openFree();
+  if($('playsolo'))$('playsolo').onclick=openSolo;
+  if($('soloback'))$('soloback').onclick=openSolo;
+  if($('archback'))$('archback').onclick=openArchive;
+  app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
   app.querySelectorAll('[data-go="friends"]').forEach(b=>b.onclick=()=>{view='friends';render();window.scrollTo(0,0)});
   if($('home'))$('home').onclick=goHome;
   if($('rules'))$('rules').onclick=()=>dialog('How to play',rulesHTML());
@@ -516,7 +546,7 @@ function bind(){
     // on the home screen the box gets the focus only once you have started typing, so phones do not open the keyboard at once
     if(query||typing||(!TOUCH&&view!=='home'))setTimeout(()=>{q.focus();q.setSelectionRange(q.value.length,q.value.length)},0)}
   if($('copy'))$('copy').onclick=()=>share(shareMessage());
-  if($('again'))$('again').onclick=()=>openFree();
+  if($('again'))$('again').onclick=()=>openFree(null,true);
   // With friends
   app.querySelectorAll('[data-seg="timer"]').forEach(b=>b.onclick=()=>{saveSetup();setup.timer=+b.dataset.v;saveSetup();render()});
   if($('fname'))$('fname').onchange=saveSetup;
