@@ -112,12 +112,19 @@ function bindGiveUp(end){const b=$('giveup');if(!b)return;
   b.onclick=()=>{if(b.dataset.armed){end();return}b.dataset.armed='1';b.textContent='Tap again to give up'}}
 // the three numbers under every daily result (and in My stats): days played, the average result, the streak
 const statTiles=(played,avg,streak)=>`<div class="stgrid"><div class="st"><b>${played}</b><span>played</span></div><div class="st"><b>${avg}</b><span>average</span></div><div class="st"><b>${streak}</b><span>streak</span></div></div>`;
-// My stats (Menu): the trophy cabinet (../brand/account.js), then the game's personal bests and numbers.
-// Each game passes its ranking(s), the days it was played and its bests; guests get the plain numbers and a Sign in.
-function cabinetHTML(o){const A=window.Geomingo&&Geomingo.account,run=A?A.bestRun(o.dates):{n:0,when:''};
-  const bests=[{icon:'🔥',title:'Longest streak',sub:run.n?run.when:'days played in a row',value:run.n}].concat(o.bests||[]);
-  if(!A)return statTiles(o.dates.length,'–',streakOf(Object.fromEntries(o.dates.map(d=>[d,1]))))+(o.tail||'');
-  return A.trophyHTML(Object.assign({},o,{bests}))}
+// My stats (Menu): the same cards in every game (../brand/account.js statsPage): Daily, Solo, With friends.
+// Solo and With friends results are kept on this device for it: <game>-solo (each game its own numbers) and
+// <game>-friends {n games, w wins, pl sum of places, best score, fast quickest win, k the last games counted}
+function logSolo(key,add){const s=load(key,null)||{n:0};s.n++;for(const k in add)s[k]=k==='best'?Math.max(s.best||0,add.best):(s[k]||0)+add[k];store(key,s)}
+function logFriends(key,id,place,score,ms){const f=load(key,null)||{n:0,w:0,pl:0,best:0,k:[]};if(!place||(f.k||[]).includes(id))return;
+  f.k=(f.k||[]).concat(id).slice(-40);f.n++;if(place===1)f.w++;f.pl+=place;f.best=Math.max(f.best||0,score||0);
+  if(ms&&place===1)f.fast=f.fast?Math.min(f.fast,ms):ms;store(key,f)}
+const friendsOf=key=>{const f=load(key,null)||{n:0,w:0,pl:0,best:0};return {n:f.n,w:f.w,place:f.pl,best:f.best,fast:f.fast}};
+// o: as statsPage, with hist (the daily results by date), unit and avg for the Daily card
+function statsPageHTML(o){const A=window.Geomingo&&Geomingo.account,dates=Object.keys(o.hist);
+  const daily={n:dates.length,unit:o.unit,streak:streakOf(o.hist),avg:o.avg};
+  if(!A)return statTiles(daily.n,daily.avg,daily.streak);
+  return A.statsPage(Object.assign({},o,{dates,daily,lbs:o.lbs(dates)}))}
 // lives on the ticket: pink dots, the ones used empty (the same in Connections, Top 10 and Silhouette)
 const livesHTML=(left,all)=>`<span class="tk-dots" aria-label="${left} ${left===1?'life':'lives'} left">${Array.from({length:all},(_,i)=>`<i class="${i<left?'':'off'}"></i>`).join('')}</span>`;
 // the same three numbers, small, on the home screen's card of today's game once it is done

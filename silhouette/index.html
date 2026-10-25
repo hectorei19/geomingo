@@ -20,7 +20,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
 <script src="../brand/mingo.js?v=202610251900"></script>
-<script src="../brand/account.js?v=202610260000"></script>
+<script src="../brand/account.js?v=202610260100"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -71,7 +71,7 @@
 .ready{display:flex}
 @media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610260000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610260100">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -81,7 +81,7 @@
 <script src="countries.js?v=202610230100"></script>
 <script src="silhouette.js?v=202610230100"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202610260000"></script>
+<script src="../shared/minigames.js?v=202610260100"></script>
 <!-- online rooms (With friends): Firebase, loaded after the page so today's board shows at once -->
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -250,13 +250,13 @@ function dailyMood(){const started=D.qs.some(q=>q.st!=='play');
 function silAverage(h){const days=Object.keys(h);
   const best=days.map(k=>Math.max(0,...Object.values(h[k]).filter(x=>typeof x==='number'))),tot=best.reduce((x,v)=>x+v,0);
   return days.length?(tot/days.length).toFixed(1)+'/9':'–'}
-function myStatsHTML(){const h=load('sil-hist',{}),days=Object.keys(h),tr=load('sil-train',{});
-  const best=k=>Math.max(0,...Object.values(h[k]||{}).filter(x=>typeof x==='number'));
-  return cabinetHTML({lbs:['easy','normal','hard'].map(v=>({path:'lb/sil-'+v,dates:days.filter(k=>h[k]&&h[k][v]!=null)})),dates:days,what:'shapes',
-    num:k=>'Board #'+dayNum(k,DAILY_FIRST),
-    bests:[{icon:'★',title:'Perfect boards',sub:'9 of 9',value:days.filter(k=>best(k)===9).length},
-      {icon:'✈',title:'Best Solo run',sub:'shapes right in a row',value:Math.max(0,...['easy','normal','hard'].map(v=>(tr[v]||{}).best||0))}],
-    tail:'<span class="label">Your daily boards</span>'+statsHTML()})}
+function myStatsHTML(){const h=load('sil-hist',{}),days=Object.keys(h),tr=load('sil-train',{}),fr=friendsOf('sil-friends');
+  const lv=['easy','normal','hard'].map(v=>tr[v]||{n:0,ok:0,best:0}),n=lv.reduce((a,s)=>a+s.n,0),ok=lv.reduce((a,s)=>a+s.ok,0),run=Math.max(0,...lv.map(s=>s.best||0));
+  return statsPageHTML({game:'Silhouette',hist:h,unit:'board',avg:silAverage(h),num:k=>'Board #'+dayNum(k,DAILY_FIRST),
+    lbs:()=>['easy','normal','hard'].map(v=>({path:'lb/sil-'+v,dates:days.filter(k=>h[k]&&h[k][v]!=null)})),
+    solo:{n,unit:'shape',medal:run,stats:[[run,'best run'],[n?Math.round(ok/n*100)+'%':'–','right'],[ok,'named']]},
+    friends:Object.assign(fr,{third:[fr.best,'best']}),
+    extra:Geomingo.account?Geomingo.account.levelBars('Solo by level',['easy','normal','hard'].map((v,i)=>[DIFF_NAME[v],lv[i].n?Math.round(lv[i].ok/lv[i].n*100):0,lv[i].n,['green','blue','coral'][i]])):''})}
 function statsHTML(short){const h=load('sil-hist',{}),days=Object.keys(h);
   const tr=load('sil-train',{});
   return statTiles(days.length,silAverage(h),streakOf(h))+(short?'':`
@@ -463,7 +463,8 @@ function boardRowsHTML(roundPts){const me=ME;
 const chipsHTML=()=>O.players.map(p=>`<div class="tk-c pl ${doneOf(p.cur)?'on':''} ${p.on?'':'off'}"><i><span class="pin" style="${pinStyle(p.i)}"></span>${esc(p.name)}</i><b>${p.total}${doneOf(p.cur)?' ✓':''}</b></div>`).join('');
 function onlineHTML(){const q=O.q,t=now(),ready=O.status==='round'&&t<O.start;
   let h=header('Silhou<span>ette</span>','room '+roomCode);
-  if(O.status==='over'){const rk=ranked(),best=rk[0],tie=rk.length>1&&rk[1].total===best.total;
+  if(O.status==='over'){const rk=ranked(),best=rk[0],tie=rk.length>1&&rk[1].total===best.total,mine=rk.find(p=>p.pid===ME);
+    if(mine&&room&&room.qs)logFriends('sil-friends',roomCode+':'+room.qs.map(q=>q.c).join(''),1+rk.filter(p=>p.total>mine.total).length,mine.total);
     h+=`<section class="panel"><span class="label">Room ${roomCode} · final ranking</span><p class="big">${tie?"It's a tie":esc(best.name)+' wins'}</p>${boardRowsHTML(false)}
       ${O.host?`<div class="row-btns"><button class="primary" id="orematch" style="flex:1">Rematch</button><button class="ghost" id="olobby" style="flex:1">Back to room</button></div>`:'<p class="hint">Waiting for the host to start a rematch.</p>'}</section>
       <div class="row-btns"><button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;return h}

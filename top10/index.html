@@ -27,7 +27,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
 <script src="../brand/mingo.js?v=202610251900"></script>
-<script src="../brand/account.js?v=202610260000"></script>
+<script src="../brand/account.js?v=202610260100"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -69,7 +69,7 @@
 .t10peek i{font-style:normal;font-family:var(--display);font-weight:700;color:var(--flamingo-text);border:2px dashed var(--line);border-radius:10px;padding:8px 0;text-align:center}
 .t10peek i.on{background:var(--lagoon-soft);border-style:solid}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610260000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610260100">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -82,7 +82,7 @@
 <script defer src="firebase-config.js?v=202610192300"></script>
 <script src="../shared/data.js?v=202610192300"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202610260000"></script>
+<script src="../shared/minigames.js?v=202610260100"></script>
 <script>
 /* ---- the rankings ----
    Only numbers Countries already uses (DATA and the country data), with the sources named in its Credits.
@@ -193,7 +193,8 @@ function save(){if(!S||S.mode==='online')return;
   if(S.mode==='daily'){store('t10-daily',{date:S.date,over:S.over,S});
     if(S.over){const h=load('t10-hist',{});if(!h[S.date]){h[S.date]={f:S.found.length,l:S.lives};store('t10-hist',h);if(!TESTDAY)Geomingo.account.done('top10')}}}
   else if(S.mode==='archive'){const a=load('t10-arch',{});a[S.date]=S;store('t10-arch',a)}
-  else store('t10-free',S)}
+  else{if(S.over&&!S.logged){S.logged=1;logSolo('t10-solo',{p:S.found.length>=10?1:0,f:S.found.length,best:S.found.length})}
+    store('t10-free',S)}}
 // today's game, saved or new (a new one is saved at the first answer)
 function dailyGame(){const d=dailySaved();return d&&d.date===todayKey()?d:newGame('daily',dailyList(todayKey()))}
 function openDaily(){view='game';mode='daily';S=dailyGame();query='';render();window.scrollTo(0,0)}
@@ -399,11 +400,10 @@ function onTick(){if(!S||S.mode!=='online'||S.over||!S.timer){clearInterval(tick
 /* ---- render ---- */
 const t10Average=h=>{const days=Object.keys(h);return days.length?(days.reduce((x,k)=>x+h[k].f,0)/days.length).toFixed(1)+'/10':'–'};
 function statsHTML(){const h=load('t10-hist',{});return statTiles(Object.keys(h).length,t10Average(h),streakOf(h))}
-function myStatsHTML(){const h=load('t10-hist',{}),v=Object.values(h);
-  return cabinetHTML({lbs:[{path:'lb/top10',dates:Object.keys(h)}],dates:Object.keys(h),what:'list',num:k=>'List #'+dayNum(k,T10_FIRST),
-    bests:[{icon:'★',title:'Perfect lists',sub:'10 of 10',value:v.filter(e=>e.f===10).length},
-      {icon:'♥',title:'Flawless lists',sub:'10 of 10, no life lost',value:v.filter(e=>e.f===10&&e.l===LIVES).length}],
-    tail:'<span class="label">Your daily lists</span>'+statsHTML()})}
+function myStatsHTML(){const h=load('t10-hist',{}),so=load('t10-solo',null)||{n:0},fr=friendsOf('t10-friends');
+  return statsPageHTML({game:'Top 10',hist:h,unit:'list',avg:t10Average(h),lbs:d=>[{path:'lb/top10',dates:d}],num:k=>'List #'+dayNum(k,T10_FIRST),
+    solo:{n:so.n,unit:'list',medal:(so.best||0)+'/10',stats:[[(so.best||0)+'/10','best'],[so.p||0,'perfect'],[so.n?(so.f/so.n).toFixed(1):0,'average']]},
+    friends:Object.assign(fr,{third:[fr.best,'best']})})}
 const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
 const seg=(name,opts,val)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-seg="${name}" data-v="${v}" aria-pressed="${String(v)===String(val)}">${l}</button>`).join('')}</div>`;
 // the list being played: its title, the lives (or whose turn it is), the search box, the ten rows and the wrong answers
@@ -470,6 +470,7 @@ function onlineHTML(){const cur=S.players[S.turn]||{};
     h+=Geomingo.ticket(say,stub,{timer:S.timer})}
   else h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${!p.on||!p.lives?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${p.score}</b></span>`).join('')}</div>`;
   if(S.over){const rk=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score||a.miss-b.miss),best=rk[0],tie=rk.length>1&&rk[1].score===best.score&&rk[1].miss===best.miss;
+    const mine=S.players[S.me];if(mine)logFriends('t10-friends',roomCode+':'+S.list+':'+(room&&room.created||''),1+rk.filter(p=>p.score>mine.score||p.score===mine.score&&p.miss<mine.miss).length,mine.score);
     h+=`<section class="panel"><span class="label">Room ${roomCode}</span><p class="big">${tie?"It's a tie":esc(best.name)+' wins'}</p>
       <p class="hint">${S.won?'All ten found.':`${S.found.length} of 10 found. The full list is below.`} ${rk.map(p=>`${esc(p.name)} ${p.score}`).join(' · ')}</p>
       ${S.host?`<div class="row-btns"><button class="primary" id="orematch" style="flex:1">Rematch</button><button class="ghost" id="olobby" style="flex:1">Back to room</button></div>`:'<p class="hint">Waiting for the host to start a rematch.</p>'}</section>`}
