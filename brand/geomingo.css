@@ -331,3 +331,5 @@ button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
 .gm-input{min-height:50px;border:1.5px solid var(--ink);border-radius:8px;background:var(--bg);color:var(--ink);padding:10px 14px;font-size:17px;width:100%}
 .gm-namebox .gm-rbody{gap:10px}
 .lb .ghost[data-gm-signin]{align-self:flex-start;margin-top:8px}
+.linkbtn.giveup{align-self:center;color:var(--muted)}
+.linkbtn.giveup[data-armed]{color:var(--coral-text)}

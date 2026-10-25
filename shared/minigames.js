@@ -73,3 +73,8 @@ function share(text){
   if(navigator.share&&TOUCH){navigator.share({text}).catch(e=>{if(e&&e.name!=='AbortError')manual()});return}
   try{navigator.clipboard.writeText(text).then(()=>toast('Result and link copied.','good'),manual)}catch(e){manual()}}
 const pageLink=q=>location.origin+location.pathname+(q||'');
+// Give up: ends today's game (or a practice one) as it stands, so nobody has to type nonsense to finish.
+// Two taps, like Countries: the first asks to confirm.
+const giveUpHTML=()=>`<button class="linkbtn giveup" id="giveup">Give up</button>`;
+function bindGiveUp(end){const b=$('giveup');if(!b)return;
+  b.onclick=()=>{if(b.dataset.armed){end();return}b.dataset.armed='1';b.textContent='Tap again to give up'}}
