@@ -101,6 +101,10 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .board.b5 .hd .ref{font-size:.58rem}
 .board .corner{padding:2mm}
 .board .hd .ref{line-height:1}
+/* row and column references (A, B, 1, 2…) in a coral box, like a stamp, sized with the grid */
+.board .hd .ref{font-family:var(--display);font-weight:800;font-size:clamp(.72rem,2.6vw,.95rem);color:var(--coral);border:1.5px solid var(--coral);border-radius:5px;padding:2px 6px;letter-spacing:0;margin-bottom:3px;display:inline-block;align-self:center}
+.board.b3 .hd .ref{font-size:clamp(.8rem,3vw,1.05rem)}
+.board.b5 .hd .ref{font-size:clamp(.6rem,2.1vw,.8rem);padding:1px 4px;border-width:1.2px;border-radius:4px}
 /* letter and title travel together (no gap); all squares of the same header line share one top offset,
    so A, B, C (and 1, 2, 3) sit at the same height. The offset is set in fitHeaders(). */
 .board .hd.col,.board .hd.rowh{justify-content:flex-start;gap:1px}
@@ -1106,7 +1110,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/da
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202610251400';
+const APP_VERSION='202610251100';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
