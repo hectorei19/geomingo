@@ -915,7 +915,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/ci
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202610242300';
+const APP_VERSION='202610250100';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
@@ -924,6 +924,8 @@ function roomGrid(r){
   return gridFor(r.cfg.n,r.seed,r.cfg.diff);
 }
 const versionOK=r=>!r.v||r.v===APP_VERSION;
+// rooms of every game live side by side at rooms/ABCD; this marks Cities' own, so a Countries code never opens here
+const ROOM_GAME='citygrid';
 function freshSeed(n,diff){for(let i=0;i<30;i++){const sd=randSeed();if(gridFor(n,sd,diff))return sd}return 1}
 function lobbyOrder(r){return Object.entries(r.players||{}).sort((a,b)=>(a[1].t||0)-(b[1].t||0)).map(x=>x[0])}
 
@@ -938,7 +940,7 @@ async function createRoom(){
   try{
     let code='';
     for(let i=0;i<8;i++){code=randRoom();const ex=await db.ref('rooms/'+code).get();if(!ex.exists())break}
-    await db.ref('rooms/'+code).set({v:APP_VERSION,host:ME,created:TS(),cfg:{n:setup.n,timer:setup.timer,diff:setup.diff||'normal'},status:'lobby',
+    await db.ref('rooms/'+code).set({game:ROOM_GAME,v:APP_VERSION,host:ME,created:TS(),cfg:{n:setup.n,timer:setup.timer,diff:setup.diff||'normal'},status:'lobby',
       players:{[ME]:{name:roomName(),t:TS(),on:true,...(USER?{uid:USER.uid}:{})}}});
     listenRoom(code);
   }catch(e){console.error(e);toast('Could not create the room. Check the connection and try again.','bad')}
@@ -955,6 +957,7 @@ async function joinRoom(raw){
     const res=await ref.transaction(r=>{
       if(!r)return r;
       r.players=r.players||{};
+      if(r.game!==ROOM_GAME){why='other';return}
       if(r.v&&r.v!==APP_VERSION){why='version';return}
       if(r.players[ME]){r.players[ME].name=roomName();r.players[ME].on=true;if(USER)r.players[ME].uid=USER.uid;return r}
       if(r.status!=='lobby'){why='started';return}
@@ -964,7 +967,7 @@ async function joinRoom(raw){
     const val=res.snapshot.val();
     if(!val){toast('No room called '+code+'. Check the code.','bad');return}
     if(!res.committed||!val.players||!val.players[ME]){
-      toast(why==='version'?'You and the host have different versions of the game. Both of you reload the page, then try again.':why==='full'?'Room '+code+' already has 6 players.':why==='started'?'That game has already started. Ask the host for a rematch.':'Could not join '+code+'.','bad');return}
+      toast(why==='other'?code+' is a room of another game. Open that game to join it.':why==='version'?'You and the host have different versions of the game. Both of you reload the page, then try again.':why==='full'?'Room '+code+' already has 6 players.':why==='started'?'That game has already started. Ask the host for a rematch.':'Could not join '+code+'.','bad');return}
     listenRoom(code);
   }catch(e){console.error(e);toast('Could not join. Check the connection and try again.','bad')}
   finally{joining=false}
@@ -1087,7 +1090,7 @@ function lobbyView(){
   const r=room,order=lobbyOrder(r),isHost=r.host===ME;
   const link=location.origin+location.pathname+'?room='+roomCode;
   return `<section class="panel namecard"><span class="label">Room code</span><p class="roomcode">${roomCode}</p>
-    <p class="hint">Friends open this site, choose <b>Online</b>, then type this code under Join. Or send them the link:</p>
+    <p class="hint">Friends open Cities, choose <b>With friends</b>, then type this code under Join. Or send them the link:</p>
     <pre class="sharebox" id="linkbox">${esc(link)}</pre>
     <button class="ghost" id="copylink">Copy link</button>
     ${versionOK(r)?'':'<p class="hint" style="color:var(--bad)">This room was made with a different version of the game. Reload the page; if it still shows this, ask the host to reload and create a new room.</p>'}
@@ -1294,7 +1297,7 @@ function homeView(){
       <small class="tdiag">${(()=>{const a=ACCT_TODAY,hh=loadHist()[key],l=loadDaily();return `version ${APP_VERSION} · this device ${ME}<br>account today: ${USER?(a?`device ${a.d||'none'}, ${a.s} pts, ${a.f===1?'finished':a.f===0?'started':'old format'}, full game ${a.j?'yes':'no'}`:'nothing'):'not signed in'}<br>this device today: ${l?(l.S.over?l.S.players[0].score+' pts, finished':'in progress'):'nothing'} · stats today: ${hh?hh.s+' pts':'none'}`})()}</small></div>`:''}
     <div class="hrow">
     <button class="hcard" data-go="solo"><span class="ht">Solo</span><span class="hs">Train on unlimited grids, at your level.</span></button>
-    <div class="hcard soon" aria-disabled="true"><span class="ht">With friends</span><span class="hs">Play online, 2 to 6 players.</span><span class="hm">(coming soon)</span></div>
+    <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to 6 players.</span></button>
     </div>
   </section>
   <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name a city that fits its row <em>and</em> its column, each city once per grid. Tap <span class="ib">i</span> to see what a category means. Full rules in <b>How to play</b>.</p></section>`;
@@ -1518,7 +1521,7 @@ function drawLayer(){
       <h3>Modes</h3><ul>
       <li><b>Today's grid</b>: one ${DAILY_N} × ${DAILY_N} Normal grid, the same for everyone, new every day at midnight CET. You get one try; if you leave, you continue where you stopped.</li>
       <li><b>Solo</b>: unlimited grids on your own, with a few more guesses than there are squares. Aim for the highest score.</li>
-      <li><b>With friends</b>: online rooms, coming soon.</li></ul>
+      <li><b>With friends</b>: 2 to 6 players online, each on their own phone. The host creates a room and shares its 4-letter code or link; the others join with it.</li></ul>
       <h3>Difficulty</h3><ul>
       <li><b>Easy</b>: ${DHINT.easy} The city list finds any part of a name. <i>Example: ${DEXAMPLE.easy}.</i></li>
       <li><b>Normal</b>: ${DHINT.normal} The city list finds names by their first letters, so you need to know the answer. <i>Example: ${DEXAMPLE.normal}.</i></li>
