@@ -51,7 +51,16 @@ const ADAPT={
   'sil-easy':silhouette('easy'),'sil-normal':silhouette('normal'),'sil-hard':silhouette('hard')};
 
 /* ---- Firebase ---- */
-let ok=false,db=null,user,name='',watchers=[];   // user: undefined until Firebase knows, then null (guest) or the account
+let ok=false,failed=false,db=null,user,name='',watchers=[];   // user: undefined until Firebase knows, then null (guest) or the account
+// what this device was last time (gm-acct: {u, n, dn, e} signed in, {guest:1} as a guest): the pages show it at once,
+// so nothing jumps from Guest to your name (or from no ranking to the ranking) while Firebase wakes up
+const LAST=json('gm-acct');
+const lastUser=()=>LAST&&LAST.u?{uid:LAST.u,displayName:LAST.dn||'',email:LAST.e||''}:LAST&&LAST.guest?null:undefined;
+if(LAST&&LAST.u&&LAST.n)name=LAST.n;
+// the account as the pages see it: the real one once Firebase knows, until then the last one seen here (undefined: no idea yet)
+const who=()=>failed?undefined:user!==undefined?user:lastUser();
+const meId=()=>{const w=who();return w&&w.uid};
+function remember(){put('gm-acct',user?{u:user.uid,n:name,dn:user.displayName||'',e:user.email||''}:{guest:1})}
 function script(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
 async function boot(){OWN=typeof window.initAuth==='function';
   try{if(typeof firebase==='undefined')await script(SDK+'firebase-app-compat.js');
@@ -59,7 +68,7 @@ async function boot(){OWN=typeof window.initAuth==='function';
     if(typeof firebase.database!=='function')await script(SDK+'firebase-database-compat.js');
     if(!firebase.apps.length)firebase.initializeApp(window.FIREBASE_CONFIG&&FIREBASE_CONFIG.apiKey?FIREBASE_CONFIG:CONFIG);
     db=firebase.database();ok=true}
-  catch(e){ok=false;return}
+  catch(e){ok=false;failed=true;changed();return}
   firebase.auth().onAuthStateChanged(onUser);
   if(!OWN)firebase.auth().getRedirectResult().catch(authError)}
 const TS=()=>firebase.database.ServerValue.TIMESTAMP;
@@ -68,11 +77,11 @@ const uid=()=>user&&user.uid;
 // signing out (here, or from Countries' menu) leaves the device clean, as Countries always did:
 // the stats, today's games, the GeoPass and the name go; the account keeps them for the next sign-in
 const DEVICE_KEYS=['bl-daily','bl-hist','bl-games','bl-arch','bl-user','cc-daily','cc-hist','cc-games','cc-arch','cc-user',
-  'cx-daily','cx-hist','t10-daily','t10-hist','sil-daily','sil-hist','sil-train','gm-pass','gm-days'];
+  'cx-daily','cx-hist','t10-daily','t10-hist','sil-daily','sil-hist','sil-train','gm-pass','gm-days','gm-acct','gm-lbc'];
 function onUser(u){const was=user;user=u||null;
-  if(was&&!user){DEVICE_KEYS.forEach(k=>ls.set(k,null));location.reload();return}
-  if(user){name='';loadName()}
-  changed()}
+  if(was&&!user){DEVICE_KEYS.forEach(k=>ls.set(k,null));ls.set('gm-acct',null);location.reload();return}
+  if(user){if(!(LAST&&LAST.u===user.uid))name='';loadName()}
+  remember();changed()}
 function authError(e){const c=(e&&e.code)||'';if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request')return;
   say(c==='auth/unauthorized-domain'||c==='auth/operation-not-allowed'?'Sign-in is not set up yet for this site.':'Could not sign in. Try again.')}
 function say(msg){if(typeof window.toast==='function')window.toast(msg,'bad');else alert(msg)}
@@ -82,7 +91,7 @@ function signIn(){if(!ok){say('Sign-in is not available right now. Check the con
 function signOut(){if(ok)firebase.auth().signOut().catch(()=>{})}
 
 /* ---- the name: chosen once, kept in the account, shown in every ranking ---- */
-function setName(n){name=n;ls.set('bl-user',n);ls.set('cc-user',n);G.refreshPass()}
+function setName(n){name=n;ls.set('bl-user',n);ls.set('cc-user',n);if(user)remember();G.refreshPass()}
 function loadName(){const id=uid();
   db.ref('users/'+id+'/profile').once('value').then(s=>{if(uid()!==id)return;const v=s.val();
     if(v&&v.name)setName(v.name);else if(!OWN)askName();
@@ -148,27 +157,31 @@ function done(g){if(uid())record(g);else changed()}
 
 /* ---- the daily rankings: lb/<game>/<date>/<uid> = {name, s, m, t}; anyone can read them,
    each account writes its own result once (the database rules refuse a second write) ---- */
+// the last rows seen of today's rankings (gm-lbc) are shown while the live ones load, instead of "Loading…"
 const LB={},lbRef={},sent={};
+(()=>{const c=json('gm-lbc')||{};for(const g in c)if(c[g]&&c[g].date===T()&&c[g].rows)LB[g]={date:c[g].date,rows:c[g].rows,old:true}})();
+function keepLB(g){const c=json('gm-lbc')||{};for(const k in c)if(!c[k]||c[k].date!==T())delete c[k];
+  c[g]={date:LB[g].date,rows:LB[g].rows};put('gm-lbc',c)}
 function submit(g,k,r){const id=uid();if(!id||!name||TEST||k!==T())return;const key=id+g+k;
   if(sent[key]||(LB[g]&&LB[g].date===k&&LB[g].rows&&LB[g].rows[id]))return;sent[key]=1;
   db.ref('lb/'+g+'/'+k+'/'+id).set({name:name.slice(0,16),s:r.s,m:r.m||0,t:TS()}).catch(()=>{})}
-function watch(g){if(!ok||TEST)return;const k=T();if(LB[g]&&LB[g].date===k)return;
-  if(lbRef[g])lbRef[g].off();LB[g]={date:k,rows:null};lbRef[g]=db.ref('lb/'+g+'/'+k);
-  lbRef[g].on('value',s=>{LB[g]={date:k,rows:s.val()||{}};changed()},()=>{LB[g]={date:k,rows:null,off:true};changed()})}
+function watch(g){if(!ok||TEST)return;const k=T();if(lbRef[g]&&lbRef[g].day===k)return;
+  if(lbRef[g])lbRef[g].off();if(!(LB[g]&&LB[g].date===k))LB[g]={date:k,rows:null};lbRef[g]=db.ref('lb/'+g+'/'+k);lbRef[g].day=k;
+  lbRef[g].on('value',s=>{LB[g]={date:k,rows:s.val()||{}};keepLB(g);changed()},()=>{LB[g]={date:k,rows:null,off:true};changed()})}
 const sorted=g=>Object.entries((LB[g]&&LB[g].rows)||{}).map(([id,v])=>Object.assign({id},v)).sort((a,b)=>b.s-a.s||(a.m||0)-(b.m||0)||(a.t||0)-(b.t||0));
-function mine(g){if(!uid())return null;watch(g);const rows=sorted(g),i=rows.findIndex(r=>r.id===uid());
+function mine(g){const me=meId();if(!me)return null;watch(g);const rows=sorted(g),i=rows.findIndex(r=>r.id===me);
   return i<0?null:{rank:i+1,total:rows.length,top:Math.max(1,Math.round((i+1)/rows.length*100))}}
 // one line for the home screen: "#3 of 12 today · top 25%"
-function rankLine(g){if(!ok||TEST||user===undefined)return '';watch(g);const m=mine(g),n=sorted(g).length;
+function rankLine(g){if(TEST||who()===undefined)return '';watch(g);const m=mine(g),n=sorted(g).length;
   return m?'<span class="hrank"><b>#'+m.rank+'</b> of '+m.total+' today · top '+m.top+'%</span>'
     :n?'<span class="hrank">'+n+' player'+(n===1?'':'s')+' in today\'s ranking</span>':''}
 // today's ranking: the top 10, plus your own row further down. o: {title, what ("list"), score: r=>[main, small]}
-function rankingHTML(g,o){if(!ok||TEST||user===undefined)return '';o=o||{};watch(g);const L=LB[g],title=o.title||"Today's ranking";
+function rankingHTML(g,o){const u=who();if(TEST||u===undefined)return '';o=o||{};watch(g);const L=LB[g],title=o.title||"Today's ranking";
   if(!L||!L.rows)return '<section class="panel lb"><span class="label">'+esc(title)+'</span><p class="hint">'+(L&&L.off?'The ranking is not available right now.':'Loading…')+'</p></section>';
-  const rows=sorted(g),me=uid(),i=rows.findIndex(r=>r.id===me),sc=o.score||(r=>[String(r.s),'']);
+  const rows=sorted(g),me=meId(),i=rows.findIndex(r=>r.id===me),sc=o.score||(r=>[String(r.s),'']);
   const row=(r,k)=>{const [a,b]=sc(r);return '<li class="'+(r.id===me?'me':'')+'"><span class="rk">'+(k+1)+'</span><span class="nm">'+esc(r.name||'Player')+'</span><span class="sq">'+esc(b)+'</span><span class="pt">'+esc(a)+'</span></li>'};
   const list=rows.slice(0,10).map(row).join('')+(i>=10?'<li class="gap">…</li>'+row(rows[i],i):'');
-  const foot=!user?'<button class="ghost" data-gm-signin>Sign in to join today\'s ranking</button>'+(ADAPT[g]&&ADAPT[g].today()?'<p class="hint">Your result is added when you sign in.</p>':'')
+  const foot=!u?'<button class="ghost" data-gm-signin>Sign in to join today\'s ranking</button>'+(ADAPT[g]&&ADAPT[g].today()?'<p class="hint">Your result is added when you sign in.</p>':'')
     :i<0?'<p class="hint">Your result joins the ranking when you finish today\'s '+esc(o.what||'game')+' signed in. Only your first try counts.</p>':'';
   return '<section class="panel lb"><span class="label">'+esc(title)+(rows.length?' · '+rows.length+' player'+(rows.length===1?'':'s'):'')+'</span>'+
     (rows.length?'<ol class="lbl">'+list+'</ol>':'<p class="hint">Nobody in today\'s ranking yet.</p>')+foot+'</section>'}
@@ -176,14 +189,14 @@ function rankingHTML(g,o){if(!ok||TEST||user===undefined)return '';o=o||{};watch
 /* ---- what the pages show ---- */
 const noBanner=()=>ls.get('gm-nobanner')==='1';
 // under Mingo on a game's home screen: who's playing, and the sign-in banner for guests (as in Countries)
-function userHTML(){if(!ok||user===undefined)return '';
-  if(user)return '<div class="userline"><span class="pin" style="background:var(--sea)"></span>Playing as '+esc(name||'…')+'</div>';
+function userHTML(){const u=who();if(u===undefined)return '';
+  if(u)return '<div class="userline"><span class="pin" style="background:var(--sea)"></span>Playing as '+esc(name||'…')+'</div>';
   return '<div class="userline"><span class="pin" style="background:var(--sea)"></span>Playing as Guest'+(noBanner()?'<span class="uright"><button class="ghost" data-gm-signin>Sign in</button></span>':'')+'</div>'+
     (noBanner()?'':'<div class="gbanner"><span>Sign in to join the daily ranking</span><button class="primary" data-gm-signin>Sign in</button><button class="linkbtn" data-gm-nobanner aria-label="Close">✕</button></div>')}
 // the header button: Sign in, or your initial (it opens a small menu with Sign out)
-function acctHTML(){if(!ok||user===undefined)return '';
-  if(!user)return '<button class="gm-acct" data-gm-signin>Sign in</button>';
-  const n=name||user.displayName||'';
+function acctHTML(){const u=who();if(u===undefined)return '';
+  if(!u)return '<button class="gm-acct" data-gm-signin>Sign in</button>';
+  const n=name||u.displayName||'';
   return '<button class="gm-acct me" data-gm-acctmenu aria-haspopup="true" aria-label="Your account: '+esc(n)+'" title="'+esc(n)+'">'+esc((n.trim()[0]||'·').toUpperCase())+'</button>'}
 function acctMenu(open){let box=document.getElementById('gm-acctmenu');if(box)box.remove();if(!open||!user)return;
   const b=document.querySelector('[data-gm-acctmenu]'),r=b?b.getBoundingClientRect():{bottom:54,right:innerWidth-16};
@@ -208,7 +221,9 @@ function changed(why){document.querySelectorAll('[data-gm-acctslot]').forEach(el
   watchers.forEach(f=>{try{f(why||'',typing)}catch(e){console.error(e)}})}
 
 G.acctHTML=acctHTML;
-G.account={get ready(){return ok&&user!==undefined},get user(){return user||null},get name(){return name},
+// ready/user: known for sure, or the last account seen on this device until Firebase answers (wasSignedIn: that last one)
+G.account={get ready(){return who()!==undefined},get user(){return who()||null},get name(){return name},
+  wasSignedIn:!!(LAST&&LAST.u),
   signIn,signOut,done,userHTML,rankingHTML,rankLine,mine,onChange:f=>watchers.push(f)};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
