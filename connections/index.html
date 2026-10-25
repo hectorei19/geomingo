@@ -132,35 +132,54 @@ const CHECKED_OF=new Map(SOV.map(i=>[i,CHECKED.filter(k=>k.set[i])]));
 const POOLS2=POOLS.map(p=>p.filter(k=>sizeOf(k)<=CHECK_MAX||k.label==='Landlocked'));
 const isBig=i=>(DATA.pop[C[i].c]||0)>=1e6;
 // fill the 16 one country at a time (better-known countries first), never letting a category outside the puzzle reach four
-function pickClean(ks,ex,r){
-  for(let b=0;b<6;b++){const cnt=new Map(),ms=[[],[],[],[]];
-    const cand=ex.map(e=>[...shuffle(e.filter(isBig),r),...shuffle(e.filter(i=>!isBig(i)),r)]);
+// (of: each country's checked categories; tries: how many fills to attempt)
+function pickClean(ks,ex,r,of=CHECKED_OF,tries=6){
+  const own=new Set(ks.map(k=>k.id)),big=ex.map(e=>e.filter(isBig)),small=ex.map(e=>e.filter(i=>!isBig(i)));
+  for(let b=0;b<tries;b++){const cnt=new Uint8Array(CATS.length),ms=[[],[],[],[]];
+    const cand=ex.map((e,g)=>[...shuffle(big[g],r),...shuffle(small[g],r)]);
     let ok=true;
     for(let n=0;n<4&&ok;n++)for(let g=0;g<4&&ok;g++){
-      const pick=cand[g].find(i=>!ms[g].includes(i)&&CHECKED_OF.get(i).every(k=>ks.includes(k)||(cnt.get(k)||0)<3));
+      const pick=cand[g].find(i=>!ms[g].includes(i)&&of.get(i).every(k=>own.has(k.id)||cnt[k.id]<3));
       if(pick==null){ok=false;break}
-      ms[g].push(pick);CHECKED_OF.get(pick).forEach(k=>cnt.set(k,(cnt.get(k)||0)+1))}
+      ms[g].push(pick);of.get(pick).forEach(k=>cnt[k.id]++)}
     if(ok)return ms}
   return null}
-function buildPuzzle(seed,strict){if(!strict)return buildPuzzleV1(seed);
+const MEMBERS=new Map(CATS.map(k=>[k,SOV.filter(i=>k.set[i])]));
+function buildClean(seed,pools,of,attempts,tries){
   const r=rngFrom(seed);
-  for(let a=0;a<1500;a++){
-    const ks=POOLS2.map(p=>p[Math.floor(r()*p.length)]);
+  for(let a=0;a<attempts;a++){
+    const ks=pools.map(p=>p[Math.floor(r()*p.length)]);
     if(new Set(ks.map(k=>k.fam)).size<4)continue;
-    const ex=ks.map((kg,g)=>SOV.filter(i=>kg.set[i]&&ks.every((k,h)=>h===g||!k.set[i])));
+    const ex=ks.map((kg,g)=>MEMBERS.get(kg).filter(i=>ks.every((k,h)=>h===g||!k.set[i])));
     if(ex.some(e=>e.length<4))continue;
-    const ms=pickClean(ks,ex,r);if(!ms)continue;
+    const ms=pickClean(ks,ex,r,of,tries);if(!ms)continue;
     const groups=ms.map((m,g)=>({k:ks[g].id,t:g,m:m.map(i=>C[i].c)}));
     return {seed,groups,order:shuffle(groups.flatMap(g=>g.m),r)}}
-  return buildPuzzleV1(seed)}
+  return null}
+// Since 2026-10-26 (version 3): the game only knows GAME, every category of up to 40 countries plus the continents and
+// landlocked. The 25 broad ones (flag has blue, centre in the tropics, capital over 1 million…) are left out: among
+// 16 countries four of them always share one, so they could never be kept apart. No four of the 16 share a GAME
+// category except the four groups, so there is exactly one solution and no other four to explain.
+const UNIQUE_FROM='2026-10-26';
+const GAME=CATS.filter(k=>!SKIP.has(k.label)&&(sizeOf(k)<=CHECK_MAX||CHECK_ALSO.has(k.label)||k.label==='In Asia'));
+const GAME_OF=new Map(SOV.map(i=>[i,GAME.filter(k=>k.set[i])]));
+const POOLS3=POOLS.map(p=>p.filter(k=>GAME.includes(k)));
+// ver: 1 (dailies before 2026-10-25), 2 (the daily of 2026-10-25) or 3 (everything since)
+function buildPuzzle(seed,ver){if(ver===1)return buildPuzzleV1(seed);
+  if(ver===2)return buildClean(seed,POOLS2,CHECKED_OF,1500,6)||buildPuzzleV1(seed);
+  // a rare seed with no clean puzzle moves on to the next one, so every seed still gives the same puzzle
+  for(let s=0;s<20;s++){const p=buildClean((seed+s*7919)>>>0,POOLS3,GAME_OF,6000,20);if(p)return {...p,seed}}
+  return null}
+const verOf=(mode,day)=>mode!=='daily'||day>=UNIQUE_FROM?3:day>=STRICT_FROM?2:1;
 // four countries that share a category which is not one of the groups (the first one found, narrowest first)
 const NARROW=CATS.filter(k=>!SKIP.has(k.label)).sort((a,b)=>sizeOf(a)-sizeOf(b));
-function sharedCategory(S,cs){const used=new Set(S.groups.map(g=>g.k)),ids=cs.map(c=>byCode[c].i);
+// (version 3 puzzles have none, and broad categories are not groups there: those four are an ordinary mistake)
+function sharedCategory(S,cs){if(S.v>=3)return null;const used=new Set(S.groups.map(g=>g.k)),ids=cs.map(c=>byCode[c].i);
   return NARROW.find(k=>!used.has(k.id)&&ids.every(i=>k.set[i]))}
 // a game: the puzzle plus what happened (groups found in order, every guess, mistakes)
 function newGame(mode,seed,day){const date=day||todayKey(),dated=mode==='daily'||mode==='archive';
-  const p=buildPuzzle(seed,!dated||date>=STRICT_FROM);if(!p)return null;
-  const S={mode,seed,groups:p.groups,left:p.order,found:[],guesses:[],mistakes:0,over:false,won:false};
+  const v=verOf(dated?'daily':mode,date),p=buildPuzzle(seed,v);if(!p)return null;
+  const S={v,mode,seed,groups:p.groups,left:p.order,found:[],guesses:[],mistakes:0,over:false,won:false};
   if(dated){S.date=date;S.num=dayNum(S.date,CX_FIRST)}
   return S}
 const groupOf=(S,c)=>S.groups.findIndex(g=>g.m.includes(c));
@@ -176,7 +195,7 @@ function save(){if(!S)return;
     if(S.over){const h=load('cx-hist',{});if(!h[S.date]){h[S.date]={w:S.won?1:0,m:S.mistakes,f:S.found.length};store('cx-hist',h);if(!TESTDAY)Geomingo.account.done('connections')}}}
   else if(S.mode==='archive'){const a=load('cx-arch',{});a[S.date]=S;store('cx-arch',a)}
   else store('cx-free',S)}
-function openDaily(){view='game';mode='daily';S=dailySaved()||newGame('daily',seedOf('connections-daily-'+todayKey()));sel=[];render()}
+function openDaily(){view='game';mode='daily';S=dailySaved()||dailyPreview();sel=[];render()}
 function openFree(seed){view='game';mode='free';const f=load('cx-free',null);
   S=seed==null&&f&&!f.over?f:newGame('free',seed==null?Math.floor(Math.random()*1e9):seed);sel=[];save();render();window.scrollTo(0,0)}
 // Solo: a screen to start from, as in every game (an unfinished practice puzzle can be continued)
@@ -289,7 +308,7 @@ function pushProgress(){if(!roomRef||!S||S.mode!=='online'||S.code!==roomCode)re
   roomRef.child('players/'+ME).update(p).catch(()=>{})}
 // the host starts the first game; after a game anyone can start the next one once everyone has finished
 async function startRound(){if(!roomRef||!room)return;
-  let seed;do{seed=Math.floor(Math.random()*1e9)}while(!buildPuzzle(seed,true));
+  let seed;do{seed=Math.floor(Math.random()*1e9)}while(!buildPuzzle(seed,3));
   const round=(room.round||0)+1;
   try{await roomRef.transaction(x=>{if(!x)return x;if((x.round||0)>=round)return;
     x.status='play';x.round=round;x.seed=seed;x.startAt=now();return x})}
@@ -458,7 +477,7 @@ function roomResultHTML(){const list=ranked(),cur=list.filter(p=>p.cur),pos=cur.
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>There are 16 countries. They form <b>four groups of four</b>, and each group shares a hidden category, for example "Uses the euro" or "Flag has a crescent moon".</li>
   <li>Every country belongs to exactly one group: it fits its own category and none of the other three.</li>
-  <li>There is only <b>one way</b> to split all 16 into four groups. Sometimes four countries share something else too (all have blue on the flag, say). That is not a group: Mingo tells you so and it does not count as a mistake. Stuck? <b>Show the 4 categories</b> lists their names (your shared result says so).</li>
+  <li>There is only <b>one way</b> to split all 16 into four groups. No other four of the 16 share a category. Very broad traits (a flag colour, in the tropics, a big capital…) are never categories, so four blue flags are just a mistake. Stuck? <b>Show the 4 categories</b> lists their names (your shared result says so).</li>
   <li>Only independent countries appear, never territories.</li></ul>
   <h3>Playing</h3><ul>
   <li>Tap four countries and then <b>Submit</b>. If they share a category, the group is revealed with its name and colour.</li>
