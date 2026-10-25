@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
 <link rel="stylesheet" href="brand/geomingo.css?v=202610251900">
 <script src="brand/mingo.js?v=202610251900"></script>
-<script src="brand/account.js?v=202610250900"></script>
+<script src="brand/account.js?v=202610251930"></script>
 <style>
 /* Home page: Sign in and Menu on top, today's games as colour tiles, Travel with friends, then the GeoPass
    (km, level, today's stamps) and this week's ranking by km */
@@ -227,7 +227,8 @@ const LB=[['leaderboard','borderline',r=>pts((+r.c||0)/9)],['lb/citygrid','cityg
   ['lb/connections','connections',r=>cxPts((+r.s||0)>=4,r.m)],['lb/top10','top10',r=>pts((+r.s||0)/10)],
   ['lb/sil-easy','silhouette',r=>pts((+r.s||0)/9)],['lb/sil-normal','silhouette',r=>pts((+r.s||0)/9)],['lb/sil-hard','silhouette',r=>pts((+r.s||0)/9)]];
 const AV=['#7FA2F0','#F07884','#5FC28F','#D4AD4B','#A98BE0','#C99B78'];
-let WEEK=null,weekBusy=false;
+// the last week's ranking seen here (gm-week) shows at once; the fresh one replaces it when it comes
+let WEEK=(()=>{try{const w=JSON.parse(localStorage.getItem('gm-week')||'null');return w&&w.rows&&w.mon===weekDays()[0]?Object.assign(w,{at:0}):null}catch(e){return null}})(),weekBusy=false;
 function weekDays(){const k=G.dayKey(),t=Date.parse(k+'T12:00Z'),dow=(new Date(t).getUTCDay()+6)%7,out=[];
   for(let i=dow;i>=0;i--)out.push(new Date(t-i*864e5).toISOString().slice(0,10));return out}
 function loadWeek(){const acc=A();if(weekBusy||!acc||!acc.ready||typeof firebase==='undefined'||!firebase.apps.length)return;
@@ -238,7 +239,7 @@ function loadWeek(){const acc=A();if(weekBusy||!acc||!acc.ready||typeof firebase
       if(r.name)p.name=String(r.name).slice(0,16);day[id]=Math.max(day[id]||0,f(r))}}).catch(()=>{}))))
   .then(()=>{const rows=Object.entries(P).map(([id,p])=>({id,name:p.name||'Player',mi:Object.values(p.days).reduce((a,d)=>a+dayTotal(d),0)}))
       .filter(r=>r.mi>0).sort((a,b)=>b.mi-a.mi||a.name.localeCompare(b.name));
-    WEEK={day:G.dayKey(),at:Date.now(),rows};weekBusy=false;drawWeek()})}
+    WEEK={day:G.dayKey(),mon:days[0],at:Date.now(),rows};weekBusy=false;try{localStorage.setItem('gm-week',JSON.stringify(WEEK))}catch(e){}drawWeek()})}
 function drawWeek(){const el=document.getElementById('week'),acc=A();loadWeek();
   if(!acc||!acc.ready||!WEEK){el.hidden=true;return}
   const me=acc.user&&acc.user.uid,rows=WEEK.rows,i=rows.findIndex(r=>r.id===me);
