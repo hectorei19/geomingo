@@ -27,7 +27,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
 <script src="../brand/mingo.js?v=202610251900"></script>
-<script src="../brand/account.js?v=202610252300"></script>
+<script src="../brand/account.js?v=202610260000"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -69,7 +69,7 @@
 .t10peek i{font-style:normal;font-family:var(--display);font-weight:700;color:var(--flamingo-text);border:2px dashed var(--line);border-radius:10px;padding:8px 0;text-align:center}
 .t10peek i.on{background:var(--lagoon-soft);border-style:solid}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610251900">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610260000">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -82,7 +82,7 @@
 <script defer src="firebase-config.js?v=202610192300"></script>
 <script src="../shared/data.js?v=202610192300"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202610252300"></script>
+<script src="../shared/minigames.js?v=202610260000"></script>
 <script>
 /* ---- the rankings ----
    Only numbers Countries already uses (DATA and the country data), with the sources named in its Credits.
@@ -399,6 +399,11 @@ function onTick(){if(!S||S.mode!=='online'||S.over||!S.timer){clearInterval(tick
 /* ---- render ---- */
 const t10Average=h=>{const days=Object.keys(h);return days.length?(days.reduce((x,k)=>x+h[k].f,0)/days.length).toFixed(1)+'/10':'–'};
 function statsHTML(){const h=load('t10-hist',{});return statTiles(Object.keys(h).length,t10Average(h),streakOf(h))}
+function myStatsHTML(){const h=load('t10-hist',{}),v=Object.values(h);
+  return cabinetHTML({lbs:[{path:'lb/top10',dates:Object.keys(h)}],dates:Object.keys(h),what:'list',num:k=>'List #'+dayNum(k,T10_FIRST),
+    bests:[{icon:'★',title:'Perfect lists',sub:'10 of 10',value:v.filter(e=>e.f===10).length},
+      {icon:'♥',title:'Flawless lists',sub:'10 of 10, no life lost',value:v.filter(e=>e.f===10&&e.l===LIVES).length}],
+    tail:'<span class="label">Your daily lists</span>'+statsHTML()})}
 const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
 const seg=(name,opts,val)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-seg="${name}" data-v="${v}" aria-pressed="${String(v)===String(val)}">${l}</button>`).join('')}</div>`;
 // the list being played: its title, the lives (or whose turn it is), the search box, the ten rows and the wrong answers

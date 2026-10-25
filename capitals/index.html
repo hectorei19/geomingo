@@ -20,7 +20,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
 <script src="../brand/mingo.js?v=202610251900"></script>
-<script src="../brand/account.js?v=202610252300"></script>
+<script src="../brand/account.js?v=202610260000"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -301,7 +301,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .respanel .gm-hello{margin:-4px 0 -6px}
 .corner .mingo{width:auto;height:88%}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610251900">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610260000">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -923,7 +923,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/ci
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202610252300';
+const APP_VERSION='202610260000';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
@@ -1209,11 +1209,18 @@ function statsView(){
     if(!p||!p.d)return `<section class="panel">${back.replace('%NAME%','Player')}<p class="hint">No stats yet for this player.</p></section>`;
     st=p;name=p.name||'Player'}
   const tile=(v,l)=>`<div class="st"><b>${v}</b><span>${l}</span></div>`,D=st.d,So=st.s,F=st.f,bd=So.byDiff||{};
+  // your own stats open with the trophy cabinet (../brand/account.js), the same in every game
+  const A=mine&&window.Geomingo&&Geomingo.account,days=A?Object.keys(loadHist()):[],run=A?A.bestRun(days):null;
+  const cab=A?A.trophyHTML({lbs:[{path:'lb/citygrid',dates:days}],dates:days,what:'grid',num:k=>'Grid #'+dayNumber(k),
+    bests:[{icon:'🔥',title:'Longest streak',sub:run.n?run.when:'days played in a row',value:run.n},
+      {icon:'◎',title:'Best score',sub:'points in one daily grid',value:D.best},
+      {icon:'★',title:'Perfect grids',sub:'every square filled',value:D.perfect}],
+    tail:`<span class="label">Your daily grids</span><div class="stgrid">${tile(D.played,'played')}${tile(D.avg,'average')}${tile(D.streak,'streak')}</div>`}):'';
   const row=k=>{const x=bd[k]||{played:0,best:0,avg:0};return `<tr><td>${k[0].toUpperCase()+k.slice(1)}</td><td>${x.played}</td><td>${x.best}</td><td>${x.avg}</td></tr>`};
   return `<section class="panel stats">${back.replace('%NAME%',esc(name))}
-    ${mine&&!USER&&!MAYBE_IN()?'<p class="hint">Guest stats stay on this device. Sign in to keep them in your account and let other players see them.</p>':''}
+    ${cab?cab:`${mine&&!USER&&!MAYBE_IN()?'<p class="hint">Guest stats stay on this device. Sign in to keep them in your account and let other players see them.</p>':''}
     <span class="label">Today's grid</span>
-    <div class="stgrid">${tile(D.played,'played')}${tile(D.streak,'streak')}${tile(D.max,'best streak')}${tile(D.best,'best score')}${tile(D.avg,'average')}${tile(D.perfect,'perfect grids')}</div>
+    <div class="stgrid">${tile(D.played,'played')}${tile(D.streak,'streak')}${tile(D.max,'best streak')}${tile(D.best,'best score')}${tile(D.avg,'average')}${tile(D.perfect,'perfect grids')}</div>`}
     <span class="label">Solo</span>
     <div class="stgrid">${tile(So.played,'games')}${tile(So.best,'best score')}${tile(So.avg,'average')}${tile(So.perfect,'perfect grids')}${tile(So.acc===undefined?'–':So.acc+'%','accuracy')}${tile(So.squares===undefined?'–':So.squares,'squares')}</div>
     ${So.played?`<table class="sttab"><tr><th></th><th>Games</th><th>Best</th><th>Average</th></tr>${row('easy')}${row('normal')}${row('hard')}</table>`:''}

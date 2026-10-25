@@ -77,7 +77,7 @@ const uid=()=>user&&user.uid;
 // signing out (here, or from Countries' menu) leaves the device clean, as Countries always did:
 // the stats, today's games, the GeoPass and the name go; the account keeps them for the next sign-in
 const DEVICE_KEYS=['bl-daily','bl-hist','bl-games','bl-arch','bl-user','cc-daily','cc-hist','cc-games','cc-arch','cc-user',
-  'cx-daily','cx-hist','t10-daily','t10-hist','sil-daily','sil-hist','sil-train','gm-pass','gm-days','gm-acct','gm-lbc'];
+  'cx-daily','cx-hist','t10-daily','t10-hist','sil-daily','sil-hist','sil-train','gm-pass','gm-days','gm-acct','gm-lbc','gm-ranks'];
 function onUser(u){const was=user;user=u||null;
   if(was&&!user){DEVICE_KEYS.forEach(k=>ls.set(k,null));ls.set('gm-acct',null);location.reload();return}
   if(user){if(!(LAST&&LAST.u===user.uid))name='';loadName()}
@@ -186,6 +186,65 @@ function rankingHTML(g,o){const u=who();if(TEST||u===undefined)return '';o=o||{}
   return '<section class="panel lb"><span class="label">'+esc(title)+(rows.length?' · '+rows.length+' player'+(rows.length===1?'':'s'):'')+'</span>'+
     (rows.length?'<ol class="lbl">'+list+'</ol>':'<p class="hint">Nobody in today\'s ranking yet.</p>')+foot+'</section>'}
 
+/* ---- My stats: the trophy cabinet, the same in every game ----
+   Your best place in a daily ranking (the cup), how often you finished 1st, 2nd and 3rd (the medals), then the game's
+   personal bests and its three numbers. The places come from the public rankings of the days you played
+   (lbs[].path: lb/<game>, Countries' leaderboard, Capitals' lb/citygrid), read once a day is over and kept here (gm-ranks);
+   today's place counts too, but can still change until midnight. */
+const RK={};
+function ranksStore(){const id=meId(),c=json('gm-ranks');return c&&c.u===id&&c.r?c:{u:id,r:{}}}
+const lbOrder=(a,b)=>b.s-a.s||(a.m||0)-(b.m||0)||(b.c||0)-(a.c||0)||(a.t||0)-(b.t||0);
+function placeIn(rows,me){const l=Object.entries(rows||{}).map(([id,v])=>Object.assign({id},v)).sort(lbOrder),i=l.findIndex(r=>r.id===me);
+  return [i<0?0:i+1,l.length]}
+// every day you played: [place (0: not in it), players], today's from the live ranking; null while the account is unknown
+function places(lbs){const me=meId();if(!me||!ok)return null;const c=ranksStore(),k=T(),out=[];let ask=false;
+  for(const {path,dates} of lbs){const P=c.r[path]=c.r[path]||{};
+    for(const d of dates){if(d>k)continue;
+      if(d===k){const L=liveDay(path);if(L)out.push({d,p:placeIn(L,me)});continue}
+      if(P[d]){out.push({d,p:P[d]});continue}
+      const key=me+path+d;if(RK[key])continue;RK[key]=1;ask=true;
+      db.ref(path+'/'+d).once('value').then(s=>{const c2=ranksStore();(c2.r[path]=c2.r[path]||{})[d]=placeIn(s.val(),me);put('gm-ranks',c2);drawTrophies()}).catch(()=>{})}}
+  if(ask)put('gm-ranks',c);return out}
+// today's ranking, live (it can still change until midnight)
+const TD={};
+function liveDay(path){const k=T();if(!TD[path]||TD[path].day!==k){if(TD[path])TD[path].ref.off();
+  const ref=db.ref(path+'/'+k);TD[path]={day:k,ref,rows:null};ref.on('value',s=>{TD[path].rows=s.val()||{};drawTrophies()},()=>{})}
+  return TD[path].rows}
+const TROPHIES={};let trophyN=0;
+// the cup: gold for a 1st place, silver for 2nd, bronze for 3rd, a plain outline before your first ranking
+function cupSVG(tone,label,size){const f={1:'#D4AD4B',2:'#C3CBD6',3:'#C98A5A'}[tone]||'none',s=f==='none'?'var(--line)':f,lf=f==='none'?'var(--muted)':'#16202F';
+  return '<svg class="gm-cup" width="'+size+'" height="'+size+'" viewBox="0 0 120 120" aria-hidden="true">'+
+    '<path d="M30 18h60v22c0 20-13 36-30 36S30 60 30 40z" fill="'+f+'" stroke="'+s+'" stroke-width="3"/>'+
+    '<path d="M30 26H14c0 18 8 28 20 30M90 26h16c0 18-8 28-20 30" fill="none" stroke="'+s+'" stroke-width="6" stroke-linecap="round"/>'+
+    '<rect x="53" y="76" width="14" height="12" fill="'+s+'"/><rect x="38" y="88" width="44" height="9" rx="2" fill="'+s+'"/>'+
+    '<rect x="32" y="97" width="56" height="13" rx="3" fill="var(--page)" stroke="'+s+'" stroke-width="2"/>'+
+    (label?'<text x="60" y="53" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="900" font-size="'+(label.length>3?20:26)+'" fill="'+lf+'">'+esc(label)+'</text>':'')+'</svg>'}
+const ordinal=n=>n+(n%100>10&&n%100<14?'th':['th','st','nd','rd'][n%10]||'th');
+const shortDate=d=>{const p=d.split('-');return +p[2]+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1]};
+function trophyTop(o){const u=who();
+  if(u===undefined)return '<div class="gm-tcase off">'+cupSVG(0,'',96)+'<p class="gm-tnote">'+(failed?'Rankings are not available right now.':'Loading…')+'</p></div>';
+  if(!u)return '<div class="gm-tcase off">'+cupSVG(0,'?',96)+'<b class="gm-tbig">Your trophy</b><p class="gm-tnote">Sign in to join the daily ranking. Your best place and your medals show up here.</p><button class="primary" data-gm-signin>Sign in</button></div>';
+  const P=places(o.lbs)||[],k=T(),got=P.filter(x=>x.p[0]>0);
+  const med=[1,2,3].map(n=>got.filter(x=>x.p[0]===n).length);
+  const medals='<span class="label">Podium finishes</span><div class="gm-medals">'+['1st','2nd','3rd'].map((t,i)=>'<div class="gm-medal'+(med[i]?'':' none')+'"><span class="gm-mdisc m'+(i+1)+'">'+(i+1)+'</span><b>×'+med[i]+'</b><span>'+t+'</span></div>').join('')+'</div>';
+  if(!got.length)return '<div class="gm-tcase off">'+cupSVG(0,'#?',96)+'<b class="gm-tbig">No trophy yet</b><p class="gm-tnote">'+
+    'Finish today\'s '+esc(o.what)+' signed in to join the daily ranking. Your best place shows here.'+'</p></div>'+medals;
+  const b=got.slice().sort((x,y)=>x.p[0]-y.p[0]||y.p[1]-x.p[1]||(x.d<y.d?1:-1))[0],r=b.p[0];
+  return '<div class="gm-tcase'+(r<=3?' t'+r:'')+'"><span class="label">Best ranking</span>'+cupSVG(r<=3?r:1,'#'+r,120)+
+    '<b class="gm-tbig">'+ordinal(r)+' place</b><p class="gm-tnote">of '+b.p[1]+' player'+(b.p[1]===1?'':'s')+' · '+esc(o.num(b.d))+' · '+(b.d===k?'today, so far':shortDate(b.d))+'</p></div>'+medals}
+// o: {lbs: [{path, dates}], dates: the days you played, what: 'puzzle', num: date → 'Puzzle #14',
+//     bests: [{icon, title, sub, value}], tail: the game's own numbers and tables, shown under the bests}
+function trophyHTML(o){const id='t'+(++trophyN);TROPHIES[id]=o;
+  const bests=(o.bests||[]).filter(Boolean).map(x=>'<div class="gm-pb"><span class="gm-pbi" aria-hidden="true">'+x.icon+'</span><span class="gm-pbt"><b>'+esc(x.title)+'</b>'+(x.sub?'<span>'+esc(x.sub)+'</span>':'')+'</span><span class="gm-pbv">'+esc(String(x.value))+'</span></div>').join('');
+  return '<div class="gm-trophy"><div data-gm-trophy="'+id+'">'+trophyTop(o)+'</div>'+
+    (bests?'<span class="label">Personal bests</span><div class="gm-pbs">'+bests+'</div>':'')+(o.tail||'')+'</div>'}
+function drawTrophies(){document.querySelectorAll('[data-gm-trophy]').forEach(el=>{const o=TROPHIES[el.dataset.gmTrophy];if(!o)return;
+  const h=trophyTop(o);if(el.innerHTML!==h)el.innerHTML=h})}
+// the longest run of days in a row, and when it ran ("2 – 12 Oct")
+function bestRun(dates){const n=k=>Math.round(Date.parse(k+'T12:00Z')/864e5),ds=dates.slice().sort();let best=0,from='',to='',run=0,start='',prev=null;
+  for(const d of ds){run=prev!==null&&n(d)===prev+1?run+1:1;if(run===1)start=d;prev=n(d);if(run>best){best=run;from=start;to=d}}
+  return {n:best,when:best>1?shortDate(from).replace(/ \w+$/,m=>from.slice(5,7)===to.slice(5,7)?'':m)+' – '+shortDate(to):best?shortDate(from):''}}
+
 /* ---- what the pages show ---- */
 const noBanner=()=>ls.get('gm-nobanner')==='1';
 // under Mingo on a game's home screen: who's playing, and the sign-in banner for guests (as in Countries).
@@ -228,7 +287,7 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('gm-acctmenu'))acctMenu(false)});
 
 // something changed: the header buttons are redrawn here; the page redraws itself (onChange) unless you are typing
-function changed(why){document.querySelectorAll('[data-gm-acctslot]').forEach(el=>{const h=acctHTML();if(el.innerHTML!==h)el.innerHTML=h});
+function changed(why){document.querySelectorAll('[data-gm-acctslot]').forEach(el=>{const h=acctHTML();if(el.innerHTML!==h)el.innerHTML=h});drawTrophies();
   const a=document.activeElement,typing=a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA')&&!a.closest('#gm-window');
   watchers.forEach(f=>{try{f(why||'',typing)}catch(e){console.error(e)}})}
 
@@ -236,6 +295,6 @@ G.acctHTML=acctHTML;
 // ready/user: known for sure, or the last account seen on this device until Firebase answers (wasSignedIn: that last one)
 G.account={get ready(){return who()!==undefined},get user(){return who()||null},get name(){return name},
   wasSignedIn:!!(LAST&&LAST.u),
-  signIn,signOut,done,userHTML,changeName,rankingHTML,rankLine,mine,onChange:f=>watchers.push(f)};
+  signIn,signOut,done,userHTML,changeName,rankingHTML,rankLine,mine,trophyHTML,bestRun,onChange:f=>watchers.push(f)};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();

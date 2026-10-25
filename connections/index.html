@@ -20,7 +20,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
 <script src="../brand/mingo.js?v=202610251900"></script>
-<script src="../brand/account.js?v=202610252300"></script>
+<script src="../brand/account.js?v=202610260000"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -81,7 +81,7 @@
 .lp.me{border-color:var(--sea)}
 .primary[disabled]{opacity:.5;cursor:default}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610251900">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610260000">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -90,7 +90,7 @@
 
 <script src="../shared/data.js?v=202610192300"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202610252300"></script>
+<script src="../shared/minigames.js?v=202610260000"></script>
 <!-- With friends: online rooms in Countries' Firebase Realtime Database -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -395,6 +395,11 @@ const tileHTML=(c,attr)=>{const n=byCode[c].n,on=attr==='data-c'&&sel.includes(c
 // the average of groups found (days before the count was kept: solved = 4, otherwise not counted)
 function cxAverage(h){const known=Object.values(h).map(e=>e.w?4:e.f).filter(f=>f!=null);return known.length?(known.reduce((a,b)=>a+b,0)/known.length).toFixed(1)+'/4':'–'}
 function statsHTML(){const h=load('cx-hist',{});return statTiles(Object.keys(h).length,cxAverage(h),streakOf(h))}
+function myStatsHTML(){const h=load('cx-hist',{}),v=Object.values(h);
+  return cabinetHTML({lbs:[{path:'lb/connections',dates:Object.keys(h)}],dates:Object.keys(h),what:'puzzle',num:k=>'Puzzle #'+dayNum(k,CX_FIRST),
+    bests:[{icon:'★',title:'Perfect puzzles',sub:'4 of 4, no mistakes',value:v.filter(e=>e.w&&!e.m).length},
+      {icon:'✓',title:'Puzzles solved',sub:'all 4 groups found',value:v.filter(e=>e.w).length}],
+    tail:'<span class="label">Your daily puzzles</span>'+statsHTML()})}
 const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
 // today's puzzle open on the home screen, as Countries' grid: tapping a country starts (or continues) it with that country picked
 function dailyBoard(d){const g=d||dailyPreview();if(!g)return '';
