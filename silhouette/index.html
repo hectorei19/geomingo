@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 <title>Silhouette · Geomingo</title>
-<meta name="description" content="Name the country from its shape. Nine new shapes every day, at three levels. Daily geography games from Geomingo.">
+<meta name="description" content="Name the country from its shape. Nine new shapes every day. Daily geography games from Geomingo.">
 <meta name="theme-color" content="#151E30">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Geomingo">
@@ -63,7 +63,6 @@
 .dsq{grid-template-columns:repeat(3,1fr);width:60px}
 .dsq i.mid{background:var(--p2)}
 .dsq i.bad{background:var(--bad)}
-.dtabs{width:100%}
 .modes{max-width:320px;width:100%;align-self:center}
 .difftag{font-family:var(--mono);font-size:.75rem;color:var(--sea);letter-spacing:.04em;text-transform:uppercase}
 .osel{width:100%;border:1.5px solid var(--ink);border-radius:5px;padding:10px;font-size:1rem;background:var(--paper)}
@@ -91,7 +90,7 @@
 <!-- flags appear once a shape is answered; loaded after the page so the game shows at once -->
 <script defer src="flags.js?v=202610230100"></script>
 <script>
-/* ---- one silhouette to name: the same piece in Training, Daily and With friends ----
+/* ---- one silhouette to name: the same piece in Solo, Daily and With friends ----
    A question is {c: country code, rot: turn in degrees (Hard), tries: wrong answers so far, st: 'play' | 'right' | 'wrong'}. */
 const TRIES=3,DIFF_NAME={easy:'Easy',normal:'Normal',hard:'Hard'};
 const DIFF_HINT={easy:'Well-known countries, north up',normal:'All 196 countries, north up',hard:'All 196, each shape turned'};
@@ -130,9 +129,9 @@ function feedback(q,res,code,key){
   if(res==='right'){Geomingo.stamp('silhouette',byCode[q.c].n);say(key,'happy','Stamped: '+byCode[q.c].n+'.',q.tries.length?'Got it on try '+(q.tries.length+1)+'.':'First try.')}
   else if(res==='wrong')say(key,'sad','Denied entry.',`It's not ${byCode[code].n}. ${triesTxt(q)}`);
   else say(key,'sad','It was '+byCode[q.c].n+'.',`Not ${byCode[code].n}. No tries left for this one.`)}
-const silKey=()=>view==='train'&&T?'train:'+T.diff:D?'sil:'+D.date+':'+D.diff:'';
+const silKey=()=>view==='train'&&T?'train:'+T.diff:D?'sil:'+D.date:'';
 
-/* ---- Training: unlimited shapes, one after another, at the level you choose ----
+/* ---- Solo: unlimited shapes, one after another, at the level you choose ----
    Each level deals from its own shuffled deck, so no country comes back until the deck is used up. */
 let T=null;
 const trainStats=()=>load('sil-train',{});
@@ -149,20 +148,21 @@ function trainPick(code){const q=T.q;if(q.st!=='play')return;
 function trainSkip(){const q=T.q;if(q.st!=='play')return;q.st='wrong';T.streak=0;
   const st=trainStats(),s=st[T.diff]||{n:0,ok:0,best:0};s.n++;st[T.diff]=s;store('sil-train',st);render()}
 function trainHTML(){const q=T.q,s=trainStats()[T.diff]||{best:0},done=q.st!=='play';
-  let h=header('Silhou<span>ette</span>','Training');
-  h+=`<div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Training</span></div>`;
+  let h=header('Silhou<span>ette</span>','Solo');
+  h+=`<div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Solo</span></div>`;
   h+=`<div class="field">${seg('diff',[['easy','Easy'],['normal','Normal'],['hard','Hard']],T.diff)}<span class="hint">${DIFF_HINT[T.diff]}.</span></div>`;
   h+=`<div class="streak"><span><b>${T.streak}</b>in a row</span><span><b>${s.best||0}</b>best at ${DIFF_NAME[T.diff]}</span></div>`;
-  h+=moodHTML(silKey(),'pass','Whose shape is this?','Training at '+DIFF_NAME[T.diff]+'. '+triesTxt(q));
+  h+=moodHTML(silKey(),'pass','Whose shape is this?','Solo at '+DIFF_NAME[T.diff]+'. '+triesTxt(q));
   h+=`<section class="panel play">${silBoxHTML(q,done)}`;
   if(done)h+=revealHTML(q)+`<button class="primary" id="tnext">Next shape</button>`;
   else h+=triesHTML(q)+answerBoxHTML(q,`<button class="ghost" id="tskip" style="align-self:flex-start">Show the answer</button>`);
   return h+`</section>`}
 
-/* ---- Daily: nine shapes on a 3 x 3 board, the same for everyone, one board per level ----
-   Each level shuffles its countries once per cycle (same order for everyone, from the cycle number) and deals
-   nine a day, so no country comes back until the cycle is over. Hard turns come from the date. */
-const DAILY_FIRST='2026-10-22',DAILY_N=9;
+/* ---- Daily: nine shapes on a 3 x 3 board, the same for everyone, one board a day at Normal level ----
+   The level shuffles its countries once per cycle (same order for everyone, from the cycle number) and deals
+   nine a day, so no country comes back until the cycle is over. The day's save keeps one entry per level
+   (only Normal since there is one daily board; Easy and Hard live on in Solo and With friends). */
+const DAILY_FIRST='2026-10-22',DAILY_N=9,DAILY_LV='normal';
 function dailyBoard(key,diff){
   const codes=poolOf(diff).map(c=>c.c).sort(),days=Math.floor(codes.length/DAILY_N),n=dayNum(key,DAILY_FIRST)-1;
   const cycle=Math.floor(n/days),i=((n%days)+days)%days;
@@ -171,7 +171,7 @@ function dailyBoard(key,diff){
   return deck.map(c=>newQ(c,diff==='hard'?hardTurn(turn):0))}
 let D=null;
 const dailyAll=()=>{const d=load('sil-daily',null);return d&&d.date===todayKey()?d:{date:todayKey(),over:false}};
-function dailyGame(diff){const d=dailyAll();
+function dailyGame(){const d=dailyAll(),diff=DAILY_LV;
   return d[diff]||{diff,date:todayKey(),num:dayNum(todayKey(),DAILY_FIRST),qs:dailyBoard(todayKey(),diff),sel:0,over:false}}
 function dailySave(){if(!D)return;const d=dailyAll();d[D.diff]=D;d.over=d.over||D.over;store('sil-daily',d);
   if(D.over){const h=load('sil-hist',{}),day=h[D.date]||{};if(day[D.diff]==null){day[D.diff]=D.qs.filter(q=>q.st==='right').length;h[D.date]=day;store('sil-hist',h);if(!TESTDAY)Geomingo.account.done('sil-'+D.diff)}}}
@@ -184,7 +184,7 @@ function dailyPick(code){const q=D.qs[D.sel];if(!q||q.st!=='play')return;
   render();if(D.over)window.scrollTo(0,0)}
 const rightOf=G=>G.qs.filter(q=>q.st==='right').length;
 const sq=q=>q.st==='right'?(q.tries.length?'🟨':'🟩'):'🟥';
-function dailyShareText(G){return `${Geomingo.share('Silhouette')} #${G.num} · ${DIFF_NAME[G.diff]} — ${rightOf(G)}/9\n${[0,3,6].map(i=>G.qs.slice(i,i+3).map(sq).join('')).join('\n')}`}
+function dailyShareText(G){return `${Geomingo.share('Silhouette')} #${G.num} — ${rightOf(G)}/9\n${[0,3,6].map(i=>G.qs.slice(i,i+3).map(sq).join('')).join('\n')}`}
 const dailyShare=G=>dailyShareText(G)+"\n\nPlay today's Silhouette: "+pageLink();
 function boardHTML(G){const sel=G.over?-1:G.sel;
   return `<div class="board9" role="group" aria-label="Today's nine shapes">${G.qs.map((q,i)=>{const cls=[i===sel?'sel':'',q.st==='right'?'right':q.st==='wrong'?'wrong':''].join(' ');
@@ -194,28 +194,26 @@ function dailyPlayHTML(G){const q=G.qs[G.sel],last=G.justDone!=null?G.qs[G.justD
   if(last&&last.st!=='play')h+=revealHTML(last);
   if(!G.over&&q){h+=`<span class="label">Shape ${G.sel+1} of 9 · ${rightOf(G)} right so far</span>`+silBoxHTML(q)+triesHTML(q)+answerBoxHTML(q)+giveUpHTML()}
   return `<div class="play">${h}</div>`}
-const dailyTabs=diff=>`<div class="dtabs">${seg('ddiff',[['easy','Easy'],['normal','Normal'],['hard','Hard']].map(([v,l])=>{const g=dailyAll()[v];return [v,l+(g&&g.over?' ✓':'')]}),diff)}</div>`;
 function verdict(G){const r=rightOf(G),first=G.qs.filter(q=>q.st==='right'&&!q.tries.length).length;
   return r===9?(first===9?{pose:'happy',t:'Full page. Nine of nine, all first try.',s:'Nine new stamps.'}:{pose:'happy',t:'Visited. Nine of nine.',s:first+' on the first try.'})
     :r>=6?{pose:'happy',t:'Visited. '+r+' of 9.',s:'Tap a shape to see its name.'}:r>=3?{pose:'think',t:'A few gaps in the pages. '+r+' of 9.',s:'Tap a shape to see its name.'}
-    :{pose:'sad',t:'Rough crossing, this one.',s:r+' of 9. Training helps.'}}
+    :{pose:'sad',t:'Rough crossing, this one.',s:r+' of 9. Solo helps.'}}
 function dailyResultHTML(G){const r=rightOf(G),v=verdict(G);
-  return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Silhouette #${G.num} · ${DIFF_NAME[G.diff]}</span><p class="big">${r} of 9</p>
+  return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Silhouette #${G.num}</span><p class="big">${r} of 9</p>
     <p class="hint">${r===9?'Every shape named.':'Tap a shape to see its name.'} Next board in ${nextIn()}.</p>
     <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
     <div class="row-btns"><button class="ghost" id="copy">Share</button>${nextGameBtn('silhouette')}</div>
-    <button class="ghost" data-go="train">Training</button>
-    ${['easy','normal','hard'].filter(v=>!(dailyAll()[v]||{}).over).length?`<p class="hint">Also today: ${['easy','normal','hard'].filter(v=>!(dailyAll()[v]||{}).over).map(v=>`<button class="linkbtn" data-dd="${v}" style="padding:0">${DIFF_NAME[v]}</button>`).join(' · ')}</p>`:''}
+    <button class="ghost" data-go="train">Practice shapes</button>
     ${allPlayedHTML('silhouette')}
-    <span class="label">Your daily boards</span>${statsHTML()}</section>${rankingHTML(G.diff)}`}
-// today's ranking of each level (signed-in players, first try of the day): shapes named, then fewer wrong tries, then who finished first
-const rankingHTML=diff=>Geomingo.account.rankingHTML('sil-'+diff,{title:"Today's ranking · "+DIFF_NAME[diff],what:DIFF_NAME[diff]+' board',score:r=>[r.s+'/9',r.m+' wrong '+(r.m===1?'try':'tries')]});
+    <span class="label">Your daily boards</span>${statsHTML()}</section>${rankingHTML()}`}
+// today's ranking (signed-in players, first try of the day): shapes named, then fewer wrong tries, then who finished first
+const rankingHTML=()=>Geomingo.account.rankingHTML('sil-'+DAILY_LV,{what:'board',score:r=>[r.s+'/9',r.m+' wrong '+(r.m===1?'try':'tries')]});
 // signed in or out, today's boards arrived from another device, the ranking moved: show it (not while typing)
-Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&D.date===todayKey()){D=dailyGame(D.diff);liveKey=''}
+Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&D.date===todayKey()){D=dailyGame();liveKey=''}
   if(!typing&&!roomCode&&(view==='home'||view==='daily'&&D&&D.over))render()});
-function openDaily(diff){if(diff)store('sil-ddiff',diff);D=dailyGame(diff||load('sil-ddiff','normal'));query='';view='daily';render();window.scrollTo(0,0)}
+function openDaily(){D=dailyGame();query='';view='daily';render();window.scrollTo(0,0)}
 function dailyHTML(){let h=header('Silhou<span>ette</span>','Daily #'+D.num);
-  h+=`<div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Today's shapes</span></div>`+dailyTabs(D.diff);
+  h+=`<div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Today's shapes</span></div>`;
   if(D.over)h+=dailyResultHTML(D)+`<section class="panel play">${boardHTML(D)}</section>`;
   else h+=dailyMood()+`<section class="panel">${dailyPlayHTML(D)}</section>`;
   return h}
@@ -223,12 +221,12 @@ function dailyMood(){const started=D.qs.some(q=>q.st!=='play');
   return moodHTML(silKey(),started?'think':'pass',started?'Keep going: '+rightOf(D)+' of 9 so far.':'GeoPass ready.',started?'Tap any shape to jump to it.':'Nine shapes, nine stamps to win, the same for everyone. '+TRIES+' tries each.')}
 
 /* ---- stats, rules, credits ---- */
+// each day counts its best board (days from before the single daily board may hold an Easy or Hard one too)
 function statsHTML(){const h=load('sil-hist',{}),days=Object.keys(h);
-  const row=v=>{const ds=days.filter(k=>h[k][v]!=null),t=ds.reduce((x,k)=>x+h[k][v],0);return `<tr><td>${DIFF_NAME[v]}</td><td>${ds.length}</td><td>${ds.length?(t/ds.length).toFixed(1):'–'}</td><td>${ds.filter(k=>h[k][v]===9).length}</td></tr>`};
+  const best=days.map(k=>Math.max(0,...Object.values(h[k]).filter(x=>typeof x==='number'))),tot=best.reduce((x,v)=>x+v,0);
   const tr=load('sil-train',{});
-  return `<div class="stgrid"><div class="st"><b>${days.length}</b><span>days played</span></div><div class="st"><b>${streakOf(h)}</b><span>streak</span></div></div>
-    <table class="sttab"><tr><th>Daily</th><th>Played</th><th>Average</th><th>9 of 9</th></tr>${['easy','normal','hard'].map(row).join('')}</table>
-    <table class="sttab"><tr><th>Training</th><th>Shapes</th><th>Right</th><th>Best run</th></tr>${['easy','normal','hard'].map(v=>{const s=tr[v]||{n:0,ok:0,best:0};return `<tr><td>${DIFF_NAME[v]}</td><td>${s.n}</td><td>${s.n?Math.round(s.ok/s.n*100)+'%':'–'}</td><td>${s.best}</td></tr>`}).join('')}</table>`}
+  return `<div class="stgrid"><div class="st"><b>${days.length}</b><span>played</span></div><div class="st"><b>${days.length?(tot/days.length).toFixed(1):0}</b><span>named on average</span></div><div class="st"><b>${streakOf(h)}</b><span>streak</span></div></div>
+    <table class="sttab"><tr><th>Solo</th><th>Shapes</th><th>Right</th><th>Best run</th></tr>${['easy','normal','hard'].map(v=>{const s=tr[v]||{n:0,ok:0,best:0};return `<tr><td>${DIFF_NAME[v]}</td><td>${s.n}</td><td>${s.n?Math.round(s.ok/s.n*100)+'%':'–'}</td><td>${s.best}</td></tr>`}).join('')}</table>`}
 const quickRules=extra=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name the country from its shape. Every shape fills the same frame, so size is no clue. You have ${TRIES} tries per shape.${extra||''}</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Each shape is the outline of a country. Type its name and pick it from the list.</li>
@@ -237,12 +235,13 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Names are in English. Accents, capitals and spaces don't matter, and common other names work too (Holland, Burma, UK...).</li>
   <li>Only independent countries, never territories. Far-off islands are left out of a shape (Hawaii, French Guiana, the Canaries) so the country does not shrink to a dot. Vatican City is not in the game.</li></ul>
   <h3>Levels</h3><ul>
+  <li>Today's shapes are always at <b>Normal</b>. In Solo and With friends you choose the level.</li>
   <li><b>Easy</b>: 54 countries most people know from maps, news and travel, north up.</li>
   <li><b>Normal</b>: all 196 countries, north up.</li>
   <li><b>Hard</b>: all 196, each shape turned by a random angle, so north is no clue.</li></ul>
   <h3>Modes</h3><ul>
-  <li><b>Today's shapes</b>: nine shapes on a 3 × 3 board, the same for everyone, one board per level, new every day at midnight CET. One try each, saved on this device.</li>
-  <li><b>Training</b>: unlimited shapes at the level you choose. No country comes back until you have seen them all.</li>
+  <li><b>Today's shapes</b>: nine shapes on a 3 × 3 board, the same for everyone, new every day at midnight CET. One try, saved on this device.</li>
+  <li><b>Solo</b>: unlimited practice shapes at the level you choose. No country comes back until you have seen them all.</li>
   <li><b>With friends</b>: online rooms for 2 to 6 phones. The host chooses <b>Getting harder</b> (3 Easy, 4 Normal, 3 Hard) or a continent and a level. Everyone gets the same ten shapes at the same time, ${SECS} seconds each. A right answer scores 500 points plus up to 500 for speed. The ranking shows after every shape and at the end.</li></ul>`}
 function creditsHTML(){return `<ul class="helpbox" style="padding-left:18px">
   <li>Borders: <a href="https://github.com/topojson/world-atlas" target="_blank" rel="noopener">world-atlas</a>, from <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> 1:10m (public domain). Each country is drawn on its own map centred on itself, so no shape is stretched or cut by the date line.</li>
@@ -463,19 +462,19 @@ function bindOnline(){
   if($('oend'))$('oend').onclick=()=>{if(confirm('End the game for everyone?'))onlineAct('end')};
   if(O&&O.status==='round'&&O.q.st==='play'&&now()>=O.start)bindAnswer(O.q,onlinePick)}
 
-/* ---- home: today's board open and playable on top, then Training and With friends, as in the other games ---- */
+/* ---- home: today's board open and playable on top, then Solo and With friends, as in the other games ---- */
 let view='home';
 const seg=(name,opts,val)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-seg="${name}" data-v="${v}" aria-pressed="${String(v)===String(val)}">${l}</button>`).join('')}</div>`;
 const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
-function homeHTML(){const key=todayKey(),diff=load('sil-ddiff','normal');
-  if(!D||D.date!==key||D.diff!==diff)D=dailyGame(diff);
+function homeHTML(){const key=todayKey();
+  if(!D||D.date!==key)D=dailyGame();
   let daily;
   if(D.over){const h=load('sil-hist',{});
-    daily=`<button class="hcard" id="daily"><span class="hm">Today's shapes #${D.num} · ${DIFF_NAME[D.diff]} · done</span><span class="dsum"><span class="dsq" aria-hidden="true">${D.qs.map(q=>`<i class="${q.st==='right'?(q.tries.length?'mid':'on'):'bad'}"></i>`).join('')}</span><span class="dtxt"><span class="ht">${rightOf(D)} of 9</span><span class="hs">shapes named</span></span><span class="dstats"><span><b>${streakOf(h)}</b>streak</span><span><b>${Object.keys(h).length}</b>played</span></span></span><span class="hs">Tap to see the board and share your result.</span><span class="hm">Next board in ${nextIn()}</span></button>`}
+    daily=`<button class="hcard" id="daily"><span class="hm">Today's shapes #${D.num} · done</span><span class="dsum"><span class="dsq" aria-hidden="true">${D.qs.map(q=>`<i class="${q.st==='right'?(q.tries.length?'mid':'on'):'bad'}"></i>`).join('')}</span><span class="dtxt"><span class="ht">${rightOf(D)} of 9</span><span class="hs">shapes named</span></span><span class="dstats"><span><b>${streakOf(h)}</b>streak</span><span><b>${Object.keys(h).length}</b>played</span></span></span><span class="hs">Tap to see the board and share your result.</span><span class="hm">Next board in ${nextIn()}</span></button>`}
   else daily=`<div class="hcard ac play"><span class="hm">#${D.num} · ${dateLabel(key)}</span><span class="ht">Today's shapes</span><span class="hs">${D.qs.some(q=>q.st!=='play')?'You started it: keep going.':'Nine countries, the same for everyone. Tap a shape or type to start.'}</span>${dailyPlayHTML(D)}</div>`;
-  const hello=D.over?Geomingo.hello(verdict(D).pose,'Done for today: '+rightOf(D)+' of 9.','Next board in '+nextIn()+'. Try another level or Training.'):dailyMood();
-  return header('Silhou<span>ette</span>','',true)+`<section class="home">${hello}${Geomingo.account.userHTML()}${dailyTabs(D.diff)}${daily}${D.over?rankingHTML(D.diff):''}
-    <div class="hrow"><button class="hcard" data-go="train"><span class="ht">Training</span><span class="hs">Unlimited shapes, at the level you choose.</span></button>
+  const hello=D.over?Geomingo.hello(verdict(D).pose,'Done for today: '+rightOf(D)+' of 9.',"Today's shapes are done. Next ones in "+nextIn()+'.'):dailyMood();
+  return header('Silhou<span>ette</span>','',true)+`<section class="home">${hello}${Geomingo.account.userHTML()}${daily}${D.over?rankingHTML():''}
+    <div class="hrow"><button class="hcard" data-go="train"><span class="ht">Solo</span><span class="hs">Practice on unlimited shapes, Easy to Hard.</span></button>
     <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to 6 players, each on their own phone.</span></button></div></section>
     ${quickRules(' Full rules in <b>How to play</b>.')}`}
 function goHome(){if(roomCode){if(!confirm('Leave the room and go to the home screen?'))return;leaveRoom().then(()=>{view='home';render()});return}
@@ -499,10 +498,6 @@ function bind(){
   if(roomCode||view==='friends'){bindOnline();return}
   if($('daily'))$('daily').onclick=()=>openDaily();
   if($('copy'))$('copy').onclick=()=>share(dailyShare(D));
-  app.querySelectorAll('[data-dd]').forEach(b=>b.onclick=()=>openDaily(b.dataset.dd));
-  // the level of today's board: on the home screen it switches the open board; on the daily screen too
-  app.querySelectorAll('[data-seg="ddiff"]').forEach(b=>b.onclick=()=>{store('sil-ddiff',b.dataset.v);D=dailyGame(b.dataset.v);query='';typing=false;
-    if(view==='daily'||D.over&&view!=='home')view='daily';render()});
   app.querySelectorAll('[data-tile]').forEach(b=>b.onclick=()=>{const i=+b.dataset.tile;
     if(D.over||D.qs[i].st!=='play'){toast(byCode[D.qs[i].c].n);return}
     D.sel=i;query='';typing=true;dailySave();render()});
@@ -513,7 +508,7 @@ function bind(){
     bindAnswer(T.q,trainPick);
     if($('tnext')&&!TOUCH)$('tnext').focus()}
   else if(D&&!D.over)bindAnswer(D.qs[D.sel],dailyPick)}
-// Enter on a revealed Training shape goes to the next one
+// Enter on a revealed Solo shape goes to the next one
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&view==='train'&&T&&T.q.st!=='play'&&!$('dok')&&e.target.id!=='q'&&document.activeElement!==$('tnext')){e.preventDefault();trainNext();typing=true;render()}});
 // once the flags have loaded, show the one of a revealed shape
 window.addEventListener('load',()=>{if(document.querySelector('.reveal .flag'))render()},{once:true});

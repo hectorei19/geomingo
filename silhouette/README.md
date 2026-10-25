@@ -3,10 +3,10 @@
 Geography quiz: name the country from its shape. Part of [Geomingo](https://geomingo.com/), daily geography games: [Countries](https://geomingo.com/countries/), [Capitals](https://geomingo.com/capitals/), [Connections](https://geomingo.com/connections/), [Top 10](https://geomingo.com/top10/) and [all the games](https://geomingo.com/).
 
 - Three levels: Easy (54 well-known countries), Normal (all 196) and Hard (all 196, each shape turned by a random angle). 3 tries per shape.
-- Today's shapes: a 3 × 3 board of nine shapes per level, the same for everyone, new at midnight CET, one try, open on the home screen. Each level's countries are shuffled once per cycle (from the cycle number) and dealt nine a day, so none comes back within a cycle (Easy every 6 days, Normal and Hard every 21). Hard turns come from the date. `?test&day=2026-11-20` plays that day's boards without saving.
-- Training: unlimited shapes at the chosen level, from a shuffled deck.
+- Today's shapes: one 3 × 3 board of nine shapes a day at Normal level, the same for everyone, new at midnight CET, one try, open on the home screen. The countries are shuffled once per cycle (from the cycle number) and dealt nine a day, so none comes back within a cycle (every 21 days). `?test&day=2026-11-20` plays that day's board without saving. (Until 2026-10-25 there was one board per level; old Easy and Hard results stay in `sil-hist`.)
+- Solo: unlimited practice shapes at the chosen level (Easy, Normal or Hard), from a shuffled deck.
 - With friends: online rooms for 2 to 6 phones (`?room=ABCD` opens a room's join screen). The host picks "Getting harder" (3 Easy, 4 Normal not in Easy, 3 Hard) or a continent and a level; ten shapes, everyone sees the same one at the same time, 20 s each, 3 tries. A right answer scores 500 plus up to 500 for speed. The ranking shows after every shape and at the end. Rooms use Countries' Firebase Realtime Database (`rooms/ABCD`, marked `game: 'silhouette'`), so its rules need no change. Each phone writes only its own answers (`ans/<shape>/<player>`); the host's phone moves the room on (anyone's, a little later, if the host has gone).
-- Saved on the device (localStorage): `sil-daily`, `sil-hist`, `sil-train`, `sil-diff`, `sil-ddiff`; for rooms `sil-pid`, `sil-setup`, `sil-room`.
+- Saved on the device (localStorage): `sil-daily`, `sil-hist`, `sil-train`, `sil-diff` (Solo's level); for rooms `sil-pid`, `sil-setup`, `sil-room`.
 - `check.html` shows every silhouette, north up or turned, to look them over.
 
 Files:
