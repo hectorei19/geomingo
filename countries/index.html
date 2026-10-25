@@ -306,8 +306,8 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .cell.new .gm-stamp.bk{animation:none}
 .cell.flag .flip .gm-stamp.bk small{font-size:clamp(8px,2.3vw,12px);white-space:normal;letter-spacing:-.02em;line-height:1.1}
 .cell.flag .flip .gm-stamp.bk.lw .sn{font-size:clamp(8px,2.2vw,13px)!important}
-.cell.flag .pts{top:3px;right:3px;font-size:clamp(.5rem,2vw,.66rem);font-weight:600;padding:1px 4px;border-radius:4px;background:color-mix(in srgb,var(--bg) 62%,transparent);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);color:#fff;letter-spacing:-.01em;line-height:1.25;z-index:1}
-.b5 .cell.flag .pts{font-size:.5rem;top:2px;right:2px;padding:0 3px}
+.cell.flag .pts{top:0;right:0;font-family:var(--display);font-weight:800;font-stretch:75%;font-size:clamp(.66rem,2.8vw,.85rem);letter-spacing:0;padding:1px 4px 2px 5px;border-radius:0 0 0 7px;background:#0F1626;color:#fff;line-height:1.15;z-index:1}
+.b5 .cell.flag .pts{font-size:.6rem;padding:0 3px 1px 4px;border-radius:0 0 0 5px}
 .cell.flag .gm-stamp.lw .sn{font-size:clamp(9px,2.6vw,14px)!important}
 .b3 .cell.flag .gm-stamp .sn{font-size:14px!important}
 .b5 .cell.flag .gm-stamp .sn{font-size:10px!important}
@@ -1106,7 +1106,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/da
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202610250930';
+const APP_VERSION='202610251030';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
