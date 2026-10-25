@@ -37,8 +37,8 @@ main{display:flex;flex-direction:column;gap:18px}
 .menubtn svg{stroke:currentColor}
 /* today's games: one colour per game */
 .tiles{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;--ic:44px;--nm:19px}
-.tiles.c3{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;--ic:30px;--nm:14px}
-.c3 .tile{aspect-ratio:4/5}
+.tiles.c3{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;--ic:26px;--nm:14px}
+.c3 .tile{aspect-ratio:1}
 .c3 .tile b{font-stretch:66%;font-size:14px;letter-spacing:-.01em}
 .tiles li{display:flex;min-width:0}
 .tile{flex:1;min-width:0;aspect-ratio:1;box-sizing:border-box;border-radius:16px;background:var(--c);color:#16202F;text-decoration:none;padding:12px;display:flex;flex-direction:column;gap:6px;overflow:hidden;box-shadow:0 12px 26px -14px var(--c);transition:transform .12s ease}
