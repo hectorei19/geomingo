@@ -10,7 +10,7 @@ Part of [Geomingo](https://geomingo.com/), daily geography games: [Countries](ht
 - Today's puzzle: the same for everyone, new at midnight CET (Spain), one try. Solo: unlimited practice puzzles; a shared practice link (`?p=123`) opens the same puzzle.
 - With friends: online rooms for 2 to 8 players, each on their own phone, all playing the same puzzle at the same time with everyone's progress shown live. Solved first, then fewer mistakes, then faster. A room link (`?room=ABCD`) joins that room. Rooms live in Countries' Firebase Realtime Database under `rooms/ABCD` (tagged `game: 'connections'`), so Countries' database rules already cover them.
 - Results and stats are kept on the device (localStorage: `cx-daily`, `cx-free`, `cx-hist`; for rooms `cx-pid`, `cx-name`, `cx-room`, `cx-online`).
-- Every country fits its own group's category and none of the other three, so the puzzle has one solution. Independent countries only.
+- Every country fits its own group's category and none of the other three, and no other four of the 16 share any category the game uses, so the puzzle has exactly one solution. The game uses the 124 categories of Countries with up to 40 countries, plus the continents and landlocked; the 25 broader ones (flag has blue, centre in the tropics, capital over 1 million…) are never groups. Since the daily of 2026-10-26; older dailies keep their puzzles. Independent countries only.
 
 Files:
 - `index.html` – the game.
