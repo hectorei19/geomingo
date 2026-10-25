@@ -69,7 +69,7 @@
 .t10peek i{font-style:normal;font-family:var(--display);font-weight:700;color:var(--flamingo-text);border:2px dashed var(--line);border-radius:10px;padding:8px 0;text-align:center}
 .t10peek i.on{background:var(--lagoon-soft);border-style:solid}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610260000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610252100">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -496,6 +496,7 @@ function render(){
     h+=Geomingo.ticket(moodHTML(tKey(),'pass','10 stamps to win.','In any order. A country outside the top 10 costs a life.'),
       cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Found',S.found.length+'/10','tk-pts')+cell('Lives',livesHTML(S.lives,LIVES),'tk-gs'))}
   h+=`<section class="panel">${askHTML(true)}</section>${listHTML()}`;
+  if(!S.over)h+=quickRules(' Full rules in <b>How to play</b>.');
   app.innerHTML=h;bind();
 }
 // Mingo's verdict, for the result panel

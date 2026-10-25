@@ -301,7 +301,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .respanel .gm-hello{margin:-4px 0 -6px}
 .corner .mingo{width:auto;height:88%}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610260000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610252100">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -1315,8 +1315,9 @@ function homeView(){
     <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to 6 players.</span></button>
     </div>
   </section>
-  <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name a capital that fits its row <em>and</em> its column, each capital once per grid. Tap <span class="ib">i</span> to see what a category means. Full rules in <b>How to play</b>.</p></section>`;
+  ${QRULES}`;
 }
+const QRULES=`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name a capital that fits its row <em>and</em> its column, each capital once per grid. Tap <span class="ib">i</span> to see what a category means. Full rules in <b>How to play</b>.</p></section>`;
 function setupView(){
   if(screen==='home')return homeView();
   const fr=screen==='friends';
@@ -1382,7 +1383,7 @@ function gameView(){
   });
   h+=`</div></div>`;
   ui.fresh=-1;
-  if(!S.over)h+=(S.mode==='solo'||(S.mode==='online'&&S.turn!==S.me)?'':'<div class="actions"><button class="ghost" id="pass">Pass turn</button></div>')+`<button class="linkbtn giveup" id="giveup">${S.mode==='solo'?'Give up':'End game'}</button>`;
+  if(!S.over)h+=(S.mode==='solo'||(S.mode==='online'&&S.turn!==S.me)?'':'<div class="actions"><button class="ghost" id="pass">Pass turn</button></div>')+`<button class="linkbtn giveup" id="giveup">${S.mode==='solo'?'Give up':'End game'}</button>`+QRULES;
   else h+=answersView();
   return h;
 }
