@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Geomingo · Daily geography games</title>
-<meta name="description" content="Daily geography puzzles, better with friends. Countries, Cities, Connections, Top 10 and Silhouette: new boards every day at midnight, Spain time. Every right answer is a stamp in your GeoPass.">
+<meta name="description" content="Daily geography puzzles, better with friends. Countries, Cities, Connections, Top 10 and Silhouette: new boards every day at midnight, Spain time. Every game you play is a stamp in your GeoPass and earns miles.">
 <meta name="theme-color" content="#151E30">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Geomingo">
 <meta property="og:title" content="Geomingo · Daily geography games">
-<meta property="og:description" content="Daily geography puzzles, better with friends. Every right answer is a stamp in your GeoPass.">
+<meta property="og:description" content="Daily geography puzzles, better with friends. Every game you play earns miles in your GeoPass.">
 <meta property="og:url" content="https://geomingo.com/">
 <meta property="og:image" content="https://geomingo.com/brand/og.png">
 <meta property="og:image:width" content="1200">
@@ -26,50 +26,245 @@
 <script src="brand/mingo.js?v=202610250900"></script>
 <script src="brand/account.js?v=202610250900"></script>
 <style>
-/* Home page: today's departures. Mingo says how the GeoPass is doing, then one line per game with its gate, then Play with friends */
-.app{max-width:460px;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:max(18px,env(safe-area-inset-top,0px)) calc(40px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
-footer{display:flex;flex-direction:column;gap:4px;align-items:center;padding-top:6px}
+/* Home page: Sign in and Menu on top, today's games as colour tiles, then the GeoPass (miles, level, today's stamps),
+   Travel with friends and this week's ranking by miles */
+.app{max-width:460px;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:max(16px,env(safe-area-inset-top,0px)) calc(40px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:18px}
+main{display:flex;flex-direction:column;gap:18px}
+.gm-top .gm-logo{font-size:30px}
+.gm-top .gm-acct{border-radius:22px;border-color:var(--gold);color:#F3D98B;font-family:var(--display);font-weight:800;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.gm-top .gm-acct.me{border-radius:50%;color:var(--on-coral);font-size:19px;letter-spacing:0}
+.menubtn{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--line);background:var(--page);color:var(--ink);display:flex;align-items:center;justify-content:center;padding:0}
+.menubtn svg{stroke:currentColor}
+/* today's games: one colour per game */
+.tiles{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;--ic:44px;--nm:19px}
+.tiles.c3{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;--ic:26px;--nm:14px}
+.c3 .tile{aspect-ratio:1}
+.c3 .tile b{font-stretch:66%;font-size:14px;letter-spacing:-.01em}
+.tiles li{display:flex;min-width:0}
+.tile{flex:1;min-width:0;aspect-ratio:1;box-sizing:border-box;border-radius:16px;background:var(--c);color:#16202F;text-decoration:none;padding:12px;display:flex;flex-direction:column;gap:6px;overflow:hidden;box-shadow:0 12px 26px -14px var(--c);transition:transform .12s ease}
+.c3 .tile{padding:10px 9px;border-radius:14px;gap:4px}
+.tile:active{transform:scale(.98)}
+.tile:focus-visible{outline:3px solid #F6F8F5;outline-offset:3px}
+.tile .tt{display:flex;justify-content:space-between;gap:6px;font-family:var(--type);font-weight:700;font-size:12px;letter-spacing:.02em;white-space:nowrap}
+.c3 .tile .tt{font-size:11px}
+.tile svg{display:block;flex-shrink:0;width:var(--ic);height:var(--ic)}
+.tile b{font-family:var(--display);font-weight:900;font-stretch:85%;font-size:var(--nm);line-height:1.05;text-transform:uppercase;margin-top:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile small{font-size:13px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tile .s3{display:none;font-family:var(--type);font-weight:700;font-size:11px;white-space:nowrap}
+.c3 .tile .s2,.c3 .tile small{display:none}
+.c3 .tile .s3{display:block}
+.tile.soon{background:transparent;border:2px dashed #4A5570;color:var(--muted);box-shadow:none}
+.tile.soon svg{stroke:currentColor}
+/* the GeoPass card */
+.pass{border-radius:18px;background:linear-gradient(135deg,#2A2414,var(--page) 60%);border:1.5px solid var(--gold);padding:18px 16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 16px 40px -22px rgba(212,173,75,.7)}
+.pass .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pass .lab{font-family:var(--type);font-size:12px;letter-spacing:.1em;color:#F3D98B;text-transform:uppercase}
+.lvl{font-family:var(--display);font-weight:900;font-size:13px;letter-spacing:.12em;color:#16202F;background:var(--gold);border-radius:6px;padding:3px 8px;text-transform:uppercase}
+.pass .who{display:flex;align-items:center;gap:12px;background:none;border:0;padding:0;color:inherit;text-align:left;cursor:pointer}
+.pass .mi{display:block;font-family:var(--display);font-weight:900;font-size:40px;line-height:1;color:#F3D98B}
+.pass .sub{font-size:14px;color:var(--ink)}
+.bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:5px;background:var(--gold);box-shadow:0 0 12px var(--gold)}
+.ladder{display:flex;justify-content:space-between;font-family:var(--type);font-size:11px;color:#C9CED6;margin-top:-4px}
+.ladder b{color:#F3D98B}
+.slots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.slot{aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:2px dashed #4A5570;color:var(--muted);text-decoration:none;font-family:var(--type);font-weight:700;font-size:10px;text-align:center;line-height:1.1}
+.slot b{font-family:var(--display);font-weight:900;font-size:14px;line-height:1}
+.slot.on{border:2.5px solid var(--c);color:var(--c);background:rgba(255,255,255,.05)}
+.slot.on:nth-child(odd){transform:rotate(-4deg)}.slot.on:nth-child(even){transform:rotate(4deg)}
+.pass .note{font-size:13px;color:#C9CED6;margin:0}
+.pass hr{border:0;height:1px;background:#3A3A2A;margin:0}
+.pass .acct{font-size:14px;color:var(--ink);margin:0}
+.gbtn{min-height:50px;border-radius:12px;border:0;background:#F6F8F5;color:#16202F;display:flex;align-items:center;justify-content:center;gap:10px;font-family:var(--body);font-weight:700;font-size:16px;cursor:pointer}
+.gbtn i{width:22px;height:22px;border-radius:50%;border:2px solid #2A56B8;color:#2A56B8;font-style:normal;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
+/* Travel with friends, and this week's ranking */
+.friends{min-height:54px;border-radius:14px;border:1.5px solid var(--line);background:var(--cover);color:#F3D98B;display:flex;align-items:center;justify-content:center;gap:10px;font-family:var(--display);font-weight:800;font-size:16px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.week{border-radius:16px;background:var(--guil);border:1px solid var(--line);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.week h3{margin:0;font-family:var(--display);font-weight:900;font-size:18px;text-transform:uppercase}
+.week ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.week li{display:flex;align-items:center;gap:12px;font-size:15px;min-height:34px}
+.week .rk{width:22px;font-family:var(--display);font-weight:900;color:#F3D98B}
+.week .av{width:32px;height:32px;border-radius:50%;background:var(--c);color:#16202F;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.week .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.week .pt{font-family:var(--type);font-weight:700}
+.week li.me .nm{font-weight:700;color:#F3D98B}
+.week li.gap{justify-content:center;color:var(--muted);min-height:0}
+.week p{margin:0;font-size:14px;color:var(--muted)}
+footer{display:flex;flex-direction:column;gap:4px;align-items:center;padding-top:4px}
+/* the windows of this page: Menu, Travel with friends, GeoPass */
+.hw .gm-rbody{gap:10px}
+.hw ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.hw .it{min-height:50px;width:100%;display:flex;align-items:center;gap:14px;padding:0 6px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);text-decoration:none;font:inherit;font-size:16px;font-weight:600;text-align:left;cursor:pointer}
+.hw .it .dot{width:10px;height:10px;border-radius:3px;background:var(--c);flex-shrink:0}
+.hw .it .tx{flex:1;display:flex;flex-direction:column}
+.hw .it small{font-size:13px;font-weight:400;color:var(--muted)}
+.hw .it .mt{font-family:var(--type);font-size:12px;color:var(--muted)}
+.hw .acctbox{border-radius:14px;background:var(--guil);padding:12px;display:flex;flex-direction:column;gap:10px}
+.hw .acctbox span{font-size:13px;color:var(--muted)}
+.hw p{margin:0;font-size:14px;color:var(--muted)}
+.hw .lv{display:flex;justify-content:space-between;padding:8px 6px;border-bottom:1px solid var(--line);font-size:15px}
+.hw .lv.cur{color:#F3D98B;font-weight:700}
+.hw h4{margin:6px 0 0;font-family:var(--display);font-weight:900;font-size:15px;text-transform:uppercase;letter-spacing:.04em}
+.hw .how li{font-size:14px;color:var(--ink);padding:3px 0}
+.hw .log li{display:flex;justify-content:space-between;gap:8px;font-size:14px;padding:6px 0;border-bottom:1px solid var(--line)}
+.hw .log .pt{font-family:var(--type);font-weight:700;color:#F3D98B}
 </style>
 </head>
 <body>
 <div class="app">
-  <div id="top"></div>
-  <main style="display:flex;flex-direction:column;gap:14px">
-    <div id="hello"></div>
+  <header class="gm-top">
+    <h1 class="gm-logo">geo<span>mingo</span></h1>
+    <span class="gm-spacer"></span>
+    <span class="gm-acctslot" data-gm-acctslot></span>
+    <button class="menubtn" id="menu" aria-label="Menu" aria-haspopup="dialog"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  </header>
+  <main>
     <div class="gm-head"><span class="gm-lab" id="dep">Departures</span><h2>Today's itinerary</h2></div>
-    <ul class="gm-games" id="games"></ul>
-    <a class="gm-big" id="friends" href="countries/?friends">Travel with friends</a>
-    <p class="gm-note">Rooms for 2 to 6 phones, in Countries and Silhouette.</p>
+    <ul class="tiles" id="games"></ul>
+    <section class="pass" id="pass" aria-label="Your GeoPass"></section>
+    <button class="friends" id="friends"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20c1-3.5 3.5-5.5 6.5-5.5s5.5 2 6.5 5.5M15 14.5c2.8 0 5 1.6 6 4.5"/></svg>Travel with friends</button>
+    <section class="week" id="week" aria-label="This week's ranking" hidden></section>
   </main>
   <footer>
     <p class="gm-note"><b>Daily geography puzzles, better with friends.</b></p>
-    <p class="gm-note">New boards every day at midnight, Spain time. <span id="saved">Sign in to keep your results and your GeoPass on every device.</span></p>
+    <p class="gm-note">New boards every day at midnight, Spain time.</p>
   </footer>
 </div>
 
 <script>
-const G=Geomingo,esc=G.esc;
-function draw(){
-  const live=G.live(),res=live.map(g=>G.result(g.id)),n=res.filter(r=>r.done).length,N=live.length,left=N-n;
-  const ms=G.msToMidnight(),next=String(Math.floor(ms/36e5)).padStart(2,'0')+':'+String(Math.floor(ms%36e5/6e4)).padStart(2,'0');
-  const set=(id,h)=>{const el=document.getElementById(id);if(el.innerHTML!==h)el.innerHTML=h}; // redraw only what changed (keeps keyboard focus)
-  set('top',G.header());
-  const st=G.stampsToday(),all=G.stamps(),gl=left===1?'One game left today.':left+' games left today.';
-  set('hello',
-    n===0&&!st?G.hello('pass','GeoPass ready',N+' trips today · next board in '+next)
-    :n===N?G.hello('happy',st?st+' new stamp'+(st===1?'':'s')+' today':'All games played','Mingo\'s GeoPass holds '+all.toLocaleString('en')+'. New boards at midnight.')
-    :G.hello('happy',st?st+' new stamp'+(st===1?'':'s')+' today':n+' of '+N+' played','Mingo\'s GeoPass holds '+all.toLocaleString('en')+'. '+gl));
+const G=Geomingo,esc=G.esc,A=()=>G.account;
+const fmt=n=>Number(n||0).toLocaleString('en');
+const json=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};
+// each game's colour and little picture on its tile
+const LOOK={
+  borderline:{c:'#F07884',svg:'<svg width="56" height="56" viewBox="0 0 30 30" aria-hidden="true"><g fill="#16202F"><rect width="9" height="9" rx="1.5"/><rect x="10.5" width="9" height="9" rx="1.5" opacity=".35"/><rect x="21" width="9" height="9" rx="1.5"/><rect y="10.5" width="9" height="9" rx="1.5" opacity=".35"/><rect x="10.5" y="10.5" width="9" height="9" rx="1.5"/><rect x="21" y="10.5" width="9" height="9" rx="1.5"/><rect y="21" width="9" height="9" rx="1.5"/><rect x="10.5" y="21" width="9" height="9" rx="1.5"/><rect x="21" y="21" width="9" height="9" rx="1.5" opacity=".35"/></g></svg>'},
+  citygrid:{c:'#D4AD4B',svg:'<svg width="56" height="56" viewBox="0 0 30 30" aria-hidden="true"><g fill="#16202F"><rect x="1" y="12" width="6" height="18"/><rect x="8" y="4" width="6" height="26"/><rect x="15" y="15" width="5" height="15"/><rect x="21" y="8" width="7" height="22"/></g></svg>'},
+  connections:{c:'#7FA2F0',svg:'<svg width="56" height="56" viewBox="0 0 30 30" aria-hidden="true"><g fill="#16202F">'+[4,11.3,18.6,26].map((y,r)=>[4,11.3,18.6,26].map(x=>'<circle cx="'+x+'" cy="'+y+'" r="3"'+(r?' opacity=".35"':'')+'/>').join('')).join('')+'</g></svg>'},
+  top10:{c:'#5FC28F',svg:'<svg width="56" height="56" viewBox="0 0 30 30" aria-hidden="true"><g fill="#16202F"><rect y="1" width="30" height="5" rx="1.5"/><rect y="9" width="24" height="5" rx="1.5"/><rect y="17" width="18" height="5" rx="1.5"/><rect y="25" width="12" height="5" rx="1.5"/></g></svg>'},
+  silhouette:{c:'#A98BE0',svg:'<svg width="58" height="58" viewBox="0 0 30 30" aria-hidden="true"><path fill="#16202F" d="M8 2 L14 3 L15 7 L19 9 L21 14 L25 17 L28 21 L25 22 L22 20 L21 24 L18 28 L16 26 L17 22 L14 18 L11 14 L9 10 L6 8 Z"/></svg>'}};
+const look=id=>LOOK[id]||{c:'#9AA6B6',svg:''};
+
+/* ---- miles: every game you play earns miles for how well it went ----
+   up to 100 for the result, +20 for a perfect game, +50 on a day you play all five */
+const LEVELS=[['Tourist',0],['Traveller',500],['Explorer',2000],['Ambassador',5000]];
+const pts=f=>{f=Math.max(0,Math.min(1,+f||0));return Math.round(f*100)+(f>=1?20:0)};
+const cxPts=(won,m)=>won?Math.max(40,100-15*(+m||0))+(m?0:20):20;
+const ALL5=50;
+// this device's games, from each game's own history: {day: {game id: miles}}
+function ledger(){const L={},add=(d,id,mi)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))(L[d]=L[d]||{})[id]=mi};
+  [['bl-hist','borderline'],['cc-hist','citygrid']].forEach(([k,id])=>{const h=json(k)||{};
+    for(const d in h){const e=h[d];if(e&&e.f!==0){const n=+e.n||3;add(d,id,pts((+e.c||0)/(n*n)))}}});
+  const cx=json('cx-hist')||{};for(const d in cx)if(cx[d])add(d,'connections',cxPts(cx[d].w,cx[d].m));
+  const t=json('t10-hist')||{};for(const d in t)if(t[d])add(d,'top10',pts((+t[d].f||0)/10));
+  const s=json('sil-hist')||{};for(const d in s){const v=Object.values(s[d]||{}).filter(x=>typeof x==='number');if(v.length)add(d,'silhouette',pts(Math.max(...v)/9))}
+  return L}
+const dayTotal=day=>{const v=Object.values(day||{});return v.reduce((a,b)=>a+b,0)+(v.length>=5?ALL5:0)};
+function level(mi){let i=0;LEVELS.forEach((l,k)=>{if(mi>=l[1])i=k});const next=LEVELS[i+1];
+  return {i,name:LEVELS[i][0],next,pct:next?Math.round((mi-LEVELS[i][1])/(next[1]-LEVELS[i][1])*100):100}}
+function geo(){const L=ledger(),k=G.dayKey();let miles=0,games=0;
+  for(const d in L){miles+=dayTotal(L[d]);games+=Object.keys(L[d]).length}
+  return {L,miles,games,today:L[k]||{},todayMiles:dayTotal(L[k]),streak:G.streak()}}
+
+/* ---- the page ---- */
+const set=(id,h)=>{const el=document.getElementById(id);if(el&&el.innerHTML!==h)el.innerHTML=h}; // redraw only what changed (keeps keyboard focus)
+// the tile of a game; one more tile keeps the place of the next game ("Coming soon")
+function tile(g,P){const r=G.result(g.id),lk=look(g.id),mi=P.today[g.id];
+  const state=r.done?'✓ '+(mi!=null?'+'+mi+' MI':esc(r.label)):'BOARDING',hint=r.done?'Landed · '+esc(r.label):esc(g.hint);
+  const lab='aria-label="'+esc(g.name)+', gate '+g.gate+': '+(r.done?'played today, '+esc(r.label):'play')+'"';
+  return '<li><a class="tile" href="'+g.href+'" style="--c:'+lk.c+'" '+lab+'><span class="tt"><span>GATE '+g.gate+'</span><span class="s2">'+state+'</span></span>'+lk.svg+
+    '<b>'+esc(g.name)+'</b><small>'+hint+'</small><span class="s3">'+state+'</span></a></li>'}
+const SOON='<li><div class="tile soon" aria-label="Coming soon: a new game"><span class="tt"><span>GATE C2</span><span class="s2">SOON</span></span>'+
+  '<svg width="52" height="52" viewBox="0 0 30 30" fill="none" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="15" cy="15" r="12" stroke-dasharray="4 4"/><path d="M15 9v6l4 3"/></svg>'+
+  '<b>New game</b><small>Coming soon</small><span class="s3">SOON</span></div></li>';
+function passHTML(P){const lv=level(P.miles),live=G.live(),played=live.filter(g=>G.result(g.id).done).length,acc=A(),u=acc&&acc.user;
+  const slots=live.map(g=>{const r=G.result(g.id),lk=look(g.id);
+    return r.done?'<a class="slot on" href="'+g.href+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+': '+esc(r.label)+'"><b>'+esc(r.label.length>6?'✓':r.label)+'</b>'+g.gate+'</a>'
+      :'<a class="slot" href="'+g.href+'" aria-label="'+esc(g.name)+': not played yet"><b>'+g.gate+'</b></a>'}).join('');
+  const note=played===live.length?'All five played today: +'+ALL5+' bonus miles. New boards at midnight.'
+    :'One stamp per game. Play all five today for +'+ALL5+' bonus miles.';
+  const foot=!acc||!acc.ready?'<p class="acct">Saved on this device.</p>'
+    :u?'<p class="acct">Signed in as <b>'+esc(acc.name||u.displayName||'')+'</b>. Your GeoPass is saved in your account, on every device.</p>'
+    :'<p class="acct"><b>Sign in to keep your miles.</b> Your GeoPass follows you to any phone, and you join the weekly ranking.</p><button class="gbtn" data-gm-signin><i aria-hidden="true">G</i>Continue with Google</button>';
+  return '<div class="row"><span class="lab">My GeoPass</span><span class="lvl">'+lv.name+'</span></div>'+
+    '<button class="who" id="openpass" aria-label="Open your GeoPass: '+fmt(P.miles)+' miles, level '+lv.name+'">'+G.mingo(played?'happy':'pass',56)+
+      '<span><span class="mi">'+fmt(P.miles)+'</span><span class="sub">miles · '+fmt(P.games)+' stamp'+(P.games===1?'':'s')+' · '+P.streak+'-day streak</span></span></button>'+
+    '<div class="bar" role="img" aria-label="'+(lv.next?lv.pct+'% of the way to '+lv.next[0]:'Top level')+'"><i style="width:'+lv.pct+'%"></i></div>'+
+    '<div class="ladder" aria-hidden="true">'+LEVELS.map((l,k)=>k===lv.i?'<b>'+l[0].toUpperCase()+'</b>':'<span>'+l[0].toUpperCase()+(k===lv.i+1?' '+fmt(l[1]):'')+'</span>').join('')+'</div>'+
+    '<span class="lab">Today · '+played+' of '+live.length+' stamps'+(P.todayMiles?' · +'+fmt(P.todayMiles)+' mi':'')+'</span>'+
+    '<div class="slots">'+slots+'</div><p class="note">'+note+'</p><hr>'+foot}
+function draw(){const P=geo();
+  document.querySelectorAll('[data-gm-acctslot]').forEach(el=>{const h=G.acctHTML?G.acctHTML():'';if(el.innerHTML!==h)el.innerHTML=h});
   set('dep','Departures · '+esc(G.dateText(G.dayKey(),{weekday:'short',day:'numeric',month:'short'})));
-  set('games',G.GAMES.map(g=>{
-    const r=g.soon?{}:G.result(g.id),fresh=g.id==='silhouette';
-    const state=g.soon?'<span class="gm-state soon">Coming soon</span>':r.done?'<span class="gm-state done">✓ '+esc(r.label)+'</span>':'<span class="gm-state">Boarding</span>';
-    const inner='<span class="gm-gate">GATE<b>'+g.gate+'</b></span><span class="gm-ctext"><b>'+esc(g.name)+(fresh?' <span class="gm-new">NEW</span>':'')+'</b><span>'+esc(g.hint)+'</span></span>'+state;
-    return g.soon?'<li><div class="gm-card soon" aria-disabled="true">'+inner+'</div></li>'
-      :'<li><a class="gm-card" href="'+g.href+'" aria-label="'+esc(g.name)+', gate '+g.gate+': '+(r.done?'played today, '+esc(r.label):'play')+'">'+inner+'</a></li>'}).join(''))
-  // where your results are kept: in the account when signed in, otherwise on this device
-  const A=G.account;set('saved',A.ready&&A.user?'Your results and your GeoPass are saved in your account.':'Sign in to keep your results and your GeoPass on every device.')}
+  set('games',G.live().map(g=>tile(g,P)).join('')+SOON);
+  set('pass',passHTML(P));
+  drawWeek()}
+
+/* ---- this week's ranking: everyone's miles from the games' public daily rankings, Monday to today ----
+   only signed-in games count there (one try a day per account), so it can differ from your own GeoPass */
+const LB=[['leaderboard','borderline',r=>pts((+r.c||0)/9)],['lb/citygrid','citygrid',r=>pts((+r.c||0)/9)],
+  ['lb/connections','connections',r=>cxPts((+r.s||0)>=4,r.m)],['lb/top10','top10',r=>pts((+r.s||0)/10)],
+  ['lb/sil-easy','silhouette',r=>pts((+r.s||0)/9)],['lb/sil-normal','silhouette',r=>pts((+r.s||0)/9)],['lb/sil-hard','silhouette',r=>pts((+r.s||0)/9)]];
+const AV=['#7FA2F0','#F07884','#5FC28F','#D4AD4B','#A98BE0','#C99B78'];
+let WEEK=null,weekBusy=false;
+function weekDays(){const k=G.dayKey(),t=Date.parse(k+'T12:00Z'),dow=(new Date(t).getUTCDay()+6)%7,out=[];
+  for(let i=dow;i>=0;i--)out.push(new Date(t-i*864e5).toISOString().slice(0,10));return out}
+function loadWeek(){const acc=A();if(weekBusy||!acc||!acc.ready||typeof firebase==='undefined'||!firebase.apps.length)return;
+  if(WEEK&&WEEK.day===G.dayKey()&&Date.now()-WEEK.at<5*60e3)return;
+  weekBusy=true;const db=firebase.database(),days=weekDays(),P={};
+  Promise.all(days.flatMap(d=>LB.map(([path,id,f])=>db.ref(path+'/'+d).once('value').then(s=>{const v=s.val()||{};
+    for(const uid in v){const r=v[uid];if(!r||typeof r!=='object')continue;const p=P[uid]=P[uid]||{name:'',days:{}},day=p.days[d]=p.days[d]||{};
+      if(r.name)p.name=String(r.name).slice(0,16);day[id]=Math.max(day[id]||0,f(r))}}).catch(()=>{}))))
+  .then(()=>{const rows=Object.entries(P).map(([id,p])=>({id,name:p.name||'Player',mi:Object.values(p.days).reduce((a,d)=>a+dayTotal(d),0)}))
+      .filter(r=>r.mi>0).sort((a,b)=>b.mi-a.mi||a.name.localeCompare(b.name));
+    WEEK={day:G.dayKey(),at:Date.now(),rows};weekBusy=false;drawWeek()})}
+function drawWeek(){const el=document.getElementById('week'),acc=A();loadWeek();
+  if(!acc||!acc.ready||!WEEK){el.hidden=true;return}
+  const me=acc.user&&acc.user.uid,rows=WEEK.rows,i=rows.findIndex(r=>r.id===me);
+  const row=(r,k)=>'<li class="'+(r.id===me?'me':'')+'"><span class="rk">'+(k+1)+'</span><span class="av" style="--c:'+AV[k%AV.length]+'">'+esc((r.name.trim()[0]||'·').toUpperCase())+'</span><span class="nm">'+esc(r.id===me?r.name+' (you)':r.name)+'</span><span class="pt">'+fmt(r.mi)+' mi</span></li>';
+  const list=rows.slice(0,5).map(row).join('')+(i>=5?'<li class="gap">…</li>'+row(rows[i],i):'');
+  const foot=!me?'<p>Sign in and play to join the weekly ranking.</p>':i<0?'<p>Finish a daily game signed in to join this week\'s ranking.</p>':'';
+  el.hidden=false;
+  const h='<h3>This week · ranking</h3>'+(rows.length?'<ol>'+list+'</ol>':'<p>Nobody has earned miles this week yet. New week every Monday.</p>')+foot;
+  if(el.innerHTML!==h)el.innerHTML=h}
+
+/* ---- windows: Menu, Travel with friends, the GeoPass ---- */
+const band=t=>'<div class="gm-band">'+G.mingo('head',26)+'<b>'+esc(t)+'</b></div>';
+const closeBtn='<button class="gm-text" data-gm-act="close">Close</button>';
+function win(title,body,acts){const box=G.openWindow('<div class="gm-res hw">'+band(title)+'<div class="gm-rbody">'+body+closeBtn+'</div></div>',title);
+  box._acts=acts||{};box.addEventListener('click',e=>{if(e.target.closest('[data-gm-signin],[data-gm-signout]'))G.closeWindow()});
+  const f=box.querySelector('a,button');if(f)f.focus();return box}
+function openMenu(){const acc=A(),u=acc&&acc.user,P=geo();
+  const who=!acc||!acc.ready?'':u?'<div class="acctbox"><b>'+esc(acc.name||u.displayName||'')+'</b><span>Signed in. Your GeoPass and results are saved in your account.</span><button class="gm-big ghost" data-gm-signout>Sign out</button></div>'
+    :'<div class="acctbox"><b>Guest traveller</b><span>Saved on this phone only.</span><button class="gbtn" data-gm-signin><i aria-hidden="true">G</i>Continue with Google</button></div>';
+  const it=(act,c,t,m)=>'<li><button class="it" data-gm-act="'+act+'" style="--c:'+c+'"><span class="dot"></span><span class="tx">'+t+'</span><span class="mt">'+m+'</span></button></li>';
+  win('Menu',who+'<ul>'+it('gp','#D4AD4B','My GeoPass',fmt(P.miles)+' mi')+it('friends','#F07884','Travel with friends','')+
+    it('rank','#5FC28F','This week\'s ranking','')+it('how','#A98BE0','How miles work','')+it('booklet','#7FA2F0','Stamp booklet','')+'</ul>'+
+    '<p>Daily geography puzzles, better with friends. New boards every day at midnight, Spain time. How to play and the credits are in each game\'s menu.</p>',
+    {gp:openGeoPass,friends:openFriends,how:openHow,booklet:G.openPass,rank:()=>{G.closeWindow();const w=document.getElementById('week');if(w&&!w.hidden)w.scrollIntoView({behavior:'smooth'})}})}
+function openFriends(){
+  win('Travel with friends','<p>Online rooms for 2 to 6 phones. Choose a game, then create a room and send the code to your friends.</p><ul>'+
+    G.live().map(g=>'<li><a class="it" href="'+g.href+'?friends" style="--c:'+look(g.id).c+'"><span class="dot"></span><span class="tx">'+esc(g.name)+'<small>'+esc(g.hint)+'</small></span></a></li>').join('')+'</ul>')}
+function howList(){return '<ul class="how"><li>Every game you finish is a stamp and earns up to <b>100 miles</b> for how well it went.</li>'+
+  '<li>A perfect game: <b>+20</b>. All five games in one day: <b>+'+ALL5+'</b>.</li>'+
+  '<li>Miles take you up a level: '+LEVELS.map(l=>l[0]+(l[1]?' ('+fmt(l[1])+')':'')).join(', ')+'.</li>'+
+  '<li>Signed in, your games also count in this week\'s ranking.</li></ul>'}
+function openHow(){win('How miles work',howList())}
+function openGeoPass(){const P=geo(),lv=level(P.miles),k=G.dayKey();
+  const log=Object.keys(P.L).sort().reverse().slice(0,7).flatMap(d=>Object.entries(P.L[d]).map(([id,mi])=>{const g=G.game(id);
+    return '<li><span>'+esc(d===k?'Today':G.dateText(d,{weekday:'short',day:'numeric',month:'short'}))+' · '+esc(g?g.name:id)+'</span><span class="pt">+'+mi+'</span></li>'})).slice(0,12).join('');
+  win('My GeoPass','<div class="pass" style="box-shadow:none"><div class="row"><span class="lab">'+fmt(P.games)+' stamps · '+P.streak+'-day streak</span><span class="lvl">'+lv.name+'</span></div>'+
+    '<span class="mi" style="font-family:var(--display);font-weight:900;font-size:40px;line-height:1;color:#F3D98B">'+fmt(P.miles)+' <small style="font-size:16px">miles</small></span>'+
+    '<div class="bar"><i style="width:'+lv.pct+'%"></i></div><p class="note">'+(lv.next?fmt(lv.next[1]-P.miles)+' miles to '+lv.next[0]+'.':'You made it to the top level.')+'</p></div>'+
+    '<h4>Levels</h4><div>'+LEVELS.map((l,i)=>'<div class="lv'+(i===lv.i?' cur':'')+'"><span>'+l[0]+'</span><span>'+fmt(l[1])+' mi</span></div>').join('')+'</div>'+
+    '<h4>How to earn miles</h4>'+howList()+
+    (log?'<h4>Latest games</h4><ul class="log">'+log+'</ul>':'')+
+    '<button class="gm-big ghost" data-gm-act="pass">See your stamp booklet</button>')}
+
+document.getElementById('menu').onclick=openMenu;
+document.getElementById('friends').onclick=openFriends;
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#openpass'))openGeoPass()});
 draw();
-G.account.onChange(draw);
+if(G.account)G.account.onChange((why,typing)=>{if(!typing)draw()});
 setInterval(draw,30000);
 // coming back from a game in the same tab, or a new day while the page is open
 addEventListener('pageshow',draw);addEventListener('focus',draw);

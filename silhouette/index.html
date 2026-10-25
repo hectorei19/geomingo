@@ -519,8 +519,10 @@ function bind(){
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&view==='train'&&T&&T.q.st!=='play'&&!$('dok')&&e.target.id!=='q'&&document.activeElement!==$('tnext')){e.preventDefault();trainNext();typing=true;render()}});
 // once the flags have loaded, show the one of a revealed shape
 window.addEventListener('load',()=>{if(document.querySelector('.reveal .flag'))render()},{once:true});
-/* ---- start: today's board on the home screen; ?room=ABCD opens a friend's room ---- */
-(()=>{const rm=(TESTQ.get('room')||'').toUpperCase();if(/^[A-Z]{4}$/.test(rm)){view='friends';setup.join=rm}render()})();
+/* ---- start: today's board on the home screen; ?room=ABCD opens a friend's room, ?friends opens With friends ---- */
+(()=>{const rm=(TESTQ.get('room')||'').toUpperCase();if(/^[A-Z]{4}$/.test(rm)){view='friends';setup.join=rm}
+  else if(TESTQ.has('friends')){view='friends';try{history.replaceState(null,'',location.pathname)}catch(e){}}
+  render()})();
 // back in a room after a reload (the online scripts load after the page)
 window.addEventListener('DOMContentLoaded',()=>{let code='';try{code=localStorage.getItem('sil-room')||''}catch(e){}
   if(view==='friends')render(); // the Create and Join buttons were drawn before Firebase loaded
