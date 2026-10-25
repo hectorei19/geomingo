@@ -41,7 +41,8 @@
 .tile .tflag{width:58%;max-width:56px;aspect-ratio:4/3;object-fit:cover;border-radius:3px;box-shadow:0 0 0 1px var(--rule)}
 .tile.long{font-size:.78rem}
 @media (max-width:420px){.tile{font-size:.8rem}.tile.long{font-size:.68rem}.cx-grid,.cx-board{gap:6px}}
-.grp{border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;background:var(--gc-soft);border:1.5px solid var(--gc);text-align:center;animation:pop .35s cubic-bezier(.3,1.6,.6,1)}
+.grp{border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;background:var(--gc-soft);border:1.5px solid var(--gc);text-align:center}
+.grp.new{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}
 .grp .gl{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:1.25rem;line-height:1.05;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:2px}
 .grp .gl .ib{font-family:var(--ui);font-size:.75rem}
 .grp .gm{font-size:.92rem;font-weight:600}
@@ -359,7 +360,7 @@ function submit(){if(!S||S.over||turning||sel.length!==4)return;
     const left=4-S.found.length;
     Geomingo.stamp('connections',CATS[S.groups[g].k].label);
     say(cxKey(),'happy','Stamped: '+CATS[S.groups[g].k].label+'.',left?left+' group'+(left===1?'':'s')+' to go.':'All four groups found.');
-    save();turnOver(picked,S.groups[g].t,()=>render());return}
+    save();turnOver(picked,S.groups[g].t,()=>{popped=S.groups[g];render();popped=null});return}
   S.mistakes++;
   if(S.mistakes>=MAX_MISTAKES){S.over=true;S.won=false;sel=[];save();render();return}
   if(best===3)say(cxKey(),'think','One away.','Three of these four belong together. '+leftTxt());
@@ -384,8 +385,10 @@ const shareLink=()=>S.mode==='free'?pageLink('?p='+S.seed):pageLink();
 const shareMessage=()=>shareText()+'\n\n'+(S.mode==='daily'?"Play today's puzzle: ":S.mode==='free'?'Play this puzzle: ':'Play Connections: ')+shareLink();
 
 /* ---- render ---- */
+// the group just found pops in once; later renders (every tap) leave the found groups still
+let popped=null;
 const groupHTML=(g,miss)=>{const k=CATS[g.k];
-  return `<div class="grp g${g.t}${miss?' miss':''}"><span class="gl">${esc(k.label)}<button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></span>
+  return `<div class="grp g${g.t}${miss?' miss':''}${g===popped?' new':''}"><span class="gl">${esc(k.label)}<button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></span>
     <span class="gm">${g.m.map(c=>`<span style="white-space:nowrap"><img class="mini" src="${FLAGS[c]}" alt="">${esc(byCode[c].n)}</span>`).join(' · ')}</span></div>`};
 const tileHTML=(c,attr)=>{const n=byCode[c].n,on=attr==='data-c'&&sel.includes(c);
   return `<button class="tile${on?' on':''}${n.length>12||n.split(' ').some(w=>w.length>10)?' long':''}" ${attr}="${c}" aria-pressed="${on}" lang="en">${esc(n)}</button>`};
