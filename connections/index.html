@@ -19,8 +19,8 @@
 <link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
-<script src="../brand/mingo.js?v=202610242300"></script>
-<script src="../brand/account.js?v=202610242300"></script>
+<script src="../brand/mingo.js?v=202610250900"></script>
+<script src="../brand/account.js?v=202610250900"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -80,7 +80,7 @@
 .lp.me{border-color:var(--sea)}
 .primary[disabled]{opacity:.5;cursor:default}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610242300">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610250900">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -89,7 +89,7 @@
 
 <script src="../shared/data.js?v=202610192300"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202610240100"></script>
+<script src="../shared/minigames.js?v=202610250900"></script>
 <!-- With friends: online rooms in Countries' Firebase Realtime Database -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -394,7 +394,7 @@ function render(keepShake){
   h+=`</div>`;
   if(!S.over){
     h+=`<div class="lives" aria-label="${MAX_MISTAKES-S.mistakes} mistakes left">Mistakes left ${Array.from({length:MAX_MISTAKES},(_,i)=>`<i class="${i<MAX_MISTAKES-S.mistakes?'':'off'}"></i>`).join('')}</div>
-    <div class="cx-actions"><button class="ghost" id="shuf">Shuffle</button><button class="ghost" id="desel" ${sel.length?'':'disabled'}>Deselect all</button><button class="primary" id="submit" ${sel.length===4?'':'disabled'}>Submit</button></div>
+    <div class="cx-actions"><button class="ghost" id="shuf">Shuffle</button><button class="ghost" id="desel" ${sel.length?'':'disabled'}>Deselect all</button><button class="primary" id="submit" ${sel.length===4?'':'disabled'}>Submit</button></div>${on?'':giveUpHTML()}
     ${catsHTML()}
     <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something: a region, a flag, a language, a name… Each country is in exactly one group, and only one split works for all 16. Pick four and tap <b>Submit</b>. Four mistakes and the game ends.</p></section>`}
   app.innerHTML=h;bind();
@@ -464,6 +464,9 @@ function bind(){
   if($('shuf'))$('shuf').onclick=()=>{S.left=shuffle(S.left,Math.random);save();render()};
   if($('desel'))$('desel').onclick=()=>{sel=[];render()};
   if($('submit'))$('submit').onclick=submit;
+  // give up: the game ends as it stands, the groups not found are shown
+  bindGiveUp(()=>{if(!S||S.over||S.mode==='online')return;S.over=true;S.won=false;sel=[];
+    say(cxKey(),'sad','Gave up.',`${S.found.length} of 4 groups found.`);save();render();window.scrollTo(0,0)});
   if($('hint'))$('hint').onclick=()=>{S.hint=true;save();render()};
   if($('copy'))$('copy').onclick=()=>share(shareMessage());
   if($('again'))$('again').onclick=()=>openFree(Math.floor(Math.random()*1e9));
@@ -479,13 +482,14 @@ function bind(){
   if($('leave'))$('leave').onclick=()=>{if(S&&S.mode==='online'&&!S.over&&!leaveArmed){leaveArmed=true;render();return}leaveRoom()};
 }
 
-/* ---- start: ?p=123 opens that practice puzzle, ?room=ABCD joins that room (shared links) ---- */
+/* ---- start: ?p=123 opens that practice puzzle, ?room=ABCD joins that room (shared links), ?friends opens With friends ---- */
 (()=>{const p=TESTQ.get('p'),q=TESTQ.get('room');
   const clean=()=>{try{history.replaceState(null,'',location.pathname)}catch(e){}};
   if(p&&/^\d{1,10}$/.test(p)){openFree(+p);clean();return}
   if(q&&/^[A-Za-z]{4}$/.test(q)){clean();joinCode=q.toUpperCase();view='friends';render();if(myName)joinRoom(joinCode);return}
   const back=load('cx-room','');
   if(back&&initFB()){listenRoom(back,true);render();return}
+  if(TESTQ.has('friends')){clean();view='friends'}
   render()})();
 // a new day while the page is open: show the new puzzle when you come back
 document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(view==='home')render();else if(view==='game'&&mode==='daily'&&S&&S.date!==todayKey())openDaily()});

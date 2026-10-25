@@ -26,8 +26,8 @@
 <link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
-<script src="../brand/mingo.js?v=202610242300"></script>
-<script src="../brand/account.js?v=202610242300"></script>
+<script src="../brand/mingo.js?v=202610250900"></script>
+<script src="../brand/account.js?v=202610250900"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -64,7 +64,7 @@
 .lives i{background:var(--flamingo)}
 .lives .cnt{font-family:var(--body);font-weight:800}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610242300">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610250900">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -77,7 +77,7 @@
 <script defer src="firebase-config.js?v=202610192300"></script>
 <script src="../shared/data.js?v=202610192300"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202610240100"></script>
+<script src="../shared/minigames.js?v=202610250900"></script>
 <script>
 /* ---- the rankings ----
    Only numbers Countries already uses (DATA and the country data), with the sources named in its Credits.
@@ -332,6 +332,7 @@ function askHTML(){const l=listById(S.list),on=S.mode==='online';
   if(!on)h+=`<div class="lives" aria-label="${S.lives} lives left">Lives ${Array.from({length:LIVES},(_,i)=>`<i class="${i<S.lives?'':'off'}"></i>`).join('')}<span class="cnt">${S.found.length}/10 found</span></div>`;
   if(!on||S.turn===S.me)h+=`<div class="t10in"><input id="q" placeholder="Type a country…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(query)}" aria-label="Type a country"><ul class="sugg" id="sugg">${suggHTML()}</ul></div>`;
   if(on&&S.turn===S.me)h+=`<button class="ghost" id="opass" style="align-self:flex-start">Pass</button>`;
+  if(!on)h+=giveUpHTML();
   return h}
 function listHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries(r.map(x=>[x.c,x.v])),on=S.mode==='online';
   const pin=c=>on&&S.by[c]!=null?`<span class="pin" style="${pinStyle(S.by[c])}" title="${esc(S.players[S.by[c]].name)}"></span>`:'';
@@ -444,6 +445,8 @@ function bind(){
   app.querySelectorAll('[data-go="friends"]').forEach(b=>b.onclick=()=>{view='friends';render();window.scrollTo(0,0)});
   if($('home'))$('home').onclick=goHome;
   if($('rules'))$('rules').onclick=()=>dialog('How to play',rulesHTML());
+  // give up: the list ends as it stands and the full ranking is shown
+  bindGiveUp(()=>{if(!S||S.over||S.mode==='online')return;S.over=true;query='';typing=false;if(view==='home')view='game';save();render();window.scrollTo(0,0)});
   if($('src'))$('src').onclick=()=>{const l=listById(S.list);dialog(esc(l.title),`<p>${esc(l.src)}</p><p class="hint">Independent countries only. Places with no figure in the source are left out.</p>`)};
   const q=$('q');
   if(q){q.oninput=e=>{query=e.target.value;drawSugg()};
@@ -472,10 +475,11 @@ function bind(){
   if($('oskip'))$('oskip').onclick=()=>onlineAct('skip');
 }
 
-/* ---- start: today's list on the home screen; ?l=pop-hi opens that list in Solo (a shared link), ?room=ABCD a friend's room ---- */
+/* ---- start: today's list on the home screen; ?l=pop-hi opens that list in Solo (a shared link), ?room=ABCD a friend's room, ?friends With friends ---- */
 (()=>{const id=TESTQ.get('l'),rm=(TESTQ.get('room')||'').toUpperCase();
   if(id&&listById(id)){openFree(id);try{history.replaceState(null,'',location.pathname)}catch(e){}return}
   if(/^[A-Z]{4}$/.test(rm)){view='friends';setup.join=rm}
+  else if(TESTQ.has('friends')){view='friends';try{history.replaceState(null,'',location.pathname)}catch(e){}}
   render()})();
 // back in a room after a reload (the online scripts load after the page)
 window.addEventListener('DOMContentLoaded',()=>{let code='';try{code=localStorage.getItem('t10-room')||''}catch(e){}

@@ -19,8 +19,8 @@
 <link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
-<script src="../brand/mingo.js?v=202610242300"></script>
-<script src="../brand/account.js?v=202610242300"></script>
+<script src="../brand/mingo.js?v=202610250900"></script>
+<script src="../brand/account.js?v=202610250900"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -73,7 +73,7 @@
 .ready{display:flex}
 @media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610242300">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610250900">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -83,7 +83,7 @@
 <script src="countries.js?v=202610230100"></script>
 <script src="silhouette.js?v=202610230100"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202610240100"></script>
+<script src="../shared/minigames.js?v=202610250900"></script>
 <!-- online rooms (With friends): Firebase, loaded after the page so today's board shows at once -->
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -192,7 +192,7 @@ function boardHTML(G){const sel=G.over?-1:G.sel;
 function dailyPlayHTML(G){const q=G.qs[G.sel],last=G.justDone!=null?G.qs[G.justDone]:null;G.justDone=null;
   let h=boardHTML(G);
   if(last&&last.st!=='play')h+=revealHTML(last);
-  if(!G.over&&q){h+=`<span class="label">Shape ${G.sel+1} of 9 · ${rightOf(G)} right so far</span>`+silBoxHTML(q)+triesHTML(q)+answerBoxHTML(q)}
+  if(!G.over&&q){h+=`<span class="label">Shape ${G.sel+1} of 9 · ${rightOf(G)} right so far</span>`+silBoxHTML(q)+triesHTML(q)+answerBoxHTML(q)+giveUpHTML()}
   return `<div class="play">${h}</div>`}
 const dailyTabs=diff=>`<div class="dtabs">${seg('ddiff',[['easy','Easy'],['normal','Normal'],['hard','Hard']].map(([v,l])=>{const g=dailyAll()[v];return [v,l+(g&&g.over?' ✓':'')]}),diff)}</div>`;
 function verdict(G){const r=rightOf(G),first=G.qs.filter(q=>q.st==='right'&&!q.tries.length).length;
@@ -492,6 +492,9 @@ function render(){
   else app.innerHTML=homeHTML();
   bind()}
 function bind(){
+  // give up today's board: the shapes not named yet count as missed and their names are shown
+  bindGiveUp(()=>{if(!D||D.over)return;D.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});D.over=true;query='';typing=false;
+    dailySave();if(view==='home')view='daily';render();window.scrollTo(0,0)});
   if($('home'))$('home').onclick=goHome;
   app.querySelectorAll('[data-go="train"]').forEach(b=>b.onclick=openTrain);
   app.querySelectorAll('[data-go="friends"]').forEach(b=>b.onclick=()=>{view='friends';render();window.scrollTo(0,0)});
@@ -516,8 +519,10 @@ function bind(){
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&view==='train'&&T&&T.q.st!=='play'&&!$('dok')&&e.target.id!=='q'&&document.activeElement!==$('tnext')){e.preventDefault();trainNext();typing=true;render()}});
 // once the flags have loaded, show the one of a revealed shape
 window.addEventListener('load',()=>{if(document.querySelector('.reveal .flag'))render()},{once:true});
-/* ---- start: today's board on the home screen; ?room=ABCD opens a friend's room ---- */
-(()=>{const rm=(TESTQ.get('room')||'').toUpperCase();if(/^[A-Z]{4}$/.test(rm)){view='friends';setup.join=rm}render()})();
+/* ---- start: today's board on the home screen; ?room=ABCD opens a friend's room, ?friends opens With friends ---- */
+(()=>{const rm=(TESTQ.get('room')||'').toUpperCase();if(/^[A-Z]{4}$/.test(rm)){view='friends';setup.join=rm}
+  else if(TESTQ.has('friends')){view='friends';try{history.replaceState(null,'',location.pathname)}catch(e){}}
+  render()})();
 // back in a room after a reload (the online scripts load after the page)
 window.addEventListener('DOMContentLoaded',()=>{let code='';try{code=localStorage.getItem('sil-room')||''}catch(e){}
   if(view==='friends')render(); // the Create and Join buttons were drawn before Firebase loaded
