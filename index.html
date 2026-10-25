@@ -56,6 +56,13 @@ main{display:flex;flex-direction:column;gap:18px}
 .tile.soon{background:transparent;border:2px dashed #4A5570;color:var(--muted);box-shadow:none}
 .tile.soon svg{stroke:currentColor}
 /* the GeoPass card */
+.hrow{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.mypass{flex:none;display:flex;align-items:center;gap:8px;padding:6px 10px 6px 7px;border-radius:12px;border:1.5px solid var(--gold);background:linear-gradient(135deg,#2A2414,var(--page) 70%);color:#F3D98B;cursor:pointer;box-shadow:0 8px 22px -12px rgba(212,173,75,.8);text-align:left}
+.mypass svg{width:22px;height:28px;flex:none}
+.mypass span{display:flex;flex-direction:column;line-height:1.05}
+.mypass small{font-family:var(--type);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#C9B37A}
+.mypass b{font-family:var(--display);font-weight:900;font-size:17px;color:#F3D98B}
+.mypass em{font-style:normal;font-family:var(--display);font-weight:800;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#16202F;background:var(--gold);border-radius:4px;padding:1px 5px;margin-top:3px;align-self:flex-start}
 .pass{border-radius:18px;background:linear-gradient(135deg,#2A2414,var(--page) 60%);border:1.5px solid var(--gold);padding:18px 16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 16px 40px -22px rgba(212,173,75,.7)}
 .pass .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .pass .lab{font-family:var(--type);font-size:12px;letter-spacing:.1em;color:#F3D98B;text-transform:uppercase}
@@ -119,7 +126,7 @@ footer{display:flex;flex-direction:column;gap:4px;align-items:center;padding-top
     <button class="menubtn" id="menu" aria-label="Menu" aria-haspopup="dialog"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   </header>
   <main>
-    <div class="gm-head"><span class="gm-lab" id="dep">Departures</span><h2>Today's itinerary</h2></div>
+    <div class="hrow"><div class="gm-head"><span class="gm-lab" id="dep">Departures</span><h2>Today's itinerary</h2></div><button class="mypass" id="mypass" type="button" aria-label="Open my GeoPass"></button></div>
     <ul class="tiles" id="games"></ul>
     <button class="friends" id="friends"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20c1-3.5 3.5-5.5 6.5-5.5s5.5 2 6.5 5.5M15 14.5c2.8 0 5 1.6 6 4.5"/></svg>Travel with friends</button>
     <section class="pass" id="pass" aria-label="Your GeoPass"></section>
@@ -192,11 +199,15 @@ function passHTML(P){const lv=level(P.miles),live=G.live(),played=live.filter(g=
     '<div class="ladder" aria-hidden="true">'+LEVELS.map((l,k)=>k===lv.i?'<b>'+l[0].toUpperCase()+'</b>':'<span>'+l[0].toUpperCase()+(k===lv.i+1?' '+fmt(l[1]):'')+'</span>').join('')+'</div>'+
     '<span class="lab">Today · '+played+' of '+live.length+' stamps'+(P.todayMiles?' · +'+fmt(P.todayMiles)+' mi':'')+'</span>'+
     '<div class="slots">'+slots+'</div><p class="note">'+note+'</p><hr>'+foot}
+function myPassHTML(P){const lv=level(P.miles);
+  return '<svg viewBox="0 0 22 28" aria-hidden="true"><rect x="1" y="1" width="20" height="26" rx="3" fill="#0A1328" stroke="#D4AD4B" stroke-width="1.5"/><circle cx="11" cy="12" r="5" fill="none" stroke="#D4AD4B" stroke-width="1.2"/><path d="M6 12h10M11 7c-2 3-2 7 0 10M11 7c2 3 2 7 0 10" fill="none" stroke="#D4AD4B" stroke-width=".9"/><path d="M6 22h10" stroke="#D4AD4B" stroke-width="1.2"/></svg>'+
+    '<span><small>My pass</small><b>'+fmt(P.miles)+' mi</b><em>'+lv.name+'</em></span>'}
 function draw(){const P=geo();
   document.querySelectorAll('[data-gm-acctslot]').forEach(el=>{const h=G.acctHTML?G.acctHTML():'';if(el.innerHTML!==h)el.innerHTML=h});
   set('dep','Departures · '+esc(G.dateText(G.dayKey(),{weekday:'short',day:'numeric',month:'short'})));
   set('games',G.live().map(g=>tile(g,P)).join('')+SOON);
   set('pass',passHTML(P));
+  set('mypass',myPassHTML(P));
   drawWeek()}
 
 /* ---- this week's ranking: everyone's miles from the games' public daily rankings, Monday to today ----
@@ -262,7 +273,7 @@ function openGeoPass(){const P=geo(),lv=level(P.miles),k=G.dayKey();
 
 document.getElementById('menu').onclick=openMenu;
 document.getElementById('friends').onclick=openFriends;
-document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#openpass'))openGeoPass()});
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#openpass,#mypass'))openGeoPass()});
 draw();
 if(G.account)G.account.onChange((why,typing)=>{if(!typing)draw()});
 setInterval(draw,30000);
