@@ -297,6 +297,17 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .corner .mingo{width:auto;height:88%}
 .corner.dnum .dn.code{font-size:clamp(.56rem,2.5vw,.8rem);letter-spacing:0;white-space:nowrap;line-height:1.05}
 .cell.flag .gm-stamp .sn{font-size:clamp(11px,3.2vw,15px)!important;line-height:1.05;padding:3px 2px!important}
+.cell.flag{perspective:400px;cursor:pointer}
+.cell.flag .flip{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .45s ease}
+.cell.flag.flipped .flip{transform:rotateY(180deg)}
+.cell.flag .flip .gm-stamp{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.cell.flag .flip .fr .sn{display:none}
+.cell.flag .flip .gm-stamp.bk{transform:rotateY(180deg);background:var(--bg);justify-content:center;gap:3px;padding:3px}
+.cell.new .gm-stamp.bk{animation:none}
+.cell.flag .flip .gm-stamp.bk small{font-size:clamp(8px,2.3vw,12px);white-space:normal;letter-spacing:-.02em;line-height:1.1}
+.cell.flag .flip .gm-stamp.bk.lw .sn{font-size:clamp(8px,2.2vw,13px)!important}
+.cell.flag .pts{font-size:clamp(.56rem,2.6vw,.8rem);padding:2px 5px;border-radius:0 0 0 5px;z-index:1}
+.b5 .cell.flag .pts{font-size:.62rem}
 .cell.flag .gm-stamp.lw .sn{font-size:clamp(9px,2.6vw,14px)!important}
 .b3 .cell.flag .gm-stamp .sn{font-size:14px!important}
 .b5 .cell.flag .gm-stamp .sn{font-size:10px!important}
@@ -1430,8 +1441,11 @@ const screenFor=s=>!s?'home':s.archive?'archive':s.daily?'home':s.mode==='solo'?
 const cornerHTML=(day,code)=>day?`<div class="corner dnum" aria-label="Grid number ${day}"><span class="dl">Grid</span><span class="dn${day>=100?' long':''}">#${day}</span></div>`
   :`<div class="corner dnum" aria-label="Grid ${esc(code||'')}"><span class="dl">Grid</span><span class="dn code">${esc(code||'')}</span></div>`;
 // a right answer on the grid: a passport stamp with the flag, the name, its code and its points
-// the stamp shows the flag and the country name; the points go in its top right corner
-const stampCell=(c,cell,cls)=>Geomingo.stampHTML(c.n,'',(cls?cls+' ':'')+(Math.max(...c.n.split(' ').map(w=>w.length))>6?'lw':''),FLAGS[c.c]).replace(/<\/span>$/,'<span class="pts">+'+((cell.p||0)+(cell.sb||0))+'</span></span>');
+// a filled square: the flag with its points in the top right corner; tapping it flips it over to show
+// the country name, the points and how many countries would have fitted (fits, when known)
+const stampCell=(c,cell,cls,fits)=>{const pts=(cell.p||0)+(cell.sb||0),k=(cls?cls+' ':'')+(Math.max(...c.n.split(' ').map(w=>w.length))>6?'lw':'');
+  const front=Geomingo.stampHTML(c.n,'',k+' fr',FLAGS[c.c]).replace(/<\/span>$/,'<span class="pts">+'+pts+'</span></span>'),st=(front.match(/style="([^"]*)"/)||[])[1]||'';
+  return `<span class="flip">${front}<span class="gm-stamp bk ${k}" style="${st}"><b class="sn">${esc(c.n)}</b><small>+${pts} pts</small>${fits?`<small>${fits} possible</small>`:''}</span></span>`};
 // today's grid shown open on the home screen: tapping a square starts (or continues) the daily game there
 function dailyBoard(saved){
   const dg=saved?null:dailyGrid();if(!saved&&!dg)return '';
@@ -1533,7 +1547,7 @@ function gameView(){
       const ci=i*n+j,cell=S.cells[ci];
       const ref=colRef(j)+rowRef(i);
       if(cell.o>=0){const c=byCode[cell.c];
-        h+=`<button class="cell taken flag ${ui.fresh===ci?'new':''}" data-cell="${ci}" aria-label="${ref}: ${esc(c.n)}">${stampCell(c,cell,S.mode==='solo'?'':'c'+cell.o)}</button>`;
+        h+=`<button class="cell taken flag ${ui.fresh===ci?'new':''} ${ui.flip&&ui.flip[ci]?'flipped':''}" data-cell="${ci}" aria-label="${ref}: ${esc(c.n)}">${stampCell(c,cell,S.mode==='solo'?'':'c'+cell.o,S.answers&&S.answers[ci]?S.answers[ci].length:0)}</button>`;
       }else if(S.over){
         h+=`<button class="cell miss" data-cell="${ci}" aria-label="${ref}: show answers"><span class="nm">${S.answers[ci].length} possible</span></button>`;
       }else h+=`<button class="cell ${ui.sel===ci?'sel':''}" data-cell="${ci}" aria-label="Square ${ref}"><span class="plus"></span></button>`;
@@ -1815,8 +1829,9 @@ function bind(){
   app.querySelectorAll('[data-info]').forEach(b=>{b.onclick=()=>{ui.info=+b.dataset.info;drawLayer()};b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();b.click()}}});
   app.querySelectorAll('[data-cell]').forEach(b=>b.onclick=()=>{
     const ci=+b.dataset.cell;
+    // a filled square flips over (name, points, how many fitted); flipping again shows the flag
+    if(S.cells[ci].o>=0){ui.flip=ui.flip||{};ui.flip[ci]=!ui.flip[ci];b.classList.toggle('flipped',ui.flip[ci]);ui.fresh=-1;b.classList.remove('new');if(S.over&&ui.reveal!==ci){ui.reveal=ci;render()}return}
     if(S.over){ui.reveal=ci;render();return}
-    if(S.cells[ci].o>=0)return;
     if(S.mode==='online'&&S.turn!==S.me){toast('Wait for your turn. It is '+S.players[S.turn].name+"'s go.");return}
     ui.sel=ci;ui.query='';render();
   });
