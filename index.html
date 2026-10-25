@@ -36,20 +36,25 @@ main{display:flex;flex-direction:column;gap:18px}
 .menubtn{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--line);background:var(--page);color:var(--ink);display:flex;align-items:center;justify-content:center;padding:0}
 .menubtn svg{stroke:currentColor}
 /* today's games: one colour per game */
-.tiles{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.tiles li{display:flex}
-.tile{flex:1;min-height:150px;box-sizing:border-box;border-radius:16px;background:var(--c);color:#16202F;text-decoration:none;padding:12px;display:flex;flex-direction:column;gap:6px;box-shadow:0 12px 26px -14px var(--c);transition:transform .12s ease}
+.tiles{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;--ic:44px;--nm:19px}
+.tiles.c3{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;--ic:30px;--nm:14px}
+.c3 .tile{aspect-ratio:4/5}
+.c3 .tile b{font-stretch:66%;font-size:14px;letter-spacing:-.01em}
+.tiles li{display:flex;min-width:0}
+.tile{flex:1;min-width:0;aspect-ratio:1;box-sizing:border-box;border-radius:16px;background:var(--c);color:#16202F;text-decoration:none;padding:12px;display:flex;flex-direction:column;gap:6px;overflow:hidden;box-shadow:0 12px 26px -14px var(--c);transition:transform .12s ease}
+.c3 .tile{padding:10px 9px;border-radius:14px;gap:4px}
 .tile:active{transform:scale(.98)}
 .tile:focus-visible{outline:3px solid #F6F8F5;outline-offset:3px}
-.tile .tt{display:flex;justify-content:space-between;gap:6px;font-family:var(--type);font-weight:700;font-size:12px;letter-spacing:.02em}
-.tile svg{display:block;flex-shrink:0}
-.tile b{font-family:var(--display);font-weight:900;font-size:20px;line-height:1.05;text-transform:uppercase;margin-top:auto}
-.tile small{font-size:13px;line-height:1.3}
-.tiles li.wide{grid-column:span 2}
-.wide .tile{min-height:96px;flex-direction:row;align-items:center;gap:14px;padding:12px 14px}
-.wide .tile .tx{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
-.wide .tile b{margin-top:0}
-.wide .tile .gst{font-family:var(--type);font-weight:700;font-size:12px;text-align:right}
+.tile .tt{display:flex;justify-content:space-between;gap:6px;font-family:var(--type);font-weight:700;font-size:12px;letter-spacing:.02em;white-space:nowrap}
+.c3 .tile .tt{font-size:11px}
+.tile svg{display:block;flex-shrink:0;width:var(--ic);height:var(--ic)}
+.tile b{font-family:var(--display);font-weight:900;font-stretch:85%;font-size:var(--nm);line-height:1.05;text-transform:uppercase;margin-top:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile small{font-size:13px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tile .s3{display:none;font-family:var(--type);font-weight:700;font-size:11px;white-space:nowrap}
+.c3 .tile .s2,.c3 .tile small{display:none}
+.c3 .tile .s3{display:block}
+.tile.soon{background:transparent;border:2px dashed #4A5570;color:var(--muted);box-shadow:none}
+.tile.soon svg{stroke:currentColor}
 /* the GeoPass card */
 .pass{border-radius:18px;background:linear-gradient(135deg,#2A2414,var(--page) 60%);border:1.5px solid var(--gold);padding:18px 16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 16px 40px -22px rgba(212,173,75,.7)}
 .pass .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -115,7 +120,7 @@ footer{display:flex;flex-direction:column;gap:4px;align-items:center;padding-top
   </header>
   <main>
     <div class="gm-head"><span class="gm-lab" id="dep">Departures</span><h2>Today's itinerary</h2></div>
-    <ul class="tiles" id="games"></ul>
+    <ul class="tiles c3" id="games"></ul>
     <section class="pass" id="pass" aria-label="Your GeoPass"></section>
     <button class="friends" id="friends"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20c1-3.5 3.5-5.5 6.5-5.5s5.5 2 6.5 5.5M15 14.5c2.8 0 5 1.6 6 4.5"/></svg>Travel with friends</button>
     <section class="week" id="week" aria-label="This week's ranking" hidden></section>
@@ -162,13 +167,15 @@ function geo(){const L=ledger(),k=G.dayKey();let miles=0,games=0;
 
 /* ---- the page ---- */
 const set=(id,h)=>{const el=document.getElementById(id);if(el&&el.innerHTML!==h)el.innerHTML=h}; // redraw only what changed (keeps keyboard focus)
-function tile(g,P){const r=G.result(g.id),lk=look(g.id),mi=P.today[g.id],wide=g.id==='silhouette';
+// the tile of a game; one more tile keeps the place of the next game ("Coming soon")
+function tile(g,P){const r=G.result(g.id),lk=look(g.id),mi=P.today[g.id];
   const state=r.done?'✓ '+(mi!=null?'+'+mi+' MI':esc(r.label)):'BOARDING',hint=r.done?'Landed · '+esc(r.label):esc(g.hint);
   const lab='aria-label="'+esc(g.name)+', gate '+g.gate+': '+(r.done?'played today, '+esc(r.label):'play')+'"';
-  if(wide)return '<li class="wide"><a class="tile" href="'+g.href+'" style="--c:'+lk.c+'" '+lab+'>'+lk.svg+
-    '<span class="tx"><span class="tt"><span>GATE '+g.gate+' · NEW</span></span><b>'+esc(g.name)+'</b><small>'+hint+'</small></span><span class="gst">'+state+'</span></a></li>';
-  return '<li><a class="tile" href="'+g.href+'" style="--c:'+lk.c+'" '+lab+'><span class="tt"><span>GATE '+g.gate+'</span><span>'+state+'</span></span>'+lk.svg+
-    '<b>'+esc(g.name)+'</b><small>'+hint+'</small></a></li>'}
+  return '<li><a class="tile" href="'+g.href+'" style="--c:'+lk.c+'" '+lab+'><span class="tt"><span>GATE '+g.gate+'</span><span class="s2">'+state+'</span></span>'+lk.svg+
+    '<b>'+esc(g.name)+'</b><small>'+hint+'</small><span class="s3">'+state+'</span></a></li>'}
+const SOON='<li><div class="tile soon" aria-label="Coming soon: a new game"><span class="tt"><span>GATE C2</span><span class="s2">SOON</span></span>'+
+  '<svg width="52" height="52" viewBox="0 0 30 30" fill="none" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="15" cy="15" r="12" stroke-dasharray="4 4"/><path d="M15 9v6l4 3"/></svg>'+
+  '<b>New game</b><small>Coming soon</small><span class="s3">SOON</span></div></li>';
 function passHTML(P){const lv=level(P.miles),live=G.live(),played=live.filter(g=>G.result(g.id).done).length,acc=A(),u=acc&&acc.user;
   const slots=live.map(g=>{const r=G.result(g.id),lk=look(g.id);
     return r.done?'<a class="slot on" href="'+g.href+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+': '+esc(r.label)+'"><b>'+esc(r.label.length>6?'✓':r.label)+'</b>'+g.gate+'</a>'
@@ -188,7 +195,7 @@ function passHTML(P){const lv=level(P.miles),live=G.live(),played=live.filter(g=
 function draw(){const P=geo();
   document.querySelectorAll('[data-gm-acctslot]').forEach(el=>{const h=G.acctHTML?G.acctHTML():'';if(el.innerHTML!==h)el.innerHTML=h});
   set('dep','Departures · '+esc(G.dateText(G.dayKey(),{weekday:'short',day:'numeric',month:'short'})));
-  set('games',G.live().map(g=>tile(g,P)).join(''));
+  set('games',G.live().map(g=>tile(g,P)).join('')+SOON);
   set('pass',passHTML(P));
   drawWeek()}
 
