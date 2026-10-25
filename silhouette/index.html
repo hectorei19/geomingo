@@ -51,7 +51,6 @@
 .reveal .rpts{margin-left:auto;font-family:var(--mono);font-size:.85rem;white-space:nowrap}
 .streak{display:flex;gap:16px;font-size:.95rem;color:var(--ink-2)}
 .streak b{font-family:var(--display);font-weight:700;font-size:1.3rem;color:var(--ink);margin-right:4px}
-.board9~.silbox{max-width:250px}
 .board9{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:340px;align-self:center}
 .board9 button{aspect-ratio:1;background:var(--sheet);border:2px dashed var(--line);border-radius:14px;padding:6px;position:relative}
 .board9 button .sil{width:100%;height:100%;display:block;color:var(--ink)}
@@ -192,7 +191,8 @@ function boardHTML(G){const sel=G.over?-1:G.sel;
 function dailyPlayHTML(G){const q=G.qs[G.sel],last=G.justDone!=null?G.qs[G.justDone]:null;G.justDone=null;
   let h=boardHTML(G);
   if(last&&last.st!=='play')h+=revealHTML(last);
-  if(!G.over&&q){h+=`<span class="label">Shape ${G.sel+1} of 9 · ${rightOf(G)} right so far</span>`+silBoxHTML(q)+triesHTML(q)+answerBoxHTML(q)+giveUpHTML()}
+  // the selected square is the shape being answered: no big copy of it, so the answer box sits right under the board
+  if(!G.over&&q){h+=`<span class="label">Shape ${G.sel+1} of 9 · ${rightOf(G)} right so far</span>`+triesHTML(q)+answerBoxHTML(q)+giveUpHTML()}
   return `<div class="play">${h}</div>`}
 function verdict(G){const r=rightOf(G),first=G.qs.filter(q=>q.st==='right'&&!q.tries.length).length;
   return r===9?(first===9?{pose:'happy',t:'Full page. Nine of nine, all first try.',s:'Nine new stamps.'}:{pose:'happy',t:'Visited. Nine of nine.',s:first+' on the first try.'})
