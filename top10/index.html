@@ -89,15 +89,25 @@ const ppl=v=>v>=1e9?(v/1e9).toFixed(2)+' billion':v>=1e6?(v/1e6).toFixed(1)+' mi
 const d1=v=>(+v).toFixed(1);
 const num=v=>typeof v==='number'&&isFinite(v)?v:undefined;
 const D=k=>c=>num(DATA[k][c.c]);
-const AREANOTE='Total area (land and inland water), from the country data used in Countries (mledoze/countries).';
+const AREANOTE='Total area (land and inland water), from the country data used in Countries (mledoze/countries). Vatican City, missing there, is 0.44 km² (Wikipedia, "Vatican City").';
+// area in km²: the country data has none for Vatican City, so its official 0.44 km² is added here
+const AREA=c=>c.c==='VAT'?0.44:c.a>0?c.a:undefined;
+const big=v=>v>=1e12?(v/1e12).toFixed(2)+' trillion':v>=1e9?(v/1e9).toFixed(1)+' billion':(v/1e6).toFixed(0)+' million';
+const GDPNOTE=NOTE('World Bank figures, 2025 column','List of countries by GDP (nominal) per capita');
+const CO2NOTE=NOTE('figures for 2023','List of countries by carbon dioxide emissions per capita');
+const FORESTNOTE=NOTE('forest share of land area','List of countries by forest area');
 const L=(id,title,get,dir,fmt,src)=>({id,title,get,dir,fmt,src});
-const ALL_LISTS=[
+// the world lists; each one also comes in a version for Europe, Asia, Africa and the Americas (see REGIONS below)
+const WORLD_LISTS=[
   L('pop-hi','The 10 most populous countries',D('pop'),-1,ppl,POPNOTE),
   L('pop-lo','The 10 least populous countries',D('pop'),1,v=>n0(v)+' people',POPNOTE),
-  L('area-hi','The 10 largest countries by area',c=>c.a>0?c.a:undefined,-1,v=>n0(v)+' km²',AREANOTE),
-  // no "smallest by area": the country data has no area for Vatican City, the smallest of all
-  L('gdp-hi','The 10 countries with the highest GDP per person',D('gdp'),-1,v=>'$'+n0(v),NOTE('World Bank figures, 2025 column','List of countries by GDP (nominal) per capita')),
-  L('gdp-lo','The 10 countries with the lowest GDP per person',D('gdp'),1,v=>'$'+n0(v),NOTE('World Bank figures, 2025 column','List of countries by GDP (nominal) per capita')),
+  L('area-hi','The 10 largest countries by area',AREA,-1,v=>n0(v)+' km²',AREANOTE),
+  L('area-lo','The 10 smallest countries by area',AREA,1,v=>v<1?v+' km²':n0(v)+' km²',AREANOTE),
+  L('dens-hi','The 10 most densely populated countries',c=>D('pop')(c)&&AREA(c)?D('pop')(c)/AREA(c):undefined,-1,v=>n0(v)+' people per km²','Population divided by total area. '+POPNOTE+' '+AREANOTE),
+  L('dens-lo','The 10 most sparsely populated countries',c=>D('pop')(c)&&AREA(c)?D('pop')(c)/AREA(c):undefined,1,v=>d1(v)+' people per km²','Population divided by total area. '+POPNOTE+' '+AREANOTE),
+  L('gdptot-hi','The 10 countries with the biggest economy (total GDP)',c=>D('pop')(c)&&D('gdp')(c)?D('pop')(c)*D('gdp')(c):undefined,-1,v=>'$'+big(v),'GDP per person times population. '+GDPNOTE+' '+POPNOTE),
+  L('gdp-hi','The 10 countries with the highest GDP per person',D('gdp'),-1,v=>'$'+n0(v),GDPNOTE),
+  L('gdp-lo','The 10 countries with the lowest GDP per person',D('gdp'),1,v=>'$'+n0(v),GDPNOTE),
   L('hdi-hi','The 10 countries with the highest Human Development Index',D('hdi'),-1,v=>(+v).toFixed(3),NOTE('UNDP figures for 2023','List of countries by Human Development Index')),
   L('hdi-lo','The 10 countries with the lowest Human Development Index',D('hdi'),1,v=>(+v).toFixed(3),NOTE('UNDP figures for 2023','List of countries by Human Development Index')),
   L('life-hi','The 10 countries with the longest life expectancy',D('life'),-1,v=>d1(v)+' years',NOTE('UN figures for 2023','List of countries by life expectancy')),
@@ -106,23 +116,46 @@ const ALL_LISTS=[
   L('age-lo','The 10 countries with the youngest population (median age)',D('age'),1,v=>d1(v)+' years',NOTE('CIA World Factbook, 2024 estimates','List of countries by median age')),
   L('cpi-hi','The 10 least corrupt countries (Corruption Perceptions Index)',D('cpi'),-1,v=>n0(v)+' / 100',NOTE('Transparency International, 2025 index','Corruption Perceptions Index')),
   L('cpi-lo','The 10 most corrupt countries (Corruption Perceptions Index)',D('cpi'),1,v=>n0(v)+' / 100',NOTE('Transparency International, 2025 index','Corruption Perceptions Index')),
-  L('co2-hi','The 10 countries with the most CO₂ emissions per person',D('co2'),-1,v=>d1(v)+' t',NOTE('figures for 2023','List of countries by carbon dioxide emissions per capita')),
+  L('co2-hi','The 10 countries with the most CO₂ emissions per person',D('co2'),-1,v=>d1(v)+' t',CO2NOTE),
+  L('co2tot-hi','The 10 countries with the most CO₂ emissions in total',c=>D('pop')(c)&&D('co2')(c)?D('pop')(c)*D('co2')(c):undefined,-1,v=>(v>=1e9?(v/1e9).toFixed(2)+' billion':(v/1e6).toFixed(1)+' million')+' t','Emissions per person times population. '+CO2NOTE+' '+POPNOTE),
   L('urban-lo','The 10 countries with the smallest share of urban population',D('urban'),1,v=>d1(v)+'%',NOTE('UN figures for 2023','Urbanization by sovereign state')),
+  L('capshare-hi','The 10 countries where the most people live in the capital (share of population)',c=>{if(DATA.cap_skip.includes(c.c)||!D('pop')(c)||!num(DATA.cappop[c.c]))return;const v=DATA.cappop[c.c]/D('pop')(c)*100;return v<95?v:undefined},-1,v=>d1(v)+'%','Population of the capital within its city limits, divided by the population of the country. City-states (Vatican City, Singapore, Monaco), where the capital is the whole country, are left out. '+CAPNOTE+' '+POPNOTE),
   L('coast-hi','The 10 countries with the longest coastline',D('coast'),-1,v=>n0(v)+' km',NOTE('CIA World Factbook figures','List of countries by length of coastline')),
   L('elev-hi','The 10 countries with the highest top point',D('elev'),-1,v=>n0(v)+' m',NOTE('highest points','List of elevation extremes by country')),
   L('elev-lo','The 10 flattest countries (lowest top point)',D('elev'),1,v=>n0(v)+' m',NOTE('highest points','List of elevation extremes by country')),
   L('landb-hi','The 10 countries with the longest land borders',D('landb'),-1,v=>n0(v)+' km',NOTE('total land border length','List of countries and territories by land borders')),
-  L('forest-hi','The 10 most forested countries (share of land)',D('forest'),-1,v=>d1(v)+'%',NOTE('forest share of land area','List of countries by forest area')),
+  L('forest-hi','The 10 most forested countries (share of land)',D('forest'),-1,v=>d1(v)+'%',FORESTNOTE),
+  L('forestkm-hi','The 10 countries with the most forest (area)',c=>D('forest')(c)!==undefined&&AREA(c)?D('forest')(c)*AREA(c)/100:undefined,-1,v=>n0(v)+' km²','Forest share of land times total area, so a rough figure. '+FORESTNOTE+' '+AREANOTE),
   L('olymp-hi','The 10 countries with the most Olympic medals',D('olymp'),-1,v=>n0(v)+' medals','All Summer and Winter Olympics together, up to the 2026 Winter Games. Medals won as part of a former team (Soviet Union, East Germany...) are not added. Source: Wikipedia, "All-time Olympic Games medal table".'),
   L('cap-hi','The 10 countries with the most populous capital city',c=>DATA.cap_skip.includes(c.c)?undefined:num(DATA.cappop[c.c]),-1,ppl,'Population of the capital within its city limits. '+CAPNOTE),
 ];
-// full ranking of a list: every independent country with a figure, best first
-function ranking(l){return SOVC.map(c=>({c:c.c,v:l.get(c)})).filter(x=>x.v!==undefined).sort((a,b)=>l.dir*(a.v-b.v)||(a.c<b.c?-1:1))}
+// the same rankings within one continent, as the country data groups them (Russia and Cyprus count as Europe; Turkey and the Caucasus as Asia)
+const REGIONS=[
+  {k:'eu',name:'Europe',in:c=>c.r==='EU'},
+  {k:'as',name:'Asia',in:c=>c.r==='AS'},
+  {k:'af',name:'Africa',in:c=>c.r==='AF'},
+  {k:'am',name:'the Americas',in:c=>c.r==='NA'||c.r==='SA'},
+];
+const ALL_LISTS=[...WORLD_LISTS,...REGIONS.flatMap(g=>WORLD_LISTS.map(l=>({...l,id:l.id+'-'+g.k,reg:g,
+  title:l.title.replace(' countries',' countries in '+g.name),
+  src:'Only countries in '+g.name+', as the country data used in Countries groups them. '+l.src})))];
+// full ranking of a list: every independent country with a figure (in its continent, for a continent list), best first
+function ranking(l){return SOVC.filter(c=>!l.reg||l.reg.in(c)).map(c=>({c:c.c,v:l.get(c)})).filter(x=>x.v!==undefined).sort((a,b)=>l.dir*(a.v-b.v)||(a.c<b.c?-1:1))}
 const LISTS=ALL_LISTS.filter(l=>{const r=ranking(l);return r.length>=20&&r[9].v!==r[10].v});
 const listById=id=>ALL_LISTS.find(l=>l.id===id);
-// the daily list: lists come in a shuffled order that is the same for everyone, so none repeats until all were used
-function dailyList(key){const n=dayNum(key,T10_FIRST)-1,len=LISTS.length,cycle=Math.floor(n/len);
-  return shuffle(LISTS,rngFrom(seedOf('top10-cycle-'+cycle)))[((n%len)+len)%len]}
+// the daily list: lists come in a shuffled order that is the same for everyone, so none repeats until all were used.
+// The first round (2026-10-19 to 2026-11-05) keeps the 18 lists the game began with, in the same order as before.
+const FIRST_ROUND=['pop-hi','pop-lo','area-hi','gdp-hi','gdp-lo','hdi-hi','hdi-lo','life-lo','age-hi','co2-hi','urban-lo','coast-hi','elev-hi','elev-lo','landb-hi','forest-hi','olymp-hi','cap-hi'].map(listById);
+function dailyList(key){const n=dayNum(key,T10_FIRST)-1;
+  if(n<FIRST_ROUND.length)return shuffle(FIRST_ROUND,rngFrom(seedOf('top10-cycle-0')))[Math.max(n,0)];
+  const m=n-FIRST_ROUND.length,len=LISTS.length,cycle=Math.floor(m/len);
+  return shuffle(LISTS,rngFrom(seedOf('top10-round-'+cycle)))[m%len]}
+// Solo: a random list you have not played on this device yet; when all were played, they all come back
+function soloList(){const seen=new Set(load('t10-seen',[])),cur=S&&S.list;
+  let o=LISTS.filter(x=>!seen.has(x.id)&&x.id!==cur);
+  if(!o.length){store('t10-seen',[]);o=LISTS.filter(x=>x.id!==cur)}
+  return o[Math.floor(Math.random()*o.length)]}
+function markSeen(id){const s=load('t10-seen',[]);if(!s.includes(id)){s.push(id);store('t10-seen',s)}}
 function newGame(mode,l){const r=ranking(l);
   const S={mode,list:l.id,top:r.slice(0,10).map(x=>x.c),found:[],wrong:[],lives:LIVES,over:false,won:false};
   if(mode==='daily'){S.date=todayKey();S.num=dayNum(S.date,T10_FIRST)}
@@ -141,13 +174,14 @@ function dailyGame(){const d=dailySaved();return d&&d.date===todayKey()?d:newGam
 function openDaily(){view='game';mode='daily';S=dailyGame();query='';render();window.scrollTo(0,0)}
 function openFree(id){view='game';mode='free';const f=load('t10-free',null);
   if(!id&&f&&!f.over&&listById(f.list))S=f;
-  else{const l=id&&listById(id)||(()=>{const o=LISTS.filter(x=>!S||x.id!==S.list);return o[Math.floor(Math.random()*o.length)]})();S=newGame('free',l)}
+  else{const l=id&&listById(id)||soloList();S=newGame('free',l);markSeen(l.id)}
   query='';save();render();window.scrollTo(0,0)}
 
 /* ---- the search box: names only, found by their first letters, like Countries ---- */
-function matches(q){const k=N(q);if(!k)return[];return SOVC.filter(c=>c.k.startsWith(k)||c.ak.some(a=>a.startsWith(k))).slice(0,8)}
+function matches(q){const k=N(q),l=listById(S.list);if(!k)return[];return SOVC.filter(c=>(!l.reg||l.reg.in(c))&&(c.k.startsWith(k)||c.ak.some(a=>a.startsWith(k)))).slice(0,8)}
 function suggHTML(){if(!query)return '';const res=matches(query);
-  if(!res.length)return `<li class="hint" style="padding:8px 2px">No country matches “${esc(query)}”.</li>`;
+  if(!res.length){const l=listById(S.list),k=N(query),out=l.reg&&SOVC.find(c=>c.k.startsWith(k)||c.ak.some(a=>a.startsWith(k)));
+    return `<li class="hint" style="padding:8px 2px">${out?`${esc(out.n)} is not in ${esc(l.reg.name)}: only countries in ${esc(l.reg.name)} count in this list.`:`No country matches “${esc(query)}”.`}</li>`}
   return res.map(c=>{const f=S.found.includes(c.c),w=S.wrong.includes(c.c);
     return `<li><button data-g="${c.c}" ${f||w?'disabled':''}>${esc(c.n)}${f?'<span class="tag">found</span>':w?'<span class="tag">not in it</span>':''}</button></li>`}).join('')}
 // Mingo's key for the game on screen (his bubble and the summary belong to one game)
@@ -179,7 +213,7 @@ const shareMessage=()=>shareText()+'\n\n'+(S.mode==='daily'?"Play today's Top 10
    Players take turns naming a country: one in the top 10 scores a point for whoever named it,
    one outside costs that player one of their lives. The game ends when the ten are found, everyone is out of lives or everyone passes. */
 const FB_OK=()=>typeof firebase!=='undefined'&&typeof firebase.database==='function'&&!!(window.FIREBASE_CONFIG&&/^https:\/\//.test(FIREBASE_CONFIG.databaseURL||''));
-const ROOM_V='t10-202610192300',MAXP=6,TIMERS=[0,15,30];
+const ROOM_V='t10-202610251900',MAXP=6,TIMERS=[0,15,30];
 let db=null,room=null,roomRef=null,roomCode=null,seenEv=null,firstSync=true,joining=false,offset=0,tick=null;
 const now=()=>Date.now()+offset;
 let ME=load('t10-pid','');if(!ME){ME='p'+Math.random().toString(36).slice(2,10);store('t10-pid',ME)}
@@ -431,10 +465,11 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Name the ten countries in the ranking, in any order. Each one you find appears in its place, with its figure.</li>
   <li>A country that is not in the top 10 costs one of your <b>${LIVES} lives</b>, and you see where it ranks.</li>
   <li>The game ends when you find all ten or run out of lives; then the full list is shown.</li>
+  <li>Some lists cover the whole world, others one continent: Europe, Asia, Africa or the Americas. In a continent list, only its countries count.</li>
   <li>Only independent countries count, never territories. The figures are the same ones Countries uses; "Where the numbers come from" names the source of each list.</li></ul>
   <h3>Modes</h3><ul>
   <li><b>Today's list</b>: the same for everyone, new every day at midnight CET, open on the home screen. One try, saved on this device.</li>
-  <li><b>Solo</b>: unlimited practice lists. Share sends a link to the same list.</li>
+  <li><b>Solo</b>: unlimited practice lists, a different one each time until you have played them all. Share sends a link to the same list.</li>
   <li><b>With friends</b>: online, 2 to ${MAXP} players, each on their own phone. The host creates a room and shares its code or link. You take turns naming a country: one in the top 10 scores a point for you, one outside costs one of your ${LIVES} lives. The round ends when the ten are found, everyone is out of lives or everyone passes. Most points wins.</li></ul>`}
 function drawSugg(){const u=$('sugg');if(u){u.innerHTML=suggHTML();u.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>guess(b.dataset.g))}}
 function bind(){
