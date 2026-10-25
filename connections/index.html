@@ -19,7 +19,7 @@
 <link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
-<script src="../brand/mingo.js?v=202610251800"></script>
+<script src="../brand/mingo.js?v=202610251900"></script>
 <script src="../brand/account.js?v=202610250900"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -80,7 +80,7 @@
 .lp.me{border-color:var(--sea)}
 .primary[disabled]{opacity:.5;cursor:default}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610251000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610251900">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -386,15 +386,17 @@ function render(keepShake){
   if(on)h+=scoresHTML();
   watchResult(cxKey(),S.over);
   if(S.over)h+=on?roomResultHTML():resultHTML();
-  else h+=moodHTML(cxKey(),'pass','4 stamps to win.','Pick four countries that share something, then Submit. '+leftTxt());
+  else{const cell=Geomingo.tk,left=MAX_MISTAKES-S.mistakes;
+    // the ticket, as in every game: Mingo on top, then who is travelling, groups found and mistakes left
+    h+=Geomingo.ticket(moodHTML(cxKey(),'pass','4 stamps to win.','Pick four countries that share something, then Submit.'),
+      cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Groups',S.found.length+'/4','tk-pts')+cell('Mistakes left',left,'tk-gs'))}
   h+=`<div class="cx-board">`;
   S.found.forEach(g=>h+=groupHTML(S.groups[g]));
   if(S.over)S.groups.forEach((g,i)=>{if(!S.found.includes(i))h+=groupHTML(g,true)});
   else h+=`<div class="cx-grid${keepShake?' shake':''}">${S.left.map(c=>tileHTML(c,'data-c')).join('')}</div>`;
   h+=`</div>`;
   if(!S.over){
-    h+=`<div class="lives" aria-label="${MAX_MISTAKES-S.mistakes} mistakes left">Mistakes left ${Array.from({length:MAX_MISTAKES},(_,i)=>`<i class="${i<MAX_MISTAKES-S.mistakes?'':'off'}"></i>`).join('')}</div>
-    <div class="cx-actions"><button class="ghost" id="shuf">Shuffle</button><button class="ghost" id="desel" ${sel.length?'':'disabled'}>Deselect all</button><button class="primary" id="submit" ${sel.length===4?'':'disabled'}>Submit</button></div>${on?'':giveUpHTML()}
+    h+=`<div class="cx-actions"><button class="ghost" id="shuf">Shuffle</button><button class="ghost" id="desel" ${sel.length?'':'disabled'}>Deselect all</button><button class="primary" id="submit" ${sel.length===4?'':'disabled'}>Submit</button></div>${on?'':giveUpHTML()}
     ${catsHTML()}
     <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something: a region, a flag, a language, a name… Each country is in exactly one group, and only one split works for all 16. Pick four and tap <b>Submit</b>. Four mistakes and the game ends.</p></section>`}
   app.innerHTML=h;bind();

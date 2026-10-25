@@ -19,7 +19,7 @@
 <link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
-<script src="../brand/mingo.js?v=202610251800"></script>
+<script src="../brand/mingo.js?v=202610251900"></script>
 <script src="../brand/account.js?v=202610250900"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -73,7 +73,7 @@
 .ready{display:flex}
 @media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610251000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610251900">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -104,8 +104,8 @@ function answer(q,code){
   if(code===q.c){q.st='right';return 'right'}
   q.tries.push(code);if(q.tries.length>=TRIES){q.st='wrong';return 'out'}
   return 'wrong'}
-function triesHTML(q){const left=TRIES-q.tries.length;
-  return `<div class="tries" aria-label="${left} tries left">Tries ${Array.from({length:TRIES},(_,i)=>`<i class="${i<left?'':'off'}"></i>`).join('')}${q.rot?`<span class="cnt">Turned shape</span>`:''}</div>`+
+function triesHTML(q,tkt){const left=TRIES-q.tries.length;
+  return (tkt?(q.rot?`<span class="hint">Turned shape</span>`:''):`<div class="tries" aria-label="${left} tries left">Tries ${Array.from({length:TRIES},(_,i)=>`<i class="${i<left?'':'off'}"></i>`).join('')}${q.rot?`<span class="cnt">Turned shape</span>`:''}</div>`)+
     (q.tries.length?`<p class="missed">Not ${q.tries.map(c=>esc(byCode[c].n)).join(', not ')}.</p>`:'')}
 function suggHTML(q){if(!query)return '';const res=searchCountries(query,null,6);
   if(!res.length)return `<li class="hint" style="padding:8px 2px">No country matches “${esc(query)}”.</li>`;
@@ -125,6 +125,7 @@ function bindAnswer(q,onPick){const box=$('q');if(!box)return;
   // the box gets the focus only once you have started, so phones do not open the keyboard on arrival
   if(query||typing)setTimeout(()=>{box.focus();box.setSelectionRange(box.value.length,box.value.length)},0)}
 // Mingo reacts to each answer in his bubble above the shape
+const tk=Geomingo.tk;
 const triesTxt=q=>{const n=TRIES-q.tries.length;return n+' '+(n===1?'try':'tries')+' left.'};
 function feedback(q,res,code,key){
   if(res==='right'){Geomingo.stamp('silhouette',byCode[q.c].n);say(key,'happy','Stamped: '+byCode[q.c].n+'.',q.tries.length?'Got it on try '+(q.tries.length+1)+'.':'First try.')}
@@ -152,11 +153,12 @@ function trainHTML(){const q=T.q,s=trainStats()[T.diff]||{best:0},done=q.st!=='p
   let h=header('Silhou<span>ette</span>','Training');
   h+=`<div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Training</span></div>`;
   h+=`<div class="field">${seg('diff',[['easy','Easy'],['normal','Normal'],['hard','Hard']],T.diff)}<span class="hint">${DIFF_HINT[T.diff]}.</span></div>`;
-  h+=`<div class="streak"><span><b>${T.streak}</b>in a row</span><span><b>${s.best||0}</b>best at ${DIFF_NAME[T.diff]}</span></div>`;
-  h+=moodHTML(silKey(),'pass','Whose shape is this?','Training at '+DIFF_NAME[T.diff]+'. '+triesTxt(q));
+  // the ticket, as in every game: Mingo on top, then who is travelling, the level, the run and the tries left
+  h+=Geomingo.ticket(moodHTML(silKey(),'pass','Whose shape is this?','Type its name. Your best run at '+DIFF_NAME[T.diff]+': '+(s.best||0)+'.'),
+    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Class',DIFF_NAME[T.diff])+tk('In a row',T.streak,'tk-pts')+tk('Tries',TRIES-q.tries.length,'tk-gs'));
   h+=`<section class="panel play">${silBoxHTML(q,done)}`;
   if(done)h+=revealHTML(q)+`<button class="primary" id="tnext">Next shape</button>`;
-  else h+=triesHTML(q)+answerBoxHTML(q,`<button class="ghost" id="tskip" style="align-self:flex-start">Show the answer</button>`);
+  else h+=triesHTML(q,true)+answerBoxHTML(q,`<button class="ghost" id="tskip" style="align-self:flex-start">Show the answer</button>`);
   return h+`</section>`}
 
 /* ---- Daily: nine shapes on a 3 x 3 board, the same for everyone, one board per level ----
@@ -189,10 +191,10 @@ const dailyShare=G=>dailyShareText(G)+"\n\nPlay today's Silhouette: "+pageLink()
 function boardHTML(G){const sel=G.over?-1:G.sel;
   return `<div class="board9" role="group" aria-label="Today's nine shapes">${G.qs.map((q,i)=>{const cls=[i===sel?'sel':'',q.st==='right'?'right':q.st==='wrong'?'wrong':''].join(' ');
     return `<button data-tile="${i}" class="${cls}" aria-label="Shape ${i+1}${q.st==='play'?'':': '+esc(byCode[q.c].n)}">${silSVG(q.c,q.rot)}<span class="n">${i+1}</span>${q.st!=='play'?`<span class="nm">${esc(byCode[q.c].n)}</span>`:''}</button>`}).join('')}</div>`}
-function dailyPlayHTML(G){const q=G.qs[G.sel],last=G.justDone!=null?G.qs[G.justDone]:null;G.justDone=null;
+function dailyPlayHTML(G,tkt){const q=G.qs[G.sel],last=G.justDone!=null?G.qs[G.justDone]:null;G.justDone=null;
   let h=boardHTML(G);
   if(last&&last.st!=='play')h+=revealHTML(last);
-  if(!G.over&&q){h+=`<span class="label">Shape ${G.sel+1} of 9 · ${rightOf(G)} right so far</span>`+silBoxHTML(q)+triesHTML(q)+answerBoxHTML(q)+giveUpHTML()}
+  if(!G.over&&q){h+=(tkt?'':`<span class="label">Shape ${G.sel+1} of 9 · ${rightOf(G)} right so far</span>`)+silBoxHTML(q)+triesHTML(q,tkt)+answerBoxHTML(q)+giveUpHTML()}
   return `<div class="play">${h}</div>`}
 const dailyTabs=diff=>`<div class="dtabs">${seg('ddiff',[['easy','Easy'],['normal','Normal'],['hard','Hard']].map(([v,l])=>{const g=dailyAll()[v];return [v,l+(g&&g.over?' ✓':'')]}),diff)}</div>`;
 function verdict(G){const r=rightOf(G),first=G.qs.filter(q=>q.st==='right'&&!q.tries.length).length;
@@ -217,7 +219,8 @@ function openDaily(diff){if(diff)store('sil-ddiff',diff);D=dailyGame(diff||load(
 function dailyHTML(){let h=header('Silhou<span>ette</span>','Daily #'+D.num);
   h+=`<div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Today's shapes</span></div>`+dailyTabs(D.diff);
   if(D.over)h+=dailyResultHTML(D)+`<section class="panel play">${boardHTML(D)}</section>`;
-  else h+=dailyMood()+`<section class="panel">${dailyPlayHTML(D)}</section>`;
+  else{const q=D.qs[D.sel];
+    h+=Geomingo.ticket(dailyMood(),tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Shape',(D.sel+1)+'/9')+tk('Named',rightOf(D),'tk-pts')+tk('Tries',q?TRIES-q.tries.length:0,'tk-gs'))+`<section class="panel">${dailyPlayHTML(D,true)}</section>`}
   return h}
 function dailyMood(){const started=D.qs.some(q=>q.st!=='play');
   return moodHTML(silKey(),started?'think':'pass',started?'Keep going: '+rightOf(D)+' of 9 so far.':'GeoPass ready.',started?'Tap any shape to jump to it.':'Nine shapes, nine stamps to win, the same for everyone. '+TRIES+' tries each.')}
@@ -427,15 +430,15 @@ function lobbyHTML(){const r=room,order=lobbyOrder(r),link=pageLink('?room='+roo
 function boardRowsHTML(roundPts){const me=ME;
   return `<table class="sttab rank"><tr><th>#</th><th>Player</th>${roundPts?'<th>Shape</th>':''}<th>Total</th></tr>${ranked().map((p,k)=>`<tr class="${p.pid===me?'me':''}"><td>${k+1}</td><td><span class="pin" style="${pinStyle(p.i)}"></span> ${esc(p.name)}${p.on?'':' <span class="tag">offline</span>'}</td>${roundPts?`<td>${p.cur.ok?'+'+p.cur.pts:p.cur.tries&&p.cur.tries.length?'✗':'–'}</td>`:''}<td>${p.total}</td></tr>`).join('')}</table>`}
 // a chip per player: total so far, a tick once they are done with this shape
-const chipsHTML=()=>O.players.map(p=>`<span class="chip ${doneOf(p.cur)?'on':''} ${p.on?'':'off'}"><span class="pin" style="${pinStyle(p.i)}"></span>${esc(p.name)} <b>${p.total}</b>${doneOf(p.cur)?' ✓':''}</span>`).join('');
+const chipsHTML=()=>O.players.map(p=>`<div class="tk-c pl ${doneOf(p.cur)?'on':''} ${p.on?'':'off'}"><i><span class="pin" style="${pinStyle(p.i)}"></span>${esc(p.name)}</i><b>${p.total}${doneOf(p.cur)?' ✓':''}</b></div>`).join('');
 function onlineHTML(){const q=O.q,t=now(),ready=O.status==='round'&&t<O.start;
   let h=header('Silhou<span>ette</span>','room '+roomCode);
   if(O.status==='over'){const rk=ranked(),best=rk[0],tie=rk.length>1&&rk[1].total===best.total;
     h+=`<section class="panel"><span class="label">Room ${roomCode} · final ranking</span><p class="big">${tie?"It's a tie":esc(best.name)+' wins'}</p>${boardRowsHTML(false)}
       ${O.host?`<div class="row-btns"><button class="primary" id="orematch" style="flex:1">Rematch</button><button class="ghost" id="olobby" style="flex:1">Back to room</button></div>`:'<p class="hint">Waiting for the host to start a rematch.</p>'}</section>
       <div class="row-btns"><button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;return h}
-  h+=`<div class="status"><span class="who">Shape ${O.round+1} of ${O.n}</span><span class="difftag">${DIFF_NAME[q.d]||''}</span><span class="sub" id="tleft">${ready?'Get ready…':O.status==='reveal'?'':Math.max(0,Math.ceil((O.end-t)/1000))+' s'}</span>${O.status==='round'&&!ready?'<span class="tbar" style="width:100%"></span>':''}</div>`;
-  h+=`<div class="scores" id="ochips">${chipsHTML()}</div>`;
+  const say=Geomingo.hello('pass','Shape '+(O.round+1)+' of '+O.n+'.',(DIFF_NAME[q.d]||'')+' level. '+TRIES+' tries; the sooner, the more points.');
+  h+=Geomingo.ticket(say,`<div id="ochips" style="display:contents">${chipsHTML()}</div>`+tk('Time',`<span id="tleft">${ready?'Get ready…':O.status==='reveal'?'':Math.max(0,Math.ceil((O.end-t)/1000))+' s'}</span>`,'tk-name'),{timer:O.status==='round'&&!ready});
   h+=`<section class="panel play">`;
   if(ready)h+=`<div class="silbox ready"><p class="big" style="margin:auto;text-align:center;align-self:center">Get ready</p></div>`;
   else if(O.status==='reveal'){h+=silBoxHTML({...q,st:q.st==='right'?'right':'wrong'})+revealHTML({...q,st:q.st==='right'?'right':'wrong'},q.st==='right'?'+'+O.mine.pts:'')+`<span class="label">After shape ${O.round+1}</span>`+boardRowsHTML(true)}

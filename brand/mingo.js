@@ -124,6 +124,15 @@ function hello(pose,title,sub,o){o=o||{};const key=o.key||'main',txt=pose+title,
   const kind=o.kind!==undefined?o.kind:pose==='happy'?'good':pose==='sad'?'bad':'';
   return '<section class="gm-hello" aria-live="polite">'+mingo(pose,o.size||52)+'<div class="gm-bubble'+(kind?' '+kind:'')+(pop?' pop':'')+'"><b>'+esc(title)+'</b>'+(sub?'<span>'+esc(sub)+'</span>':'')+'</div></section>'}
 
+/* the in-game ticket, the same in every game while you play: Mingo's message (a hello()) on top, a tear line,
+   then the stub with the game's numbers, one tk(label, value, class) each (tk-pts gold, tk-gs coral, tk-name wider).
+   Values are HTML: escape names before passing them. o.timer adds the countdown bar along the bottom (.tbar). */
+function tk(k,v,c){return '<div class="tk-c'+(c?' '+c:'')+'"><i>'+k+'</i><b>'+v+'</b></div>'}
+function ticket(say,stub,o){o=o||{};
+  return '<section class="ticket">'+say+'<div class="tk-tear" aria-hidden="true"></div><div class="tk-stub">'+stub+'</div>'+(o.timer?'<span class="tbar" style="width:100%"></span>':'')+'</section>'}
+// the traveller's name on the ticket: the account's, else the one played with in Countries or Capitals
+function traveller(){const a=window.Geomingo&&window.Geomingo.account;return ((a&&a.name)||store.get('bl-user')||store.get('cc-user')||'Guest').trim().slice(0,16)||'Guest'}
+
 /* ---------- the shared header ----------
    header({game:'Countries', coord:'Daily #12', menu:'<button…>'}): "‹ geomingo", GeoPass and theme on top,
    then the game's own bar: its name (goes to the game's home screen, id="brand"), its trip number, Menu.
@@ -194,6 +203,6 @@ function openPass(){const p=pass(),n=p.n,k=dayKey(),s=streak(),today=p.list.filt
 function mini(list,cols){return '<div class="gm-mini" style="grid-template-columns:repeat('+cols+',16px)" aria-hidden="true">'+list.map(x=>'<i class="'+(x?'ok':'')+'"></i>').join('')+'</div>'}
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
-  days,streak,pass,stamp,stamps,stampsToday,stampHTML,openPass,mingo,hello,header,passBtn,themeBtn,toggleTheme,currentTheme,
+  days,streak,pass,stamp,stamps,stampsToday,stampHTML,openPass,mingo,hello,tk,ticket,traveller,header,passBtn,themeBtn,toggleTheme,currentTheme,
   resultWindow,openWindow,closeWindow,mini,esc,refreshPass,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();

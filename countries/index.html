@@ -19,7 +19,7 @@
 <link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
-<script src="../brand/mingo.js?v=202610251800"></script>
+<script src="../brand/mingo.js?v=202610251900"></script>
 <script src="../brand/account.js?v=202610250900"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -66,24 +66,6 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .status{display:flex;align-items:center;gap:10px;background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:10px 12px;box-shadow:var(--shadow);position:relative;overflow:hidden}
 .status .who{font-weight:700;font-size:1.1rem;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .status .sub{font-family:var(--mono);font-size:.75rem;color:var(--ink-2)}
-/* the game's ticket: Mingo's message on top, a tear line, then the stub with the numbers */
-.ticket{background:var(--page);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);position:relative;overflow:hidden}
-.ticket .gm-hello{padding:12px 14px 4px;align-items:center;gap:8px}
-.ticket .gm-bubble{margin:0;padding:0;border:0;border-radius:0;background:none}
-.ticket .gm-bubble b{font-size:19px}
-.tk-tear{border-top:2px dashed var(--line);margin:6px 14px 0;position:relative}
-.tk-tear::before,.tk-tear::after{content:"";position:absolute;top:-11px;width:20px;height:20px;border-radius:50%;background:var(--bg);border:1px solid var(--line)}
-.tk-tear::before{left:-25px}.tk-tear::after{right:-25px}
-.tk-stub{display:flex;flex-wrap:wrap;gap:6px 4px;padding:8px 6px 10px}
-.tk-c{flex:1 1 0;min-width:58px;display:flex;flex-direction:column;gap:2px;padding:4px 8px;border-radius:8px;border:1px solid transparent}
-.tk-c.tk-name{flex-grow:1.4;min-width:0}
-.tk-c i{font-style:normal;font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--ink-2);text-transform:uppercase;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tk-c b{font-family:var(--display);font-weight:800;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tk-c.tk-pts b{color:var(--gold)} .tk-c.tk-gs b{color:var(--coral)}
-.tk-c.pl{min-width:72px}
-.tk-c.pl i{text-transform:none;letter-spacing:.02em;font-size:12px}
-.tk-c.pl .pin{width:10px;height:10px}
-.tk-c.pl.on{border-color:var(--ink)} .tk-c.pl.off{opacity:.45}
 .tbar{position:absolute;left:0;bottom:0;height:3px;background:var(--sea);transition:width .25s linear}
 .scores{display:flex;flex-wrap:wrap;gap:6px}
 .chip{display:flex;align-items:center;gap:6px;border:1px solid var(--rule);border-radius:999px;padding:4px 10px 4px 8px;font-weight:600;font-size:.9rem;background:var(--sheet)}
@@ -337,7 +319,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .b3 .cell.flag .gm-stamp .sn{font-size:14px!important}
 .b5 .cell.flag .gm-stamp .sn{font-size:10px!important}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610251000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610251900">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -1565,12 +1547,12 @@ function gameView(){
       :S.mode==='online'?Geomingo.hello('pass',S.turn===S.me?'Your turn.':'Waiting for '+p.name+'…','Name a country that fits its row and its column.')
       :S.mode==='versus'?Geomingo.hello('pass',p.name+', your turn.','Name a country that fits its row and its column.')
       :Geomingo.hello('pass',S.n*S.n+' stamps to win.','Each country must match its row and its column.');
-    const cell=(k,v,c)=>`<div class="tk-c${c?' '+c:''}"><i>${k}</i><b>${v}</b></div>`;
+    const cell=Geomingo.tk;
     const time=S.timer?cell('Time',`<span id="tleft">${S.timer}s</span>`):'';
     const stub=S.mode==='solo'
       ?cell('Traveller',esc(S.players[0].name),'tk-name')+cell('Class',DLABEL[S.diff||'normal'])+cell('Points',liveScore(0),'tk-pts')+cell('Guesses',S.guesses,'tk-gs')+time
       :S.players.map((q,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${q.on===false?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(q.name)}</i><b>${liveScore(i)}</b></div>`).join('')+time;
-    h+=`<section class="ticket">${say}<div class="tk-tear" aria-hidden="true"></div><div class="tk-stub">${stub}</div>${S.timer?'<span class="tbar" style="width:100%"></span>':''}</section>`;
+    h+=Geomingo.ticket(say,stub,{timer:S.timer});
   }
   h+=`<div class="board-wrap"><div class="board b${n}" lang="en" style="grid-template-columns:repeat(${n+1},minmax(0,1fr))">`;
   h+=cornerHTML(S.daily?S.day:0,S.code);

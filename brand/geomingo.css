@@ -100,6 +100,24 @@ svg.mingo{display:block;flex-shrink:0;overflow:visible}
 .gm-bubble span{font-size:14px;color:var(--muted)}
 .gm-bubble.good b{color:var(--green)} .gm-bubble.bad b{color:var(--red)}
 .gm-bubble.pop{animation:gm-pop .3s ease}
+/* the in-game ticket (Geomingo.ticket): Mingo's message on top, a tear line, then the stub with the game's numbers */
+.ticket{background:var(--page);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.ticket .gm-hello{padding:12px 14px 4px;align-items:center;gap:8px}
+.ticket .gm-bubble{margin:0;padding:0;border:0;border-radius:0;background:none}
+.ticket .gm-bubble b{font-size:19px}
+.tk-tear{border-top:2px dashed var(--line);margin:6px 14px 0;position:relative}
+.tk-tear::before,.tk-tear::after{content:"";position:absolute;top:-11px;width:20px;height:20px;border-radius:50%;background:var(--bg);border:1px solid var(--line)}
+.tk-tear::before{left:-25px}.tk-tear::after{right:-25px}
+.tk-stub{display:flex;flex-wrap:wrap;gap:6px 4px;padding:8px 6px 10px}
+.tk-c{flex:1 1 auto;min-width:58px;display:flex;flex-direction:column;gap:2px;padding:4px 8px;border-radius:8px;border:1px solid transparent}
+.tk-c.tk-name{flex-grow:1.4;min-width:0;max-width:40%}
+.tk-c i{font-style:normal;font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--ink-2);text-transform:uppercase;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tk-c b{font-family:var(--display);font-weight:800;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tk-c.tk-pts b{color:var(--gold)} .tk-c.tk-gs b{color:var(--coral)}
+.tk-c.pl{min-width:72px}
+.tk-c.pl i{text-transform:none;letter-spacing:.02em;font-size:12px}
+.tk-c.pl .pin{width:10px;height:10px}
+.tk-c.pl.on{border-color:var(--ink)} .tk-c.pl.off{opacity:.45}
 @keyframes gm-pop{0%{transform:translateY(4px);opacity:.4}100%{transform:none;opacity:1}}
 
 /* the games list (home page): one line per game, with its trip number */
