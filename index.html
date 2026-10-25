@@ -177,8 +177,12 @@ function geo(){const L=ledger(),k=G.dayKey();let miles=0,games=0;
 /* ---- the page ---- */
 const set=(id,h)=>{const el=document.getElementById(id);if(el&&el.innerHTML!==h)el.innerHTML=h}; // redraw only what changed (keeps keyboard focus)
 // the tile of a game; one more tile keeps the place of the next game ("Coming soon")
+// the line under a played game: what the result is, then the result
+const DONE_WORD={borderline:'Score',citygrid:'Score',connections:'Groups',top10:'Found',silhouette:'Found'};
+function doneLine(id,label){if(id==='connections'&&label==='Solved')label='4/4';
+  return /\d/.test(label)&&DONE_WORD[id]?DONE_WORD[id]+' · '+esc(label):esc(label)}
 function tile(g,P){const r=G.result(g.id),lk=look(g.id),mi=P.today[g.id];
-  const state=r.done?'✓ '+(mi!=null?'+'+mi+' KM':esc(r.label)):'TO VISIT',hint=r.done?'Visited · '+esc(r.label):esc(g.hint);
+  const state=r.done?'✓ '+(mi!=null?'+'+mi+' KM':esc(r.label)):'TO VISIT',hint=r.done?doneLine(g.id,r.label):esc(g.hint);
   const lab='aria-label="'+esc(g.name)+', trip '+g.gate+': '+(r.done?'played today, '+esc(r.label):'play')+'"';
   return '<li><a class="tile" href="'+g.href+'" style="--c:'+lk.c+'" '+lab+'><span class="tt"><span>TRIP '+g.gate+'</span><span class="s2">'+state+'</span></span>'+lk.svg+
     '<b>'+esc(g.name)+'</b><small>'+hint+'</small><span class="s3">'+state+'</span></a></li>'}
