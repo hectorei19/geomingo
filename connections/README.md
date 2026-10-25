@@ -4,7 +4,7 @@ Part of [Geomingo](https://geomingo.com/). Colours, fonts, Mingo, the header and
 
 Geography puzzle: 16 countries, four hidden groups of four. Pick four that share a category (a region, a flag, a language, a name...) and submit. Four mistakes and the game ends. Colours go from easiest to trickiest: yellow, green, blue, purple.
 
-Part of [Geomingo](https://geomingo.com/), daily geography games: [Countries](https://geomingo.com/countries/), [Cities](https://geomingo.com/cities/), [Connections](https://geomingo.com/connections/) and [Top 10](https://geomingo.com/top10/).
+Part of [Geomingo](https://geomingo.com/), daily geography games: [Countries](https://geomingo.com/countries/), [Capitals](https://geomingo.com/capitals/), [Connections](https://geomingo.com/connections/) and [Top 10](https://geomingo.com/top10/).
 
 - The page opens on today's puzzle, as Countries (formerly Country Grid) opens on today's grid: tap a country to start.
 - Today's puzzle: the same for everyone, new at midnight CET (Spain), one try. Solo: unlimited practice puzzles; a shared practice link (`?p=123`) opens the same puzzle.

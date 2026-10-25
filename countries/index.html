@@ -19,7 +19,7 @@
 <link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
-<script src="../brand/mingo.js?v=202610250900"></script>
+<script src="../brand/mingo.js?v=202610251530"></script>
 <script src="../brand/account.js?v=202610250900"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1155,7 +1155,7 @@ async function joinRoom(raw){
     const res=await ref.transaction(r=>{
       if(!r)return r;
       r.players=r.players||{};
-      // Countries' rooms carry no game name; the other games' rooms (Cities, Connections, Top 10, Silhouette) do
+      // Countries' rooms carry no game name; the other games' rooms (Capitals, Connections, Top 10, Silhouette) do
       if(r.game){why='other';return}
       if(r.v&&r.v!==APP_VERSION){why='version';return}
       if(r.players[ME]){r.players[ME].name=roomName();r.players[ME].on=true;if(USER)r.players[ME].uid=USER.uid;return r}

@@ -6,7 +6,7 @@
    - the GeoPass (users/<uid>/pass) and the days you played (users/<uid>/days), for every game
    - the daily results of Connections, Top 10 and Silhouette (users/<uid>/hist/<game>/<date>), and each one joins
      that game's public daily ranking (lb/<game>/<date>/<uid>); only the account's first try of the day counts.
-   Countries and Cities keep their own sign-in code (same account, same name); here they only get the header button,
+   Countries and Capitals keep their own sign-in code (same account, same name); here they only get the header button,
    the GeoPass and the days. Signing out leaves the device clean: every game's saves go, the account keeps them.
    Everything lives in Geomingo.account. */
 (function(){
@@ -23,7 +23,7 @@ const put=(k,v)=>ls.set(k,JSON.stringify(v));
 const esc=G.esc;
 // hidden test mode (?test&day=…): nothing is saved to the account or the rankings
 const TEST=(()=>{try{return new URLSearchParams(location.search).has('test')}catch(e){return false}})();
-// Countries and Cities run their own sign-in screens (name, banner); the other pages use the ones here
+// Countries and Capitals run their own sign-in screens (name, banner); the other pages use the ones here
 let OWN=false;
 
 /* ---- each game's daily saves on this device, as the account sees them ----
@@ -101,7 +101,7 @@ function saveName(v){const n=String(v||'').trim().slice(0,16);if(!n){say('Type a
 
 /* ---- keeping the account and this device in step ---- */
 function syncAll(){if(!uid()||!db)return;syncPass();syncDays();if(!OWN){Object.keys(ADAPT).forEach(syncGame);syncGrid('daily','bl-hist');syncGrid('cities/daily','cc-hist')}}
-// Countries and Cities keep their days in the account themselves (users/<uid>/daily, users/<uid>/cities/daily), but only
+// Countries and Capitals keep their days in the account themselves (users/<uid>/daily, users/<uid>/cities/daily), but only
 // when you open them: here (the home page, the other games) the account's days are copied to this device too,
 // so a grid played on another device shows as played everywhere at once. Only the stats line, never the whole game (j).
 function syncGrid(path,key){const id=uid();

@@ -241,7 +241,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--ink);background:var(--
 .hrank b{color:var(--coral-text)}
 .testbar{border-radius:8px}
 
-/* the grid (Countries, Cities): dashed squares; a right answer is a stamp with its flag */
+/* the grid (Countries, Capitals): dashed squares; a right answer is a stamp with its flag */
 .board{gap:6px;background:transparent;border:0;border-radius:0;box-shadow:none}
 .board.b5{gap:4px}
 .hd{border:0!important;border-radius:8px;background:none}
@@ -265,7 +265,7 @@ button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
 .cell.miss{border-style:solid;border-color:var(--line);background:none;opacity:.6}
 .cell.flag{border:0;padding:0;background:none;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:default}
 /* a right answer on the grid: a straight passport stamp that is the whole square, in an ink colour (in rooms the owner's colour).
-   Countries: the flag fills the stamp and the name, code and points sit on a dark band at the bottom. Cities: the name, centred. */
+   Countries: the flag fills the stamp and the name, code and points sit on a dark band at the bottom. Capitals: the name, centred. */
 .cell.flag .gm-stamp{position:absolute;inset:0;width:auto;--r:0deg;transform:none;opacity:1;border-radius:8px;padding:3px 2px;gap:2px;justify-content:safe center;overflow:hidden}
 .cell.flag .gm-stamp b{line-height:1}
 .cell.flag .gm-stamp small{font-size:11px;white-space:nowrap;letter-spacing:-.02em}
