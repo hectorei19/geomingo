@@ -19,7 +19,7 @@
 <link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
-<script src="../brand/mingo.js?v=202610251800"></script>
+<script src="../brand/mingo.js?v=202610251900"></script>
 <script src="../brand/account.js?v=202610251930"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -301,7 +301,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .respanel .gm-hello{margin:-4px 0 -6px}
 .corner .mingo{width:auto;height:88%}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610251000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610251900">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -1336,17 +1336,23 @@ function setupView(){
 }
 function gameView(){
   const n=S.n;let h='';
-  if(!S.over){
-    const p=S.players[S.turn];
-    h+=`<div class="status"><span class="pin" style="${S.mode==='solo'?'background:var(--sea)':pinStyle(S.turn)}"></span><span class="who">${S.mode==='solo'?esc(S.players[0].name)+"'s grid":S.mode==='online'?(S.turn===S.me?'Your turn':'Waiting for '+esc(p.name)):esc(p.name)+"'s turn"}</span><span class="sub">${DLABEL[S.diff||'normal']} · ${S.mode==='solo'?liveScore(0)+' pts · '+S.guesses+' guesses':''}${S.timer?` <span id="tleft">${S.timer}s</span>`:''}</span>${S.timer?'<span class="tbar" style="width:100%"></span>':''}</div>`;
-  }
-  if(S.mode!=='solo')h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${!S.over&&i===S.turn?'on':''} ${p.on===false?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${S.over?p.score:liveScore(i)}</b></span>`).join('')}</div>`;
-  if(S.over)h+=resultsView();
-  else{const m=mood&&mood.g===gameKey()?mood:null,p=S.players[S.turn];
-    h+=m?Geomingo.hello(m.pose,m.t,m.s)
+  if(S.over){
+    if(S.mode!=='solo')h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${p.on===false?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${p.score}</b></span>`).join('')}</div>`;
+    h+=resultsView();
+  }else{
+    // one ticket, as in Countries: Mingo's message on top, the game's numbers on the stub below the tear line
+    const m=mood&&mood.g===gameKey()?mood:null,p=S.players[S.turn];
+    const say=m?Geomingo.hello(m.pose,m.t,m.s)
       :S.mode==='online'?Geomingo.hello('pass',S.turn===S.me?'Your turn.':'Waiting for '+p.name+'…','Name a capital that fits its row and its column.')
       :S.mode==='versus'?Geomingo.hello('pass',p.name+', your turn.','Name a capital that fits its row and its column.')
-      :Geomingo.hello('pass',S.n*S.n+' stamps to win.','Each capital must match its row and its column. '+S.guesses+' guesses.')}
+      :Geomingo.hello('pass',S.n*S.n+' stamps to win.','Each capital must match its row and its column.');
+    const cell=Geomingo.tk;
+    const time=S.timer?cell('Time',`<span id="tleft">${S.timer}s</span>`):'';
+    const stub=S.mode==='solo'
+      ?cell('Traveller',esc(S.players[0].name),'tk-name')+cell('Class',DLABEL[S.diff||'normal'])+cell('Points',liveScore(0),'tk-pts')+cell('Guesses',S.guesses,'tk-gs')+time
+      :S.players.map((q,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${q.on===false?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(q.name)}</i><b>${liveScore(i)}</b></div>`).join('')+time;
+    h+=Geomingo.ticket(say,stub,{timer:S.timer});
+  }
   h+=`<div class="board-wrap"><div class="board b${n}" lang="en" style="grid-template-columns:repeat(${n+1},minmax(0,1fr))">`;
   h+=cornerHTML(S.daily?S.day:0);
   S.cols.forEach((k,j)=>h+=`<div class="hd col" data-info="${k}" role="button" tabindex="0" aria-label="${esc(CATS[k].label)}: explain"><span class="ref">${colRef(j)}</span><span class="ht">${titleWithInfo(CATS[k].short)}</span></div>`);

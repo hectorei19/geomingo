@@ -26,7 +26,7 @@
 <link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
-<script src="../brand/mingo.js?v=202610251800"></script>
+<script src="../brand/mingo.js?v=202610251900"></script>
 <script src="../brand/account.js?v=202610251930"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -64,7 +64,7 @@
 .lives i{background:var(--flamingo)}
 .lives .cnt{font-family:var(--body);font-weight:800}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202610251000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610251900">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -380,10 +380,10 @@ function statsHTML(){const h=load('t10-hist',{}),days=Object.keys(h),tot=days.re
 const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
 const seg=(name,opts,val)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-seg="${name}" data-v="${v}" aria-pressed="${String(v)===String(val)}">${l}</button>`).join('')}</div>`;
 // the list being played: its title, the lives (or whose turn it is), the search box, the ten rows and the wrong answers
-function askHTML(){const l=listById(S.list),on=S.mode==='online';
+function askHTML(tkt){const l=listById(S.list),on=S.mode==='online';
   let h=`<p class="t10q">${esc(l.title)}</p>${S.top.length>10?`<p class="hint" style="margin:0">${S.top.length} countries share the places down to 10th: any of them counts. Find 10 to win.</p>`:''}<button class="linkbtn" id="src" style="align-self:flex-start;padding:0">Where the numbers come from</button>`;
   if(S.over)return h;
-  if(!on)h+=`<div class="lives" aria-label="${S.lives} lives left">Lives ${Array.from({length:LIVES},(_,i)=>`<i class="${i<S.lives?'':'off'}"></i>`).join('')}<span class="cnt">${S.found.length}/10 found</span></div>`;
+  if(!on&&!tkt)h+=`<div class="lives" aria-label="${S.lives} lives left">Lives ${Array.from({length:LIVES},(_,i)=>`<i class="${i<S.lives?'':'off'}"></i>`).join('')}<span class="cnt">${S.found.length}/10 found</span></div>`;
   if(!on||S.turn===S.me)h+=`<div class="t10in"><input id="q" placeholder="Type a country…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(query)}" aria-label="Type a country"><ul class="sugg" id="sugg">${suggHTML()}</ul></div>`;
   if(on&&S.turn===S.me)h+=`<button class="ghost" id="opass" style="align-self:flex-start">Pass</button>`;
   if(!on)h+=giveUpHTML();
@@ -435,8 +435,12 @@ function lobbyHTML(){const r=room,order=lobbyOrder(r),link=pageLink('?room='+roo
     <button class="ghost" id="leave">Leave room</button></section>`}
 function onlineHTML(){const cur=S.players[S.turn]||{};
   let h=header('Top <span>10</span>','room '+roomCode);
-  if(!S.over)h+=`<div class="status"><span class="pin" style="${pinStyle(S.turn)}"></span><span class="who">${S.turn===S.me?'Your turn':'Waiting for '+esc(cur.name)}</span><span class="sub">${S.found.length}/10 found${S.timer?` · <span id="tleft">${Math.max(0,Math.ceil((S.deadline-now())/1000))}s</span>`:''}</span>${S.timer?'<span class="tbar" style="width:100%"></span>':''}</div>`;
-  h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${!S.over&&i===S.turn?'on':''} ${!p.on||!p.lives?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${p.score}</b> <span aria-label="${p.lives} lives left">${'♥'.repeat(p.lives)}</span></span>`).join('')}</div>`;
+  if(!S.over){const cell=Geomingo.tk;
+    const say=moodHTML(tKey(),'pass',S.turn===S.me?'Your turn.':'Waiting for '+cur.name+'…',S.found.length+' of 10 found. Name a country in the top 10.');
+    const stub=S.players.map((p,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${!p.on||!p.lives?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)}</i><b>${p.score} <small aria-label="${p.lives} lives left" style="color:var(--coral);font-size:13px">${'♥'.repeat(p.lives)}</small></b></div>`).join('')
+      +(S.timer?cell('Time',`<span id="tleft">${Math.max(0,Math.ceil((S.deadline-now())/1000))}s</span>`):'');
+    h+=Geomingo.ticket(say,stub,{timer:S.timer})}
+  else h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${!p.on||!p.lives?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${p.score}</b></span>`).join('')}</div>`;
   if(S.over){const rk=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score||a.miss-b.miss),best=rk[0],tie=rk.length>1&&rk[1].score===best.score&&rk[1].miss===best.miss;
     h+=`<section class="panel"><span class="label">Room ${roomCode}</span><p class="big">${tie?"It's a tie":esc(best.name)+' wins'}</p>
       <p class="hint">${S.won?'All ten found.':`${S.found.length} of 10 found. The full list is below.`} ${rk.map(p=>`${esc(p.name)} ${p.score}`).join(' · ')}</p>
@@ -457,8 +461,11 @@ function render(){
   let h=header('Top <span>10</span>',S.mode==='daily'?'Daily #'+S.num:'Solo');
   h+=`<div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">${S.mode==='daily'?"Today's list":'Solo'}</span></div>`;
   if(S.over)h+=resultHTML();
-  else h+=moodHTML(tKey(),'pass','10 stamps to win.','In any order. A country outside the top 10 costs a life. '+livesTxt());
-  h+=`<section class="panel">${askHTML()}</section>${listHTML()}`;
+  else{const cell=Geomingo.tk;
+    // the ticket, as in every game: Mingo on top, then who is travelling, countries found and lives left
+    h+=Geomingo.ticket(moodHTML(tKey(),'pass','10 stamps to win.','In any order. A country outside the top 10 costs a life.'),
+      cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Found',S.found.length+'/10','tk-pts')+cell('Lives',S.lives,'tk-gs'))}
+  h+=`<section class="panel">${askHTML(true)}</section>${listHTML()}`;
   if(!S.over)h+=quickRules();
   app.innerHTML=h;bind();
 }
