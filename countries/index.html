@@ -1520,8 +1520,9 @@ function homeView(){
     <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to 6 players.</span></button>
     </div>
   </section>
-  <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name a country that fits its row <em>and</em> its column, each country once per grid. Tap <span class="ib">i</span> to see what a category means. Full rules in <b>How to play</b>.</p></section>`;
+  ${QRULES}`;
 }
+const QRULES=`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name a country that fits its row <em>and</em> its column, each country once per grid. Tap <span class="ib">i</span> to see what a category means. Full rules in <b>How to play</b>.</p></section>`;
 function setupView(){
   if(screen==='home')return homeView();
   const fr=screen==='friends';
@@ -1588,7 +1589,7 @@ function gameView(){
   });
   h+=`</div></div>`;
   ui.fresh=-1;
-  if(!S.over)h+=(S.mode==='solo'||(S.mode==='online'&&S.turn!==S.me)?'':'<div class="actions"><button class="ghost" id="pass">Pass turn</button></div>')+`<button class="linkbtn giveup" id="giveup">${S.mode==='solo'?'Give up':'End game'}</button>`;
+  if(!S.over)h+=(S.mode==='solo'||(S.mode==='online'&&S.turn!==S.me)?'':'<div class="actions"><button class="ghost" id="pass">Pass turn</button></div>')+`<button class="linkbtn giveup" id="giveup">${S.mode==='solo'?'Give up':'End game'}</button>`+QRULES;
   else h+=answersView();
   return h;
 }
