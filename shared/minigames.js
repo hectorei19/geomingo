@@ -30,7 +30,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('dok'))layer.inne
 // name and the Menu. Tapping the game's name goes back to its home screen (each page defines goHome).
 const MICONS={menu:'M4 6h16M4 12h16M4 18h16',games:'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',help:'M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18M12 17v.01M12 13.5a1.5 1.5 0 0 1 1-1.5a2.6 2.6 0 1 0-3-4',
   stats:'M4 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1M10 8h4a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1M16 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1',
-  credits:'M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0M3 6v13M12 6v13M21 6v13'};
+  credits:'M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0M3 6v13M12 6v13M21 6v13',
+  archive:'M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2M16 3v4M8 3v4M4 11h16'};
 const mico=k=>`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="${MICONS[k]}"/></svg>`;
 const menuBtn=()=>`<button class="helpbtn" id="menu" aria-haspopup="true" aria-expanded="false">${mico('menu')}Menu</button>`;
 // the name you play with in Countries (same site, so the same device storage); Guest otherwise
@@ -56,13 +57,41 @@ function drawMenu(open){let box=$('menulayer');
   const b=$('menu');if(b)b.setAttribute('aria-expanded',open?'true':'false');
   if(!open){box.innerHTML='';return}
   const it=(k,label)=>`<button class="mitem" data-menu="${k}">${mico(k)}${label}</button>`;
-  box.innerHTML=`<div class="menuscrim" id="menuscrim"></div><nav class="menubox" aria-label="Menu" style="top:${Math.round((b?b.getBoundingClientRect().bottom:54)+4)}px">${it('help','How to play')}${it('stats','My stats')}${it('credits','Credits &amp; data sources')}${it('games','All Geomingo games')}</nav>`;
+  box.innerHTML=`<div class="menuscrim" id="menuscrim"></div><nav class="menubox" aria-label="Menu" style="top:${Math.round((b?b.getBoundingClientRect().bottom:54)+4)}px">${it('help','How to play')}${typeof openArchive==='function'?it('archive','Archive'):''}${it('stats','My stats')}${it('credits','Credits &amp; data sources')}${it('games','All Geomingo games')}</nav>`;
   $('menuscrim').onclick=()=>drawMenu(false);
   box.querySelectorAll('[data-menu]').forEach(m=>m.onclick=()=>{const k=m.dataset.menu;drawMenu(false);
     if(k==='help')dialog('How to play',rulesHTML());
+    else if(k==='archive')openArchive();
     else if(k==='stats')dialog('My stats',`<p class="hint">Your daily games, kept on this device.</p>${statsHTML()}`);
-    else if(k==='credits')dialog('Credits &amp; data sources',typeof creditsHTML==='function'?creditsHTML():`<p>The countries, flags, categories and figures are the same ones Countries uses, with the same sources.</p><p>The full list of sources is in Countries: <a href="../countries/">open Countries</a> and tap <b>Menu → Credits &amp; data sources</b>.</p><p>Fonts: Archivo, Public Sans and Courier Prime (Google Fonts, SIL Open Font License).</p>`);
+    else if(k==='credits')openCredits();
     else if(k==='games')location.href=Geomingo.HOME})}
+// the sources of the countries' data (the same as Countries'), told here so nobody has to open another game
+const DATA_CREDITS=`<ul style="padding-left:18px">
+  <li>Country data (names, borders, regions, area, languages, currencies, capitals): <a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a>, under the Open Database License (ODbL) 1.0, with a few corrections by hand.</li>
+  <li>Population, development, economy, politics, geography and sport figures: Wikipedia lists (CC BY-SA 4.0), downloaded in October 2026, which cite the UN, the UNDP, the World Bank and the CIA World Factbook among others.</li>
+  <li>Flag colours and symbols, seas, memberships and sporting hosts: compiled by hand from public sources, correct as of October 2026.</li>
+  <li>Flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a> (MIT License).</li>
+  <li>Fonts: Archivo, Public Sans and Courier Prime (Google Fonts, SIL Open Font License).</li>
+  <li>Online play and rankings: <a href="https://firebase.google.com" target="_blank" rel="noopener">Firebase</a>. Only room codes, player names, results and moves are stored.</li></ul>`;
+function openCredits(){dialog('Credits &amp; data sources',typeof creditsHTML==='function'?creditsHTML():DATA_CREDITS)}
+// the footer's "Credits & data sources", as in every game
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#creditsbtn'))openCredits()});
+/* ---- archive: past daily games, one try each, kept on this device ----
+   o: {first: the first day, played: day => what you did on its day (or null), saved: day => the archive game (or null),
+   num: day => its number, label: 'Puzzle', done: game => [result text, squares HTML]} */
+function archDates(first,playedToday){const out=[],end=Date.parse(todayKey()+'T12:00Z');let d=Date.parse(first+'T12:00Z');
+  while(d<end){out.push(new Date(d).toISOString().slice(0,10));d+=864e5}
+  if(playedToday&&!TESTDAY)out.push(todayKey());return out.reverse()}
+function archiveHTML(o){const items=archDates(o.first,o.played(todayKey())).map(k=>{const n=o.num(k),g=o.saved(k),p=o.played(k),
+      date=new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
+    let st,sq='';
+    if(g&&g.over){const [t,q]=o.done(g);st=`<span class="as done">${t}</span>`;sq=q||''}
+    else if(p)st=`<span class="as done">${esc(p)}</span>`;
+    else st=`<span class="as">${g?'In progress':'Play'}</span>`;
+    return `<li><button data-arch="${k}"><span class="an">#${n}</span><span class="ad"><b>${o.label} #${n}</b><small>${date}</small></span>${sq}${st}</button></li>`}).join('');
+  return `<section class="panel"><div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Archive</span></div>
+    <p class="hint">Play the daily ${o.label.toLowerCase()}s you missed. The ones you played on their day are already done. One try each, on this device. Archive games don't count for the daily ranking or your streak.</p>
+    ${items?`<ul class="arch">${items}</ul>`:`<p class="hint">No past ${o.label.toLowerCase()}s yet. Come back tomorrow.</p>`}</section>`}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#menu,#brand');if(!t)return;
   if(t.id==='menu')drawMenu(!document.querySelector('#menulayer .menubox'));else if(typeof goHome==='function')goHome()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('#menulayer .menubox'))drawMenu(false);
@@ -81,3 +110,9 @@ const pageLink=q=>location.origin+location.pathname+(q||'');
 const giveUpHTML=()=>`<button class="linkbtn giveup" id="giveup">Give up</button>`;
 function bindGiveUp(end){const b=$('giveup');if(!b)return;
   b.onclick=()=>{if(b.dataset.armed){end();return}b.dataset.armed='1';b.textContent='Tap again to give up'}}
+// the three numbers under every daily result (and in My stats): days played, the average result, the streak
+const statTiles=(played,avg,streak)=>`<div class="stgrid"><div class="st"><b>${played}</b><span>played</span></div><div class="st"><b>${avg}</b><span>average</span></div><div class="st"><b>${streak}</b><span>streak</span></div></div>`;
+// lives on the ticket: pink dots, the ones used empty (the same in Connections, Top 10 and Silhouette)
+const livesHTML=(left,all)=>`<span class="tk-dots" aria-label="${left} ${left===1?'life':'lives'} left">${Array.from({length:all},(_,i)=>`<i class="${i<left?'':'off'}"></i>`).join('')}</span>`;
+// the same three numbers, small, on the home screen's card of today's game once it is done
+const dstatsHTML=(streak,played,avg)=>`<span class="dstats"><span><b>${streak}</b>streak</span><span><b>${played}</b>played</span><span><b>${avg}</b>average</span></span>`;

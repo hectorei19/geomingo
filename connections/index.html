@@ -20,11 +20,11 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
 <script src="../brand/mingo.js?v=202610251900"></script>
-<script src="../brand/account.js?v=202610251930"></script>
+<script src="../brand/account.js?v=202610252300"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="../shared/style.css?v=202610240100">
+<link rel="stylesheet" href="../shared/style.css?v=202610252300">
 <style>
 /* Connections: 16 tiles in a 4 × 4 grid; found groups become coloured bars on top */
 .cx-board{display:flex;flex-direction:column;gap:8px}
@@ -84,12 +84,12 @@
 </head>
 <body>
 <div class="wrap" id="app"></div>
-<footer class="foot"><a class="linkbtn" href="../countries/">Data and sources: Credits in Countries</a></footer>
+<footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
 <script src="../shared/data.js?v=202610192300"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202610251400"></script>
+<script src="../shared/minigames.js?v=202610252300"></script>
 <!-- With friends: online rooms in Countries' Firebase Realtime Database -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -177,9 +177,10 @@ const NARROW=CATS.filter(k=>!SKIP.has(k.label)).sort((a,b)=>sizeOf(a)-sizeOf(b))
 function sharedCategory(S,cs){if(S.v>=3)return null;const used=new Set(S.groups.map(g=>g.k)),ids=cs.map(c=>byCode[c].i);
   return NARROW.find(k=>!used.has(k.id)&&ids.every(i=>k.set[i]))}
 // a game: the puzzle plus what happened (groups found in order, every guess, mistakes)
-function newGame(mode,seed){const v=verOf(mode,todayKey()),p=buildPuzzle(seed,v);if(!p)return null;
+function newGame(mode,seed,day){const date=day||todayKey(),dated=mode==='daily'||mode==='archive';
+  const v=verOf(dated?'daily':mode,date),p=buildPuzzle(seed,v);if(!p)return null;
   const S={v,mode,seed,groups:p.groups,left:p.order,found:[],guesses:[],mistakes:0,over:false,won:false};
-  if(mode==='daily'){S.date=todayKey();S.num=dayNum(S.date,CX_FIRST)}
+  if(dated){S.date=date;S.num=dayNum(S.date,CX_FIRST)}
   return S}
 const groupOf=(S,c)=>S.groups.findIndex(g=>g.m.includes(c));
 
@@ -191,11 +192,29 @@ function save(){if(!S)return;
   if(S.mode==='online'){if(S.over&&S.ms==null)S.ms=Math.max(0,now()-((room&&room.startAt)||now()));
     keep('cx-online',{code:S.code,round:S.round,S});pushProgress();return}
   if(S.mode==='daily'){store('cx-daily',{date:S.date,over:S.over,S});
-    if(S.over){const h=load('cx-hist',{});if(!h[S.date]){h[S.date]={w:S.won?1:0,m:S.mistakes};store('cx-hist',h);if(!TESTDAY)Geomingo.account.done('connections')}}}
+    if(S.over){const h=load('cx-hist',{});if(!h[S.date]){h[S.date]={w:S.won?1:0,m:S.mistakes,f:S.found.length};store('cx-hist',h);if(!TESTDAY)Geomingo.account.done('connections')}}}
+  else if(S.mode==='archive'){const a=load('cx-arch',{});a[S.date]=S;store('cx-arch',a)}
   else store('cx-free',S)}
 function openDaily(){view='game';mode='daily';S=dailySaved()||dailyPreview();sel=[];render()}
 function openFree(seed){view='game';mode='free';const f=load('cx-free',null);
-  S=seed==null&&f&&!f.over?f:newGame('free',seed==null?Math.floor(Math.random()*1e9):seed);sel=[];save();render()}
+  S=seed==null&&f&&!f.over?f:newGame('free',seed==null?Math.floor(Math.random()*1e9):seed);sel=[];save();render();window.scrollTo(0,0)}
+// Solo: a screen to start from, as in every game (an unfinished practice puzzle can be continued)
+function openSolo(){view='solo';render();window.scrollTo(0,0)}
+function soloHTML(){const f=load('cx-free',null),open=f&&!f.over;
+  return header('Connec<span>tions</span>','Solo')+`<section class="panel">
+    <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Solo</span></div>
+    <p class="hint">Practice on unlimited puzzles, at your pace. A new set of 16 countries every game; Share sends a link to the same puzzle.</p>
+    ${open?`<button class="ghost" id="cont">Continue your puzzle (${f.found.length}/4 groups)</button>`:''}
+    <button class="primary" id="start">Start game</button></section>${rulesPanel()}`}
+// the archive: past daily puzzles, one try each on this device
+const archDay=k=>{const e=load('cx-hist',{})[k];return e?(e.w?'Solved':e.f!=null?e.f+'/4 groups':'Played'):null};
+function openArchive(){view='archive';render();window.scrollTo(0,0)}
+function playArchive(k){if(archDay(k)){toast('You played this puzzle on its day.');return}
+  const a=load('cx-arch',{});view='game';mode='archive';
+  S=a[k]||newGame('archive',seedOf('connections-daily-'+k),k);sel=[];save();render();window.scrollTo(0,0)}
+const archSquares=g=>`<span class="dsq" style="grid-template-columns:repeat(4,1fr)" aria-hidden="true">${[0,1,2,3].map(i=>`<i class="${g.found.includes(i)?'g'+g.groups[i].t:''}"></i>`).join('')}</span>`;
+const archiveView=()=>header('Connec<span>tions</span>','Archive')+archiveHTML({first:CX_FIRST,label:'Puzzle',num:k=>dayNum(k,CX_FIRST),
+  played:archDay,saved:k=>load('cx-arch',{})[k]||null,done:g=>[g.found.length+'/4',archSquares(g)]});
 // today's puzzle before it is started, for the home screen
 let dailyCache=null;
 const dailyPreview=()=>{const k=todayKey();if(!dailyCache||dailyCache.date!==k)dailyCache=newGame('daily',seedOf('connections-daily-'+k));return dailyCache};
@@ -204,7 +223,7 @@ const dailyPreview=()=>{const k=todayKey();if(!dailyCache||dailyCache.date!==k)d
    Everyone in a room plays the same puzzle at the same time, each on their own phone, and sees how the others are doing.
    Ranking: solved first, then fewer mistakes, then faster; unsolved by groups found. */
 const FB_OK=typeof firebase!=='undefined'&&!!(window.FIREBASE_CONFIG&&FIREBASE_CONFIG.apiKey);
-const MAX_PLAYERS=8,ROOM_GAME='connections';
+const MAX_PLAYERS=6,ROOM_GAME='connections';
 // these are kept even in test mode (store() skips them there)
 function keep(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 const ME=(()=>{let id=load('cx-pid','');if(!id){id=Math.random().toString(36).slice(2,12);keep('cx-pid',id)}return id})();
@@ -314,18 +333,18 @@ function lobbyHTML(){const r=room,order=lobbyOrder(r),isHost=r.host===ME;
 function friendsHTML(){return header('Connec<span>tions</span>','')+`<section class="panel">
     <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">With friends</span></div>
     <p class="hint">Play online, 2 to ${MAX_PLAYERS} players, each on their own phone. Everyone gets the same puzzle at the same time and sees how the others are doing.</p>
-    <div class="field"><label class="label" for="fname">Your name</label><input class="nameinp" id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(myName)}"></div>
+    <div class="field"><label class="label" for="fname">Your name in the room</label><input class="nameinp" id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(myName)}"></div>
     ${FB_OK?'':'<p class="hint">Online play could not load. Check the connection and reload the page.</p>'}
     <div class="field"><button class="primary" id="create" ${FB_OK?'':'disabled'}>Create room</button></div>
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(joinCode)}" autocomplete="off"><button class="ghost" id="join" ${FB_OK?'':'disabled'}>Join</button></div></div>
-  </section>`}
+  </section>${rulesPanel()}`}
 
 /* ---- moves ---- */
 function tap(c){if(!S||S.over||turning)return;const i=sel.indexOf(c);
   if(i>=0)sel.splice(i,1);else if(sel.length<4)sel.push(c);render()}
 // Mingo's key for the game on screen (his bubble and the summary belong to one game)
 const cxKey=()=>S?S.mode+':'+(S.date||S.seed)+':'+(S.code||'')+':'+(S.round||''):'';
-const leftTxt=()=>{const l=MAX_MISTAKES-S.mistakes;return l+' mistake'+(l===1?'':'s')+' left.'};
+const leftTxt=()=>{const l=MAX_MISTAKES-S.mistakes;return l+' li'+(l===1?'fe':'ves')+' left.'};
 function submit(){if(!S||S.over||turning||sel.length!==4)return;
   const key=sel.slice().sort().join();
   if(S.guesses.some(g=>g.slice().sort().join()===key)){say(cxKey(),'think','Hold on.','You already tried these four. Swap one.');render();return}
@@ -358,10 +377,11 @@ function turnOver(cs,t,done){const els=cs.map(c=>app.querySelector(`.cx-grid [da
 
 /* ---- share ---- */
 function shareText(){const rows=S.guesses.map(g=>g.map(c=>TEMOJI[S.groups[groupOf(S,c)].t]).join(''));
-  const G=Geomingo.share('Connections'),head=S.mode==='daily'?`${G} #${S.num}`:S.mode==='online'?`${G} (with friends)`:`${G} (practice)`;
-  return head+(S.hint?' · categories shown':'')+' — '+(S.won?`solved with ${S.mistakes} mistake${S.mistakes===1?'':'s'}`:`${S.found.length}/4 groups`)+'\n'+rows.join('\n')}
+  const G=Geomingo.share('Connections'),head=S.mode==='daily'?`${G} #${S.num}`:S.mode==='archive'?`${G} #${S.num} (archive)`:S.mode==='online'?`${G} (with friends)`:`${G} (practice)`;
+  const sum=S.groups.map((g,i)=>S.found.includes(i)?TEMOJI[g.t]:'⬜').join('');
+  return head+(S.hint?' · categories shown':'')+' — '+(S.won?`solved with ${S.mistakes} mistake${S.mistakes===1?'':'s'}`:`${S.found.length}/4 groups`)+'\n'+sum+(rows.length?'\n\n'+rows.join('\n'):'')}
 const shareLink=()=>S.mode==='free'?pageLink('?p='+S.seed):pageLink();
-const shareMessage=()=>shareText()+'\n\n'+(S.mode==='daily'?"Play today's puzzle: ":S.mode==='online'?'Play Connections: ':'Play this puzzle: ')+shareLink();
+const shareMessage=()=>shareText()+'\n\n'+(S.mode==='daily'?"Play today's puzzle: ":S.mode==='free'?'Play this puzzle: ':'Play Connections: ')+shareLink();
 
 /* ---- render ---- */
 const groupHTML=(g,miss)=>{const k=CATS[g.k];
@@ -369,8 +389,9 @@ const groupHTML=(g,miss)=>{const k=CATS[g.k];
     <span class="gm">${g.m.map(c=>`<span style="white-space:nowrap"><img class="mini" src="${FLAGS[c]}" alt="">${esc(byCode[c].n)}</span>`).join(' · ')}</span></div>`};
 const tileHTML=(c,attr)=>{const n=byCode[c].n,on=attr==='data-c'&&sel.includes(c);
   return `<button class="tile${on?' on':''}${n.length>12||n.split(' ').some(w=>w.length>10)?' long':''}" ${attr}="${c}" aria-pressed="${on}" lang="en">${esc(n)}</button>`};
-function statsHTML(){const h=load('cx-hist',{}),days=Object.keys(h),won=days.filter(k=>h[k].w).length;
-  return `<div class="stgrid"><div class="st"><b>${days.length}</b><span>played</span></div><div class="st"><b>${days.length?Math.round(won/days.length*100):0}%</b><span>solved</span></div><div class="st"><b>${streakOf(h)}</b><span>streak</span></div></div>`}
+// the average of groups found (days before the count was kept: solved = 4, otherwise not counted)
+function cxAverage(h){const known=Object.values(h).map(e=>e.w?4:e.f).filter(f=>f!=null);return known.length?(known.reduce((a,b)=>a+b,0)/known.length).toFixed(1)+'/4':'–'}
+function statsHTML(){const h=load('cx-hist',{});return statTiles(Object.keys(h).length,cxAverage(h),streakOf(h))}
 const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
 // today's puzzle open on the home screen, as Countries' grid: tapping a country starts (or continues) it with that country picked
 function dailyBoard(d){const g=d||dailyPreview();if(!g)return '';
@@ -378,16 +399,17 @@ function dailyBoard(d){const g=d||dailyPreview();if(!g)return '';
 function homeHTML(){const key=todayKey(),num=dayNum(key,CX_FIRST),d=dailySaved(),h=load('cx-hist',{}),days=Object.keys(h);
   const daily=d&&d.over
     // played: one row per guess in the colours of its groups, like the shared result; tap to see the groups
-    ?`<button class="hcard" id="daily"><span class="hm">Today's puzzle #${num} · done</span><span class="dsum"><span class="dsq" style="grid-template-columns:repeat(4,1fr)" aria-hidden="true">${d.guesses.flat().map(c=>`<i class="g${d.groups[groupOf(d,c)].t}"></i>`).join('')}</span><span class="dtxt"><span class="ht">${d.won?'Solved':d.found.length+' of 4'}</span><span class="hs">${d.won?`${d.mistakes} mistake${d.mistakes===1?'':'s'}`:'groups found'}</span></span><span class="dstats"><span><b>${streakOf(h)}</b>streak</span><span><b>${days.length}</b>played</span><span><b>${days.length?Math.round(days.filter(k=>h[k].w).length/days.length*100):0}%</b>solved</span></span></span><span class="hs">Tap to see the groups and share your result.</span><span class="hm">Next puzzle in ${nextIn()}</span></button>`
+    ?`<button class="hcard" id="daily"><span class="hm">Today's puzzle #${num} · done</span><span class="dsum"><span class="dsq" style="grid-template-columns:repeat(4,1fr)" aria-hidden="true">${d.guesses.flat().map(c=>`<i class="g${d.groups[groupOf(d,c)].t}"></i>`).join('')}</span><span class="dtxt"><span class="ht">${d.won?'Solved':d.found.length+' of 4'}</span><span class="hs">${d.won?`${d.mistakes} mistake${d.mistakes===1?'':'s'}`:'groups found'}</span></span>${dstatsHTML(streakOf(h),days.length,cxAverage(h))}</span><span class="hs">Tap to see the groups and share your result.</span><span class="hm">Next puzzle in ${nextIn()}</span></button>`
     :`<div class="hcard ac"><span class="hm">#${num} · ${dateLabel(key)}</span><span class="ht">Today's puzzle</span><span class="hs">${d?'You started it: tap a country to continue.':'The same 16 countries for everyone, one try. Tap a country to start.'}</span>${dailyBoard(d)}</div>`;
   const st=Geomingo.streak();
-  const hi=d&&d.over?Geomingo.hello(d.won?'happy':'think',d.won?'Stamped for today.'+(st>1?' '+st+'-day streak.':''):'Rough crossing today.',`Today's puzzle is done. Next one in ${nextIn()}.`)
+  const hi=d&&d.over?Geomingo.hello(d.found.length?'happy':'sad',d.found.length?'Stamped for today.'+(st>1?' '+st+'-day streak.':''):'Rough crossing today.',`Today's puzzle is done. Next one in ${nextIn()}.`)
     :d?Geomingo.hello('think','Your puzzle is waiting.','Tap a country to carry on. One try.')
     :Geomingo.hello('pass','GeoPass ready.','Tap a country to start. Every group you find is a stamp. One try, the same 16 for everyone.');
   return header('Connec<span>tions</span>','',true)+`<section class="home">${hi}${Geomingo.account.userHTML()}${daily}${d&&d.over?rankingHTML():''}
     <div class="hrow"><button class="hcard" data-go="free"><span class="ht">Solo</span><span class="hs">Practice on unlimited puzzles, at your pace.</span></button>
     <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to ${MAX_PLAYERS} players.</span></button></div></section>
-    <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something: a region, a flag, a language, a name… Each country is in exactly one group, and only one split works for all 16. Pick four and tap <b>Submit</b>. Four mistakes and the game ends. Full rules in <b>How to play</b>.</p></section>`}
+    ${rulesPanel()}`}
+const rulesPanel=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something: a region, a flag, a language, a name… Each country is in exactly one group, and only one split works for all 16. Pick four and tap <b>Submit</b>. A wrong four costs one of your ${MAX_MISTAKES} lives. Full rules in <b>How to play</b>.</p></section>`;
 // the logo goes home from anywhere; in a room that means leaving it (in the middle of a game, tap twice)
 function goHome(){if(roomRef){if(S&&S.mode==='online'&&!S.over&&!leaveArmed){leaveArmed=true;render();toast('Tap again to leave the room.');return}
     leaveRoom(true);return}
@@ -395,20 +417,22 @@ function goHome(){if(roomRef){if(S&&S.mode==='online'&&!S.over&&!leaveArmed){lea
 function render(keepShake){
   if(view==='home'){app.innerHTML=homeHTML();bind();return}
   if(view==='friends'){app.innerHTML=friendsHTML();bind();return}
+  if(view==='solo'){app.innerHTML=soloHTML();bind();return}
+  if(view==='archive'){app.innerHTML=archiveView();bind();return}
   if(view==='room'&&(!room||room.status!=='play'||!S||S.mode!=='online')){
     app.innerHTML=room?lobbyHTML():header('Connec<span>tions</span>','')+`<section class="panel"><p class="hint">Connecting to the room…</p></section>`;bind();return}
   if(!S){app.innerHTML=header('Connections','')+`<section class="panel"><p class="hint">Could not build a puzzle. Try again later.</p></section>`;bind();return}
   const on=S.mode==='online';
-  const coord=S.mode==='daily'?'Daily #'+S.num:on?'Room '+roomCode:'Solo';
+  const coord=S.mode==='daily'?'Daily #'+S.num:S.mode==='archive'?'Archive #'+S.num:on?'Room '+roomCode:'Solo';
   let h=header('Connec<span>tions</span>',coord);
-  h+=`<div class="backline">${on?`<button class="linkbtn" id="leave">${leaveArmed?'Tap again to leave':'← Leave'}</button>`:'<button class="linkbtn" id="home">← Back</button>'}<span class="ht">${S.mode==='daily'?"Today's puzzle":on?'With friends':'Solo'}</span></div>`;
+  h+=`<div class="backline">${on?`<button class="linkbtn" id="leave">${leaveArmed?'Tap again to leave':'← Leave'}</button>`:`<button class="linkbtn" id="${S.mode==='archive'?'archback':S.mode==='free'?'soloback':'home'}">← Back</button>`}<span class="ht">${S.mode==='daily'?"Today's puzzle":S.mode==='archive'?'Puzzle #'+S.num:on?'With friends':'Solo'}</span></div>`;
   if(on)h+=scoresHTML();
   watchResult(cxKey(),S.over);
   if(S.over)h+=on?roomResultHTML():resultHTML();
   else{const cell=Geomingo.tk,left=MAX_MISTAKES-S.mistakes;
     // the ticket, as in every game: Mingo on top, then who is travelling, groups found and mistakes left
     h+=Geomingo.ticket(moodHTML(cxKey(),'pass','4 stamps to win.','Pick four countries that share something, then Submit.'),
-      cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Groups',S.found.length+'/4','tk-pts')+cell('Mistakes left',left,'tk-gs'))}
+      cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Groups',S.found.length+'/4','tk-pts')+cell('Lives',livesHTML(left,MAX_MISTAKES),'tk-gs'))}
   h+=`<div class="cx-board">`;
   S.found.forEach(g=>h+=groupHTML(S.groups[g]));
   if(S.over)S.groups.forEach((g,i)=>{if(!S.found.includes(i))h+=groupHTML(g,true)});
@@ -416,8 +440,7 @@ function render(keepShake){
   h+=`</div>`;
   if(!S.over){
     h+=`<div class="cx-actions"><button class="ghost" id="shuf">Shuffle</button><button class="ghost" id="desel" ${sel.length?'':'disabled'}>Deselect all</button><button class="primary" id="submit" ${sel.length===4?'':'disabled'}>Submit</button></div>${on?'':giveUpHTML()}
-    ${catsHTML()}
-    <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something: a region, a flag, a language, a name… Each country is in exactly one group, and only one split works for all 16. Pick four and tap <b>Submit</b>. Four mistakes and the game ends.</p></section>`}
+    ${catsHTML()}`}
   app.innerHTML=h;bind();
 }
 // optional help: the names of the four categories, in no particular order (not which country goes where)
@@ -427,14 +450,14 @@ function catsHTML(){if(!S.hint)return `<button class="linkbtn cx-hintbtn" id="hi
 // Mingo's verdict, for the result panel
 function verdict(){const n=S.mistakes;
   return S.won?(n?{pose:'happy',t:'Visited. All four groups.',s:'All four groups, '+n+' mistake'+(n===1?'':'s')+'.'}:{pose:'happy',t:'Full page. Not a single mistake.',s:'All four groups found.'})
-    :{pose:'sad',t:'Rough crossing. Better luck tomorrow.',s:'You found '+S.found.length+' of 4 groups.'}}
-function resultHTML(){const v=verdict();
-  const head=S.won?(S.mistakes?`Solved with ${S.mistakes} mistake${S.mistakes===1?'':'s'}`:'Perfect!'):'Better luck next time';
-  return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Connections #'+S.num:'Practice puzzle'}</span><p class="big">${head}</p>
-    <p class="hint">${S.won?'You found all four groups.':`You found ${S.found.length} of 4 groups.`} ${S.mode==='daily'?`Next puzzle in ${nextIn()}.`:''}</p>
+    :{pose:'sad',t:'Rough crossing, this one.',s:'You found '+S.found.length+' of 4 groups.'}}
+function resultHTML(){const v=verdict(),dated=S.mode==='daily'||S.mode==='archive';
+  return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Connections #'+S.num:S.mode==='archive'?'Archive · Connections #'+S.num:'Solo puzzle'}</span><p class="big">${S.found.length} of 4</p>
+    <p class="hint">${S.won?(S.mistakes?`All four groups, ${S.mistakes} mistake${S.mistakes===1?'':'s'}.`:'All four groups, not a single mistake.'):`You found ${S.found.length} of 4 groups.`} ${S.mode==='daily'?`Next puzzle in ${nextIn()}.`:S.mode==='archive'?"Archive games don't count for the ranking or your streak.":''}</p>
     <pre class="sharebox" id="share">${esc(shareText())}</pre>
     ${S.mode==='daily'?`<div class="row-btns"><button class="ghost" id="copy">Share</button>${nextGameBtn('connections')}</div>
-    <button class="ghost" id="again">Practice puzzle</button>${allPlayedHTML('connections')}`
+    <button class="ghost" id="playsolo">Play Solo</button>${allPlayedHTML('connections')}`
+    :S.mode==='archive'?`<div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="primary" id="archback" style="flex:1">Back to archive</button></div>`
     :`<div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="ghost" id="again" style="flex:1">New puzzle</button></div>`}
     ${S.mode==='daily'?`<span class="label">Your daily puzzles</span>${statsHTML()}`:''}</section>${S.mode==='daily'?rankingHTML():''}`}
 // today's ranking (signed-in players, first try of the day): groups found, then fewer mistakes, then who finished first
@@ -458,7 +481,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Only independent countries appear, never territories.</li></ul>
   <h3>Playing</h3><ul>
   <li>Tap four countries and then <b>Submit</b>. If they share a category, the group is revealed with its name and colour.</li>
-  <li>If not, it costs one of your <b>${MAX_MISTAKES} mistakes</b>. "One away…" means three of the four belong together.</li>
+  <li>If not, it costs one of your <b>${MAX_MISTAKES} lives</b>. "One away…" means three of the four belong together.</li>
   <li><b>Shuffle</b> moves the tiles around; <b>Deselect all</b> clears your choice.</li>
   <li>Colours go from easiest to trickiest: ${TEMOJI.join(' ')} (yellow, green, blue, purple).</li>
   <li>Tap <span class="ib">i</span> on a group to read exactly what its category means. The categories and data are the same as in Countries.</li></ul>
@@ -472,7 +495,13 @@ function bind(){
   app.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>tap(b.dataset.c));
   app.querySelectorAll('[data-dc]').forEach(b=>b.onclick=()=>{openDaily();tap(b.dataset.dc)});
   if($('daily'))$('daily').onclick=openDaily;
-  app.querySelectorAll('[data-go="free"]').forEach(b=>b.onclick=()=>openFree());
+  app.querySelectorAll('[data-go="free"]').forEach(b=>b.onclick=openSolo);
+  if($('start'))$('start').onclick=()=>openFree(Math.floor(Math.random()*1e9));
+  if($('cont'))$('cont').onclick=()=>openFree();
+  if($('playsolo'))$('playsolo').onclick=openSolo;
+  if($('soloback'))$('soloback').onclick=openSolo;
+  if($('archback'))$('archback').onclick=openArchive;
+  app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
   app.querySelectorAll('[data-go="friends"]').forEach(b=>b.onclick=()=>{view='friends';render()});
   if($('home'))$('home').onclick=goHome;
   app.querySelectorAll('[data-info]').forEach(b=>b.onclick=()=>{const k=CATS[+b.dataset.info];dialog(esc(k.label),`<p>${esc(k.desc)}</p>`)});

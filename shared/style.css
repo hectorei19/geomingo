@@ -279,3 +279,7 @@ a.primary{display:block;text-align:center;text-decoration:none}
 /* Connections and Top 10 headers: on phones the corner label (Daily #1) is hidden to make room; the result still shows the number */
 .mini-top .brand{font-size:1.9rem}
 @media (max-width:420px){.mini-top .coord{display:none}.mini-top .brand{font-size:1.75rem}}
+/* lives on the ticket: pink dots, used ones empty */
+.tk-dots{display:inline-flex;gap:5px;align-items:center;height:22px}
+.tk-dots i{width:12px;height:12px;border-radius:50%;background:var(--flamingo,var(--coral))}
+.tk-dots i.off{background:transparent;box-shadow:inset 0 0 0 1.5px var(--line,var(--rule))}

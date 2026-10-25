@@ -188,11 +188,22 @@ function rankingHTML(g,o){const u=who();if(TEST||u===undefined)return '';o=o||{}
 
 /* ---- what the pages show ---- */
 const noBanner=()=>ls.get('gm-nobanner')==='1';
-// under Mingo on a game's home screen: who's playing, and the sign-in banner for guests (as in Countries)
-function userHTML(){const u=who();if(u===undefined)return '';
+// under Mingo on a game's home screen: who's playing, and the sign-in banner for guests (as in Countries).
+// A guest plays with the name typed in any game (bl-user, the same everywhere) and can change it here.
+function userHTML(){const u=who();
   if(u)return '<div class="userline"><span class="pin" style="background:var(--sea)"></span>Playing as '+esc(name||'…')+'</div>';
-  return '<div class="userline"><span class="pin" style="background:var(--sea)"></span>Playing as Guest'+(noBanner()?'<span class="uright"><button class="ghost" data-gm-signin>Sign in</button></span>':'')+'</div>'+
-    (noBanner()?'':'<div class="gbanner"><span>Sign in to join the daily ranking</span><button class="primary" data-gm-signin>Sign in</button><button class="linkbtn" data-gm-nobanner aria-label="Close">✕</button></div>')}
+  const signin=u===null;
+  return '<div class="userline"><span class="pin" style="background:var(--sea)"></span>Playing as '+esc(G.traveller())+'<button class="ghost" data-gm-chname>Change</button>'+(signin&&noBanner()?'<span class="uright"><button class="ghost" data-gm-signin>Sign in</button></span>':'')+'</div>'+
+    (signin&&!noBanner()?'<div class="gbanner"><span>Sign in to join the daily ranking</span><button class="primary" data-gm-signin>Sign in</button><button class="linkbtn" data-gm-nobanner aria-label="Close">✕</button></div>':'')}
+// a guest's name: one small window, saved for every game on this device
+function changeName(then){const cur=G.traveller()==='Guest'?'':G.traveller();
+  const box=G.openWindow('<div class="gm-res gm-namebox"><div class="gm-band">'+G.mingo('head',26)+'<b>Who\'s playing?</b></div><div class="gm-rbody">'+
+    '<label class="gm-lab" for="gm-gname">Your name</label><input id="gm-gname" class="gm-input" maxlength="16" autocomplete="nickname" placeholder="Your name" value="'+esc(cur)+'">'+
+    '<p class="gm-note" style="text-align:left">Shown on your ticket, in rooms with friends and on the result you share, in every game. It stays on this device.</p>'+
+    '<button class="gm-big coral" data-gm-act="saveg">Save</button></div></div>','Your name');
+  const inp=box.querySelector('#gm-gname'),save=()=>{const n=inp.value.trim().slice(0,16);if(!n){say('Type a name to continue.');return}
+    ls.set('bl-user',n);ls.set('cc-user',n);G.closeWindow();G.refreshPass();if(typeof then==='function')then(n);changed('name')};
+  box._acts={saveg:save};inp.addEventListener('keydown',e=>{if(e.key==='Enter')save()});setTimeout(()=>inp.focus(),50)}
 // the header button: Sign in, or your initial (it opens a small menu with Sign out)
 function acctHTML(){const u=who();if(u===undefined)return '';
   if(!u)return '<button class="gm-acct" data-gm-signin>Sign in</button>';
@@ -206,9 +217,10 @@ function acctMenu(open){let box=document.getElementById('gm-acctmenu');if(box)bo
     '<p>Your stats, your GeoPass and your daily results are saved in your account, on every device.</p>'+
     '<button class="gm-big ghost" data-gm-signout>Sign out</button></div>';
   document.body.appendChild(box);const s=box.querySelector('[data-gm-signout]');if(s)s.focus()}
-document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-gm-signin],[data-gm-nobanner],[data-gm-acctmenu],[data-gm-signout],[data-gm-aclose]');if(!t)return;
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-gm-signin],[data-gm-chname],[data-gm-nobanner],[data-gm-acctmenu],[data-gm-signout],[data-gm-aclose]');if(!t)return;
   e.preventDefault();
   if(t.hasAttribute('data-gm-signin'))signIn();
+  else if(t.hasAttribute('data-gm-chname'))changeName();
   else if(t.hasAttribute('data-gm-nobanner')){ls.set('gm-nobanner','1');changed()}
   else if(t.hasAttribute('data-gm-acctmenu'))acctMenu(!document.getElementById('gm-acctmenu'));
   else if(t.hasAttribute('data-gm-signout')){acctMenu(false);signOut()}
@@ -224,6 +236,6 @@ G.acctHTML=acctHTML;
 // ready/user: known for sure, or the last account seen on this device until Firebase answers (wasSignedIn: that last one)
 G.account={get ready(){return who()!==undefined},get user(){return who()||null},get name(){return name},
   wasSignedIn:!!(LAST&&LAST.u),
-  signIn,signOut,done,userHTML,rankingHTML,rankLine,mine,onChange:f=>watchers.push(f)};
+  signIn,signOut,done,userHTML,changeName,rankingHTML,rankLine,mine,onChange:f=>watchers.push(f)};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
