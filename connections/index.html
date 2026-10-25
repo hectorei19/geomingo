@@ -89,7 +89,7 @@
 
 <script src="../shared/data.js?v=202610192300"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202610250900"></script>
+<script src="../shared/minigames.js?v=202610251400"></script>
 <!-- With friends: online rooms in Countries' Firebase Realtime Database -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -304,7 +304,7 @@ function friendsHTML(){return header('Connec<span>tions</span>','')+`<section cl
 /* ---- moves ---- */
 function tap(c){if(!S||S.over||turning)return;const i=sel.indexOf(c);
   if(i>=0)sel.splice(i,1);else if(sel.length<4)sel.push(c);render()}
-// Mingo's key for the game on screen (his bubble and the result window belong to one game)
+// Mingo's key for the game on screen (his bubble and the summary belong to one game)
 const cxKey=()=>S?S.mode+':'+(S.date||S.seed)+':'+(S.code||'')+':'+(S.round||''):'';
 const leftTxt=()=>{const l=MAX_MISTAKES-S.mistakes;return l+' mistake'+(l===1?'':'s')+' left.'};
 function submit(){if(!S||S.over||turning||sel.length!==4)return;
@@ -384,7 +384,7 @@ function render(keepShake){
   let h=header('Connec<span>tions</span>',coord);
   h+=`<div class="backline">${on?`<button class="linkbtn" id="leave">${leaveArmed?'Tap again to leave':'← Leave'}</button>`:'<button class="linkbtn" id="home">← Back</button>'}<span class="ht">${S.mode==='daily'?"Today's puzzle":on?'With friends':'Solo'}</span></div>`;
   if(on)h+=scoresHTML();
-  watchResult(cxKey(),S.over,resultWindow);
+  watchResult(cxKey(),S.over);
   if(S.over)h+=on?roomResultHTML():resultHTML();
   else h+=moodHTML(cxKey(),'pass','4 stamps to win.','Pick four countries that share something, then Submit. '+leftTxt());
   h+=`<div class="cx-board">`;
@@ -403,23 +403,18 @@ function render(keepShake){
 function catsHTML(){if(!S.hint)return `<button class="linkbtn cx-hintbtn" id="hint">Stuck? Show the 4 categories</button>`;
   const ks=S.groups.map(g=>CATS[g.k]).sort((a,b)=>a.label.localeCompare(b.label));
   return `<section class="panel cx-cats"><span class="label">The 4 categories</span><ul>${ks.map(k=>`<li>${esc(k.label)} <button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></li>`).join('')}</ul></section>`}
-// Mingo's verdict, for the result panel and the result window
+// Mingo's verdict, for the result panel
 function verdict(){const n=S.mistakes;
   return S.won?(n?{pose:'happy',t:'Landed. All four groups.',s:'All four groups, '+n+' mistake'+(n===1?'':'s')+'.'}:{pose:'happy',t:'Full page. Not a single mistake.',s:'All four groups found.'})
     :{pose:'sad',t:'Rough crossing. Better luck tomorrow.',s:'You found '+S.found.length+' of 4 groups.'}}
-function resultWindow(){const v=verdict(),daily=S.mode==='daily';
-  if(S.mode==='online'){const list=ranked().filter(p=>p.cur),pos=list.findIndex(p=>p.pid===ME)+1;
-    return {game:'connections',room:true,pose:v.pose,title:v.t,num:pos?'#'+pos:null,unit:pos?'of '+list.length+' in room '+roomCode:'',share:()=>share(shareMessage()),close:'See the ranking'}}
-  return {game:'connections',pose:v.pose,title:v.t,num:S.found.length+'/4',unit:'Groups',stat:S.mistakes+' mistake'+(S.mistakes===1?'':'s'),
-    mini:`<div class="gm-mini" style="grid-template-columns:repeat(4,20px)" aria-hidden="true">${S.guesses.flat().map(c=>`<i class="g${S.groups[groupOf(S,c)].t}" style="background:var(--gc)"></i>`).join('')}</div>`,
-    sub:daily?`Next puzzle in ${nextIn()}.`:'',share:()=>share(shareMessage()),next:daily?Geomingo.nextGame('connections'):null,allDone:daily,close:'See the groups'}}
 function resultHTML(){const v=verdict();
   const head=S.won?(S.mistakes?`Solved with ${S.mistakes} mistake${S.mistakes===1?'':'s'}`:'Perfect!'):'Better luck next time';
   return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Connections #'+S.num:'Practice puzzle'}</span><p class="big">${head}</p>
     <p class="hint">${S.won?'You found all four groups.':`You found ${S.found.length} of 4 groups.`} ${S.mode==='daily'?`Next puzzle in ${nextIn()}.`:''}</p>
     <pre class="sharebox" id="share">${esc(shareText())}</pre>
-    <div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="ghost" id="again" style="flex:1">${S.mode==='daily'?'Practice puzzle':'New puzzle'}</button></div>
-    ${nextGameHTML('connections')}
+    ${S.mode==='daily'?`<div class="row-btns"><button class="ghost" id="copy">Share</button>${nextGameBtn('connections')}</div>
+    <button class="ghost" id="again">Practice puzzle</button>${allPlayedHTML('connections')}`
+    :`<div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="ghost" id="again" style="flex:1">New puzzle</button></div>`}
     ${S.mode==='daily'?`<span class="label">Your daily puzzles</span>${statsHTML()}`:''}</section>${S.mode==='daily'?rankingHTML():''}`}
 // today's ranking (signed-in players, first try of the day): groups found, then fewer mistakes, then who finished first
 const rankingHTML=()=>Geomingo.account.rankingHTML('connections',{what:'puzzle',score:r=>[r.s===4?'Solved':r.s+'/4',r.m+' mistake'+(r.m===1?'':'s')]});

@@ -41,13 +41,16 @@ function header(brand,coord,home){
 let mood=null;
 function say(key,pose,t,s){mood={key,pose,t,s}}
 function moodHTML(key,pose,t,s){const m=mood&&mood.key===key?mood:{pose,t,s};return Geomingo.hello(m.pose,m.t,m.s)}
-// the result window, once, when a game you were playing ends: watchResult(key, over, ()=>({pose,title,num,…}))
+// when a game you were playing ends: straight to the summary at the top of the page (no window over it)
 let liveKey='';
-function watchResult(key,over,make){if(!key)return;if(!over){liveKey=key;return}
-  if(liveKey!==key)return;liveKey='';setTimeout(()=>Geomingo.resultWindow(make()),500)}
-// the next game of the day, for the result panels
-function nextGameHTML(cur){const g=Geomingo.nextGame(cur);
-  return g?`<a class="primary nextgame" href="${g.href}">Next game: ${esc(g.name)} →</a>`:`<p class="hint">You have played all of today's games. New ones at midnight, Spain time.</p>`}
+function watchResult(key,over){if(!key)return;if(!over){liveKey=key;return}
+  if(liveKey!==key)return;liveKey='';setTimeout(()=>window.scrollTo({top:0,behavior:'smooth'}),50)}
+// the next game of the day not played yet: the big button of a daily result (All games once every trip is done)
+// every game is a trip: one line, the same small size in every game, so no name ever wraps (a touch smaller only on very narrow phones)
+const TRIP_STYLE='flex:1;display:flex;align-items:center;justify-content:center;min-width:0;white-space:nowrap;font-size:clamp(10px,calc((100vw - 170px)/15.5),14px);letter-spacing:.03em;padding:13.5px 8px 10.5px';
+function nextGameBtn(cur){const g=Geomingo.nextGame(cur);
+  return g?`<a class="primary" href="${g.href}" style="${TRIP_STYLE}">Next trip: ${esc(g.name)} →</a>`:`<a class="primary" href="${Geomingo.HOME}" style="${TRIP_STYLE}">All games</a>`}
+const allPlayedHTML=cur=>Geomingo.nextGame(cur)?'':`<p class="hint">You have played all of today's games. New ones at midnight, Spain time.</p>`;
 function drawMenu(open){let box=$('menulayer');
   if(!box){box=document.createElement('div');box.id='menulayer';document.body.appendChild(box)}
   const b=$('menu');if(b)b.setAttribute('aria-expanded',open?'true':'false');

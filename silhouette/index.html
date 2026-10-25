@@ -83,7 +83,7 @@
 <script src="countries.js?v=202610230100"></script>
 <script src="silhouette.js?v=202610230100"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202610250900"></script>
+<script src="../shared/minigames.js?v=202610251400"></script>
 <!-- online rooms (With friends): Firebase, loaded after the page so today's board shows at once -->
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -199,16 +199,14 @@ function verdict(G){const r=rightOf(G),first=G.qs.filter(q=>q.st==='right'&&!q.t
   return r===9?(first===9?{pose:'happy',t:'Full page. Nine of nine, all first try.',s:'Nine new stamps.'}:{pose:'happy',t:'Landed. Nine of nine.',s:first+' on the first try.'})
     :r>=6?{pose:'happy',t:'Landed. '+r+' of 9.',s:'Tap a shape to see its name.'}:r>=3?{pose:'think',t:'A few gaps in the pages. '+r+' of 9.',s:'Tap a shape to see its name.'}
     :{pose:'sad',t:'Rough crossing, this one.',s:r+' of 9. Training helps.'}}
-function resultWindow(){const G=D,v=verdict(G);
-  return {game:'silhouette',pose:v.pose,title:v.t,num:rightOf(G)+'/9',unit:'Shapes',stat:DIFF_NAME[G.diff],mini:Geomingo.mini(G.qs.map(q=>q.st==='right'),3),
-    sub:`Next board in ${nextIn()}.`,share:()=>share(dailyShare(G)),next:Geomingo.nextGame('silhouette'),allDone:true,close:'See the board'}}
 function dailyResultHTML(G){const r=rightOf(G),v=verdict(G);
   return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Silhouette #${G.num} · ${DIFF_NAME[G.diff]}</span><p class="big">${r} of 9</p>
     <p class="hint">${r===9?'Every shape named.':'Tap a shape to see its name.'} Next board in ${nextIn()}.</p>
     <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
-    <div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="ghost" data-go="train" style="flex:1">Training</button></div>
+    <div class="row-btns"><button class="ghost" id="copy">Share</button>${nextGameBtn('silhouette')}</div>
+    <button class="ghost" data-go="train">Training</button>
     ${['easy','normal','hard'].filter(v=>!(dailyAll()[v]||{}).over).length?`<p class="hint">Also today: ${['easy','normal','hard'].filter(v=>!(dailyAll()[v]||{}).over).map(v=>`<button class="linkbtn" data-dd="${v}" style="padding:0">${DIFF_NAME[v]}</button>`).join(' · ')}</p>`:''}
-    ${nextGameHTML('silhouette')}
+    ${allPlayedHTML('silhouette')}
     <span class="label">Your daily boards</span>${statsHTML()}</section>${rankingHTML(G.diff)}`}
 // today's ranking of each level (signed-in players, first try of the day): shapes named, then fewer wrong tries, then who finished first
 const rankingHTML=diff=>Geomingo.account.rankingHTML('sil-'+diff,{title:"Today's ranking · "+DIFF_NAME[diff],what:DIFF_NAME[diff]+' board',score:r=>[r.s+'/9',r.m+' wrong '+(r.m===1?'try':'tries')]});
@@ -483,8 +481,8 @@ function homeHTML(){const key=todayKey(),diff=load('sil-ddiff','normal');
 function goHome(){if(roomCode){if(!confirm('Leave the room and go to the home screen?'))return;leaveRoom().then(()=>{view='home';render()});return}
   view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
 function render(){
-  // the result window opens once, when the daily board you were playing ends (on the home screen too)
-  if(D&&!roomCode)watchResult('sil:'+D.date+':'+D.diff,D.over,resultWindow);
+  // when the daily board you were playing ends: straight to its summary (on the home screen too)
+  if(D&&!roomCode)watchResult('sil:'+D.date+':'+D.diff,D.over);
   if(roomCode&&room)app.innerHTML=O?onlineHTML():lobbyHTML();
   else if(view==='friends')app.innerHTML=friendsHTML();
   else if(view==='train')app.innerHTML=trainHTML();
