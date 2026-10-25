@@ -19,7 +19,7 @@
 <link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
-<script src="../brand/mingo.js?v=202610251530"></script>
+<script src="../brand/mingo.js?v=202610251710"></script>
 <script src="../brand/account.js?v=202610250900"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -1399,11 +1399,11 @@ function verdict(){const n=S.n;
   if(S.mode==='solo'){const p=S.players[0],f=p.cells/(n*n),st=S.daily&&!S.archive?Geomingo.streak():0;
     const sub=p.cells+' of '+n*n+' squares · '+p.score+' points';
     return f>=1?{pose:'happy',t:'Full page. Every square stamped.',s:sub}
-      :f>=.6?{pose:'happy',t:'Landed.'+(st>1?' '+st+'-day streak.':''),s:sub}
+      :f>=.6?{pose:'happy',t:'Visited.'+(st>1?' '+st+'-day streak.':''),s:sub}
       :f>=.3?{pose:'think',t:'A few gaps in the pages.',s:sub}:{pose:'sad',t:'Rough crossing, this one.',s:sub}}
   const top=Math.max(...S.players.map(p=>p.score)),win=S.players.filter(p=>p.score===top);
   if(S.mode==='online'&&S.me>=0){const me=S.players[S.me];
-    return me.score===top?{pose:'happy',t:win.length>1?'A draw. Well played.':'You win. First through the gate.',s:me.score+' points · '+me.cells+' squares'}
+    return me.score===top?{pose:'happy',t:win.length>1?'A draw. Well played.':'You win. First to arrive.',s:me.score+' points · '+me.cells+' squares'}
       :{pose:'think',t:'So close. Rematch?',s:me.score+' points · '+me.cells+' squares'}}
   return {pose:'happy',t:win.length>1?'A draw at '+top+' points.':win[0].name+' wins.',s:'Well played, everyone.'}}
 const verdictHTML=()=>{const v=verdict();return Geomingo.hello(v.pose,v.t,v.s,{key:'res'})};

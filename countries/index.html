@@ -19,7 +19,7 @@
 <link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
-<script src="../brand/mingo.js?v=202610251530"></script>
+<script src="../brand/mingo.js?v=202610251710"></script>
 <script src="../brand/account.js?v=202610250900"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1133,7 +1133,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/da
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202610251330';
+const APP_VERSION='202610251710';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
@@ -1568,7 +1568,7 @@ function gameView(){
     const cell=(k,v,c)=>`<div class="tk-c${c?' '+c:''}"><i>${k}</i><b>${v}</b></div>`;
     const time=S.timer?cell('Time',`<span id="tleft">${S.timer}s</span>`):'';
     const stub=S.mode==='solo'
-      ?cell('Passenger',esc(S.players[0].name),'tk-name')+cell('Class',DLABEL[S.diff||'normal'])+cell('Points',liveScore(0),'tk-pts')+cell('Guesses',S.guesses,'tk-gs')+time
+      ?cell('Traveller',esc(S.players[0].name),'tk-name')+cell('Class',DLABEL[S.diff||'normal'])+cell('Points',liveScore(0),'tk-pts')+cell('Guesses',S.guesses,'tk-gs')+time
       :S.players.map((q,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${q.on===false?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(q.name)}</i><b>${liveScore(i)}</b></div>`).join('')+time;
     h+=`<section class="ticket">${say}<div class="tk-tear" aria-hidden="true"></div><div class="tk-stub">${stub}</div>${S.timer?'<span class="tbar" style="width:100%"></span>':''}</section>`;
   }
@@ -1629,11 +1629,11 @@ function verdict(){const n=S.n;
   if(S.mode==='solo'){const p=S.players[0],f=p.cells/(n*n),st=S.daily&&!S.archive?Geomingo.streak():0;
     const sub=p.cells+' of '+n*n+' squares · '+p.score+' points';
     return f>=1?{pose:'happy',t:'Full page. Every square stamped.',s:sub}
-      :f>=.6?{pose:'happy',t:'Landed.'+(st>1?' '+st+'-day streak.':''),s:sub}
+      :f>=.6?{pose:'happy',t:'Visited.'+(st>1?' '+st+'-day streak.':''),s:sub}
       :f>=.3?{pose:'think',t:'A few gaps in the pages.',s:sub}:{pose:'sad',t:'Rough crossing, this one.',s:sub}}
   const top=Math.max(...S.players.map(p=>p.score)),win=S.players.filter(p=>p.score===top);
   if(S.mode==='online'&&S.me>=0){const me=S.players[S.me];
-    return me.score===top?{pose:'happy',t:win.length>1?'A draw. Well played.':'You win. First through the gate.',s:me.score+' points · '+me.cells+' squares'}
+    return me.score===top?{pose:'happy',t:win.length>1?'A draw. Well played.':'You win. First to arrive.',s:me.score+' points · '+me.cells+' squares'}
       :{pose:'think',t:'So close. Rematch?',s:me.score+' points · '+me.cells+' squares'}}
   return {pose:'happy',t:win.length>1?'A draw at '+top+' points.':win[0].name+' wins.',s:'Well played, everyone.'}}
 const verdictHTML=()=>{const v=verdict();return Geomingo.hello(v.pose,v.t,v.s,{key:'res'})};
