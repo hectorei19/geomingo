@@ -19,7 +19,7 @@
 <link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
-<script src="../brand/mingo.js?v=202610251530"></script>
+<script src="../brand/mingo.js?v=202610251700"></script>
 <script src="../brand/account.js?v=202610250900"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -196,8 +196,8 @@ function dailyPlayHTML(G){const q=G.qs[G.sel],last=G.justDone!=null?G.qs[G.justD
   return `<div class="play">${h}</div>`}
 const dailyTabs=diff=>`<div class="dtabs">${seg('ddiff',[['easy','Easy'],['normal','Normal'],['hard','Hard']].map(([v,l])=>{const g=dailyAll()[v];return [v,l+(g&&g.over?' ✓':'')]}),diff)}</div>`;
 function verdict(G){const r=rightOf(G),first=G.qs.filter(q=>q.st==='right'&&!q.tries.length).length;
-  return r===9?(first===9?{pose:'happy',t:'Full page. Nine of nine, all first try.',s:'Nine new stamps.'}:{pose:'happy',t:'Landed. Nine of nine.',s:first+' on the first try.'})
-    :r>=6?{pose:'happy',t:'Landed. '+r+' of 9.',s:'Tap a shape to see its name.'}:r>=3?{pose:'think',t:'A few gaps in the pages. '+r+' of 9.',s:'Tap a shape to see its name.'}
+  return r===9?(first===9?{pose:'happy',t:'Full page. Nine of nine, all first try.',s:'Nine new stamps.'}:{pose:'happy',t:'Visited. Nine of nine.',s:first+' on the first try.'})
+    :r>=6?{pose:'happy',t:'Visited. '+r+' of 9.',s:'Tap a shape to see its name.'}:r>=3?{pose:'think',t:'A few gaps in the pages. '+r+' of 9.',s:'Tap a shape to see its name.'}
     :{pose:'sad',t:'Rough crossing, this one.',s:r+' of 9. Training helps.'}}
 function dailyResultHTML(G){const r=rightOf(G),v=verdict(G);
   return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Silhouette #${G.num} · ${DIFF_NAME[G.diff]}</span><p class="big">${r} of 9</p>

@@ -19,7 +19,7 @@
 <link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
-<script src="../brand/mingo.js?v=202610251530"></script>
+<script src="../brand/mingo.js?v=202610251700"></script>
 <script src="../brand/account.js?v=202610250900"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -405,7 +405,7 @@ function catsHTML(){if(!S.hint)return `<button class="linkbtn cx-hintbtn" id="hi
   return `<section class="panel cx-cats"><span class="label">The 4 categories</span><ul>${ks.map(k=>`<li>${esc(k.label)} <button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></li>`).join('')}</ul></section>`}
 // Mingo's verdict, for the result panel
 function verdict(){const n=S.mistakes;
-  return S.won?(n?{pose:'happy',t:'Landed. All four groups.',s:'All four groups, '+n+' mistake'+(n===1?'':'s')+'.'}:{pose:'happy',t:'Full page. Not a single mistake.',s:'All four groups found.'})
+  return S.won?(n?{pose:'happy',t:'Visited. All four groups.',s:'All four groups, '+n+' mistake'+(n===1?'':'s')+'.'}:{pose:'happy',t:'Full page. Not a single mistake.',s:'All four groups found.'})
     :{pose:'sad',t:'Rough crossing. Better luck tomorrow.',s:'You found '+S.found.length+' of 4 groups.'}}
 function resultHTML(){const v=verdict();
   const head=S.won?(S.mistakes?`Solved with ${S.mistakes} mistake${S.mistakes===1?'':'s'}`:'Perfect!'):'Better luck next time';
@@ -425,7 +425,7 @@ Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&S&&S.mode==='daily'){
 function roomResultHTML(){const list=ranked(),cur=list.filter(p=>p.cur),pos=cur.findIndex(p=>p.pid===ME)+1;
   const waiting=cur.some(p=>!p.done&&p.on!==false);
   const head=S.won?(pos===1&&!waiting?'You win!':`Solved in ${fmtTime(S.ms)}`):'Better luck next time';
-  return `<section class="panel">${Geomingo.hello(S.won?'happy':'sad',S.won?(pos===1&&!waiting?'You win. First through the gate.':'Solved. Now wait for the others.'):'So close.',waiting?'Some players are still playing.':'Everyone has finished.',{key:'res'})}<span class="label">Room ${roomCode} · game ${S.round}</span><p class="big">${head}</p>
+  return `<section class="panel">${Geomingo.hello(S.won?'happy':'sad',S.won?(pos===1&&!waiting?'You win. First to arrive.':'Solved. Now wait for the others.'):'So close.',waiting?'Some players are still playing.':'Everyone has finished.',{key:'res'})}<span class="label">Room ${roomCode} · game ${S.round}</span><p class="big">${head}</p>
     <div class="players">${list.map((p,k)=>`<div class="lp${p.pid===ME?' me':''}${p.on===false?' off':''}"><span class="rk">${p.cur?k+1:''}</span><span class="pin" style="${pinStyle(p.i)}"></span>${esc(p.name)}<span class="tag">${!p.cur?'joining':p.done?(p.won?`solved · ${p.m||0} mistake${p.m===1?'':'s'} · ${fmtTime(p.ms)}`:`${p.f||0} of 4 groups`):p.on===false?'left':'playing…'}</span></div>`).join('')}</div>
     <pre class="sharebox" id="share">${esc(shareText())}</pre>
     <div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="primary" id="rematch" style="flex:1" ${waiting?'disabled':''}>${waiting?'Waiting for the others…':'Play again'}</button></div>

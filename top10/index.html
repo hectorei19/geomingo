@@ -26,7 +26,7 @@
 <link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
-<script src="../brand/mingo.js?v=202610251530"></script>
+<script src="../brand/mingo.js?v=202610251700"></script>
 <script src="../brand/account.js?v=202610250900"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -410,7 +410,7 @@ function render(){
 }
 // Mingo's verdict, for the result panel
 function verdict(){const f=S.found.length;
-  return S.won?(S.lives===LIVES?{pose:'happy',t:'Full page. Perfect ten.',s:'Not a single life lost.'}:{pose:'happy',t:'Landed. All ten.',s:livesTxt()})
+  return S.won?(S.lives===LIVES?{pose:'happy',t:'Full page. Perfect ten.',s:'Not a single life lost.'}:{pose:'happy',t:'Visited. All ten.',s:livesTxt()})
     :f>=6?{pose:'think',t:'So close. '+f+' of 10.',s:'No lives left. The full list is below.'}:{pose:'sad',t:'Rough crossing, this one.',s:f+' of 10 found. The full list is below.'}}
 function resultHTML(){const v=verdict();
   const head=S.won?(S.lives===LIVES?'Perfect ten!':'All ten found'):`${S.found.length} of 10`;
