@@ -100,7 +100,15 @@ function saveName(v){const n=String(v||'').trim().slice(0,16);if(!n){say('Type a
     if(x){setName(x);G.closeWindow();if(!OWN)Object.keys(ADAPT).forEach(syncGame);changed()}}).catch(()=>say('Could not save your name. Try again.'))}
 
 /* ---- keeping the account and this device in step ---- */
-function syncAll(){if(!uid()||!db)return;syncPass();syncDays();if(!OWN)Object.keys(ADAPT).forEach(syncGame)}
+function syncAll(){if(!uid()||!db)return;syncPass();syncDays();if(!OWN){Object.keys(ADAPT).forEach(syncGame);syncGrid('daily','bl-hist');syncGrid('cities/daily','cc-hist')}}
+// Countries and Cities keep their days in the account themselves (users/<uid>/daily, users/<uid>/cities/daily), but only
+// when you open them: here (the home page, the other games) the account's days are copied to this device too,
+// so a grid played on another device shows as played everywhere at once. Only the stats line, never the whole game (j).
+function syncGrid(path,key){const id=uid();
+  db.ref('users/'+id+'/'+path).once('value').then(s=>{if(uid()!==id)return;const R=s.val()||{},h=json(key)||{};let moved=false;
+    for(const [d,v] of Object.entries(R)){if(!v||typeof v!=='object')continue;const {j,...e}=v;
+      if(JSON.stringify(h[d])!==JSON.stringify(e)){h[d]=e;moved=true}}
+    if(moved){put(key,h);changed('adopt')}}).catch(()=>{})}
 // GeoPass: the account's stamps, plus the ones collected here as a guest (once)
 const asList=x=>Array.isArray(x)?x.filter(Boolean):x?Object.values(x):[];
 function syncPass(){const id=uid(),ref=db.ref('users/'+id+'/pass');
