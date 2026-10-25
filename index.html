@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
 <link rel="stylesheet" href="brand/geomingo.css?v=202610251000">
-<script src="brand/mingo.js?v=202610251700"></script>
+<script src="brand/mingo.js?v=202610251710"></script>
 <script src="brand/account.js?v=202610250900"></script>
 <style>
 /* Home page: Sign in and Menu on top, today's games as colour tiles, Travel with friends, then the GeoPass
@@ -179,10 +179,10 @@ const set=(id,h)=>{const el=document.getElementById(id);if(el&&el.innerHTML!==h)
 // the tile of a game; one more tile keeps the place of the next game ("Coming soon")
 function tile(g,P){const r=G.result(g.id),lk=look(g.id),mi=P.today[g.id];
   const state=r.done?'✓ '+(mi!=null?'+'+mi+' KM':esc(r.label)):'TO VISIT',hint=r.done?'Visited · '+esc(r.label):esc(g.hint);
-  const lab='aria-label="'+esc(g.name)+', stop '+g.gate+': '+(r.done?'played today, '+esc(r.label):'play')+'"';
-  return '<li><a class="tile" href="'+g.href+'" style="--c:'+lk.c+'" '+lab+'><span class="tt"><span>STOP '+g.gate+'</span><span class="s2">'+state+'</span></span>'+lk.svg+
+  const lab='aria-label="'+esc(g.name)+', trip '+g.gate+': '+(r.done?'played today, '+esc(r.label):'play')+'"';
+  return '<li><a class="tile" href="'+g.href+'" style="--c:'+lk.c+'" '+lab+'><span class="tt"><span>TRIP '+g.gate+'</span><span class="s2">'+state+'</span></span>'+lk.svg+
     '<b>'+esc(g.name)+'</b><small>'+hint+'</small><span class="s3">'+state+'</span></a></li>'}
-const SOON='<li><div class="tile soon" aria-label="Coming soon: a new game"><span class="tt"><span>STOP 6</span><span class="s2">SOON</span></span>'+
+const SOON='<li><div class="tile soon" aria-label="Coming soon: a new game"><span class="tt"><span>TRIP 6</span><span class="s2">SOON</span></span>'+
   '<svg viewBox="-14 -9 46 48" preserveAspectRatio="xMidYMid meet" aria-hidden="true" style="stroke:none"><path d="M0 0 H18 M0 30 H18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M2 1 C2 10 8 12 9 15 C10 12 16 10 16 1 Z M2 29 C2 20 8 18 9 15 C10 18 16 20 16 29 Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M5 5 H13 C12 9 10 11 9 13 C8 11 6 9 5 5 Z M4 28 C6 23 12 23 14 28 Z" fill="currentColor"/><path d="M9 15 V24" stroke="currentColor" stroke-width="1" stroke-dasharray="1.5 1.5"/></svg>'+
   '<b>New game</b><small>Coming soon</small><span class="s3">SOON</span></div></li>';
 function passHTML(P){const lv=level(P.miles),live=G.live(),played=live.filter(g=>G.result(g.id).done).length,acc=A(),u=acc&&acc.user;

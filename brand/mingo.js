@@ -16,7 +16,7 @@ function currentTheme(){return 'dark'}
 function toggleTheme(){const next=currentTheme()==='dark'?'light':'dark';store.set('gm-theme',next);applyTheme();
   document.querySelectorAll('[data-gm-theme]').forEach(b=>b.setAttribute('aria-pressed',String(next==='dark')))}
 
-/* ---------- the games, each a stop on the trip ----------
+/* ---------- the games, each one a trip ----------
    id: the id each game already uses for its saves (Countries kept Borderline's), soon: shown as "Coming soon" */
 const GAMES=[
   {id:'borderline',name:'Countries',path:'countries/',gate:'1',hint:'Fill the grid with countries'},
@@ -126,7 +126,7 @@ function hello(pose,title,sub,o){o=o||{};const key=o.key||'main',txt=pose+title,
 
 /* ---------- the shared header ----------
    header({game:'Countries', coord:'Daily #12', menu:'<button…>'}): "‹ geomingo", GeoPass and theme on top,
-   then the game's own bar: its name (goes to the game's home screen, id="brand"), its stop, Menu.
+   then the game's own bar: its name (goes to the game's home screen, id="brand"), its trip number, Menu.
    Without game: the home page. */
 const ICO={back:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
   moon:'<svg class="moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>',
@@ -138,7 +138,7 @@ const themeBtn=()=>'';
 const acctSlot=()=>'<span class="gm-acctslot" data-gm-acctslot>'+(window.Geomingo&&Geomingo.acctHTML?Geomingo.acctHTML():'')+'</span>';
 function header(o){o=o||{};
   if(!o.game)return '<header class="gm-top"><h1 class="gm-logo">geo<span>mingo</span></h1><span class="gm-spacer"></span>'+passBtn()+acctSlot()+themeBtn()+'</header>';
-  const g=GAMES.find(x=>x.name===o.game),gate=g?'Stop '+g.gate:'',sub=[gate,o.coord].filter(Boolean).join(' · ');
+  const g=GAMES.find(x=>x.name===o.game),gate=g?'Trip '+g.gate:'',sub=[gate,o.coord].filter(Boolean).join(' · ');
   return '<header class="gm-top"><a class="gm-home" href="'+HOME+'" aria-label="All Geomingo games">'+ICO.back+logo+'</a><span class="gm-spacer"></span>'+passBtn()+acctSlot()+themeBtn()+'</header>'+
     '<div class="gm-bar"><h2 class="gm-title" id="brand" role="link" tabindex="0" title="'+esc(o.game)+' home">'+esc(o.game)+(sub?'<small>'+esc(sub)+'</small>':'')+'</h2><span class="gm-spacer"></span>'+(o.menu||'')+'</div>'}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-gm-theme],[data-gm-pass]');if(!t)return;e.preventDefault();

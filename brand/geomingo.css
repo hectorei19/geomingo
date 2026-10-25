@@ -70,7 +70,7 @@ a{color:var(--blue)}
 svg.mingo{display:block;flex-shrink:0;overflow:visible}
 
 /* ---------- 3. brand components ---------- */
-/* header: "‹ geomingo" back to all the games, the GeoPass, light/dark; then the game's own bar (name, stop, Menu) */
+/* header: "‹ geomingo" back to all the games, the GeoPass, light/dark; then the game's own bar (name, trip, Menu) */
 .gm-top{display:flex;align-items:center;gap:8px;min-height:44px}
 .gm-spacer{flex:1}
 .gm-home{display:inline-flex;align-items:center;gap:2px;min-height:44px;padding:0 6px 0 2px;margin-left:-4px;border-radius:10px;color:var(--ink);text-decoration:none}
@@ -102,7 +102,7 @@ svg.mingo{display:block;flex-shrink:0;overflow:visible}
 .gm-bubble.pop{animation:gm-pop .3s ease}
 @keyframes gm-pop{0%{transform:translateY(4px);opacity:.4}100%{transform:none;opacity:1}}
 
-/* the games list (home page): one line per game, with its stop */
+/* the games list (home page): one line per game, with its trip number */
 .gm-head{display:flex;flex-direction:column;gap:2px}
 .gm-head h2{margin:0;font-family:var(--display);font-weight:800;font-stretch:85%;font-size:30px;line-height:1;text-transform:uppercase}
 .gm-games{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
