@@ -101,6 +101,10 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .board.b5 .hd .ref{font-size:.58rem}
 .board .corner{padding:2mm}
 .board .hd .ref{line-height:1}
+/* row and column references (A, B, 1, 2…) in a coral box, like a stamp, sized with the grid */
+.board .hd .ref{font-family:var(--display);font-weight:800;font-size:clamp(.72rem,2.6vw,.95rem);color:var(--coral);border:1.5px solid var(--coral);border-radius:5px;padding:2px 6px;letter-spacing:0;margin-bottom:3px;display:inline-block;align-self:center}
+.board.b3 .hd .ref{font-size:clamp(.8rem,3vw,1.05rem)}
+.board.b5 .hd .ref{font-size:clamp(.6rem,2.1vw,.8rem);padding:1px 4px;border-width:1.2px;border-radius:4px}
 /* letter and title travel together (no gap); all squares of the same header line share one top offset,
    so A, B, C (and 1, 2, 3) sit at the same height. The offset is set in fitHeaders(). */
 .board .hd.col,.board .hd.rowh{justify-content:flex-start;gap:1px}
@@ -308,6 +312,9 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .cell.flag .flip .gm-stamp.bk.lw .sn{font-size:clamp(8px,2.2vw,13px)!important}
 .cell.flag .pts{top:0;right:0;font-family:var(--display);font-weight:800;font-stretch:75%;font-size:clamp(.66rem,2.8vw,.85rem);letter-spacing:0;padding:1px 4px 2px 5px;border-radius:0 0 0 7px;background:#0F1626;color:#fff;line-height:1.15;z-index:1}
 .b5 .cell.flag .pts{font-size:.6rem;padding:0 3px 1px 4px;border-radius:0 0 0 5px}
+/* the country's three-letter code in a matching tab in the bottom left corner */
+.cell.flag .cc{position:absolute;left:0;bottom:0;z-index:1;background:#0F1626;color:#fff;font-family:var(--display);font-weight:800;font-stretch:75%;font-size:clamp(.66rem,2.8vw,.85rem);letter-spacing:0;padding:2px 5px 1px 4px;border-radius:0 7px 0 0;line-height:1.15}
+.b5 .cell.flag .cc{font-size:.6rem;padding:1px 4px 0 3px;border-radius:0 5px 0 0}
 .cell.flag .gm-stamp.lw .sn{font-size:clamp(9px,2.6vw,14px)!important}
 .b3 .cell.flag .gm-stamp .sn{font-size:14px!important}
 .b5 .cell.flag .gm-stamp .sn{font-size:10px!important}
@@ -1106,7 +1113,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/da
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202610251400';
+const APP_VERSION='202610251130';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
@@ -1441,10 +1448,11 @@ const screenFor=s=>!s?'home':s.archive?'archive':s.daily?'home':s.mode==='solo'?
 const cornerHTML=(day,code)=>day?`<div class="corner dnum" aria-label="Grid number ${day}"><span class="dl">Grid</span><span class="dn${day>=100?' long':''}">#${day}</span></div>`
   :`<div class="corner dnum" aria-label="Grid ${esc(code||'')}"><span class="dl">Grid</span><span class="dn code">${esc(code||'')}</span></div>`;
 // a right answer on the grid: a passport stamp with the flag, the name, its code and its points
-// a filled square: the flag with its points in the top right corner; tapping it flips it over to show
+// a filled square: the flag with its points in the top right corner and the country's three-letter code
+// in the bottom left corner; tapping it flips it over to show
 // the country name, the points and how many countries would have fitted (fits, when known)
 const stampCell=(c,cell,cls,fits)=>{const pts=(cell.p||0)+(cell.sb||0),k=(cls?cls+' ':'')+(Math.max(...c.n.split(' ').map(w=>w.length))>6?'lw':'');
-  const front=Geomingo.stampHTML(c.n,'',k+' fr',FLAGS[c.c]).replace(/<\/span>$/,'<span class="pts">+'+pts+'</span></span>'),st=(front.match(/style="([^"]*)"/)||[])[1]||'';
+  const front=Geomingo.stampHTML(c.n,'',k+' fr',FLAGS[c.c]).replace(/<\/span>$/,'<span class="pts">+'+pts+'</span><span class="cc">'+c.c+'</span></span>'),st=(front.match(/style="([^"]*)"/)||[])[1]||'';
   return `<span class="flip">${front}<span class="gm-stamp bk ${k}" style="${st}"><b class="sn">${esc(c.n)}</b><small>+${pts} pts</small>${fits?`<small>${fits} possible</small>`:''}</span></span>`};
 // today's grid shown open on the home screen: tapping a square starts (or continues) the daily game there
 function dailyBoard(saved){
