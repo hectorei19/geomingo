@@ -682,8 +682,10 @@ const randSeed=()=>Math.floor(Math.random()*7962624);
 
 /* ---- state ---- */
 let S = null;
-let setup = {mode:'solo',n:3,timer:0,diff:'normal',names:['Player 1','Player 2'],code:'',user:''};
+let setup = {mode:'solo',n:4,timer:0,diff:'normal',names:['Player 1','Player 2'],code:'',user:''};
 try{const s=JSON.parse(localStorage.getItem('bl-setup')||'null');if(s&&Array.isArray(s.names))setup={...setup,...s,code:''}}catch(e){}
+// 3 × 3 grids were dropped: an old saved choice of 3 becomes 4 × 4
+if(setup.n!==5)setup.n=4;
 try{setup.user=localStorage.getItem('bl-user')||setup.user||''}catch(e){}
 let editingUser=!setup.user;
 let askingPlayers=false;
@@ -1113,7 +1115,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/da
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202610251130';
+const APP_VERSION='202610251200';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
@@ -1518,7 +1520,7 @@ function setupView(){
     ${vs?`<div class="field"><span class="label">Players</span>${seg('np',[[2,'2'],[3,'3'],[4,'4']],setup.names.length)}</div>`:''}
     ${fg&&!on?`<div class="field"><span class="label">Friend's grid</span><p class="hint" style="color:var(--ink);font-size:1rem"><b>${esc(fg.code)}</b> · ${fg.n} × ${fg.n} · ${fg.diff[0].toUpperCase()+fg.diff.slice(1)}. You play exactly the squares your friend played.</p><button class="ghost" id="nofg">Play a random grid instead</button></div>`:`
     <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['normal','Normal'],['hard','Hard']],setup.diff||'normal')}<p class="hint">${DHINT[setup.diff||'normal']}</p></div>
-    <div class="field"><span class="label">Grid size</span>${seg('n',[[3,'3 × 3'],[4,'4 × 4'],[5,'5 × 5']],setup.n)}</div>`}
+    <div class="field"><span class="label">Grid size</span>${seg('n',[[4,'4 × 4'],[5,'5 × 5']],setup.n)}</div>`}
     <div class="field"><span class="label">Time per turn</span>${seg('timer',[[0,'Off'],[10,'10 s'],[30,'30 s']],setup.timer)}</div>
     ${on&&!USER?`<div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||'')}"><p class="hint">So your friends know who's playing.</p></div>`:''}
     ${on?`<div class="field">${FB_OK?'':'<p class="hint">Online play only works on the published site with Firebase connected.</p>'}<button class="primary" id="create" ${FB_OK?'':'disabled style="opacity:.5"'}>Create room</button></div>
