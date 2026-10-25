@@ -1,4 +1,4 @@
-// Firebase web config: the same project as Countries (borderline-90920); Cities keeps its own place in the database (not secret: access is controlled by the database rules).
+// Firebase web config: the same project as Countries (borderline-90920); Capitals keeps its own place in the database (not secret: access is controlled by the database rules).
 window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyBSHPqTRcuA3orK4W5LKbRNTNij48a4hdQ",
   authDomain: "borderline-90920.firebaseapp.com",

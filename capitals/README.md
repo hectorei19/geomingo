@@ -1,10 +1,10 @@
-# City Grid
+# Capitals
 
 Part of [Geomingo](https://geomingo.com/), daily geography games: the colours, fonts, Mingo and the shared header come from `../brand/`. Fonts: Archivo, Public Sans and Courier Prime.
 
-Geography grid game with cities: name a city that matches each row and column (the 195 national capitals, one per country). A sister of [Country Grid](https://geomingo.com/countries/), same game and same look, with cities instead of countries. Every grid is checked so it can always be completed, whatever answers are given.
+Geography grid game with cities: name a city that matches each row and column (the 195 national capitals, one per country). A sister of [Countries](https://geomingo.com/countries/), same game and same look, with cities instead of countries. Every grid is checked so it can always be completed, whatever answers are given.
 
-Live at https://geomingo.com/cities/ · all the games: https://geomingo.com/
+Live at https://geomingo.com/capitals/ (formerly Cities, at /cities/, which still forwards here) · all the games: https://geomingo.com/
 
 - Today's grid: one 4×4 Normal grid a day for everyone, new at midnight CET (Spain), one try.
 - Solo: unlimited grids (Easy, Normal, Hard; 3×3 or 4×4: 195 capitals are too few for 5×5). A shared result link (`?grid=4-KQPMT`) opens the same grid.

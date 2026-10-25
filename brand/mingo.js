@@ -20,7 +20,7 @@ function toggleTheme(){const next=currentTheme()==='dark'?'light':'dark';store.s
    id: the id each game already uses for its saves (Countries kept Borderline's), soon: shown as "Coming soon" */
 const GAMES=[
   {id:'borderline',name:'Countries',path:'countries/',gate:'A1',hint:'Fill the grid with countries'},
-  {id:'citygrid',name:'Cities',path:'cities/',gate:'A2',hint:'Fill the grid with cities'},
+  {id:'citygrid',name:'Capitals',path:'capitals/',gate:'A2',hint:'Fill the grid with capitals'},
   {id:'connections',name:'Connections',path:'connections/',gate:'B1',hint:'16 countries, 4 hidden groups'},
   {id:'top10',name:'Top 10',path:'top10/',gate:'B2',hint:'Name a ranking. 3 lives.'},
   {id:'silhouette',name:'Silhouette',path:'silhouette/',gate:'C1',hint:'Name the country from its shape'}];

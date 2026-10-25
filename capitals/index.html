@@ -1,0 +1,1659 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>Capitals · Geomingo</title>
+<meta name="description" content="Fill the grid with capitals: each square must match its row and its column. A new grid every day, solo or with friends. Daily geography games from Geomingo.">
+<meta name="theme-color" content="#151E30">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Geomingo">
+<meta property="og:title" content="Capitals · Geomingo">
+<meta property="og:description" content="Fill the grid with capitals. A new grid every day. Better with friends.">
+<meta property="og:url" content="https://geomingo.com/capitals/">
+<meta property="og:image" content="https://geomingo.com/brand/og.png?v=2">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../brand/icons/favicon.svg?v=202610242200" type="image/svg+xml">
+<link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
+<script src="../brand/mingo.js?v=202610251530"></script>
+<script src="../brand/account.js?v=202610250900"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="firebase-config.js?v=202610242300"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
+<style>
+/* Layout: Geomingo (../brand/geomingo.css, loaded after this block) gives the colours, fonts and common pieces;
+   this block keeps the grid's own layout */
+*{box-sizing:border-box}
+html,body{min-height:100%}
+.wrap{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:14px 40px;display:flex;flex-direction:column;gap:14px}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2.5px solid var(--sea);outline-offset:2px}
+
+header.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.brand{cursor:pointer;font-family:var(--display);font-weight:900;font-size:2.1rem;letter-spacing:.02em;line-height:1;text-transform:uppercase;margin:0}
+.brand span{color:var(--sea)}
+.coord{font-family:var(--mono);font-size:.72rem;color:var(--ink-2);letter-spacing:.04em}
+
+.panel{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:16px}
+.field{display:flex;flex-direction:column;gap:8px}
+.label{font-size:.78rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2)}
+.seg{display:flex;border:1px solid var(--rule);border-radius:5px;overflow:hidden}
+.seg button{flex:1;background:transparent;border:0;border-right:1px solid var(--rule);padding:10px 6px;font-weight:600;font-size:1rem}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
+.players{display:flex;flex-direction:column;gap:8px}
+.prow{display:flex;gap:8px;align-items:center}
+.pin{width:14px;height:14px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);flex:none}
+.prow input{flex:1;min-width:0;border:1px solid var(--rule);background:var(--paper);border-radius:4px;padding:9px 10px}
+.row-btns{display:flex;gap:8px}
+.ghost{background:transparent;border:1px solid var(--rule);border-radius:4px;padding:8px 12px;font-weight:600}
+.ghost:disabled{opacity:.4;cursor:default}
+.primary{background:var(--sea);color:var(--sheet);border:0;border-radius:5px;padding:14px;font-weight:700;font-size:1.1rem;letter-spacing:.04em;text-transform:uppercase}
+.code-in{border:1px solid var(--rule);background:var(--paper);border-radius:4px;padding:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;width:100%}
+.hint{font-size:.88rem;color:var(--ink-2);margin:0}
+.rules{margin:0;padding-left:18px;font-size:.93rem;color:var(--ink-2);display:flex;flex-direction:column;gap:4px}
+
+/* game */
+.status{display:flex;align-items:center;gap:10px;background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:10px 12px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.status .who{font-weight:700;font-size:1.1rem;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.status .sub{font-family:var(--mono);font-size:.75rem;color:var(--ink-2)}
+.tbar{position:absolute;left:0;bottom:0;height:3px;background:var(--sea);transition:width .25s linear}
+.scores{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:flex;align-items:center;gap:6px;border:1px solid var(--rule);border-radius:999px;padding:4px 10px 4px 8px;font-weight:600;font-size:.9rem;background:var(--sheet)}
+.chip.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.chip b{font-family:var(--mono);font-weight:500}
+
+.board-wrap{overflow-x:auto}
+.board{display:grid;gap:0;background:var(--sheet);border:1.5px solid var(--ink);border-radius:4px;box-shadow:var(--shadow)}
+.hd{padding:6px 5px;font-size:.8rem;font-weight:600;line-height:1.15;display:flex;flex-direction:column;justify-content:center;gap:3px;border-color:var(--rule);border-style:dashed;border-width:0;text-wrap:balance;overflow-wrap:anywhere;hyphens:auto}
+.hd .ref{font-family:var(--mono);font-size:.62rem;color:var(--sea);font-weight:500;letter-spacing:.05em}
+.hd.col{border-left-width:1px;border-bottom:1.5px solid var(--ink);text-align:center;align-items:center;justify-content:flex-end}
+.hd.rowh{border-top-width:1px;border-right:1.5px solid var(--ink)}
+.cbrand{font-family:var(--display);font-weight:900;text-transform:uppercase;line-height:.92;letter-spacing:.02em;color:var(--ink);font-size:1.25rem;display:flex;flex-direction:column;align-items:center}
+.cbrand span{color:var(--sea)}
+.b4 .cbrand{font-size:1.05rem}.b5 .cbrand{font-size:.88rem}
+.namecard{display:flex;flex-direction:column;gap:14px}
+.roomcode{font-family:var(--mono);font-size:2.6rem;letter-spacing:.18em;margin:0;color:var(--sea);font-weight:500}
+.lp{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--rule);border-radius:5px;font-weight:600}
+.lp .tag{margin-left:auto;font-family:var(--mono);font-size:.72rem;color:var(--ink-2);font-weight:500}
+.lp.off{opacity:.45}
+.joinrow{display:flex;gap:8px}.joinrow input{flex:1;min-width:0}
+.chip.off{opacity:.45}
+.namecard input{border:1.5px solid var(--ink);background:var(--paper);border-radius:5px;padding:12px;font-size:1.15rem;width:100%}
+.userline{display:flex;align-items:center;gap:8px;font-weight:600}
+.userline .ghost{padding:4px 10px;font-size:.85rem}
+.hd.col,.hd.rowh,.corner{aspect-ratio:1;min-width:0;overflow:hidden}
+.hd .ht{display:block;max-width:100%;font-size:1.05rem;font-weight:700;line-height:1.08;letter-spacing:.005em}
+.b4 .hd .ht{font-size:1rem}
+.b5 .hd .ht{font-size:.95rem}
+.hd{overflow-wrap:normal;hyphens:manual}
+.board .hd,.board.b4 .hd,.board.b5 .hd{padding:2mm}
+.board.b5 .hd{padding:1.2mm}
+.board.b5 .hd .ref{font-size:.58rem}
+.board .corner{padding:2mm}
+.board .hd .ref{line-height:1}
+/* letter and title travel together (no gap); all squares of the same header line share one top offset,
+   so A, B, C (and 1, 2, 3) sit at the same height. The offset is set in fitHeaders(). */
+.board .hd.col,.board .hd.rowh{justify-content:flex-start;gap:1px}
+.hd .ht .ib{display:inline-block;margin-left:0;margin-right:0;width:1.05em;height:1.05em;line-height:.95em;text-align:center;font-size:.8em;vertical-align:.08em;white-space:nowrap}
+.board .hd .ht{hyphens:auto;-webkit-hyphens:auto}
+.board .hd.col,.board .hd.rowh{align-items:center;text-align:center}
+.board .hd .ht{text-align:center}
+.b5 .hd{font-size:.6rem;line-height:1.1}
+.corner{border-right:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.62rem;color:var(--ink-2);padding:4px;text-align:center}
+.cell{aspect-ratio:1;border:0;border-left:1px dashed var(--rule);border-top:1px dashed var(--rule);background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:3px;position:relative;min-width:0}
+.cell .plus{width:40%;max-width:28px;aspect-ratio:1;position:relative;opacity:.35}
+.cell .plus::before,.cell .plus::after{content:"";position:absolute;background:var(--ink);left:50%;top:50%;transform:translate(-50%,-50%)}
+.cell .plus::before{width:100%;height:1.5px}.cell .plus::after{height:100%;width:1.5px}
+.cell:hover .plus{opacity:.7}
+.cell.sel{background:var(--sea-soft);box-shadow:inset 0 0 0 2px var(--sea)}
+.cell .fl{font-size:1.6rem;line-height:1}
+.cell .nm{font-size:.72rem;font-weight:600;line-height:1.05;text-align:center;overflow-wrap:anywhere}
+.cell.taken{cursor:default}
+.cell .cnt{position:absolute;right:4px;bottom:3px;font-family:var(--mono);font-size:.6rem;color:var(--ink-2)}
+.cell.miss .nm{color:var(--ink-2);font-weight:500}
+.o0{background:var(--p0-soft)}.o1{background:var(--p1-soft)}.o2{background:var(--p2-soft)}.o3{background:var(--p3-soft)}.o4{background:var(--p4-soft)}.o5{background:var(--p5-soft)}
+.o0::after,.o1::after,.o2::after,.o3::after,.o4::after,.o5::after{content:"";position:absolute;left:0;top:0;width:6px;height:6px;border-radius:0 0 6px 0}
+.o0::after{background:var(--p0)}.o1::after{background:var(--p1)}.o2::after{background:var(--p2)}.o3::after{background:var(--p3)}.o4::after{background:var(--p4)}.o5::after{background:var(--p5)}
+.b4 .hd{font-size:.74rem}.b4 .cell .fl{font-size:1.35rem}.b4 .cell .nm{font-size:.66rem}
+.b5 .hd{font-size:.66rem;padding:5px 3px}.b5 .cell .fl{font-size:1.15rem}.b5 .cell .nm{font-size:.58rem}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions .ghost{flex:1;min-width:110px}
+
+/* guess sheet */
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--sheet);border-top:1.5px solid var(--ink);box-shadow:0 -12px 30px -10px rgba(0,0,0,.35);padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px;max-width:560px;margin:0 auto;border-radius:10px 10px 0 0}
+.sheet .q{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;font-weight:600;font-size:.95rem}
+.sheet .q i{font-style:normal;color:var(--ink-2);font-family:var(--mono);font-size:.75rem}
+.sheet input{width:100%;border:1.5px solid var(--ink);border-radius:5px;padding:12px;font-size:1.1rem;background:var(--paper)}
+.sugg{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;max-height:42vh;overflow-y:auto}
+.sugg button{width:100%;text-align:left;background:transparent;border:0;border-bottom:1px solid var(--rule);padding:10px 4px;display:flex;gap:10px;align-items:center;font-size:1.02rem}
+.sugg button:disabled{opacity:.4;cursor:default}
+.sugg .tag{margin-left:auto;font-family:var(--mono);font-size:.7rem;color:var(--ink-2)}
+.sheet .bar{display:flex;gap:8px}
+.sheet .bar .ghost{flex:1}
+.scrim{position:fixed;inset:0;background:rgba(10,20,30,.35);z-index:19}
+
+.hd[data-info]{cursor:pointer}
+.hd[data-info]:hover{background:var(--sea-soft)}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:1.25em;height:1.25em;margin:0 .35em;border:1px solid currentColor;border-radius:50%;font-family:Georgia,"Times New Roman",serif;font-style:italic;font-weight:700;font-size:.95em;line-height:1;vertical-align:middle;color:var(--sea)}
+.qcat{background:transparent;border:0;padding:0;font-weight:600;font-size:inherit;text-align:left;display:inline-flex;align-items:center}
+.infobox{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:31;width:min(420px,calc(100% - 32px));background:var(--sheet);border:1.5px solid var(--ink);border-radius:8px;box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:12px}
+.infobox h2{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:1.6rem;line-height:1.05;margin:0;text-wrap:balance}
+.infobox p{margin:0;font-size:1rem;color:var(--ink)}
+.infobox .meta{font-family:var(--mono);font-size:.75rem;color:var(--ink-2)}
+.infoscrim{position:fixed;inset:0;background:rgba(10,20,30,.45);z-index:30}
+/* guessed square: points in the top-right corner, name centred at the bottom */
+.pts{position:absolute;top:0;right:0;border-radius:0 0 0 3px;font-family:var(--mono);font-size:.62rem;background:rgba(8,16,26,.78);color:#fff;padding:1px 4px;line-height:1.2;white-space:nowrap}
+.flagbox{position:relative}
+.cell .val{position:absolute;right:4px;bottom:3px;font-family:var(--mono);font-size:.66rem;color:var(--ink-2)}
+.b5 .cell .val,.b5 .pts{font-size:.55rem}
+.bd{margin:-6px 0 0 38px}.bdline{font-family:var(--mono);font-size:.75rem!important}
+.helpbox{max-height:calc(100% - 48px);overflow-y:auto;top:24px;transform:translateX(-50%)}
+.helpbox h3{font-size:.8rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);margin:6px 0 0}
+.helpbox ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.ptable{border-collapse:collapse;font-family:var(--mono);font-size:.85rem}
+.ptable td{border-top:1px solid var(--rule);padding:4px 10px 4px 0}
+.helpbtn{background:transparent;border:1px solid var(--rule);border-radius:999px;padding:5px 12px;font-weight:600;font-size:.9rem;white-space:nowrap}
+.foot{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:0 28px;display:flex;justify-content:center}
+.linkbtn{background:transparent;border:0;color:var(--ink-2);font-size:.85rem;text-decoration:underline;text-underline-offset:3px;padding:6px}
+.credits dl{margin:0;display:flex;flex-direction:column;gap:10px}
+.credits dt{font-weight:700}
+.credits dd{margin:2px 0 0;color:var(--ink-2);font-size:.92rem}
+.credits a{color:var(--sea)}
+.handoff{position:fixed;inset:0;z-index:35;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px 16px calc(24px + env(safe-area-inset-bottom,0px));text-align:center}
+.handoff h2{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:2.6rem;line-height:1;margin:0;text-wrap:balance}
+.handoff p{margin:0;color:var(--ink-2);max-width:32ch}
+.handoff .scores{justify-content:center}
+.handoff .primary{min-width:220px}
+.pin.big{width:34px;height:34px}
+.toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:40;background:var(--ink);color:var(--sheet);padding:10px 16px;border-radius:5px;font-weight:600;box-shadow:var(--shadow);max-width:calc(100% - 32px);text-align:center}
+.toast.bad{background:var(--bad);color:#fff}
+.toast.good{background:var(--good);color:#fff}
+
+/* results */
+.podium{display:flex;flex-direction:column;gap:8px}
+.place{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--rule);border-radius:5px}
+.place .rk{font-family:var(--display);font-weight:900;font-size:1.6rem;width:28px}
+.place .nm{flex:1;font-weight:700;font-size:1.1rem}
+.place .pt{font-family:var(--mono)}
+.place.win{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.big{font-family:var(--display);font-weight:900;font-size:2.6rem;line-height:1;margin:0;text-transform:uppercase;text-wrap:balance}
+.answers{display:flex;flex-direction:column;gap:6px}
+.answers p{margin:0;font-size:.95rem}
+.sharebtns{display:flex;flex-direction:column;gap:8px}
+.sharebtns a{display:block;text-align:center;text-decoration:none}
+.sep{border:0;border-top:1px solid var(--rule);margin:2px 0;width:100%}
+/* home: three big cards */
+.home{display:flex;flex-direction:column;gap:12px}
+.hcard{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;text-align:left;background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:16px;box-shadow:var(--shadow)}
+.hcard.ac{border:2px solid var(--sea);padding:15px}
+button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--sea-soft)}
+.hcard .dboard{width:100%;margin-top:8px}
+.hcard.soon{opacity:.55;box-shadow:none;cursor:default}
+.sugg .co{margin-left:auto;font-size:.85rem;color:var(--ink-2)}
+.menuscrim{position:fixed;inset:0;z-index:28}
+.menubox{position:fixed;z-index:29;top:calc(58px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);width:min(560px,100%);padding:0 16px;display:flex;flex-direction:column;align-items:flex-end;pointer-events:none}
+.menubox .mitem{pointer-events:auto;width:min(280px,100%);text-align:left;background:var(--sheet);border:1px solid var(--rule);border-top-width:0;padding:13px 16px;font-weight:600;font-size:1rem}
+.menubox .mitem:first-child{border-top-width:1px;border-radius:8px 8px 0 0}
+.menubox .mitem:last-child{border-radius:0 0 8px 8px;box-shadow:var(--shadow)}
+.menubox .mitem:hover{background:var(--sea-soft)}
+.menubox .mitem{display:flex;align-items:center;gap:14px}
+.menubox .mitem .ico{width:20px;height:20px;color:var(--sea)}
+.menubox .mitem.out{color:var(--ink-2);border-top:1px solid var(--ink-2)}
+.menubox .mitem.out .ico{color:var(--ink-2)}
+.ico{flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#menu{display:inline-flex;align-items:center;gap:6px}
+#menu .ico{width:18px;height:18px}
+/* archive of past daily grids */
+.arch{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.arch button{width:100%;display:flex;align-items:center;gap:12px;text-align:left;background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:10px 12px}
+.arch button:hover{border-color:var(--sea)}
+.arch .an{font-family:var(--display);font-weight:900;font-size:1.5rem;min-width:52px;color:var(--sea)}
+.arch .ad{flex:1;display:flex;flex-direction:column;gap:2px}
+.arch .ad small{color:var(--ink-2);font-size:.85rem}
+.arch .as{font-family:var(--mono);font-size:.78rem;color:var(--ink-2);text-align:right}
+.arch .as.done{color:var(--good)}
+.arch .dsq{width:44px;gap:2px}
+.corner.dnum{flex-direction:column;gap:2px;padding:4px}
+.corner.dnum .dl{font-family:var(--mono);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-2)}
+.corner.dnum .dn{font-family:var(--display);font-weight:900;font-size:2rem;line-height:.9;color:var(--sea);letter-spacing:.01em}
+.b5 .corner.dnum .dn,.corner.dnum .dn.long{font-size:1.45rem}
+.hrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.c4{--pc:var(--p4);--pc-soft:color-mix(in srgb,var(--p4) 22%,transparent)}.c5{--pc:var(--p5);--pc-soft:color-mix(in srgb,var(--p5) 22%,transparent)}
+.qrules{gap:6px}.qrules .hint{font-size:1rem}
+.userline{flex-wrap:wrap}
+.stats .label{margin-top:4px}
+.stgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.st{border:1px solid var(--rule);border-radius:6px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+.st b{font-family:var(--display);font-weight:900;font-size:1.6rem;line-height:1;color:var(--ink)}
+.st span{font-size:.8rem;color:var(--ink-2)}
+.sttab{width:100%;border-collapse:collapse;font-size:.9rem}
+.sttab th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);font-weight:600;text-align:right;padding:4px}
+.sttab td{text-align:right;padding:6px 4px;border-top:1px solid var(--rule);font-family:var(--mono)}
+.sttab td:first-child,.sttab th:first-child{text-align:left;font-family:var(--ui);font-weight:600}
+[data-stats]{cursor:pointer}
+.lbl li[data-stats]:hover{background:var(--sea-soft)}
+.orline{display:flex;align-items:center;gap:10px;color:var(--ink-2);font-size:.9rem}
+.orline::before,.orline::after{content:"";flex:1;border-top:1px solid var(--rule)}
+.acct{margin-left:auto;font-family:var(--mono);font-size:.75rem;color:var(--good)}
+.gbanner{display:flex;align-items:center;gap:10px;background:var(--sea-soft);border:1px solid var(--sea);border-radius:8px;padding:10px 12px;font-weight:600}
+.gbanner span{flex:1}
+.gbanner .primary{padding:6px 14px;font-size:.9rem}
+.gbanner .linkbtn{text-decoration:none;color:var(--ink-2);padding:4px}
+.userline .uright{margin-left:auto;display:flex;align-items:center;gap:8px}
+.hrow .hcard>.ht{font-size:1.4rem}
+.dsum{display:flex;align-items:center;gap:16px;margin:4px 0}
+.dsq{display:grid;gap:4px;width:88px;flex:none}
+.dsq i{aspect-ratio:1;border-radius:3px;background:var(--rule)}
+.dsq i.on{background:var(--good)}
+.dtxt{display:flex;flex-direction:column;gap:2px}
+.hrank{font-size:.95rem;color:var(--ink)}.hrank b{font-family:var(--display);font-weight:900;font-size:1.15rem;color:var(--sea)}
+.lbl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.lbl li{display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid var(--rule)}
+.lbl li:last-child{border-bottom:0}
+.lbl li.me{background:var(--sea-soft);border-radius:4px}
+.lbl .rk{width:26px;font-family:var(--display);font-weight:900;font-size:1.15rem}
+.lbl .nm{flex:1;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbl .sq{font-family:var(--mono);font-size:.75rem;color:var(--ink-2)}
+.lbl .pt{font-family:var(--mono);min-width:44px;text-align:right}
+.lbl .gap{justify-content:center;color:var(--ink-2);border-bottom:0;padding:2px}
+.dstats{margin-left:auto;display:flex;flex-direction:column;gap:4px;padding-left:16px;border-left:1px solid var(--rule);font-size:.9rem;color:var(--ink-2)}
+.dstats>span{white-space:nowrap}
+.dstats b{font-family:var(--display);font-weight:900;font-size:1.3rem;color:var(--ink);margin-right:5px}
+.dtxt .ht{white-space:nowrap}
+@media (max-width:420px){.dsum{gap:12px}.dsq{width:72px}.dtxt .ht{font-size:1.35rem}.dstats{padding-left:12px}.dstats b{font-size:1.15rem}}
+.dtxt .ht{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:1.7rem;line-height:1;letter-spacing:.02em}
+.dtxt .hs{color:var(--ink-2)}
+.tdiag{flex-basis:100%;font-size:.7rem;line-height:1.5;color:var(--ink-2)}
+.testbar{flex-wrap:wrap;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;border:1.5px dashed var(--bad);border-radius:6px;font-family:var(--mono);font-size:.8rem;color:var(--bad)}
+.hcard>.ht,.backline .ht{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:1.7rem;line-height:1;letter-spacing:.02em}
+.hcard>.hs{color:var(--ink-2);font-size:1rem}
+.hcard>.hm{font-family:var(--mono);font-size:.75rem;color:var(--sea);letter-spacing:.04em}
+.backline{display:flex;align-items:center;gap:10px}.backline .linkbtn{padding:4px 0}.backline .ht{font-size:1.4rem}
+.dres{margin:0;font-size:1.05rem}
+.answers .hdr{font-weight:700;display:flex;align-items:baseline;gap:12px}
+.answers .nsol{margin-left:auto;color:var(--ink-2);font-weight:500;white-space:nowrap}
+.sharebox{font-family:var(--mono);font-size:.85rem;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:10px;user-select:all;margin:0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@keyframes pop{from{transform:scale(.6);opacity:.2}to{transform:none;opacity:1}}
+.cell.new{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}
+.cell.flag{padding:5px;background:transparent}
+.cell.flag::after{display:none}
+.flagbox{width:100%;height:100%;border-radius:4px;background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:flex-end;overflow:hidden;border:3px solid var(--pc,var(--sea));box-shadow:0 0 0 2px var(--pc-soft,transparent)}
+.flagbox .nm{width:100%;background:rgba(8,16,26,.66);color:#fff;padding:2px 3px 3px;font-weight:600;text-align:center;overflow-wrap:normal;line-height:1.05}
+.b5 .cell.flag{padding:3.5px}
+.c0{--pc:var(--p0);--pc-soft:color-mix(in srgb,var(--p0) 22%,transparent)}.c1{--pc:var(--p1);--pc-soft:color-mix(in srgb,var(--p1) 22%,transparent)}.c2{--pc:var(--p2);--pc-soft:color-mix(in srgb,var(--p2) 22%,transparent)}.c3{--pc:var(--p3);--pc-soft:color-mix(in srgb,var(--p3) 22%,transparent)}
+.cell .citybox{background:none;align-items:center;justify-content:center;padding:14px 1px 2px}
+.cell .citybox .nm{background:none;color:currentColor;font-stretch:80%;font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:1.5rem;line-height:.95;letter-spacing:.01em;padding:0;min-width:0}
+.b3 .cell .citybox .nm{font-size:2rem}
+.mini{width:20px;height:20px;border-radius:3px;object-fit:cover;flex:none;vertical-align:-5px;box-shadow:0 0 0 1px var(--rule)}
+/* Mingo's bubble over the grid, and the result panel */
+.gm-hello+.board-wrap{margin-top:-4px}
+.respanel .gm-hello{margin:-4px 0 -6px}
+.corner .mingo{width:auto;height:88%}
+</style>
+<link rel="stylesheet" href="../brand/geomingo.css?v=202610251000">
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
+<div id="layer"></div>
+
+<script>
+// cities: GeoNames (CC BY 4.0) names, coordinates and population; the hand-checked facts (capital, coast, seas, rivers, height, hosts) are explained in each category and in Credits
+const C = [{"n":"Madrid","c":"madrid-esp","k3":"ESP","al":["Madrid"],"lat":40.42,"lon":-3.7,"pop":3255944,"reg":["EU"],"cap":1,"wcf":1},{"n":"Lisbon","c":"lisbon-prt","k3":"PRT","al":["Lisbon"],"lat":38.72,"lon":-9.13,"pop":517802,"reg":["EU"],"cap":1,"coast":1},{"n":"Paris","c":"paris-fra","k3":"FRA","al":["Paris"],"lat":48.85,"lon":2.35,"pop":2138551,"reg":["EU"],"cap":1,"mega":1,"os":1,"wcf":1},{"n":"Rome","c":"rome-ita","k3":"ITA","al":["Rome"],"lat":41.89,"lon":12.51,"pop":2318895,"reg":["EU"],"cap":1,"os":1,"wcf":1},{"n":"Berlin","c":"berlin-deu","k3":"DEU","al":["Berlin"],"lat":52.52,"lon":13.41,"pop":3426354,"reg":["EU"],"cap":1,"os":1,"wcf":1},{"n":"London","c":"london-gbr","k3":"GBR","al":["London"],"lat":51.51,"lon":-0.13,"pop":7556900,"reg":["EU"],"cap":1,"os":1,"wcf":1},{"n":"Dublin","c":"dublin-irl","k3":"IRL","al":["Dublin"],"lat":53.33,"lon":-6.25,"pop":1024027,"reg":["EU"],"cap":1,"coast":1},{"n":"Amsterdam","c":"amsterdam-nld","k3":"NLD","al":["Amsterdam"],"lat":52.37,"lon":4.89,"pop":741636,"reg":["EU"],"cap":1,"os":1},{"n":"Brussels","c":"brussels-bel","k3":"BEL","al":["Brussels"],"lat":50.85,"lon":4.35,"pop":1019022,"reg":["EU"],"cap":1},{"n":"Luxembourg","c":"luxembourg-lux","k3":"LUX","al":["Luxembourg","Luxembourg City"],"lat":49.61,"lon":6.13,"pop":135000,"reg":["EU"],"cap":1},{"n":"Bern","c":"bern-che","k3":"CHE","al":["Bern","Berne"],"lat":46.95,"lon":7.45,"pop":121631,"reg":["EU"],"cap":1,"wcf":1},{"n":"Vienna","c":"vienna-aut","k3":"AUT","al":["Vienna"],"lat":48.21,"lon":16.37,"pop":1691468,"reg":["EU"],"cap":1,"river":"danube"},{"n":"Copenhagen","c":"copenhagen-dnk","k3":"DNK","al":["Copenhagen"],"lat":55.68,"lon":12.57,"pop":1153615,"reg":["EU"],"cap":1,"coast":1,"sea":"baltic"},{"n":"Oslo","c":"oslo-nor","k3":"NOR","al":["Oslo"],"lat":59.91,"lon":10.75,"pop":580000,"reg":["EU"],"cap":1,"coast":1,"ow":1},{"n":"Stockholm","c":"stockholm-swe","k3":"SWE","al":["Stockholm"],"lat":59.33,"lon":18.07,"pop":1515017,"reg":["EU"],"cap":1,"coast":1,"sea":"baltic","os":1,"wcf":1},{"n":"Helsinki","c":"helsinki-fin","k3":"FIN","al":["Helsinki"],"lat":60.17,"lon":24.94,"pop":558457,"reg":["EU"],"cap":1,"coast":1,"sea":"baltic","os":1},{"n":"Reykjavík","c":"reykjavik-isl","k3":"ISL","al":["Reykjavík"],"lat":64.14,"lon":-21.9,"pop":118918,"reg":["EU"],"cap":1,"coast":1},{"n":"Warsaw","c":"warsaw-pol","k3":"POL","al":["Warsaw"],"lat":52.23,"lon":21.01,"pop":1702139,"reg":["EU"],"cap":1},{"n":"Prague","c":"prague-cze","k3":"CZE","al":["Prague"],"lat":50.09,"lon":14.42,"pop":1165581,"reg":["EU"],"cap":1},{"n":"Bratislava","c":"bratislava-svk","k3":"SVK","al":["Bratislava"],"lat":48.15,"lon":17.11,"pop":423737,"reg":["EU"],"cap":1,"river":"danube"},{"n":"Budapest","c":"budapest-hun","k3":"HUN","al":["Budapest"],"lat":47.5,"lon":19.04,"pop":1741041,"reg":["EU"],"cap":1,"river":"danube"},{"n":"Ljubljana","c":"ljubljana-svn","k3":"SVN","al":["Ljubljana"],"lat":46.05,"lon":14.51,"pop":272220,"reg":["EU"],"cap":1},{"n":"Zagreb","c":"zagreb-hrv","k3":"HRV","al":["Zagreb"],"lat":45.81,"lon":15.98,"pop":698966,"reg":["EU"],"cap":1},{"n":"Sarajevo","c":"sarajevo-bih","k3":"BIH","al":["Sarajevo"],"lat":43.85,"lon":18.36,"pop":696731,"reg":["EU"],"cap":1,"ow":1},{"n":"Belgrade","c":"belgrade-srb","k3":"SRB","al":["Belgrade"],"lat":44.8,"lon":20.47,"pop":1273651,"reg":["EU"],"cap":1,"river":"danube"},{"n":"Podgorica","c":"podgorica-mne","k3":"MNE","al":["Podgorica"],"lat":42.44,"lon":19.26,"pop":136473,"reg":["EU"],"cap":1},{"n":"Skopje","c":"skopje-mkd","k3":"MKD","al":["Skopje"],"lat":42,"lon":21.43,"pop":474889,"reg":["EU"],"cap":1},{"n":"Tirana","c":"tirana-alb","k3":"ALB","al":["Tirana"],"lat":41.33,"lon":19.82,"pop":374801,"reg":["EU"],"cap":1},{"n":"Pristina","c":"pristina-unk","k3":"UNK","al":["Pristina","Prishtina"],"lat":42.67,"lon":21.17,"pop":550000,"reg":["EU"],"cap":1},{"n":"Athens","c":"athens-grc","k3":"GRC","al":["Athens"],"lat":37.98,"lon":23.73,"pop":664046,"reg":["EU"],"cap":1,"coast":1,"sea":"med","os":1},{"n":"Sofia","c":"sofia-bgr","k3":"BGR","al":["Sofia"],"lat":42.7,"lon":23.32,"pop":1152556,"reg":["EU"],"cap":1},{"n":"Bucharest","c":"bucharest-rou","k3":"ROU","al":["Bucharest"],"lat":44.43,"lon":26.11,"pop":1877155,"reg":["EU"],"cap":1},{"n":"Chișinău","c":"chisinau-mda","k3":"MDA","al":["Chișinău","Chisinau"],"lat":47.01,"lon":28.86,"pop":635994,"reg":["EU"],"cap":1},{"n":"Kyiv","c":"kyiv-ukr","k3":"UKR","al":["Kyiv","Kiev"],"lat":50.45,"lon":30.52,"pop":2797553,"reg":["EU"],"cap":1},{"n":"Minsk","c":"minsk-blr","k3":"BLR","al":["Minsk"],"lat":53.9,"lon":27.57,"pop":1742124,"reg":["EU"],"cap":1},{"n":"Vilnius","c":"vilnius-ltu","k3":"LTU","al":["Vilnius"],"lat":54.69,"lon":25.28,"pop":542366,"reg":["EU"],"cap":1},{"n":"Riga","c":"riga-lva","k3":"LVA","al":["Riga"],"lat":56.95,"lon":24.11,"pop":742572,"reg":["EU"],"cap":1,"coast":1,"sea":"baltic"},{"n":"Tallinn","c":"tallinn-est","k3":"EST","al":["Tallinn"],"lat":59.44,"lon":24.75,"pop":394024,"reg":["EU"],"cap":1,"coast":1,"sea":"baltic"},{"n":"Moscow","c":"moscow-rus","k3":"RUS","al":["Moscow"],"lat":55.75,"lon":37.62,"pop":10381222,"reg":["EU"],"cap":1,"mega":1,"os":1,"wcf":1},{"n":"Valletta","c":"valletta-mlt","k3":"MLT","al":["Valletta"],"lat":35.9,"lon":14.51,"pop":6794,"reg":["EU"],"cap":1,"coast":1,"sea":"med"},{"n":"Nicosia","c":"nicosia-cyp","k3":"CYP","al":["Nicosia"],"lat":35.18,"lon":33.36,"pop":200452,"reg":["EU"],"cap":1},{"n":"Andorra la Vella","c":"andorralav-and","k3":"AND","al":["Andorra la Vella"],"lat":42.51,"lon":1.52,"pop":20430,"reg":["EU"],"cap":1,"alt":1},{"n":"Monaco","c":"monaco-mco","k3":"MCO","al":["Monaco"],"lat":43.73,"lon":7.42,"pop":32965,"reg":["EU"],"cap":1,"coast":1,"sea":"med"},{"n":"San Marino","c":"sanmarino-smr","k3":"SMR","al":["San Marino"],"lat":43.94,"lon":12.45,"pop":4500,"reg":["EU"],"cap":1},{"n":"Vaduz","c":"vaduz-lie","k3":"LIE","al":["Vaduz"],"lat":47.14,"lon":9.52,"pop":5197,"reg":["EU"],"cap":1},{"n":"Vatican City","c":"vaticancit-vat","k3":"VAT","al":["Vatican City"],"lat":41.9,"lon":12.45,"pop":829,"reg":["EU"],"cap":1},{"n":"Ankara","c":"ankara-tur","k3":"TUR","al":["Ankara"],"lat":39.92,"lon":32.85,"pop":3517182,"reg":["AS"],"cap":1},{"n":"Tbilisi","c":"tbilisi-geo","k3":"GEO","al":["Tbilisi"],"lat":41.69,"lon":44.83,"pop":1049498,"reg":["AS"],"cap":1},{"n":"Yerevan","c":"yerevan-arm","k3":"ARM","al":["Yerevan"],"lat":40.18,"lon":44.51,"pop":1093485,"reg":["AS"],"cap":1},{"n":"Baku","c":"baku-aze","k3":"AZE","al":["Baku"],"lat":40.38,"lon":49.89,"pop":1116513,"reg":["AS"],"cap":1},{"n":"Beijing","c":"beijing-chn","k3":"CHN","al":["Beijing","Peking"],"lat":39.91,"lon":116.4,"pop":11716620,"reg":["AS"],"cap":1,"mega":1,"os":1,"ow":1},{"n":"Taipei","c":"taipei-twn","k3":"TWN","al":["Taipei"],"lat":25.05,"lon":121.53,"pop":2602418,"reg":["AS"],"cap":1},{"n":"Tokyo","c":"tokyo-jpn","k3":"JPN","al":["Tokyo"],"lat":35.69,"lon":139.69,"pop":8336599,"reg":["AS"],"cap":1,"coast":1,"mega":1,"os":1},{"n":"Seoul","c":"seoul-kor","k3":"KOR","al":["Seoul"],"lat":37.57,"lon":126.98,"pop":10349312,"reg":["AS"],"cap":1,"os":1},{"n":"Pyongyang","c":"pyongyang-prk","k3":"PRK","al":["Pyongyang"],"lat":39.03,"lon":125.75,"pop":3222000,"reg":["AS"],"cap":1},{"n":"Ulaanbaatar","c":"ulaanbaata-mng","k3":"MNG","al":["Ulaanbaatar","Ulan Bator"],"lat":47.91,"lon":106.88,"pop":844818,"reg":["AS"],"cap":1,"alt":1},{"n":"Delhi","c":"delhi-ind","k3":"IND","al":["Delhi","New Delhi"],"lat":28.65,"lon":77.23,"pop":10927986,"reg":["AS"],"cap":1,"mega":1},{"n":"Islamabad","c":"islamabad-pak","k3":"PAK","al":["Islamabad"],"lat":33.72,"lon":73.04,"pop":601600,"reg":["AS"],"cap":1},{"n":"Dhaka","c":"dhaka-bgd","k3":"BGD","al":["Dhaka","Dacca"],"lat":23.71,"lon":90.41,"pop":10356500,"reg":["AS"],"cap":1,"mega":1},{"n":"Colombo","c":"colombo-lka","k3":"LKA","al":["Colombo"],"lat":6.94,"lon":79.85,"pop":648034,"reg":["AS"],"cap":1,"coast":1},{"n":"Kathmandu","c":"kathmandu-npl","k3":"NPL","al":["Kathmandu"],"lat":27.7,"lon":85.32,"pop":1442271,"reg":["AS"],"cap":1,"alt":1},{"n":"Thimphu","c":"thimphu-btn","k3":"BTN","al":["Thimphu"],"lat":27.47,"lon":89.64,"pop":115000,"reg":["AS"],"cap":1,"alt":2},{"n":"Malé","c":"male-mdv","k3":"MDV","al":["Malé","Male"],"lat":4.18,"lon":73.51,"pop":103693,"reg":["AS"],"cap":1,"coast":1},{"n":"Kabul","c":"kabul-afg","k3":"AFG","al":["Kabul"],"lat":34.53,"lon":69.17,"pop":3043532,"reg":["AS"],"cap":1,"alt":1},{"n":"Tehran","c":"tehran-irn","k3":"IRN","al":["Tehran","Teheran"],"lat":35.69,"lon":51.42,"pop":7153309,"reg":["AS"],"cap":1,"alt":1},{"n":"Baghdad","c":"baghdad-irq","k3":"IRQ","al":["Baghdad"],"lat":33.34,"lon":44.4,"pop":7216000,"reg":["AS"],"cap":1},{"n":"Damascus","c":"damascus-syr","k3":"SYR","al":["Damascus"],"lat":33.51,"lon":36.29,"pop":1569394,"reg":["AS"],"cap":1},{"n":"Beirut","c":"beirut-lbn","k3":"LBN","al":["Beirut"],"lat":33.89,"lon":35.5,"pop":1916100,"reg":["AS"],"cap":1,"coast":1,"sea":"med"},{"n":"Amman","c":"amman-jor","k3":"JOR","al":["Amman"],"lat":31.96,"lon":35.95,"pop":1275857,"reg":["AS"],"cap":1},{"n":"Riyadh","c":"riyadh-sau","k3":"SAU","al":["Riyadh"],"lat":24.69,"lon":46.72,"pop":4205961,"reg":["AS"],"cap":1},{"n":"Abu Dhabi","c":"abudhabi-are","k3":"ARE","al":["Abu Dhabi"],"lat":24.45,"lon":54.4,"pop":603492,"reg":["AS"],"cap":1,"coast":1,"sea":"gulf"},{"n":"Doha","c":"doha-qat","k3":"QAT","al":["Doha"],"lat":25.29,"lon":51.53,"pop":344939,"reg":["AS"],"cap":1,"coast":1,"sea":"gulf"},{"n":"Manama","c":"manama-bhr","k3":"BHR","al":["Manama"],"lat":26.23,"lon":50.59,"pop":147074,"reg":["AS"],"cap":1,"coast":1,"sea":"gulf"},{"n":"Kuwait City","c":"kuwaitcity-kwt","k3":"KWT","al":["Kuwait City"],"lat":29.37,"lon":47.98,"pop":3000000,"reg":["AS"],"cap":1,"coast":1,"sea":"gulf"},{"n":"Muscat","c":"muscat-omn","k3":"OMN","al":["Muscat"],"lat":23.58,"lon":58.41,"pop":797000,"reg":["AS"],"cap":1,"coast":1},{"n":"Sanaa","c":"sanaa-yem","k3":"YEM","al":["Sanaa","Sana'a"],"lat":15.35,"lon":44.21,"pop":1937451,"reg":["AS"],"cap":1,"alt":2},{"n":"Astana","c":"astana-kaz","k3":"KAZ","al":["Astana","Nur-Sultan"],"lat":51.18,"lon":71.45,"pop":1350000,"reg":["AS"],"cap":1},{"n":"Tashkent","c":"tashkent-uzb","k3":"UZB","al":["Tashkent"],"lat":41.26,"lon":69.22,"pop":1978028,"reg":["AS"],"cap":1},{"n":"Ashgabat","c":"ashgabat-tkm","k3":"TKM","al":["Ashgabat"],"lat":37.95,"lon":58.38,"pop":727700,"reg":["AS"],"cap":1},{"n":"Bishkek","c":"bishkek-kgz","k3":"KGZ","al":["Bishkek"],"lat":42.87,"lon":74.59,"pop":900000,"reg":["AS"],"cap":1},{"n":"Dushanbe","c":"dushanbe-tjk","k3":"TJK","al":["Dushanbe"],"lat":38.54,"lon":68.78,"pop":679400,"reg":["AS"],"cap":1},{"n":"Bangkok","c":"bangkok-tha","k3":"THA","al":["Bangkok"],"lat":13.75,"lon":100.5,"pop":5104476,"reg":["AS"],"cap":1,"mega":1},{"n":"Hanoi","c":"hanoi-vnm","k3":"VNM","al":["Hanoi"],"lat":21.02,"lon":105.84,"pop":1431270,"reg":["AS"],"cap":1},{"n":"Phnom Penh","c":"phnompenh-khm","k3":"KHM","al":["Phnom Penh"],"lat":11.56,"lon":104.92,"pop":1573544,"reg":["AS"],"cap":1},{"n":"Vientiane","c":"vientiane-lao","k3":"LAO","al":["Vientiane"],"lat":17.97,"lon":102.6,"pop":196731,"reg":["AS"],"cap":1},{"n":"Naypyidaw","c":"naypyidaw-mmr","k3":"MMR","al":["Naypyidaw","Nay Pyi Taw"],"lat":19.75,"lon":96.13,"pop":925000,"reg":["AS"],"cap":1},{"n":"Kuala Lumpur","c":"kualalumpu-mys","k3":"MYS","al":["Kuala Lumpur"],"lat":3.14,"lon":101.69,"pop":1453975,"reg":["AS"],"cap":1},{"n":"Singapore","c":"singapore-sgp","k3":"SGP","al":["Singapore"],"lat":1.29,"lon":103.85,"pop":3547809,"reg":["AS"],"cap":1,"coast":1},{"n":"Jakarta","c":"jakarta-idn","k3":"IDN","al":["Jakarta"],"lat":-6.21,"lon":106.85,"pop":8540121,"reg":["AS"],"cap":1,"coast":1,"mega":1},{"n":"Manila","c":"manila-phl","k3":"PHL","al":["Manila"],"lat":14.6,"lon":120.98,"pop":1600000,"reg":["AS"],"cap":1,"coast":1,"mega":1},{"n":"Bandar Seri Begawan","c":"bandarseri-brn","k3":"BRN","al":["Bandar Seri Begawan"],"lat":4.89,"lon":114.94,"pop":100700,"reg":["AS"],"cap":1,"coast":1},{"n":"Dili","c":"dili-tls","k3":"TLS","al":["Dili"],"lat":-8.56,"lon":125.57,"pop":150000,"reg":["AS"],"cap":1,"coast":1},{"n":"Cairo","c":"cairo-egy","k3":"EGY","al":["Cairo"],"lat":30.06,"lon":31.25,"pop":7734614,"reg":["AF"],"cap":1,"river":"nile","mega":1},{"n":"Tripoli","c":"tripoli-lby","k3":"LBY","al":["Tripoli"],"lat":32.89,"lon":13.19,"pop":1150989,"reg":["AF"],"cap":1,"coast":1,"sea":"med"},{"n":"Tunis","c":"tunis-tun","k3":"TUN","al":["Tunis"],"lat":36.82,"lon":10.17,"pop":693210,"reg":["AF"],"cap":1,"coast":1,"sea":"med"},{"n":"Algiers","c":"algiers-dza","k3":"DZA","al":["Algiers"],"lat":36.73,"lon":3.09,"pop":1977663,"reg":["AF"],"cap":1,"coast":1,"sea":"med"},{"n":"Rabat","c":"rabat-mar","k3":"MAR","al":["Rabat"],"lat":34.01,"lon":-6.83,"pop":1655753,"reg":["AF"],"cap":1,"coast":1},{"n":"Khartoum","c":"khartoum-sdn","k3":"SDN","al":["Khartoum"],"lat":15.55,"lon":32.53,"pop":1974647,"reg":["AF"],"cap":1,"river":"nile"},{"n":"Juba","c":"juba-ssd","k3":"SSD","al":["Juba"],"lat":4.85,"lon":31.58,"pop":450000,"reg":["AF"],"cap":1,"river":"nile"},{"n":"Addis Ababa","c":"addisababa-eth","k3":"ETH","al":["Addis Ababa"],"lat":9.02,"lon":38.75,"pop":2757729,"reg":["AF"],"cap":1,"alt":2},{"n":"Asmara","c":"asmara-eri","k3":"ERI","al":["Asmara"],"lat":15.34,"lon":38.93,"pop":563930,"reg":["AF"],"cap":1,"alt":2},{"n":"Djibouti","c":"djibouti-dji","k3":"DJI","al":["Djibouti"],"lat":11.59,"lon":43.15,"pop":623891,"reg":["AF"],"cap":1,"coast":1},{"n":"Mogadishu","c":"mogadishu-som","k3":"SOM","al":["Mogadishu"],"lat":2.04,"lon":45.34,"pop":2587183,"reg":["AF"],"cap":1,"coast":1},{"n":"Nairobi","c":"nairobi-ken","k3":"KEN","al":["Nairobi"],"lat":-1.28,"lon":36.82,"pop":2750547,"reg":["AF"],"cap":1,"alt":1},{"n":"Kampala","c":"kampala-uga","k3":"UGA","al":["Kampala"],"lat":0.32,"lon":32.58,"pop":1353189,"reg":["AF"],"cap":1,"alt":1},{"n":"Kigali","c":"kigali-rwa","k3":"RWA","al":["Kigali"],"lat":-1.95,"lon":30.06,"pop":745261,"reg":["AF"],"cap":1,"alt":1},{"n":"Gitega","c":"gitega-bdi","k3":"BDI","al":["Gitega"],"lat":-3.43,"lon":29.92,"pop":41000,"reg":["AF"],"cap":1,"alt":1},{"n":"Dodoma","c":"dodoma-tza","k3":"TZA","al":["Dodoma"],"lat":-6.17,"lon":35.74,"pop":180541,"reg":["AF"],"cap":1,"alt":1},{"n":"Abuja","c":"abuja-nga","k3":"NGA","al":["Abuja"],"lat":9.06,"lon":7.5,"pop":590400,"reg":["AF"],"cap":1},{"n":"Accra","c":"accra-gha","k3":"GHA","al":["Accra"],"lat":5.56,"lon":-0.2,"pop":1963264,"reg":["AF"],"cap":1,"coast":1},{"n":"Yamoussoukro","c":"yamoussouk-civ","k3":"CIV","al":["Yamoussoukro"],"lat":6.82,"lon":-5.28,"pop":194530,"reg":["AF"],"cap":1},{"n":"Dakar","c":"dakar-sen","k3":"SEN","al":["Dakar"],"lat":14.69,"lon":-17.44,"pop":2476400,"reg":["AF"],"cap":1,"coast":1},{"n":"Bamako","c":"bamako-mli","k3":"MLI","al":["Bamako"],"lat":12.65,"lon":-8,"pop":1297281,"reg":["AF"],"cap":1},{"n":"Ouagadougou","c":"ouagadougo-bfa","k3":"BFA","al":["Ouagadougou"],"lat":12.37,"lon":-1.53,"pop":1086505,"reg":["AF"],"cap":1},{"n":"Niamey","c":"niamey-ner","k3":"NER","al":["Niamey"],"lat":13.51,"lon":2.11,"pop":774235,"reg":["AF"],"cap":1},{"n":"N'Djamena","c":"ndjamena-tcd","k3":"TCD","al":["N'Djamena","Ndjamena"],"lat":12.11,"lon":15.04,"pop":721081,"reg":["AF"],"cap":1},{"n":"Yaoundé","c":"yaounde-cmr","k3":"CMR","al":["Yaoundé","Yaounde"],"lat":3.87,"lon":11.52,"pop":1299369,"reg":["AF"],"cap":1},{"n":"Libreville","c":"libreville-gab","k3":"GAB","al":["Libreville"],"lat":0.39,"lon":9.45,"pop":578156,"reg":["AF"],"cap":1,"coast":1},{"n":"Brazzaville","c":"brazzavill-cog","k3":"COG","al":["Brazzaville"],"lat":-4.27,"lon":15.28,"pop":1284609,"reg":["AF"],"cap":1},{"n":"Kinshasa","c":"kinshasa-cod","k3":"COD","al":["Kinshasa"],"lat":-4.33,"lon":15.31,"pop":7785965,"reg":["AF"],"cap":1,"mega":1},{"n":"Luanda","c":"luanda-ago","k3":"AGO","al":["Luanda"],"lat":-8.84,"lon":13.23,"pop":2776168,"reg":["AF"],"cap":1,"coast":1},{"n":"Lusaka","c":"lusaka-zmb","k3":"ZMB","al":["Lusaka"],"lat":-15.41,"lon":28.29,"pop":1267440,"reg":["AF"],"cap":1,"alt":1},{"n":"Harare","c":"harare-zwe","k3":"ZWE","al":["Harare"],"lat":-17.83,"lon":31.05,"pop":1542813,"reg":["AF"],"cap":1,"alt":1},{"n":"Maputo","c":"maputo-moz","k3":"MOZ","al":["Maputo"],"lat":-25.97,"lon":32.58,"pop":1191613,"reg":["AF"],"cap":1,"coast":1},{"n":"Lilongwe","c":"lilongwe-mwi","k3":"MWI","al":["Lilongwe"],"lat":-13.97,"lon":33.79,"pop":646750,"reg":["AF"],"cap":1,"alt":1},{"n":"Antananarivo","c":"antananari-mdg","k3":"MDG","al":["Antananarivo"],"lat":-18.91,"lon":47.54,"pop":1391433,"reg":["AF"],"cap":1,"alt":1},{"n":"Port Louis","c":"portlouis-mus","k3":"MUS","al":["Port Louis"],"lat":-20.16,"lon":57.5,"pop":155226,"reg":["AF"],"cap":1,"coast":1},{"n":"Pretoria","c":"pretoria-zaf","k3":"ZAF","al":["Pretoria"],"lat":-25.74,"lon":28.19,"pop":1619438,"reg":["AF"],"cap":1,"alt":1},{"n":"Windhoek","c":"windhoek-nam","k3":"NAM","al":["Windhoek"],"lat":-22.56,"lon":17.08,"pop":268132,"reg":["AF"],"cap":1,"alt":1},{"n":"Gaborone","c":"gaborone-bwa","k3":"BWA","al":["Gaborone"],"lat":-24.65,"lon":25.91,"pop":208411,"reg":["AF"],"cap":1,"alt":1},{"n":"Maseru","c":"maseru-lso","k3":"LSO","al":["Maseru"],"lat":-29.32,"lon":27.48,"pop":118355,"reg":["AF"],"cap":1,"alt":1},{"n":"Mbabane","c":"mbabane-swz","k3":"SWZ","al":["Mbabane"],"lat":-26.32,"lon":31.13,"pop":76218,"reg":["AF"],"cap":1,"alt":1},{"n":"Banjul","c":"banjul-gmb","k3":"GMB","al":["Banjul"],"lat":13.45,"lon":-16.58,"pop":34589,"reg":["AF"],"cap":1,"coast":1},{"n":"Conakry","c":"conakry-gin","k3":"GIN","al":["Conakry"],"lat":9.54,"lon":-13.68,"pop":1767200,"reg":["AF"],"cap":1,"coast":1},{"n":"Freetown","c":"freetown-sle","k3":"SLE","al":["Freetown"],"lat":8.49,"lon":-13.24,"pop":802639,"reg":["AF"],"cap":1,"coast":1},{"n":"Monrovia","c":"monrovia-lbr","k3":"LBR","al":["Monrovia"],"lat":6.3,"lon":-10.8,"pop":939524,"reg":["AF"],"cap":1,"coast":1},{"n":"Lomé","c":"lome-tgo","k3":"TGO","al":["Lomé","Lome"],"lat":6.13,"lon":1.22,"pop":749700,"reg":["AF"],"cap":1,"coast":1},{"n":"Porto-Novo","c":"portonovo-ben","k3":"BEN","al":["Porto-Novo"],"lat":6.5,"lon":2.6,"pop":234168,"reg":["AF"],"cap":1},{"n":"Nouakchott","c":"nouakchott-mrt","k3":"MRT","al":["Nouakchott"],"lat":18.09,"lon":-15.98,"pop":661400,"reg":["AF"],"cap":1,"coast":1},{"n":"Praia","c":"praia-cpv","k3":"CPV","al":["Praia"],"lat":14.93,"lon":-23.51,"pop":113364,"reg":["AF"],"cap":1,"coast":1},{"n":"Bissau","c":"bissau-gnb","k3":"GNB","al":["Bissau"],"lat":11.86,"lon":-15.6,"pop":388028,"reg":["AF"],"cap":1,"coast":1},{"n":"Bangui","c":"bangui-caf","k3":"CAF","al":["Bangui"],"lat":4.36,"lon":18.55,"pop":542393,"reg":["AF"],"cap":1},{"n":"Malabo","c":"malabo-gnq","k3":"GNQ","al":["Malabo"],"lat":3.76,"lon":8.78,"pop":155963,"reg":["AF"],"cap":1,"coast":1},{"n":"Victoria","c":"victoria-syc","k3":"SYC","al":["Victoria"],"lat":-4.62,"lon":55.46,"pop":22881,"reg":["AF"],"cap":1,"coast":1},{"n":"Washington","c":"washington-usa","k3":"USA","al":["Washington","Washington DC","Washington D.C."],"lat":38.9,"lon":-77.04,"pop":601723,"reg":["NA"],"cap":1},{"n":"Ottawa","c":"ottawa-can","k3":"CAN","al":["Ottawa"],"lat":45.41,"lon":-75.7,"pop":812129,"reg":["NA"],"cap":1},{"n":"Mexico City","c":"mexicocity-mex","k3":"MEX","al":["Mexico City"],"lat":19.43,"lon":-99.13,"pop":12294193,"reg":["NA"],"cap":1,"alt":2,"mega":1,"os":1,"wcf":1},{"n":"Guatemala City","c":"guatemalac-gtm","k3":"GTM","al":["Guatemala City"],"lat":14.64,"lon":-90.51,"pop":994938,"reg":["NA"],"cap":1,"alt":1},{"n":"Belmopan","c":"belmopan-blz","k3":"BLZ","al":["Belmopan"],"lat":17.25,"lon":-88.77,"pop":13381,"reg":["NA"],"cap":1},{"n":"San Salvador","c":"sansalvado-slv","k3":"SLV","al":["San Salvador"],"lat":13.69,"lon":-89.19,"pop":525990,"reg":["NA"],"cap":1},{"n":"Tegucigalpa","c":"tegucigalp-hnd","k3":"HND","al":["Tegucigalpa"],"lat":14.08,"lon":-87.21,"pop":850848,"reg":["NA"],"cap":1},{"n":"Managua","c":"managua-nic","k3":"NIC","al":["Managua"],"lat":12.13,"lon":-86.25,"pop":973087,"reg":["NA"],"cap":1},{"n":"San José","c":"sanjose-cri","k3":"CRI","al":["San José"],"lat":9.93,"lon":-84.08,"pop":335007,"reg":["NA"],"cap":1,"alt":1},{"n":"Panama City","c":"panamacity-pan","k3":"PAN","al":["Panama City"],"lat":8.99,"lon":-79.52,"pop":408168,"reg":["NA"],"cap":1,"coast":1},{"n":"Havana","c":"havana-cub","k3":"CUB","al":["Havana"],"lat":23.13,"lon":-82.38,"pop":2163824,"reg":["NA"],"cap":1,"coast":1},{"n":"Kingston","c":"kingston-jam","k3":"JAM","al":["Kingston"],"lat":18,"lon":-76.79,"pop":937700,"reg":["NA"],"cap":1,"coast":1},{"n":"Port-au-Prince","c":"portauprin-hti","k3":"HTI","al":["Port-au-Prince"],"lat":18.54,"lon":-72.34,"pop":1234742,"reg":["NA"],"cap":1,"coast":1},{"n":"Santo Domingo","c":"santodomin-dom","k3":"DOM","al":["Santo Domingo"],"lat":18.47,"lon":-69.89,"pop":2201941,"reg":["NA"],"cap":1,"coast":1},{"n":"Nassau","c":"nassau-bhs","k3":"BHS","al":["Nassau"],"lat":25.06,"lon":-77.34,"pop":227940,"reg":["NA"],"cap":1,"coast":1},{"n":"Port of Spain","c":"portofspai-tto","k3":"TTO","al":["Port of Spain"],"lat":10.67,"lon":-61.52,"pop":49031,"reg":["NA"],"cap":1,"coast":1},{"n":"Bridgetown","c":"bridgetown-brb","k3":"BRB","al":["Bridgetown"],"lat":13.11,"lon":-59.62,"pop":110000,"reg":["NA"],"cap":1,"coast":1},{"n":"Castries","c":"castries-lca","k3":"LCA","al":["Castries"],"lat":14,"lon":-61.01,"pop":20000,"reg":["NA"],"cap":1,"coast":1},{"n":"Basseterre","c":"basseterre-kna","k3":"KNA","al":["Basseterre"],"lat":17.3,"lon":-62.72,"pop":12920,"reg":["NA"],"cap":1,"coast":1},{"n":"St. John's","c":"stjohns-atg","k3":"ATG","al":["St. John's","Saint John's"],"lat":17.12,"lon":-61.84,"pop":24226,"reg":["NA"],"cap":1,"coast":1},{"n":"Roseau","c":"roseau-dma","k3":"DMA","al":["Roseau"],"lat":15.3,"lon":-61.39,"pop":16571,"reg":["NA"],"cap":1,"coast":1},{"n":"Kingstown","c":"kingstown-vct","k3":"VCT","al":["Kingstown"],"lat":13.16,"lon":-61.23,"pop":24518,"reg":["NA"],"cap":1,"coast":1},{"n":"St. George's","c":"stgeorges-grd","k3":"GRD","al":["St. George's","Saint George's"],"lat":12.05,"lon":-61.75,"pop":7500,"reg":["NA"],"cap":1,"coast":1},{"n":"Brasília","c":"brasilia-bra","k3":"BRA","al":["Brasília","Brasilia"],"lat":-15.78,"lon":-47.93,"pop":2207718,"reg":["SA"],"cap":1,"alt":1},{"n":"Buenos Aires","c":"buenosaire-arg","k3":"ARG","al":["Buenos Aires"],"lat":-34.61,"lon":-58.38,"pop":3121707,"reg":["SA"],"cap":1,"coast":1,"mega":1,"wcf":1},{"n":"Santiago","c":"santiago-chl","k3":"CHL","al":["Santiago"],"lat":-33.46,"lon":-70.65,"pop":4837295,"reg":["SA"],"cap":1,"wcf":1},{"n":"Lima","c":"lima-per","k3":"PER","al":["Lima"],"lat":-12.04,"lon":-77.03,"pop":7737002,"reg":["SA"],"cap":1,"coast":1,"mega":1},{"n":"Bogotá","c":"bogota-col","k3":"COL","al":["Bogotá","Bogota"],"lat":4.61,"lon":-74.08,"pop":7674366,"reg":["SA"],"cap":1,"alt":2,"mega":1},{"n":"Caracas","c":"caracas-ven","k3":"VEN","al":["Caracas"],"lat":10.49,"lon":-66.88,"pop":3000000,"reg":["SA"],"cap":1},{"n":"Quito","c":"quito-ecu","k3":"ECU","al":["Quito"],"lat":-0.23,"lon":-78.52,"pop":1399814,"reg":["SA"],"cap":1,"alt":2},{"n":"La Paz","c":"lapaz-bol","k3":"BOL","al":["La Paz"],"lat":-16.5,"lon":-68.15,"pop":812799,"reg":["SA"],"cap":1,"alt":2},{"n":"Montevideo","c":"montevideo-ury","k3":"URY","al":["Montevideo"],"lat":-34.9,"lon":-56.19,"pop":1270737,"reg":["SA"],"cap":1,"coast":1,"wcf":1},{"n":"Asunción","c":"asuncion-pry","k3":"PRY","al":["Asunción","Asuncion"],"lat":-25.29,"lon":-57.65,"pop":1482200,"reg":["SA"],"cap":1},{"n":"Georgetown","c":"georgetown-guy","k3":"GUY","al":["Georgetown"],"lat":6.8,"lon":-58.16,"pop":235017,"reg":["SA"],"cap":1,"coast":1},{"n":"Paramaribo","c":"paramaribo-sur","k3":"SUR","al":["Paramaribo"],"lat":5.87,"lon":-55.17,"pop":223757,"reg":["SA"],"cap":1},{"n":"Canberra","c":"canberra-aus","k3":"AUS","al":["Canberra"],"lat":-35.28,"lon":149.13,"pop":367752,"reg":["OC"],"cap":1},{"n":"Wellington","c":"wellington-nzl","k3":"NZL","al":["Wellington"],"lat":-41.29,"lon":174.78,"pop":381900,"reg":["OC"],"cap":1,"coast":1},{"n":"Suva","c":"suva-fji","k3":"FJI","al":["Suva"],"lat":-18.14,"lon":178.44,"pop":77366,"reg":["OC"],"cap":1,"coast":1},{"n":"Port Moresby","c":"portmoresb-png","k3":"PNG","al":["Port Moresby"],"lat":-9.48,"lon":147.15,"pop":283733,"reg":["OC"],"cap":1,"coast":1},{"n":"Apia","c":"apia-wsm","k3":"WSM","al":["Apia"],"lat":-13.83,"lon":-171.77,"pop":40407,"reg":["OC"],"cap":1,"coast":1},{"n":"Nukuʻalofa","c":"nukualofa-ton","k3":"TON","al":["Nukuʻalofa","Nukualofa"],"lat":-21.14,"lon":-175.2,"pop":22400,"reg":["OC"],"cap":1,"coast":1},{"n":"Honiara","c":"honiara-slb","k3":"SLB","al":["Honiara"],"lat":-9.43,"lon":159.95,"pop":56298,"reg":["OC"],"cap":1,"coast":1},{"n":"Port Vila","c":"portvila-vut","k3":"VUT","al":["Port Vila"],"lat":-17.74,"lon":168.31,"pop":35901,"reg":["OC"],"cap":1,"coast":1},{"n":"Moroni","c":"moroni-com","k3":"COM","al":["Moroni"],"lat":-11.7,"lon":43.26,"pop":42872,"reg":["AF"],"cap":1,"coast":1},{"n":"São Tomé","c":"saotome-stp","k3":"STP","al":["São Tomé","Sao Tome"],"lat":0.34,"lon":6.73,"pop":53300,"reg":["AF"],"cap":1,"coast":1},{"n":"Tarawa","c":"tarawa-kir","k3":"KIR","al":["Tarawa","South Tarawa"],"lat":1.33,"lon":172.98,"pop":40311,"reg":["OC"],"cap":1,"coast":1},{"n":"Majuro","c":"majuro-mhl","k3":"MHL","al":["Majuro"],"lat":7.09,"lon":171.38,"pop":25400,"reg":["OC"],"cap":1,"coast":1},{"n":"Palikir","c":"palikir-fsm","k3":"FSM","al":["Palikir"],"lat":6.92,"lon":158.16,"pop":0,"reg":["OC"],"cap":1},{"n":"Yaren","c":"yaren-nru","k3":"NRU","al":["Yaren"],"lat":-0.55,"lon":166.93,"pop":1100,"reg":["OC"],"cap":1,"coast":1},{"n":"Ngerulmud","c":"ngerulmud-plw","k3":"PLW","al":["Ngerulmud"],"lat":7.5,"lon":134.62,"pop":0,"reg":["OC"],"cap":1,"coast":1},{"n":"Funafuti","c":"funafuti-tuv","k3":"TUV","al":["Funafuti"],"lat":-8.52,"lon":179.19,"pop":4492,"reg":["OC"],"cap":1,"coast":1}];
+// country names: from Country Grid (mledoze/countries, ODbL, adapted)
+const CO = {"AFG":{"n":"Afghanistan"},"AGO":{"n":"Angola"},"ALB":{"n":"Albania"},"AND":{"n":"Andorra"},"ARE":{"n":"United Arab Emirates"},"ARG":{"n":"Argentina"},"ARM":{"n":"Armenia"},"ATG":{"n":"Antigua and Barbuda"},"AUS":{"n":"Australia"},"AUT":{"n":"Austria"},"AZE":{"n":"Azerbaijan"},"BDI":{"n":"Burundi"},"BEL":{"n":"Belgium"},"BEN":{"n":"Benin"},"BFA":{"n":"Burkina Faso"},"BGD":{"n":"Bangladesh"},"BGR":{"n":"Bulgaria"},"BHR":{"n":"Bahrain"},"BHS":{"n":"Bahamas"},"BIH":{"n":"Bosnia and Herzegovina"},"BLR":{"n":"Belarus"},"BLZ":{"n":"Belize"},"BOL":{"n":"Bolivia"},"BRA":{"n":"Brazil"},"BRB":{"n":"Barbados"},"BRN":{"n":"Brunei"},"BTN":{"n":"Bhutan"},"BWA":{"n":"Botswana"},"CAF":{"n":"Central African Republic"},"CAN":{"n":"Canada"},"CHE":{"n":"Switzerland"},"CHL":{"n":"Chile"},"CHN":{"n":"China"},"CIV":{"n":"Ivory Coast"},"CMR":{"n":"Cameroon"},"COD":{"n":"DR Congo"},"COG":{"n":"Republic of the Congo"},"COL":{"n":"Colombia"},"COM":{"n":"Comoros"},"CPV":{"n":"Cape Verde"},"CRI":{"n":"Costa Rica"},"CUB":{"n":"Cuba"},"CYP":{"n":"Cyprus"},"CZE":{"n":"Czechia"},"DEU":{"n":"Germany"},"DJI":{"n":"Djibouti"},"DMA":{"n":"Dominica"},"DNK":{"n":"Denmark"},"DOM":{"n":"Dominican Republic"},"DZA":{"n":"Algeria"},"ECU":{"n":"Ecuador"},"EGY":{"n":"Egypt"},"ERI":{"n":"Eritrea"},"ESP":{"n":"Spain"},"EST":{"n":"Estonia"},"ETH":{"n":"Ethiopia"},"FIN":{"n":"Finland"},"FJI":{"n":"Fiji"},"FRA":{"n":"France"},"FSM":{"n":"Micronesia"},"GAB":{"n":"Gabon"},"GBR":{"n":"United Kingdom"},"GEO":{"n":"Georgia"},"GHA":{"n":"Ghana"},"GIN":{"n":"Guinea"},"GMB":{"n":"Gambia"},"GNB":{"n":"Guinea-Bissau"},"GNQ":{"n":"Equatorial Guinea"},"GRC":{"n":"Greece"},"GRD":{"n":"Grenada"},"GTM":{"n":"Guatemala"},"GUY":{"n":"Guyana"},"HND":{"n":"Honduras"},"HRV":{"n":"Croatia"},"HTI":{"n":"Haiti"},"HUN":{"n":"Hungary"},"IDN":{"n":"Indonesia"},"IND":{"n":"India"},"IRL":{"n":"Ireland"},"IRN":{"n":"Iran"},"IRQ":{"n":"Iraq"},"ISL":{"n":"Iceland"},"ITA":{"n":"Italy"},"JAM":{"n":"Jamaica"},"JOR":{"n":"Jordan"},"JPN":{"n":"Japan"},"KAZ":{"n":"Kazakhstan"},"KEN":{"n":"Kenya"},"KGZ":{"n":"Kyrgyzstan"},"KHM":{"n":"Cambodia"},"KIR":{"n":"Kiribati"},"KNA":{"n":"Saint Kitts and Nevis"},"KOR":{"n":"South Korea"},"KWT":{"n":"Kuwait"},"LAO":{"n":"Laos"},"LBN":{"n":"Lebanon"},"LBR":{"n":"Liberia"},"LBY":{"n":"Libya"},"LCA":{"n":"Saint Lucia"},"LIE":{"n":"Liechtenstein"},"LKA":{"n":"Sri Lanka"},"LSO":{"n":"Lesotho"},"LTU":{"n":"Lithuania"},"LUX":{"n":"Luxembourg"},"LVA":{"n":"Latvia"},"MAR":{"n":"Morocco"},"MCO":{"n":"Monaco"},"MDA":{"n":"Moldova"},"MDG":{"n":"Madagascar"},"MDV":{"n":"Maldives"},"MEX":{"n":"Mexico"},"MHL":{"n":"Marshall Islands"},"MKD":{"n":"North Macedonia"},"MLI":{"n":"Mali"},"MLT":{"n":"Malta"},"MMR":{"n":"Myanmar"},"MNE":{"n":"Montenegro"},"MNG":{"n":"Mongolia"},"MOZ":{"n":"Mozambique"},"MRT":{"n":"Mauritania"},"MUS":{"n":"Mauritius"},"MWI":{"n":"Malawi"},"MYS":{"n":"Malaysia"},"NAM":{"n":"Namibia"},"NER":{"n":"Niger"},"NGA":{"n":"Nigeria"},"NIC":{"n":"Nicaragua"},"NLD":{"n":"Netherlands"},"NOR":{"n":"Norway"},"NPL":{"n":"Nepal"},"NRU":{"n":"Nauru"},"NZL":{"n":"New Zealand"},"OMN":{"n":"Oman"},"PAK":{"n":"Pakistan"},"PAN":{"n":"Panama"},"PER":{"n":"Peru"},"PHL":{"n":"Philippines"},"PLW":{"n":"Palau"},"PNG":{"n":"Papua New Guinea"},"POL":{"n":"Poland"},"PRK":{"n":"North Korea"},"PRT":{"n":"Portugal"},"PRY":{"n":"Paraguay"},"QAT":{"n":"Qatar"},"ROU":{"n":"Romania"},"RUS":{"n":"Russia"},"RWA":{"n":"Rwanda"},"SAU":{"n":"Saudi Arabia"},"SDN":{"n":"Sudan"},"SEN":{"n":"Senegal"},"SGP":{"n":"Singapore"},"SLB":{"n":"Solomon Islands"},"SLE":{"n":"Sierra Leone"},"SLV":{"n":"El Salvador"},"SMR":{"n":"San Marino"},"SOM":{"n":"Somalia"},"SRB":{"n":"Serbia"},"SSD":{"n":"South Sudan"},"STP":{"n":"São Tomé and Príncipe"},"SUR":{"n":"Suriname"},"SVK":{"n":"Slovakia"},"SVN":{"n":"Slovenia"},"SWE":{"n":"Sweden"},"SWZ":{"n":"Eswatini"},"SYC":{"n":"Seychelles"},"SYR":{"n":"Syria"},"TCD":{"n":"Chad"},"TGO":{"n":"Togo"},"THA":{"n":"Thailand"},"TJK":{"n":"Tajikistan"},"TKM":{"n":"Turkmenistan"},"TLS":{"n":"Timor-Leste"},"TON":{"n":"Tonga"},"TTO":{"n":"Trinidad and Tobago"},"TUN":{"n":"Tunisia"},"TUR":{"n":"Türkiye"},"TUV":{"n":"Tuvalu"},"TWN":{"n":"Taiwan"},"TZA":{"n":"Tanzania"},"UGA":{"n":"Uganda"},"UKR":{"n":"Ukraine"},"UNK":{"n":"Kosovo"},"URY":{"n":"Uruguay"},"USA":{"n":"United States"},"UZB":{"n":"Uzbekistan"},"VAT":{"n":"Vatican City"},"VCT":{"n":"Saint Vincent and the Grenadines"},"VEN":{"n":"Venezuela"},"VNM":{"n":"Vietnam"},"VUT":{"n":"Vanuatu"},"WSM":{"n":"Samoa"},"YEM":{"n":"Yemen"},"ZAF":{"n":"South Africa"},"ZMB":{"n":"Zambia"},"ZWE":{"n":"Zimbabwe"}};
+const CO_LISTS = {"cap_notlargest":["ARE","AUS","BDI","BEN","BLZ","BOL","BRA","CAN","CHE","CIV","CMR","ECU","FSM","GMB","IND","KAZ","LIE","MAR","MLT","MMR","NGA","NRU","NZL","PAK","PHL","PLW","SMR","TTO","TUR","TWN","TZA","USA","VNM","ZAF"]};
+// daily grids fixed in advance (see README)
+const DAILY_FIXED = {"labels":["Under 100,000 people","Same first letter as its country","Name ends in A","In South America","Name has 10+ letters","In the tropics","South of the Equator","Inland","On the coast","In Europe","In Africa","Over 1 million people","Name of 2+ words","Megacity (10 million+)","Not its country's biggest city","On the Mediterranean","Over 1,000 m above sea level","In Asia","In North or Central America","Name has 5 letters or fewer","In Oceania","North of 50°N","Hosted the Summer Olympics"],"days":{"2026-10-22":[0,1,2,3,4,5,6,7],"2026-10-23":[8,9,10,11,12,13,14,15],"2026-10-24":[10,8,1,16,11,12,0,4],"2026-10-25":[12,5,7,14,17,0,18,6],"2026-10-26":[12,11,17,2,5,14,8,16],"2026-10-27":[16,14,3,12,5,11,7,6],"2026-10-28":[5,9,6,8,4,13,14,0],"2026-10-29":[9,6,14,18,2,8,11,7],"2026-10-30":[0,17,16,10,14,5,4,6],"2026-10-31":[9,18,6,5,12,7,14,8],"2026-11-01":[0,8,1,11,19,18,9,14],"2026-11-02":[19,12,5,7,0,17,1,13],"2026-11-03":[17,8,9,5,13,14,1,19],"2026-11-04":[8,14,7,5,3,13,0,18],"2026-11-05":[5,8,18,10,11,1,0,14],"2026-11-06":[16,1,13,20,14,19,12,7],"2026-11-07":[19,1,13,0,8,16,10,9],"2026-11-08":[11,5,0,8,18,10,1,14],"2026-11-09":[6,18,14,17,8,16,5,12],"2026-11-10":[11,12,6,4,14,17,16,10],"2026-11-11":[0,19,11,7,9,1,10,6],"2026-11-12":[14,10,17,4,2,6,11,12],"2026-11-13":[18,6,19,1,16,14,11,8],"2026-11-14":[8,19,11,7,21,14,22,6],"2026-11-15":[5,8,19,16,0,13,17,10],"2026-11-16":[7,2,5,6,10,13,0,14],"2026-11-17":[10,19,3,12,7,6,11,5],"2026-11-18":[10,5,8,14,19,6,11,1],"2026-11-19":[7,5,8,11,10,1,19,13],"2026-11-20":[13,0,4,8,14,10,9,5],"2026-11-21":[16,14,11,0,10,6,5,18],"2026-11-22":[13,0,14,19,8,9,2,16],"2026-11-23":[5,7,6,2,16,10,0,13],"2026-11-24":[8,5,14,7,18,13,0,6],"2026-11-25":[11,7,16,14,6,18,2,17],"2026-11-26":[16,8,7,11,14,18,17,6],"2026-11-27":[16,1,13,14,11,7,6,17],"2026-11-28":[6,10,17,7,1,2,11,16],"2026-11-29":[18,19,6,1,8,5,0,11],"2026-11-30":[15,12,13,14,11,8,10,9],"2026-12-01":[10,19,9,14,13,0,8,1],"2026-12-02":[5,11,9,18,7,14,12,8],"2026-12-03":[18,9,11,6,7,2,12,8],"2026-12-04":[10,1,12,9,0,4,11,14],"2026-12-05":[9,10,19,12,0,8,7,11],"2026-12-06":[14,13,4,0,8,6,9,10],"2026-12-07":[9,10,8,6,4,14,13,0],"2026-12-08":[17,19,18,16,5,2,7,11],"2026-12-09":[14,4,21,2,7,8,9,11],"2026-12-10":[11,16,4,0,2,10,6,18],"2026-12-11":[16,14,5,8,6,10,13,0],"2026-12-12":[10,0,16,13,6,7,2,5],"2026-12-13":[0,19,1,13,9,8,16,6],"2026-12-14":[14,9,6,5,13,19,1,0],"2026-12-15":[10,8,9,6,0,4,13,1],"2026-12-16":[3,16,10,14,5,6,11,7],"2026-12-17":[16,1,9,10,11,19,0,4],"2026-12-18":[22,6,10,5,7,11,19,8],"2026-12-19":[7,11,8,0,12,9,6,5],"2026-12-20":[17,0,18,6,14,4,5,8],"2026-12-21":[10,16,14,17,12,7,6,11],"2026-12-22":[0,13,14,10,5,6,7,2],"2026-12-23":[2,14,5,10,6,19,1,8],"2026-12-24":[8,16,14,11,18,6,1,10],"2026-12-25":[16,2,14,11,6,7,18,17],"2026-12-26":[11,7,17,5,14,16,12,13],"2026-12-27":[11,8,9,10,4,14,15,2],"2026-12-28":[2,1,0,11,5,18,10,7],"2026-12-29":[0,14,13,1,19,7,12,5],"2026-12-30":[4,1,13,14,17,8,9,7],"2026-12-31":[15,19,4,7,10,11,0,9],"2027-01-01":[9,2,10,14,8,0,13,4],"2027-01-02":[16,2,14,7,17,6,11,10],"2027-01-03":[0,4,14,13,10,9,8,5],"2027-01-04":[11,18,0,17,8,16,2,12],"2027-01-05":[17,6,5,10,7,2,16,8],"2027-01-06":[9,13,1,10,4,7,19,14],"2027-01-07":[5,8,6,7,14,0,13,10],"2027-01-08":[7,19,16,2,11,5,6,10],"2027-01-09":[8,7,11,19,21,14,10,17],"2027-01-10":[8,11,7,19,5,21,22,14],"2027-01-11":[0,14,13,4,8,9,2,6],"2027-01-12":[7,8,14,6,3,0,4,17],"2027-01-13":[5,6,2,7,10,0,13,14],"2027-01-14":[11,8,10,9,15,12,4,13],"2027-01-15":[17,6,5,2,7,11,8,16],"2027-01-16":[17,6,7,9,11,14,1,19],"2027-01-17":[0,19,4,13,9,10,8,16],"2027-01-18":[10,8,9,5,0,4,13,2],"2027-01-19":[14,19,12,13,8,9,16,10],"2027-01-20":[14,5,2,8,17,12,20,11],"2027-01-21":[13,0,8,1,14,19,10,9],"2027-01-22":[19,18,6,10,1,0,16,14],"2027-01-23":[10,6,18,11,2,5,16,14],"2027-01-24":[13,0,10,6,14,8,2,7],"2027-01-25":[16,1,14,8,18,11,17,0],"2027-01-26":[5,9,16,8,19,0,13,14],"2027-01-27":[16,9,18,6,4,14,11,2],"2027-01-28":[1,0,3,18,5,14,8,4],"2027-01-29":[19,11,7,8,1,21,14,13],"2027-01-30":[14,9,18,13,11,2,7,8],"2027-01-31":[18,0,13,17,5,7,12,2],"2027-02-01":[19,11,7,8,5,21,14,22],"2027-02-02":[21,22,5,10,8,7,19,11],"2027-02-03":[19,8,7,11,6,5,22,10],"2027-02-04":[1,6,13,18,14,8,7,5],"2027-02-05":[6,17,16,14,7,5,12,2],"2027-02-06":[5,6,9,17,7,11,8,14],"2027-02-07":[14,0,13,10,6,7,8,5],"2027-02-08":[4,17,10,11,8,14,16,2],"2027-02-09":[19,7,4,5,10,13,14,0],"2027-02-10":[10,7,5,11,12,16,14,2],"2027-02-11":[16,13,1,9,7,4,14,19],"2027-02-12":[5,4,6,9,14,0,8,11],"2027-02-13":[1,13,14,12,17,5,8,9],"2027-02-14":[7,6,11,4,14,10,16,3],"2027-02-15":[22,21,14,10,8,7,19,11],"2027-02-16":[11,7,2,5,4,6,17,14],"2027-02-17":[12,9,16,18,11,14,4,0],"2027-02-18":[2,7,11,8,10,6,19,18],"2027-02-19":[11,0,8,5,6,4,14,1],"2027-02-20":[16,13,10,0,7,5,6,2],"2027-02-21":[1,6,14,2,4,7,17,10],"2027-02-22":[0,6,17,18,8,2,5,4],"2027-02-23":[12,18,17,19,14,11,2,7],"2027-02-24":[16,14,2,12,11,6,17,7],"2027-02-25":[13,1,4,0,9,10,5,8],"2027-02-26":[14,2,11,1,10,19,7,6],"2027-02-27":[2,17,6,18,16,8,7,5],"2027-02-28":[12,0,11,8,9,14,6,18],"2027-03-01":[8,5,9,10,2,0,11,19],"2027-03-02":[2,14,12,16,17,6,7,5],"2027-03-03":[17,3,4,0,8,16,5,14],"2027-03-04":[6,5,11,7,10,3,16,12],"2027-03-05":[15,4,12,13,8,11,10,9],"2027-03-06":[1,9,13,16,4,19,7,14],"2027-03-07":[16,8,10,9,4,13,1,0],"2027-03-08":[8,5,7,14,0,3,18,13],"2027-03-09":[8,19,9,5,13,14,2,1],"2027-03-10":[16,5,4,8,2,18,6,17],"2027-03-11":[18,0,3,2,16,4,8,5],"2027-03-12":[14,7,19,12,10,13,1,20],"2027-03-13":[0,8,13,4,9,5,10,14],"2027-03-14":[6,22,21,14,8,19,7,11],"2027-03-15":[5,10,12,17,11,8,14,16],"2027-03-16":[0,7,4,11,9,18,6,12],"2027-03-17":[15,14,12,13,10,8,9,11],"2027-03-18":[16,14,19,1,17,10,11,5],"2027-03-19":[5,8,11,14,19,4,17,6],"2027-03-20":[6,18,9,1,7,0,11,8],"2027-03-21":[14,1,8,5,18,10,11,2],"2027-03-22":[14,16,11,5,6,17,10,12],"2027-03-23":[17,18,0,11,14,5,8,4],"2027-03-24":[17,14,1,6,12,11,16,19],"2027-03-25":[7,4,8,11,2,6,1,14],"2027-03-26":[13,1,14,12,11,17,8,9],"2027-03-27":[17,19,6,12,14,11,5,8],"2027-03-28":[6,9,5,10,7,11,2,0],"2027-03-29":[14,5,11,16,6,10,17,12],"2027-03-30":[17,11,10,1,8,7,14,16],"2027-03-31":[16,6,9,8,19,13,0,12],"2027-04-01":[14,19,4,7,16,20,9,13],"2027-04-02":[16,9,18,13,2,14,7,4],"2027-04-03":[14,3,16,17,11,6,1,7],"2027-04-04":[12,7,2,14,17,6,18,11],"2027-04-05":[6,9,19,18,7,1,11,0],"2027-04-06":[16,9,17,6,12,19,13,14],"2027-04-07":[18,14,10,13,8,11,5,7],"2027-04-08":[8,16,7,11,12,2,6,10],"2027-04-09":[5,16,14,11,6,10,4,17],"2027-04-10":[16,5,9,8,19,0,13,14],"2027-04-11":[6,5,17,9,14,12,1,13],"2027-04-12":[1,14,19,7,5,6,17,9],"2027-04-13":[0,7,14,11,6,10,12,9],"2027-04-14":[14,13,4,12,6,5,11,9],"2027-04-15":[13,1,8,0,19,14,9,10],"2027-04-16":[0,17,5,18,14,8,2,12],"2027-04-17":[8,17,10,16,4,13,14,1],"2027-04-18":[12,2,3,14,6,7,11,5],"2027-04-19":[10,0,17,11,8,16,12,1],"2027-04-20":[6,5,17,9,1,4,13,14],"2027-04-21":[6,9,0,18,2,8,7,1],"2027-04-22":[16,0,11,14,18,12,19,6],"2027-04-23":[15,4,12,13,9,8,11,10],"2027-04-24":[12,7,5,19,1,13,14,0],"2027-04-25":[16,5,8,14,6,10,17,11],"2027-04-26":[0,4,1,13,9,5,14,6],"2027-04-27":[16,17,9,6,2,4,11,14],"2027-04-28":[13,1,2,14,8,10,5,9],"2027-04-29":[0,13,18,10,7,8,2,5],"2027-04-30":[16,11,14,6,7,4,17,10],"2027-05-01":[7,10,17,0,6,14,4,1],"2027-05-02":[14,17,16,3,7,11,1,6],"2027-05-03":[17,6,18,0,14,7,8,1],"2027-05-04":[10,0,13,17,19,5,16,8],"2027-05-05":[13,0,17,10,5,19,8,16],"2027-05-06":[11,7,14,4,18,9,6,12],"2027-05-07":[13,18,3,0,14,8,7,5],"2027-05-08":[10,16,13,0,7,14,4,2],"2027-05-09":[5,8,16,4,10,12,11,2],"2027-05-10":[14,12,8,7,18,6,9,11],"2027-05-11":[6,7,1,11,14,3,16,17],"2027-05-12":[0,4,11,19,16,14,9,8],"2027-05-13":[5,2,7,6,0,14,16,13],"2027-05-14":[8,16,5,7,12,10,11,6],"2027-05-15":[16,0,14,8,12,6,2,18],"2027-05-16":[16,6,9,8,1,14,13,19],"2027-05-17":[4,14,16,13,17,2,11,7],"2027-05-18":[0,14,11,1,10,12,7,18],"2027-05-19":[2,5,10,14,6,13,1,8],"2027-05-20":[16,8,2,5,18,17,6,14],"2027-05-21":[4,6,17,10,16,2,8,7],"2027-05-22":[12,11,6,10,14,16,7,5],"2027-05-23":[12,2,18,20,5,14,8,0],"2027-05-24":[5,14,8,7,0,18,13,3],"2027-05-25":[18,0,14,19,1,5,8,16],"2027-05-26":[5,16,11,14,17,6,10,12],"2027-05-27":[7,6,4,1,10,0,11,5],"2027-05-28":[8,5,7,16,6,10,1,17],"2027-05-29":[10,17,11,6,19,5,2,16],"2027-05-30":[19,4,0,11,7,8,6,9],"2027-05-31":[7,14,19,4,13,1,9,16],"2027-06-01":[7,8,2,19,11,6,10,9],"2027-06-02":[8,5,7,16,0,18,17,14],"2027-06-03":[9,14,5,6,13,1,2,0],"2027-06-04":[7,4,8,14,12,18,11,10],"2027-06-05":[5,14,8,11,12,17,6,10],"2027-06-06":[4,11,7,0,6,12,9,18],"2027-06-07":[0,5,4,13,2,10,14,8],"2027-06-08":[19,7,11,8,14,1,13,21],"2027-06-09":[20,10,16,13,6,2,7,19],"2027-06-10":[9,18,5,11,7,8,14,12],"2027-06-11":[12,9,18,5,11,0,14,7],"2027-06-12":[14,7,8,5,18,0,6,17],"2027-06-13":[2,7,5,12,18,11,0,6],"2027-06-14":[12,10,9,5,8,1,0,11],"2027-06-15":[4,20,16,13,2,14,6,5],"2027-06-16":[11,16,5,7,6,17,12,10],"2027-06-17":[2,6,7,19,13,0,10,16],"2027-06-18":[17,18,14,6,5,16,11,8],"2027-06-19":[11,2,8,7,19,18,9,13],"2027-06-20":[12,1,14,13,9,8,17,11],"2027-06-21":[12,5,16,19,11,17,6,10],"2027-06-22":[8,5,16,14,6,13,0,10],"2027-06-23":[7,12,19,11,9,5,6,17],"2027-06-24":[16,1,13,14,19,12,17,10],"2027-06-25":[12,9,5,16,0,4,11,14],"2027-06-26":[13,11,4,12,9,8,14,10],"2027-06-27":[6,9,5,17,2,11,4,8],"2027-06-28":[2,5,6,19,0,13,16,10],"2027-06-29":[19,12,13,14,17,9,6,16],"2027-06-30":[6,7,4,19,1,17,14,0],"2027-07-01":[11,19,7,8,22,5,2,14],"2027-07-02":[11,8,14,7,6,2,9,18],"2027-07-03":[1,14,4,13,9,7,8,5],"2027-07-04":[8,14,16,4,0,5,2,11],"2027-07-05":[9,5,1,14,19,4,7,11],"2027-07-06":[2,16,8,7,17,18,0,11],"2027-07-07":[3,13,0,18,7,8,5,14],"2027-07-08":[8,4,16,11,14,6,17,10],"2027-07-09":[4,2,16,11,6,10,17,7],"2027-07-10":[11,8,0,16,19,10,18,2],"2027-07-11":[16,13,10,20,12,7,5,19],"2027-07-12":[0,14,13,8,4,6,9,10],"2027-07-13":[16,8,10,9,4,0,19,13],"2027-07-14":[0,1,4,11,5,10,8,9],"2027-07-15":[14,6,18,9,8,11,12,0],"2027-07-16":[9,8,11,7,1,14,21,2],"2027-07-17":[14,11,19,12,8,9,6,16],"2027-07-18":[21,13,14,1,19,8,7,11],"2027-07-19":[18,9,1,6,7,8,4,11],"2027-07-20":[5,14,8,16,6,13,10,0],"2027-07-21":[13,0,19,2,6,9,5,14],"2027-07-22":[7,5,4,6,17,0,16,3],"2027-07-23":[7,0,8,4,18,6,9,5],"2027-07-24":[11,8,5,9,13,1,14,4],"2027-07-25":[0,17,18,13,12,7,2,5],"2027-07-26":[12,1,14,13,5,9,11,8],"2027-07-27":[16,9,8,14,19,2,0,13],"2027-07-28":[16,12,2,11,6,5,7,17],"2027-07-29":[11,18,0,9,14,8,1,2],"2027-07-30":[7,8,16,12,18,14,6,17],"2027-07-31":[5,4,8,16,2,0,18,3],"2027-08-01":[5,8,2,14,13,10,18,0],"2027-08-02":[17,2,9,5,19,11,8,14],"2027-08-03":[0,4,13,2,6,9,10,14],"2027-08-04":[7,8,11,0,19,18,14,9],"2027-08-05":[16,0,13,12,5,6,14,7],"2027-08-06":[8,16,5,14,19,12,10,6],"2027-08-07":[4,11,14,2,10,8,7,9],"2027-08-08":[10,11,8,9,4,15,13,14],"2027-08-09":[12,5,10,17,11,16,1,8],"2027-08-10":[8,11,9,10,13,12,15,14],"2027-08-11":[4,16,8,5,3,2,0,18],"2027-08-12":[12,7,2,5,13,17,0,18],"2027-08-13":[16,17,9,6,12,14,19,13],"2027-08-14":[14,12,8,16,18,6,17,11],"2027-08-15":[16,8,12,14,18,11,0,17],"2027-08-16":[10,7,6,17,4,12,16,14],"2027-08-17":[14,13,1,4,7,9,6,17],"2027-08-18":[19,13,20,18,5,8,2,14],"2027-08-19":[19,12,14,16,5,0,17,11],"2027-08-20":[16,19,14,5,17,6,11,1],"2027-08-21":[11,14,5,7,2,18,6,19],"2027-08-22":[16,12,8,4,6,18,17,14],"2027-08-23":[16,19,12,8,11,17,6,14],"2027-08-24":[5,10,9,14,8,13,0,1],"2027-08-25":[16,4,19,6,3,0,17,1],"2027-08-26":[16,5,8,4,2,0,3,18],"2027-08-27":[16,14,5,11,2,10,6,18],"2027-08-28":[5,8,14,2,13,18,20,1],"2027-08-29":[10,6,22,21,8,7,11,19],"2027-08-30":[18,11,10,0,1,12,14,7],"2027-08-31":[16,14,9,8,13,0,2,19],"2027-09-01":[19,0,17,6,2,7,5,8],"2027-09-02":[5,7,11,8,13,18,19,10],"2027-09-03":[1,19,16,13,7,17,6,5],"2027-09-04":[8,10,9,11,14,4,2,15],"2027-09-05":[16,13,2,1,17,14,6,10],"2027-09-06":[10,12,19,3,6,1,7,11],"2027-09-07":[8,0,10,16,4,6,5,2],"2027-09-08":[19,12,7,5,13,10,16,20],"2027-09-09":[9,6,1,18,4,7,11,8],"2027-09-10":[6,10,18,2,4,8,0,16],"2027-09-11":[19,4,0,13,9,5,2,14],"2027-09-12":[6,11,1,5,10,14,16,8],"2027-09-13":[19,4,11,0,6,9,7,8],"2027-09-14":[4,2,7,14,16,0,10,17],"2027-09-15":[2,14,1,5,10,18,19,0],"2027-09-16":[14,8,5,7,13,0,3,18],"2027-09-17":[8,14,16,5,17,10,0,13],"2027-09-18":[14,5,22,21,11,7,8,19],"2027-09-19":[22,10,21,6,11,19,8,7],"2027-09-20":[8,12,19,7,9,17,6,11],"2027-09-21":[6,10,9,1,0,7,19,4],"2027-09-22":[8,2,7,12,18,9,11,6],"2027-09-23":[1,0,11,16,18,6,10,19],"2027-09-24":[13,0,2,8,12,14,9,6],"2027-09-25":[16,0,13,10,7,2,5,6],"2027-09-26":[11,8,0,5,14,1,10,12],"2027-09-27":[9,17,5,6,11,7,14,19],"2027-09-28":[5,7,8,14,13,18,0,3],"2027-09-29":[0,3,1,10,4,19,8,16],"2027-09-30":[13,14,17,10,16,19,8,5],"2027-10-01":[12,0,1,13,8,10,9,6],"2027-10-02":[11,7,6,1,10,16,3,19],"2027-10-03":[15,4,13,14,9,10,11,8],"2027-10-04":[10,7,11,17,6,16,14,1],"2027-10-05":[17,11,5,10,2,7,16,19],"2027-10-06":[0,18,17,13,12,5,2,14],"2027-10-07":[8,9,14,5,0,13,2,4],"2027-10-08":[16,3,19,10,6,7,11,1],"2027-10-09":[8,14,9,5,13,2,0,4],"2027-10-10":[18,9,19,13,8,2,11,7],"2027-10-11":[1,8,11,0,10,9,5,12],"2027-10-12":[9,11,8,10,13,4,12,15],"2027-10-13":[10,11,8,9,13,14,15,12],"2027-10-14":[2,1,7,5,18,17,6,19],"2027-10-15":[18,17,0,13,12,14,2,5],"2027-10-16":[16,17,14,3,6,11,7,4],"2027-10-17":[3,16,14,10,11,7,6,1],"2027-10-18":[16,2,12,3,11,6,7,5],"2027-10-19":[17,6,19,18,7,5,11,2],"2027-10-20":[10,0,11,17,7,2,6,4],"2027-10-21":[1,6,16,7,11,17,10,12],"2027-10-22":[19,14,0,13,9,5,8,16]}};
+const N = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z]/g,'');
+// every city: a national capital, one per country (CO, by ISO code), and the names it can be typed with
+C.forEach((c,i)=>{c.i=i;c.k=N(c.n);c.ak=c.al.map(N);c.co=CO[c.k3];c.t=0;});
+const byCode = Object.fromEntries(C.map(c=>[c.c,c]));
+// countries whose capital is not their biggest city (Wikipedia list, as in Country Grid, plus China)
+const NOTBIG = new Set([...CO_LISTS.cap_notlargest,'CHN']);
+
+/* ---- categories: all about the city itself ---- */
+const CATS = [];
+const add=(fam,label,test)=>CATS.push({id:CATS.length,fam,label,test});
+// continent: the country's; Moscow counts as Europe, Ankara, Tbilisi, Yerevan and Baku as Asia
+[['AF','In Africa'],['EU','In Europe'],['AS','In Asia'],['OC','In Oceania'],['NA','In North or Central America'],['SA','In South America']].forEach(([r,l])=>add('place',l,c=>c.reg.includes(r)));
+add('coast','On the coast',c=>!!c.coast);
+add('coast','Inland',c=>!c.coast);
+add('alt','Over 1,000 m above sea level',c=>c.alt>=1);
+add('alt','Over 2,000 m above sea level',c=>c.alt>=2);
+add('lat','South of the Equator',c=>c.lat<0);
+add('lat','North of 50°N',c=>c.lat>50);
+add('lat','In the tropics',c=>Math.abs(c.lat)<23.44);
+add('size','Over 1 million people',c=>c.pop>=1e6);
+add('size','Under 100,000 people',c=>c.pop<1e5);
+add('size','Megacity (10 million+)',c=>!!c.mega);
+add('big','Not its country\'s biggest city',c=>NOTBIG.has(c.k3));
+add('sport','Hosted the Summer Olympics',c=>!!c.os);
+add('sport','Hosted a men\'s World Cup final',c=>!!c.wcf);
+add('water','On the Mediterranean',c=>c.sea==='med');
+add('water','On the Danube',c=>c.river==='danube');
+['A','B','C','D','K','L','M','N','P','S','T','V'].forEach(L=>add('name','Name starts with '+L,c=>c.k[0]===L.toLowerCase()));
+add('name','Name of 2+ words',c=>/[\s-]/.test(c.n.trim()));
+add('name','Name has 5 letters or fewer',c=>c.k.length<=5);
+add('name','Name has 10+ letters',c=>c.k.length>=10);
+add('name','Name contains Z',c=>c.k.includes('z'));
+add('name','Name ends in A',c=>c.k.endsWith('a'));
+add('name','Same first letter as its country',c=>c.k[0]===N(c.co.n)[0]);
+CATS.forEach(k=>{k.set=C.map(c=>!!k.test(c));k.count=k.set.filter(Boolean).length;});
+const NAMEWORD='Uses the English name shown in this game (for example "Kyiv", "Delhi", "Washington"). Spaces, hyphens and accents are ignored.';
+function describe(k){
+  const L=k.label;let m;
+  if(m=/^In (.+)$/.exec(L)){const extra={'Europe':' Moscow counts as Europe, and so does Nicosia.','Asia':' Ankara, Tbilisi, Yerevan and Baku count as Asia.','North or Central America':' Includes the Caribbean, Central America and Mexico.','Oceania':' Australia, New Zealand and the Pacific islands.','Africa':'','South America':''};
+    return 'The capital is in '+m[1]+'.'+(extra[m[1]]||'')}
+  const D={
+    'On the coast':'The city is on the shore of a sea or ocean, including bays, fjords and the mouth of an estuary. Lakes and the Caspian Sea do not count (so Baku does not), nor do river cities inland like Washington or Phnom Penh. The Río de la Plata counts as sea, so Buenos Aires and Montevideo do.',
+    'Inland':'The city is not on the shore of a sea or ocean: inland, or on a lake or a river. The opposite of "On the coast" (tap that category to see the exact rule).',
+    'Over 1,000 m above sea level':'The city centre is more than 1,000 metres above sea level, as given in the city\'s Wikipedia article.',
+    'Over 2,000 m above sea level':'The city centre is more than 2,000 metres above sea level, as given in the city\'s Wikipedia article.',
+    'South of the Equator':'The city is in the southern hemisphere.',
+    'North of 50°N':'The city is north of latitude 50°N, roughly the line through Prague and Kyiv (both just north of it). Coordinates from GeoNames.',
+    'In the tropics':'The city lies between the Tropic of Cancer (23.4°N) and the Tropic of Capricorn (23.4°S).',
+    'Over 1 million people':'At least 1 million people live in the city itself, as counted by GeoNames (the suburbs around it may or may not be included, depending on how the country draws its city limits).',
+    'Under 100,000 people':'Fewer than 100,000 people live in the city itself. Source: GeoNames.',
+    'Megacity (10 million+)':'One of the cities with more than 10 million people in their whole urban area. Source: United Nations, World Urbanization Prospects 2018, as listed in Wikipedia, "Megacity". Seoul (9.96 million) and London just miss out.',
+    'Not its country\'s biggest city':'Another city in the country has more people than the capital, like New York (not Washington), Sydney (not Canberra) or Istanbul (not Ankara). Source: Wikipedia, "List of countries whose capital is not their largest city", plus China (Shanghai).',
+    'Hosted the Summer Olympics':'The city has hosted the Summer Olympic Games at least once, up to Paris 2024.',
+    'Hosted a men\'s World Cup final':'The final of the men\'s FIFA World Cup was played in the city or a suburb next to it, up to 2026: Saint-Denis and Colombes count for Paris, Solna for Stockholm.',
+    'On the Mediterranean':'The city is on the Mediterranean Sea, including the Adriatic and the Aegean.',
+    'On the Danube':'The Danube flows through the city.',
+    'Name of 2+ words':'The city name is made of two or more words, counting words joined by a hyphen, like Mexico City or Port-au-Prince. '+NAMEWORD,
+    'Name has 5 letters or fewer':'The city name has 5 letters or fewer, like Rome or Paris. '+NAMEWORD,
+    'Name has 10+ letters':'The city name has 10 letters or more, not counting spaces. '+NAMEWORD,
+    'Name contains Z':'The city name contains the letter Z anywhere. '+NAMEWORD,
+    'Name ends in A':'The city name ends in the letter A, like Vienna or Lima. '+NAMEWORD,
+    'Same first letter as its country':'The city name starts with the same letter as the name of its country, like Mexico City (Mexico) or Seoul (South Korea). Country names as in Country Grid ("United States", "United Kingdom", "Türkiye"...). '+NAMEWORD
+  };
+  if(D[L])return D[L];
+  if(m=/^Name starts with (.)$/.exec(L))return 'The city name starts with the letter '+m[1]+'. '+NAMEWORD;
+  return L+'.';
+}
+const SHORT={'In North or Central America':'In N. & Central America','Over 1,000 m above sea level':'Over 1,000 m high','Over 2,000 m above sea level':'Over 2,000 m high',
+  'Over 1 million people':'Over 1M people','Under 100,000 people':'Under 100K people','Megacity (10 million+)':'Mega­city (10M+)','Not its country\'s biggest city':'Not its country\'s biggest city',
+  'Hosted the Summer Olympics':'Summer Olympics host','Hosted a men\'s World Cup final':'World Cup final host','On the Mediterranean':'Medi­terranean',
+  'Name has 5 letters or fewer':'5 letters or fewer','Name has 10+ letters':'10+ letters','Name of 2+ words':'2+ words','Same first letter as its country':'Same letter as country'};
+CATS.forEach(k=>{k.desc=describe(k);k.short=SHORT[k.label]||k.label});
+const POOL = CATS.filter(k=>k.count>=4);
+
+/* ---- seeded rng + generator ---- */
+function rngFrom(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function shuffle(arr,r){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const inter=(a,b)=>{const o=[];for(let i=0;i<C.length;i++)if(a.set[i]&&b.set[i])o.push(i);return o};
+function matching(cells){const own=new Map();const tryCell=(ci,seen)=>{for(const x of cells[ci]){if(seen.has(x))continue;seen.add(x);if(!own.has(x)||tryCell(own.get(x),seen)){own.set(x,ci);return true}}return false};for(let ci=0;ci<cells.length;ci++)if(!tryCell(ci,new Set()))return false;return true}
+/* A grid is "safe" when no sequence of correct answers can ever leave a square impossible:
+   for every square, its countries can never all be taken by other squares at the same time. */
+function canBlock(ans,c){const A=ans[c];const own=new Map();
+  const tryC=(x,seen)=>{for(let d=0;d<ans.length;d++){if(d===c||seen.has(d)||!ans[d].includes(x))continue;seen.add(d);if(!own.has(d)||tryC(own.get(d),seen)){own.set(d,x);return true}}return false};
+  for(const x of A)if(!tryC(x,new Set()))return false;return true}
+const isSafe=ans=>ans.every((_,c)=>!canBlock(ans,c));
+/* ---- difficulty ----
+   easy:   well-known categories only; every square has at least 5 sovereign countries that fit
+   normal: every category; every square has at least 2 answers
+   hard:   every category, themes like borders and seas more often; no square has more than 12 answers
+           and at least half the squares have 5 or fewer */
+const EASY_LABELS=new Set(['In Africa','In Europe','In Asia','In Oceania','In North or Central America','In South America',
+  'On the coast','Inland','Over 1,000 m above sea level','South of the Equator','North of 50°N','In the tropics','Over 1 million people','Under 100,000 people',
+  'Not its country\'s biggest city','Hosted the Summer Olympics',...'ABCDKLMNPSTV'.split('').map(L=>'Name starts with '+L),'Name of 2+ words','Name has 5 letters or fewer']);
+// specialist categories: only in Hard grids
+const HARD_ONLY=new Set(['Over 2,000 m above sea level','On the Danube','Hosted a men\'s World Cup final','Name contains Z']);
+const DIFFS=['easy','normal','hard'];
+let DIFF='normal';
+const sovCount=a=>{let k=0;for(const i of a)if(!C[i].t)k++;return k};
+let HARD_MAX=12,HARD_SMALL=5;
+function evalGrid(rows,cols){
+  const answers=[];let bad=0,small=0;
+  for(const rk of rows)for(const ck of cols){const a=inter(rk,ck);answers.push(a);
+    if(a.length<2)bad+=10;if(a.length>C.length*0.5)bad+=10;
+    if(DIFF==='easy'&&sovCount(a)<5)bad+=5;
+    if(DIFF==='hard'){if(a.length>HARD_MAX)bad+=5;if(a.length<=HARD_SMALL)small++}}
+  if(DIFF==='hard'&&small*2<answers.length)bad+=(Math.ceil(answers.length/2)-small)*3;
+  if(bad)return{answers,score:bad+100};
+  let u=0;for(let c=0;c<answers.length;c++)if(canBlock(answers,c))u++;
+  return{answers,score:u};
+}
+function famOK(list){const f={};for(const k of list){f[k.fam]=(f[k.fam]||0)+1;if(f[k.fam]>2)return false}return true}
+// every category has the same chance of being picked (a family of 1 no longer means that category shows up all the time);
+// WILD categories fit almost anything, so the search kept choosing them: they get half the chance.
+// AVOID (labels) is only used when building the daily grids, to keep a category from coming back too soon
+const RARE=new Set(['sport','water','alt']);
+const WILD=new Set(['On the coast','Inland']);
+let AVOID=null;
+const FAMCACHE={};
+// "Name starts with…" squares are trivial with the search box, so they only appear in Easy
+function famsFor(){if(!FAMCACHE[DIFF]){const pool=DIFF==='easy'?POOL.filter(k=>EASY_LABELS.has(k.label)):POOL.filter(k=>!/^Name starts with/.test(k.label)&&(DIFF==='hard'||!HARD_ONLY.has(k.label)));const f={};pool.forEach(k=>(f[k.fam]=f[k.fam]||[]).push(k));FAMCACHE[DIFF]={pool,fams:Object.values(f),rare:pool.filter(k=>RARE.has(k.fam))}}return FAMCACHE[DIFF]}
+// CATW evens out the search: categories that fit with almost anything were kept far more often than narrow ones
+// (a border, a small sea), so each has a weight measured over 4,000 Normal 4 × 4 grids (labels missing here weigh 1).
+// Only used up to 4 × 4: 5 × 5 grids need the broad categories to be buildable at all
+const CATW={"In Africa":0.53,"In Europe":2.45,"In Asia":0.97,"In Oceania":6,"In North or Central America":2.78,"In South America":6,"On the coast":0.52,"Inland":0.62,"Over 1,000 m above sea level":0.87,"South of the Equator":0.46,"North of 50°N":6,"In the tropics":0.44,"Over 1 million people":0.38,"Under 100,000 people":0.99,"Megacity (10 million+)":4.29,"Not its country's biggest city":0.23,"Hosted the Summer Olympics":6,"On the Mediterranean":6,"Name of 2+ words":0.43,"Name has 5 letters or fewer":0.19,"Name has 10+ letters":0.19,"Name ends in A":0.11,"Same first letter as its country":0.21};
+let GEN_N=4;
+const catWeight=k=>AVOID&&AVOID.has(k.label)?0:(GEN_N<=4&&DIFF!=='hard'&&CATW[k.label]||1)*(WILD.has(k.label)?0.5:1);
+function pickCat(r){const P=famsFor().pool;let t=0;for(const k of P)t+=catWeight(k);let x=r()*t;
+  for(const k of P){x-=catWeight(k);if(x<0)return k}return P[P.length-1]}
+function searchGrid(n,r,restarts){
+  for(let rs=0;rs<restarts;rs++){
+    const cand=[];const seen=new Set();for(let i=0;i<400&&cand.length<4*n;i++){const k=pickCat(r);if(!seen.has(k)){seen.add(k);cand.push(k)}}let rows=[],cols=[];
+    for(const k of cand){if(rows.length<n&&famOK([...rows,k]))rows.push(k);else if(cols.length<n&&!rows.includes(k)&&famOK([...cols,k]))cols.push(k);if(rows.length===n&&cols.length===n)break}
+    for(let g=0;g<2000&&(rows.length<n||cols.length<n);g++){const k=pickCat(r);if(rows.includes(k)||cols.includes(k))continue;if(rows.length<n&&famOK([...rows,k]))rows.push(k);else if(cols.length<n&&famOK([...cols,k]))cols.push(k)}
+    if(rows.length<n||cols.length<n)continue;
+    // anchor one category from a theme that rarely fits (seas, borders, sport...) so those show up too
+    let anchor=null;const rare=famsFor().rare;
+    if(rare.length&&r()<(DIFF==='hard'?0.8:DIFF==='easy'?0.3:0.5)){anchor=rare[Math.floor(r()*rare.length)];if(!catWeight(anchor))anchor=null;else
+      if(!cols.includes(anchor)&&!rows.includes(anchor))rows[0]=anchor;else anchor=null}
+    let cur=evalGrid(rows,cols);
+    for(let it=0;it<1500&&cur.score>0;it++){
+      const axis=r()<.5?'r':'c';const arr=axis==='r'?rows:cols;const i=Math.floor(r()*n);
+      if(anchor&&axis==='r'&&i===0)continue;
+      const k=pickCat(r);if(rows.includes(k)||cols.includes(k))continue;
+      const na=arr.slice();na[i]=k;if(!famOK(na))continue;
+      const nr=axis==='r'?na:rows,nc=axis==='c'?na:cols;const nx=evalGrid(nr,nc);
+      if(nx.score<=cur.score||r()<0.03){rows=nr;cols=nc;cur=nx}
+    }
+    if(cur.score===0)return{rows:rows.map(k=>k.id),cols:cols.map(k=>k.id),answers:cur.answers};
+  }
+  return null;
+}
+const BANK5 = [];
+function generate(n,seed,diff){
+  DIFF=DIFFS.includes(diff)?diff:'normal';
+  HARD_MAX=n===5?15:12;HARD_SMALL=n===5?6:5;GEN_N=n;
+  const r=rngFrom(seed+(DIFF==='easy'?11:DIFF==='hard'?23:0)*7962624);
+  return searchGrid(n,r,n===5?250:80);
+}
+
+/* ---- codes ---- */
+const LET='ABCDEFGHJKLMNPQRSTUVWXYZ';
+function makeCode(n,seed,diff){let s='',x=seed;for(let i=0;i<5;i++){s+=LET[x%24];x=Math.floor(x/24)}return n+(diff==='easy'?'E':diff==='hard'?'H':'')+'-'+s}
+function parseCode(t){const m=/^\s*([34])\s*([EH]?)\s*-?\s*([A-Z]{5})\s*$/i.exec(t||'');if(!m)return null;let x=0;const s=m[3].toUpperCase();for(let i=4;i>=0;i--){const v=LET.indexOf(s[i]);if(v<0)return null;x=x*24+v}const d=m[2].toUpperCase();return{n:+m[1],seed:x,diff:d==='E'?'easy':d==='H'?'hard':'normal'}}
+const randSeed=()=>Math.floor(Math.random()*7962624);
+
+/* ---- state ---- */
+let S = null;
+let setup = {mode:'solo',n:4,timer:0,diff:'normal',names:['Player 1','Player 2'],code:'',user:''};
+try{const s=JSON.parse(localStorage.getItem('cc-setup')||'null');if(s&&Array.isArray(s.names))setup={...setup,...s,code:''}}catch(e){}
+// 3 × 3 grids were dropped: an old saved choice of 3 becomes 4 × 4, the only size left
+setup.n=4;
+try{setup.user=localStorage.getItem('cc-user')||setup.user||''}catch(e){}
+let editingUser=!setup.user;
+let askingPlayers=false;
+setup.names=setup.names.map(x=>/^Player \d$/.test(x)?'':x);
+function saveUser(v){
+  const name=v.trim().slice(0,16);if(!name){toast('Type a name to continue.','bad');return}
+  const old=setup.user;setup.user=name;editingUser=false;
+  if(!setup.names[0]||/^Player 1$/.test(setup.names[0])||setup.names[0]===old)setup.names[0]=name;
+  try{localStorage.setItem('cc-user',name)}catch(e){}
+  render();
+}
+let ui = {sel:-1,query:'',reveal:-1,toast:null,fresh:-1};
+// Geomingo: the game's name, and what Mingo says about your last move ({g: the game it belongs to, pose, t, s})
+const GAME_NAME='Capitals';
+let mood=null;
+const gameKey=()=>S?(S.gid||(S.daily?'d'+S.daily+(S.archive?'a':''):S.mode+S.code)):'';
+function say(pose,t,sub){mood={g:gameKey(),pose,t,s:sub}}
+let offset=0;const now=()=>Date.now()+offset;
+let tick=null;
+
+// drop ?grid= from the address once used, so a reload does not bring the friend's grid back
+function clearGridParam(){try{const u=new URL(location.href);if(u.searchParams.has('grid')){u.searchParams.delete('grid');history.replaceState(null,'',u.pathname+u.search+u.hash)}}catch(e){}}
+/* ---- daily grid: one 4×4 Normal grid for everyone, new at midnight in Spain, one try per device ---- */
+const DAILY_N=4,DAILY_DIFF='normal',DAILY_FIRST='2026-10-22';
+const madrid=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
+function madridParts(t){const o={};madrid.formatToParts(new Date(t)).forEach(p=>o[p.type]=p.value);return o}
+// hidden test mode: add ?test to the address to replay today's grid; ?test&day=2026-11-20 plays another day's grid
+const TESTQ=(()=>{try{return new URLSearchParams(location.search)}catch(e){return new URLSearchParams()}})();
+const TEST=TESTQ.has('test'),TESTDAY=TEST&&/^\d{4}-\d{2}-\d{2}$/.test(TESTQ.get('day')||'')?TESTQ.get('day'):null;
+function todayKey(){if(TESTDAY)return TESTDAY;const p=madridParts(now());return p.year+'-'+p.month+'-'+p.day}
+function dayNumber(key){return Math.round((Date.parse(key+'T00:00Z')-Date.parse(DAILY_FIRST+'T00:00Z'))/864e5)+1}
+function msToNextDay(){const p=madridParts(now());return (24*3600-(+p.hour*3600+ +p.minute*60+ +p.second))*1000}
+// the same seed for everyone on a given day; step on until the seed gives a grid that can be completed
+function dailySeed(key){let h=2166136261;for(const ch of 'citycross-daily-'+key){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)>>>0}return h%7962624}
+function loadDaily(){try{const d=JSON.parse(localStorage.getItem('cc-daily')||'null');return d&&d.date===todayKey()?d:null}catch(e){return null}}
+function saveDaily(){if(S&&S.dayof)return; // a grid played on its day, opened from the archive only to look at it
+  if(S&&S.archive){saveArchGame(S);if(S.over)recordArchive(S);return}
+  if(S&&S.daily)try{localStorage.setItem('cc-daily',JSON.stringify({date:S.daily,S}))}catch(e){}
+  if(S&&S.daily&&S.over)recordDaily(S)}
+/* ---- daily stats: one entry per played day {date:{s:score,c:squares,n:size}}, kept on the device
+   and, when signed in with Google, in Firebase (users/<uid>/cities/daily) so they follow you to other devices ---- */
+function loadHist(){try{return JSON.parse(localStorage.getItem('cc-hist')||'{}')||{}}catch(e){return {}}}
+function saveHist(h){try{localStorage.setItem('cc-hist',JSON.stringify(h))}catch(e){}}
+// entry: s points, c squares, n grid size, g squares got ("1" or "0" each), d device that played it, f 1 when finished
+const dailyEntry=(s,f)=>({s:s.players[0].score||0,c:s.players[0].cells||0,n:s.n,g:s.cells.map(c=>c.o>=0?'1':'0').join(''),d:ME,f});
+// with an account, today's try belongs to the first device that started it (ACCT_TODAY is the account's entry for today)
+// an entry with no device (saved by an old version of the game) belongs to nobody: any device may replace it
+const otherDevice=e=>!!e&&!!e.d&&e.d!==ME;
+// an account entry saved before devices were recorded (no d) with the same result counts as this device's own
+const legacyMine=(cur,e)=>!!cur&&!cur.d&&cur.s===e.s&&cur.c===e.c;
+let dailyUp='';
+function recordDaily(s){if(TESTDAY)return;const h=loadHist(),e=dailyEntry(s,1),today=s.daily===todayKey();
+  if(USER&&today&&otherDevice(ACCT_TODAY))return; // the account already used today's try elsewhere
+  const old=h[s.daily],same=old&&old.s===e.s&&old.c===e.c&&old.f===1&&old.d===ME;
+  if(!same){h[s.daily]=e;saveHist(h);publishSoon()}
+  if(!USER||!db||!today)return;
+  if(s.guest&&!s.first)return; // played as a guest after another game of the day on this device: stays out of the account
+  // the account keeps the whole finished game (j), so every device of the account shows the same grid;
+  // the result joins the public ranking only once the account confirms today's try is this device's
+  if(ACCT_TODAY&&ACCT_TODAY.d===ME&&ACCT_TODAY.f===1&&ACCT_TODAY.j){submitLB(s.daily,e);return}
+  if(dailyUp===USER.uid+s.daily)return;
+  dailyUp=USER.uid+s.daily;const full={...e,j:JSON.stringify(s)};
+  db.ref('users/'+USER.uid+'/cities/daily/'+s.daily).transaction(cur=>!cur||!cur.d||cur.d===ME?full:undefined)
+    .then(r=>{if(r.committed)submitLB(s.daily,e)}).catch(()=>{dailyUp=''})}
+// another device of the account finished today's grid: take its whole game, so this device shows exactly the same
+// the account decides: it replaces whatever this device has for today, even a game finished here.
+// A game finished on this device comes back too when the device lost it (signing out clears the device)
+function adoptDaily(a){if(!a||a.f!==1||!a.j)return;const loc=loadDaily();
+  if(!otherDevice(a)){if(loc)return;try{const s=JSON.parse(a.j);if(s&&s.daily===todayKey()&&s.over){localStorage.setItem('cc-daily',JSON.stringify({date:s.daily,S:s}));if(S&&S.daily===todayKey()&&!S.over)S=null}}catch(e){}return}
+  if(loc&&loc.S.over&&loc.S.adopted===a.d+a.s)return;
+  try{const s=JSON.parse(a.j);if(s&&s.daily===todayKey()&&s.over){s.adopted=a.d+a.s;localStorage.setItem('cc-daily',JSON.stringify({date:s.daily,S:s}));if(S&&S.daily===todayKey())S=null}}catch(e){}}
+/* ---- daily ranking: lb/citygrid/<date>/<uid> = {name, s, c, t}; anyone can read it, each account
+   writes its own result once (Firebase rules refuse a second write) ---- */
+let LB=null,lbRef=null,lbDate=null,lbSent='';
+function submitLB(date,e){if(!USER||!db||TESTDAY||date!==todayKey()||e.f!==1||e.d!==ME)return;
+  if(LB&&LB[USER.uid]||lbSent===USER.uid+date)return;lbSent=USER.uid+date;
+  db.ref('lb/citygrid/'+date+'/'+USER.uid).set({name:(PROFILE||setup.user||'Player').slice(0,16),s:e.s,c:e.c,t:TS()}).catch(()=>{})}
+function watchLB(){if(!FB_OK||TESTDAY||!initFB())return;const k=todayKey();if(lbDate===k)return;
+  if(lbRef)lbRef.off();lbDate=k;LB=null;lbRef=db.ref('lb/citygrid/'+k);
+  lbRef.on('value',s=>{LB=s.val()||{};if(!S||S.daily)render()},()=>{})}
+// ranking order: more points first, then more squares, then whoever finished first
+function lbRows(src){return Object.entries(src||LB||{}).map(([uid,v])=>({uid,...v})).sort((a,b)=>b.s-a.s||b.c-a.c||(a.t||0)-(b.t||0))}
+// a past day's ranking (archive games): read once, only to look at it
+const LBD={};
+function pastLB(date){if(LBD[date]===undefined&&initFB()){LBD[date]=null;db.ref('lb/citygrid/'+date).once('value').then(s=>{LBD[date]=s.val()||{};if(S&&S.daily===date)render()}).catch(()=>{})}return LBD[date]}
+// ranking table: the top 10, plus your own row if you are further down (today's, or a past day's for archive games)
+function lbView(date){if(!FB_OK||TESTDAY)return '';
+  if(date){const src=pastLB(date);if(!src)return `<section class="panel lb"><span class="label">Ranking of grid #${dayNumber(date)}</span><p class="hint">Loading…</p></section>`;
+    const rows=lbRows(src),me=USER&&USER.uid,i=rows.findIndex(r=>r.uid===me);
+    const row=(r,k)=>`<li class="${r.uid===me?'me':''}" data-stats="${esc(r.uid)}" role="button" tabindex="0"><span class="rk">${k+1}</span><span class="nm">${esc(r.name||'Player')}</span><span class="sq">${r.c}/${DAILY_N*DAILY_N}</span><span class="pt">${r.s}</span></li>`;
+    return `<section class="panel lb"><span class="label">Ranking of grid #${dayNumber(date)}${rows.length?` · ${rows.length} player${rows.length===1?'':'s'}`:''}</span>${rows.length?`<ol class="lbl">${rows.slice(0,10).map(row).join('')+(i>=10?`<li class="gap">…</li>`+row(rows[i],i):'')}</ol>`:'<p class="hint">Nobody played this grid on its day.</p>'}<p class="hint">How the players did on the day. Archive games are not added.</p></section>`}
+  const rows=lbRows(),me=USER&&USER.uid,i=rows.findIndex(r=>r.uid===me);
+  const row=(r,k)=>`<li class="${r.uid===me?'me':''}" data-stats="${esc(r.uid)}" role="button" tabindex="0"><span class="rk">${k+1}</span><span class="nm">${esc(r.name||'Player')}</span><span class="sq">${r.c}/${DAILY_N*DAILY_N}</span><span class="pt">${r.s}</span></li>`;
+  const list=rows.slice(0,10).map(row).join('')+(i>=10?`<li class="gap">…</li>`+row(rows[i],i):'');
+  const foot=!USER?(AUTH_OK?`<button class="ghost" id="signin2">Sign in to join today's ranking</button>${carryable(loadDaily())?'<p class="hint">Your result is added when you sign in.</p>':''}`:''):i<0?`<p class="hint">Your result joins the ranking when you finish today's grid signed in.</p>`:'';
+  return `<section class="panel lb"><span class="label">Today's ranking${rows.length?` · ${rows.length} player${rows.length===1?'':'s'}`:''}</span>${rows.length?`<ol class="lbl">${list}</ol>`:`<p class="hint">Nobody in today's ranking yet.</p>`}${foot}</section>`}
+function lbMine(){if(!USER||!LB)return null;const rows=lbRows(),i=rows.findIndex(r=>r.uid===USER.uid);
+  return i<0?null:{rank:i+1,total:rows.length,top:Math.max(1,Math.round((i+1)/rows.length*100))}}
+function dailyStats(){return dailyStatsFrom(loadHist())}
+function dailyStatsFrom(h){const days=Object.keys(h).sort(),day=k=>Math.round(Date.parse(k+'T12:00Z')/864e5);
+  let streak=0;const today=day(todayKey());let d=h[todayKey()]?today:today-1;
+  const set=new Set(days.map(day));while(set.has(d)){streak++;d--}
+  return {played:days.length,streak,best:days.length?Math.max(...days.map(k=>h[k].s)):0}}
+/* ---- Solo and With friends games: one entry per finished game, kept on the device and, when signed in,
+   in users/<uid>/cities/games; a public summary of all three modes is published in gprofiles/citygrid/<uid> ---- */
+function loadGames(){try{return JSON.parse(localStorage.getItem('cc-games')||'[]')||[]}catch(e){return []}}
+function saveGames(g){try{localStorage.setItem('cc-games',JSON.stringify(g.slice(-1000)))}catch(e){}}
+function recordGame(){if(!S||!S.over||S.daily||!S.gid||TEST)return;if(S.mode!=='solo'&&S.mode!=='online')return;
+  const games=loadGames();if(games.some(g=>g.id===S.gid))return;let e;
+  if(S.mode==='solo'){const p=S.players[0];e={id:S.gid,m:'s',n:S.n,d:S.diff||'normal',s:p.score||0,c:p.cells||0,t:todayKey()}}
+  else{if(S.me<0)return;const sc=S.players.map(p=>p.score||0),mine=sc[S.me],better=sc.filter(x=>x>mine).length,tie=sc.filter(x=>x===mine).length>1;
+    e={id:S.gid,m:'f',n:S.n,d:S.diff||'normal',s:mine,c:S.players[S.me].cells||0,np:S.players.length,r:better+1,w:better===0&&!tie?1:0,dr:better===0&&tie?1:0,t:todayKey()}}
+  games.push(e);saveGames(games);
+  if(USER&&db)db.ref('users/'+USER.uid+'/cities/games/'+e.id).set(e).catch(()=>{});
+  publishSoon()}
+function syncGames(){if(!USER||!db)return Promise.resolve();const ref=db.ref('users/'+USER.uid+'/cities/games');
+  return ref.once('value').then(snap=>{const remote=snap.val()||{},local=loadGames(),ids=new Set(local.map(g=>g.id)),up={};
+    for(const [k,v] of Object.entries(remote))if(!ids.has(k)){local.push({...v,id:k});ids.add(k)}
+    for(const g of local)if(!remote[g.id])up[g.id]=g;
+    saveGames(local);if(Object.keys(up).length)return ref.update(up).catch(()=>{})}).catch(()=>{})}
+// all the numbers of the stats page, from the daily history and the list of games
+function computeStats(hist,games){
+  const days=Object.keys(hist).sort(),dv=days.map(k=>hist[k]),day=k=>Math.round(Date.parse(k+'T12:00Z')/864e5);
+  const avg=a=>a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length):0,best=a=>a.length?Math.max(...a):0;
+  let maxStreak=0,run=0,prev=null;for(const k of days){const d=day(k);run=prev!==null&&d===prev+1?run+1:1;prev=d;maxStreak=Math.max(maxStreak,run)}
+  const ds=dailyStatsFrom(hist);
+  const solo=games.filter(g=>g.m==='s'),fr=games.filter(g=>g.m==='f');
+  const sum=a=>{const sq=a.reduce((x,g)=>x+(g.c||0),0),all=a.reduce((x,g)=>x+g.n*g.n,0);
+    return {played:a.length,best:best(a.map(g=>g.s)),avg:avg(a.map(g=>g.s)),perfect:a.filter(g=>g.c===g.n*g.n).length,
+      squares:sq,acc:all?Math.round(sq/all*100):0}};
+  const byDiff={};['easy','normal','hard'].forEach(d=>byDiff[d]=sum(solo.filter(g=>g.d===d)));
+  const wins=fr.filter(g=>g.w===1).length;
+  return {d:{played:days.length,streak:ds.streak,max:maxStreak,best:best(dv.map(e=>e.s||0)),avg:avg(dv.map(e=>e.s||0)),perfect:dv.filter(e=>e.c===(e.n||DAILY_N)*(e.n||DAILY_N)).length},
+    s:{...sum(solo),byDiff},
+    f:{played:fr.length,wins,draws:fr.filter(g=>g.dr===1).length,pct:fr.length?Math.round(wins/fr.length*100):0,best:best(fr.map(g=>g.s)),
+      avg:avg(fr.map(g=>g.s)),place:fr.length?Math.round(fr.reduce((x,g)=>x+(g.r||1),0)/fr.length*10)/10:0}}}
+let pubTimer=null;
+function publishSoon(){clearTimeout(pubTimer);pubTimer=setTimeout(publishProfile,1500)}
+function publishProfile(){if(!USER||!db||!PROFILE)return;
+  db.ref('gprofiles/citygrid/'+USER.uid).set({name:PROFILE,...computeStats(loadHist(),loadGames()),u:TS()}).catch(()=>{})}
+// today's grid is built once per day and kept, so the home screen can show it before you play
+let dailyCache=null;
+// a day listed in DAILY_FIXED always gets that grid; it is rebuilt from the category labels and checked again
+function fixedDaily(key){const ids=DAILY_FIXED.days[key];if(!ids)return null;
+  const ks=ids.map(i=>CATS.find(k=>k.label===DAILY_FIXED.labels[i]));if(ks.some(k=>!k))return null;
+  const rows=ks.slice(0,DAILY_N),cols=ks.slice(DAILY_N),answers=[];
+  rows.forEach(r=>cols.forEach(c=>answers.push(inter(r,c))));
+  if(answers.some(a=>!a.length)||!isSafe(answers))return null;
+  return {rows:rows.map(k=>k.id),cols:cols.map(k=>k.id),answers}}
+function dailyGrid(day){const key=day||todayKey();if(dailyCache&&dailyCache.key===key)return dailyCache;
+  const fixed=fixedDaily(key);if(fixed)return dailyCache={key,seed:dailySeed(key),g:fixed};
+  let seed=dailySeed(key),g=generate(DAILY_N,seed,DAILY_DIFF),k=0;
+  while(!g&&k++<50){seed=(seed+1)%7962624;g=generate(DAILY_N,seed,DAILY_DIFF)}
+  return dailyCache=g?{key,seed,g}:null}
+function playDaily(){
+  if(USER)adoptDaily(ACCT_TODAY); // the account's finished game first, so it can't be started again here
+  const saved=loadDaily();
+  if(USER&&otherDevice(ACCT_TODAY)&&!(saved&&saved.S.over)){toast('You already played today\'s grid with this account on another device.','bad');render();return}
+  if(saved){S=saved.S;ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};if(!S.over)startTurn();render();return}
+  const dg=dailyGrid();
+  if(!dg){toast('Could not build today\'s grid. Try again later.','bad');return}
+  const key=dg.key,seed=dg.seed,g=dg.g;
+  S={mode:'solo',daily:key,day:dayNumber(key),n:DAILY_N,seed,diff:DAILY_DIFF,code:makeCode(DAILY_N,seed,DAILY_DIFF),rows:g.rows,cols:g.cols,answers:g.answers,
+     cells:g.answers.map(()=>({o:-1,c:null})),used:[],players:[{name:setup.user||'You',score:0}],turn:0,
+     guesses:DAILY_N*DAILY_N+DAILY_N,timer:0,deadline:0,passes:0,over:false,wrong:0};
+  // a guest's result can join the account later (sign in after playing), but only for the first game of the day on this device
+  try{S.first=localStorage.getItem('cc-dfirst')!==key;localStorage.setItem('cc-dfirst',key)}catch(e){S.first=false}
+  S.guest=!USER;
+  ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};
+  startTurn(true);render();
+  // signed in: claim today's try for this device as soon as the game starts; if another device got there first, stop
+  if(USER&&db&&!TESTDAY){const mine=S,ref=db.ref('users/'+USER.uid+'/cities/daily/'+key);
+    ref.transaction(cur=>!cur||!cur.d?dailyEntry(mine,0):cur.d===ME?cur:undefined).then(r=>{
+      if(!r.committed&&otherDevice(r.snapshot.val())&&S===mine){S=null;try{localStorage.removeItem('cc-daily')}catch(e){}
+        toast('You already played today\'s grid with this account on another device.','bad');render()}}).catch(()=>{})}
+}
+/* ---- archive: past daily grids, one try each (per account when signed in, otherwise per device).
+   Games are kept in bl-arch on the device and in users/<uid>/cities/archive/<date> (with the whole game, like today's grid).
+   They count neither for the daily ranking nor for the streak. ---- */
+function loadArch(){try{return JSON.parse(localStorage.getItem('cc-arch')||'{}')||{}}catch(e){return {}}}
+function saveArchGame(s){const a=loadArch();a[s.daily]=s;try{localStorage.setItem('cc-arch',JSON.stringify(a))}catch(e){}}
+let ARCH_REMOTE=null,archBack='home';const archUp=new Set();
+function syncArch(){if(!USER||!db)return;const uid=USER.uid;
+  db.ref('users/'+uid+'/cities/archive').once('value').then(s=>{if(!USER||USER.uid!==uid)return;ARCH_REMOTE=s.val()||{};
+    const a=loadArch();let ch=false;
+    for(const [k,v] of Object.entries(ARCH_REMOTE))if(otherDevice(v)&&v.f===1&&v.j&&!(a[k]&&a[k].over&&a[k].adopted===v.d+v.s)){
+      try{const g=JSON.parse(v.j);g.adopted=v.d+v.s;a[k]=g;ch=true}catch(e){}}
+    if(ch)try{localStorage.setItem('cc-arch',JSON.stringify(a))}catch(e){}
+    if(screen==='archive')render()}).catch(()=>{})}
+function recordArchive(s){if(!USER||!db||TESTDAY||archUp.has(s.daily))return;
+  const r=(ARCH_REMOTE||{})[s.daily];if(r&&r.d===ME&&r.f===1&&r.j)return;
+  archUp.add(s.daily);const full={...dailyEntry(s,1),j:JSON.stringify(s)};
+  db.ref('users/'+USER.uid+'/cities/archive/'+s.daily).transaction(cur=>!cur||!cur.d||cur.d===ME?full:undefined)
+    .then(x=>{if(x.committed&&ARCH_REMOTE)ARCH_REMOTE[s.daily]=full}).catch(()=>archUp.delete(s.daily))}
+// the day's own try (from the daily stats: this device's or the account's): an archive grid you played on its day
+const onDay=k=>loadHist()[k]||null;
+// the guest banner on the home screen, once closed, stays closed on this device
+const noBanner=()=>{try{return localStorage.getItem('cc-nobanner')==='1'}catch(e){return false}};
+function archDates(){const out=[],end=Date.parse(todayKey()+'T12:00Z');let d=Date.parse(DAILY_FIRST+'T12:00Z');
+  while(d<end){out.push(new Date(d).toISOString().slice(0,10));d+=864e5}
+  // today's grid joins the list as soon as you have finished it, so the archive lists every grid you played
+  const t=onDay(todayKey());if(t&&t.f!==0&&!TESTDAY)out.push(todayKey());return out.reverse()}
+function openArchive(){if(screen!=='archive')archBack=screen;screen='archive';ui.reveal=-1;if(USER)syncArch();render();window.scrollTo(0,0)}
+function archiveView(){const a=loadArch(),rem=ARCH_REMOTE||{};
+  const items=archDates().map(k=>{const g=a[k],r=rem[k],n=dayNumber(k),
+      date=new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
+    let st,sq='';
+    if(g&&g.over){st=`<span class="as done">${g.players[0].score} pts</span>`;
+      sq=`<span class="dsq" style="grid-template-columns:repeat(${g.n},1fr)" aria-hidden="true">${g.cells.map(c=>`<i class="${c.o>=0?'on':''}"></i>`).join('')}</span>`}
+    else if(onDay(k)){const e=onDay(k);st=`<span class="as done">${e.f===0?'Started on its day':e.s+' pts'}</span>`;
+      if(e.g&&e.f!==0)sq=`<span class="dsq" style="grid-template-columns:repeat(${e.n},1fr)" aria-hidden="true">${[...e.g].map(x=>`<i class="${x==='1'?'on':''}"></i>`).join('')}</span>`}
+    else if(USER&&r&&otherDevice(r))st=`<span class="as">${r.f===1?'Played on another device':'Started on another device'}</span>`;
+    else st=`<span class="as">${g?'In progress':'Play'}</span>`;
+    return `<li><button data-arch="${k}"><span class="an">#${n}</span><span class="ad"><b>Grid #${n}</b><small>${date}</small></span>${sq}${st}</button></li>`}).join('');
+  return `<section class="panel"><div class="backline"><button class="linkbtn" id="aback">← Back</button><span class="ht">Archive</span></div>
+    <p class="hint">Play the daily grids you missed. Grids you played on their day are already done. One try per grid${USER?' with your account':' on this device'}. Archive games don't count for the daily ranking or your streak.</p>
+    ${items?`<ul class="arch">${items}</ul>`:'<p class="hint">No past grids yet. Come back tomorrow.</p>'}</section>`}
+function playArchive(k){const a=loadArch(),r=(ARCH_REMOTE||{})[k];
+  if(USER&&r&&otherDevice(r)&&!(a[k]&&a[k].over)){toast(r.f===1?'You played this grid on another device with this account.':'You started this grid on another device with this account. One try per grid.','bad');return}
+  if(!a[k]&&onDay(k)){showOnDay(k);return}
+  ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};screen='home';
+  if(a[k]){S=a[k];if(!S.over)startTurn();render();window.scrollTo(0,0);return}
+  const dg=dailyGrid(k);if(!dg){toast('Could not build this grid.','bad');return}
+  const g=dg.g;
+  S={mode:'solo',daily:k,archive:true,day:dayNumber(k),n:DAILY_N,seed:dg.seed,diff:DAILY_DIFF,code:makeCode(DAILY_N,dg.seed,DAILY_DIFF),rows:g.rows,cols:g.cols,answers:g.answers,
+     cells:g.answers.map(()=>({o:-1,c:null})),used:[],players:[{name:setup.user||'You',score:0}],turn:0,
+     guesses:DAILY_N*DAILY_N+DAILY_N,timer:0,deadline:0,passes:0,over:false,wrong:0};
+  startTurn(true);render();window.scrollTo(0,0);
+  // signed in: claim this grid's try for this device; if another device got there first, stop
+  if(USER&&db&&!TESTDAY){const mine=S;
+    db.ref('users/'+USER.uid+'/cities/archive/'+k).transaction(cur=>!cur||!cur.d?dailyEntry(mine,0):cur.d===ME?cur:undefined).then(x=>{
+      if(!x.committed&&otherDevice(x.snapshot.val())&&S===mine){S=null;const b=loadArch();delete b[k];try{localStorage.setItem('cc-arch',JSON.stringify(b))}catch(e){}
+        toast('You already played this grid with this account on another device.','bad');screen='archive';render()}}).catch(()=>{})}}
+// a grid you played on its day: show that game (kept on this device for yesterday, or in the account), never replay it
+function showOnDay(k){const e=onDay(k),open=g=>{if(!g||g.daily!==k){toast(e.f===0?'You started this grid on its day. One try per grid.':`You played this grid on its day: ${e.s} points.`);return}
+    ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};screen='home';S={...g,archive:true,dayof:true,over:true};render();window.scrollTo(0,0)};
+  try{const d=JSON.parse(localStorage.getItem('cc-daily')||'null');if(d&&d.date===k&&d.S){open(d.S);return}}catch(x){}
+  if(USER&&db)db.ref('users/'+USER.uid+'/cities/daily/'+k+'/j').once('value').then(v=>{let g=null;try{g=JSON.parse(v.val())}catch(x){}open(g)}).catch(()=>open(null));
+  else open(null)}
+// big or hard grids can take a second to build: show a note first so the screen does not look frozen
+function buildThenStart(){if(setup.n===5||setup.diff!=='normal')toast('Building a grid that can always be completed…');setTimeout(startGame,40)}
+function startGame(){
+  let n=setup.n,seed=randSeed();
+  const pc=parseCode(setup.code);
+  let diff=setup.diff||'normal';
+  if(setup.code.trim()){if(!pc){toast('That code is not valid. It looks like 4-KQPMT or 4H-KQPMT.','bad');return}n=pc.n;seed=pc.seed;diff=pc.diff}
+  let g=generate(n,seed,diff),tries=0;
+  while(!g&&!pc&&tries++<20){seed=randSeed();g=generate(n,seed,diff)}
+  if(!g){toast('Could not build a grid from that code. Try another.','bad');return}
+  try{localStorage.setItem('cc-setup',JSON.stringify({...setup,code:''}))}catch(e){}
+  clearGridParam();
+  const players=setup.mode==='solo'?[{name:setup.user||'You',score:0}]:setup.names.map((nm,i)=>({name:nm.trim()||('Player '+(i+1)),score:0}));
+  S={mode:setup.mode,n,seed,diff,code:makeCode(n,seed,diff),rows:g.rows,cols:g.cols,answers:g.answers,
+     cells:g.answers.map(()=>({o:-1,c:null})),used:[],players,turn:0,
+     guesses:setup.mode==='solo'?n*n+n:null,timer:setup.timer,deadline:0,passes:0,over:false,wrong:0,
+     gid:'s-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7)};
+  ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};
+  startTurn(true);
+  render();
+}
+function playerReady(){
+  if(!S||S.over||!S.waiting)return;
+  S.waiting=false;S.turnStart=now();S.deadline=S.timer?now()+S.timer*1000:0;
+  clearInterval(tick);if(S.timer)tick=setInterval(onTick,250);
+  render();
+}
+function startTurn(first){
+  if(!S||S.over)return;
+  if(S.mode==='online'){ensureTick();return}
+  // pass & play: hide the grid and wait until the next player taps "I'm ready"; their clock starts then
+  if(S.mode==='versus'){S.waiting=true;clearInterval(tick);return}
+  S.turnStart=now();
+  S.deadline=S.timer?now()+S.timer*1000:0;
+  clearInterval(tick);
+  if(S.timer)tick=setInterval(onTick,250);
+}
+function onTick(){
+  if(!S||S.over||!S.timer){clearInterval(tick);return}
+  const left=S.deadline-now();
+  const bar=document.querySelector('.tbar');const sub=document.getElementById('tleft');
+  if(bar)bar.style.width=Math.max(0,left/(S.timer*1000)*100)+'%';
+  if(sub)sub.textContent=Math.max(0,Math.ceil(left/1000))+'s';
+  if(S.mode==='online'){if(left<=-400)tryTimeout(S.turn,S.deadline);return}
+  if(left<=0){
+    if(S.mode==='solo'){spendGuess();say('sad',"Time's up.",'That cost a guess.')}
+    else say('sad',"Time's up.",'Too slow, '+S.players[S.turn].name+'. Turn passes.');
+    ui.sel=-1;ui.query='';nextTurn(false);
+  }
+}
+function nextTurn(claimed){
+  if(S.over)return;
+  if(checkEnd())return;
+  if(S.mode!=='solo')S.turn=(S.turn+1)%S.players.length;
+  startTurn();render();
+}
+function spendGuess(){if(S.mode==='solo'){S.guesses--;}}
+function checkEnd(){
+  const full=S.cells.every(c=>c.o>=0);
+  const outOfGuesses=S.mode==='solo'&&S.guesses<=0;
+  const allPassed=S.mode!=='solo'&&S.passes>=S.players.length;
+  if(full||outOfGuesses||allPassed){endGame();return true}
+  return false;
+}
+/* ---- scoring ----
+   square: difficulty from 0 to 100 by ranking inside each grid: squares are sorted by how many
+           countries fit them and get evenly spaced points, 100 for the fewest options, 0 for the most
+   speed:  +2 for every whole second left (the turn timer, or a 30-second window when the timer is off)
+   lines:  +50 for every full row or column that is all yours */
+const LINE_BONUS=50,SQ_MAX=100,SPEED_PER_SEC=2,SPEED_WINDOW=30;
+function cellValues(answers){
+  // ranking: sort squares from fewest to most options and give them evenly spaced points,
+  // 100 for the hardest down to 0 for the easiest; squares with the same count share their average place
+  const ks=answers.map(a=>a.length),N=ks.length,sorted=[...ks].sort((x,y)=>x-y);
+  if(N<2||sorted[0]===sorted[N-1])return ks.map(()=>SQ_MAX);
+  return ks.map(k=>{const f=sorted.indexOf(k),l=sorted.lastIndexOf(k);return Math.round(SQ_MAX*(N-1-(f+l)/2)/(N-1))});
+}
+const valCache=new WeakMap();
+function valuesFor(answers){if(!valCache.has(answers))valCache.set(answers,cellValues(answers));return valCache.get(answers)}
+function speedPts(elapsedMs,timer){const win=timer||SPEED_WINDOW;return SPEED_PER_SEC*Math.max(0,Math.floor(win-elapsedMs/1000))}
+function lineCounts(){
+  const n=S.n,b=S.players.map(()=>0);
+  for(let i=0;i<n;i++){
+    const row=[...Array(n)].map((_,j)=>S.cells[i*n+j].o),col=[...Array(n)].map((_,j)=>S.cells[j*n+i].o);
+    [row,col].forEach(l=>{if(l[0]>=0&&l.every(x=>x===l[0]))b[l[0]]++});
+  }return b;
+}
+function computeScores(){
+  const lc=lineCounts();
+  S.players.forEach((p,i)=>{const mine=S.cells.filter(c=>c.o===i);
+    p.cells=mine.length;p.base=mine.reduce((a,c)=>a+(c.p||0),0);p.speed=mine.reduce((a,c)=>a+(c.sb||0),0);
+    p.lines=lc[i];p.bonus=lc[i]*LINE_BONUS;p.score=p.base+p.speed+p.bonus});
+}
+function liveScore(i){const lc=lineCounts();return S.cells.filter(c=>c.o===i).reduce((a,c)=>a+(c.p||0)+(c.sb||0),0)+lc[i]*LINE_BONUS}
+function endGame(){
+  if(S.mode==='online'){onlineAct('end');return}
+  S.over=true;clearInterval(tick);ui.sel=-1;
+  computeScores();
+  render();
+}
+function guess(ci,cid){
+  const c=byCode[cid];if(!c||S.over)return;
+  if(S.mode==='online'){ui.sel=-1;ui.query='';drawLayer();onlineGuess(ci,cid);return}
+  if(S.used.includes(cid)){say('think','Hold on.',c.n+' is already stamped on this grid. Try another capital.');ui.sel=-1;ui.query='';render();return}
+  const ok=S.answers[ci].includes(c.i);
+  const p=S.players[S.turn];
+  if(ok){
+    const pts=valuesFor(S.answers)[ci],sb=speedPts(now()-(S.turnStart||now()),S.timer);
+    const before=lineCounts()[S.turn];
+    S.cells[ci]={o:S.turn,c:cid,p:pts,sb};S.used.push(cid);S.passes=0;ui.fresh=ci;
+    const nl=lineCounts()[S.turn]-before;
+    const left=S.mode==='solo'?S.guesses-1:0;
+    if(S.mode!=='versus')Geomingo.stamp('citygrid',c.n);
+    say('happy','Stamped: '+c.n+'.','+'+pts+' pts'+(sb?' · +'+sb+' speed':'')+(nl?' · +'+nl*LINE_BONUS+' for the line':'')+(S.mode==='solo'?(left>0?' · '+left+' guess'+(left===1?'':'es')+' left':''):' for '+p.name+'.'));
+  }else{
+    S.wrong++;
+    const left=S.mode==='solo'?S.guesses-1:0;
+    say('sad','Denied entry.',c.n+" doesn't fit that square."+(S.mode==='solo'?(left>0?' '+left+' guess'+(left===1?'':'es')+' left.':''):' Turn passes.'));
+  }
+  spendGuess();
+  ui.sel=-1;ui.query='';
+  nextTurn(ok);
+}
+function pass(){if(S.over)return;if(S.mode==='online'){ui.sel=-1;onlineAct('pass');return}S.passes++;toast(S.players[S.turn].name+' passed.');ui.sel=-1;nextTurn(false)}
+
+
+/* ---- online (Firebase Realtime Database) ---- */
+const FB_OK = typeof firebase!=='undefined' && !!(window.FIREBASE_CONFIG&&/^https:\/\//.test(FIREBASE_CONFIG.databaseURL||''));
+let db=null, room=null, roomRef=null, roomCode=null, seenEv=null, firstSync=true, joining=false;
+const ansCache={};
+let ME='';
+try{ME=localStorage.getItem('cc-pid')||''}catch(e){}
+if(!ME){ME='p'+Math.random().toString(36).slice(2,10);try{localStorage.setItem('cc-pid',ME)}catch(e){}}
+function initFB(){
+  if(!FB_OK||db)return!!db;
+  try{if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);db=firebase.database();db.ref('.info/serverTimeOffset').on('value',s=>{offset=s.val()||0})}catch(e){console.error(e);return false}
+  return true;
+}
+const TS=()=>firebase.database.ServerValue.TIMESTAMP;
+
+/* ---- optional Google sign-in (Firebase Authentication): only used to keep your daily stats in sync between devices ---- */
+let USER=null,ACCT_TODAY=null,acctRef=null,PROFILE=null,NEEDNAME=false;
+// the account's name: chosen once (users/<uid>/profile), then fixed; it is also the name shown in the ranking
+function applyProfile(name){PROFILE=name;NEEDNAME=false;const old=setup.user;setup.user=name;editingUser=false;
+  if(!setup.names[0]||setup.names[0]===old)setup.names[0]=name;try{localStorage.setItem('cc-user',name)}catch(e){}publishSoon();carryDaily();render()}
+// signed in after finishing today's grid as a guest: the result joins the account and today's ranking
+// (only the first game of the day on this device, and only if the account hasn't played today: recordDaily checks that)
+const carryable=d=>!!d&&d.S.over&&d.S.guest&&d.S.first;
+function carryDaily(){const d=loadDaily();if(USER&&carryable(d))recordDaily(d.S)}
+function loadProfile(){if(!USER||!db)return;const uid=USER.uid;
+  db.ref('users/'+uid+'/profile').once('value').then(s=>{if(!USER||USER.uid!==uid)return;const v=s.val();
+    if(v&&v.name)applyProfile(v.name);else{NEEDNAME=true;render()}}).catch(()=>{})}
+function saveProfile(v){const name=(v||'').trim().slice(0,16);if(!name){toast('Type a name to continue.','bad');return}
+  if(!USER||!db)return;
+  db.ref('users/'+USER.uid+'/profile').transaction(cur=>cur?undefined:{name}).then(r=>{const n=(r.snapshot.val()||{}).name;if(n)applyProfile(n)})
+    .catch(()=>toast('Could not save your name. Try again.','bad'))}
+const AUTH_OK=FB_OK&&typeof firebase.auth==='function';
+// keep the account's entry for today up to date, so another device that starts today's grid locks it here at once
+function watchToday(){if(acctRef){acctRef.off();acctRef=null}ACCT_TODAY=null;if(!USER||!db||TESTDAY)return;
+  acctRef=db.ref('users/'+USER.uid+'/cities/daily/'+todayKey());
+  acctRef.on('value',s=>{ACCT_TODAY=s.val();
+    if(otherDevice(ACCT_TODAY)){const h=loadHist(),{j,...entry}=ACCT_TODAY;h[todayKey()]=entry;saveHist(h)}
+    adoptDaily(ACCT_TODAY);
+    if(!S||S.daily)render()})}
+function initAuth(){if(!AUTH_OK||!initFB())return;
+  firebase.auth().onAuthStateChanged(u=>{USER=u||null;PROFILE=null;NEEDNAME=false;watchToday();if(USER){loadProfile();syncHist();syncGames().then(publishSoon);syncArch()}else ARCH_REMOTE=null;render()});
+  firebase.auth().getRedirectResult().catch(e=>authError(e))}
+function authError(e){const c=(e&&e.code)||'';if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request')return;
+  toast(c==='auth/unauthorized-domain'||c==='auth/operation-not-allowed'?'Sign-in is not set up yet for this site.':'Could not sign in. Try again.','bad')}
+function signIn(){if(!AUTH_OK||!initFB()){toast('Sign-in is not available here.','bad');return}
+  const p=new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithPopup(p).catch(e=>{if(e&&e.code==='auth/popup-blocked')firebase.auth().signInWithRedirect(p);else authError(e)})}
+// signing out leaves the device clean: the account's name, today's grid, stats, games and archive go
+// (they stay in the account and come back when you sign in again) and you go on as Guest
+function signOut(){if(!AUTH_OK)return;firebase.auth().signOut().then(()=>{
+  for(const k of ['cc-daily','cc-hist','cc-games','cc-arch','cc-user'])try{localStorage.removeItem(k)}catch(e){}
+  if(setup.names[0]===setup.user)setup.names[0]='';setup.user='Guest';try{localStorage.setItem('cc-setup',JSON.stringify({...setup,code:''}))}catch(e){}
+  S=null;screen='home';ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};editingUser=false;render();window.scrollTo(0,0)}).catch(()=>{})}
+// merge the stats saved in your account with the ones on this device and save both ways;
+// a day already in the account always wins (one try per account), days only on this device are uploaded
+function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/cities/daily');
+  ref.once('value').then(snap=>{const remote=snap.val()||{},local=loadHist(),up={};
+    for(const [k,v] of Object.entries(remote)){const {j,...r}=v;local[k]=r} // the stats don't need the whole game (j)
+    adoptDaily(remote[todayKey()]);
+    // past days only: today's game goes through recordDaily, which checks the account's one try first
+    for(const [k,v] of Object.entries(local))if(!remote[k]&&k!==todayKey())up[k]={...v,d:v.d||ME,g:v.g||'',f:v.f===0?0:1};
+    saveHist(local);if(Object.keys(up).length)ref.update(up).catch(()=>{});publishSoon();render()}).catch(()=>{})}
+const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
+const evId=()=>Math.random().toString(36).slice(2,9);
+function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
+const APP_VERSION='202610251530';
+// The room stores the exact rows and columns, so every phone shows the host's grid.
+function roomGrid(r){
+  if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
+    if(!ansCache[k]){const answers=[];for(const a of r.rows)for(const b of r.cols)answers.push(CATS[a]&&CATS[b]?inter(CATS[a],CATS[b]):[]);ansCache[k]={rows:r.rows,cols:r.cols,answers}}
+    return ansCache[k]}
+  return gridFor(r.cfg.n,r.seed,r.cfg.diff);
+}
+const versionOK=r=>!r.v||r.v===APP_VERSION;
+// rooms of every game live side by side at rooms/ABCD; this marks Capitals' own, so a Countries code never opens here
+const ROOM_GAME='citygrid';
+function freshSeed(n,diff){for(let i=0;i<30;i++){const sd=randSeed();if(gridFor(n,sd,diff))return sd}return 1}
+function lobbyOrder(r){return Object.entries(r.players||{}).sort((a,b)=>(a[1].t||0)-(b[1].t||0)).map(x=>x[0])}
+
+// the name the others see in a room: the account's name, or the one a guest typed on the With friends screen
+const roomName=()=>USER?setup.user:(setup.fname||'').trim();
+function needRoomName(){if(USER)return false;const el=document.getElementById('fname');if(el)setup.fname=el.value.trim().slice(0,16);
+  try{localStorage.setItem('cc-setup',JSON.stringify({...setup,code:''}))}catch(e){}
+  if(roomName())return false;toast("Type your name so your friends know who's playing.",'bad');if(el)el.focus();return true}
+async function createRoom(){
+  if(needRoomName())return;
+  if(!initFB()){toast('Online play is not set up on this copy of the site.','bad');return}
+  try{
+    let code='';
+    for(let i=0;i<8;i++){code=randRoom();const ex=await db.ref('rooms/'+code).get();if(!ex.exists())break}
+    await db.ref('rooms/'+code).set({game:ROOM_GAME,v:APP_VERSION,host:ME,created:TS(),cfg:{n:setup.n,timer:setup.timer,diff:setup.diff||'normal'},status:'lobby',
+      players:{[ME]:{name:roomName(),t:TS(),on:true,...(USER?{uid:USER.uid}:{})}}});
+    listenRoom(code);
+  }catch(e){console.error(e);toast('Could not create the room. Check the connection and try again.','bad')}
+}
+async function joinRoom(raw){
+  const code=(raw||'').toUpperCase().replace(/[^A-Z]/g,'');
+  if(code.length!==4){toast('Room codes have 4 letters.','bad');return}
+  if(needRoomName())return;
+  if(!initFB()){toast('Online play is not set up on this copy of the site.','bad');return}
+  if(joining)return;joining=true;
+  try{
+    const ref=db.ref('rooms/'+code);
+    let why='';
+    const res=await ref.transaction(r=>{
+      if(!r)return r;
+      r.players=r.players||{};
+      if(r.game!==ROOM_GAME){why='other';return}
+      if(r.v&&r.v!==APP_VERSION){why='version';return}
+      if(r.players[ME]){r.players[ME].name=roomName();r.players[ME].on=true;if(USER)r.players[ME].uid=USER.uid;return r}
+      if(r.status!=='lobby'){why='started';return}
+      if(Object.keys(r.players).length>=6){why='full';return}
+      r.players[ME]={name:roomName(),t:Date.now()+offset,on:true,...(USER?{uid:USER.uid}:{})};return r;
+    });
+    const val=res.snapshot.val();
+    if(!val){toast('No room called '+code+'. Check the code.','bad');return}
+    if(!res.committed||!val.players||!val.players[ME]){
+      toast(why==='other'?code+' is a room of another game. Open that game to join it.':why==='version'?'You and the host have different versions of the game. Both of you reload the page, then try again.':why==='full'?'Room '+code+' already has 6 players.':why==='started'?'That game has already started. Ask the host for a rematch.':'Could not join '+code+'.','bad');return}
+    listenRoom(code);
+  }catch(e){console.error(e);toast('Could not join. Check the connection and try again.','bad')}
+  finally{joining=false}
+}
+function listenRoom(code){
+  if(roomRef)roomRef.off();
+  roomCode=code;roomRef=db.ref('rooms/'+code);firstSync=true;seenEv=null;
+  try{localStorage.setItem('cc-room',code)}catch(e){}
+  const me=roomRef.child('players/'+ME+'/on');
+  me.onDisconnect().set(false);
+  db.ref('.info/connected').on('value',s=>{if(s.val()&&roomCode===code){me.onDisconnect().set(false);roomRef.child('players/'+ME).once('value',p=>{if(p.exists())me.set(true)})}});
+  roomRef.on('value',snap=>{
+    const r=snap.val();
+    if(!r||!r.players||!r.players[ME]){
+      const was=roomCode;dropRoom();
+      if(was)toast(r?'You are no longer in room '+was+'.':'Room '+was+' was closed.','bad');
+      render();return}
+    room=r;syncRoom();
+  });
+}
+function dropRoom(){
+  if(roomRef){roomRef.off();try{roomRef.child('players/'+ME+'/on').onDisconnect().cancel()}catch(e){}}
+  room=null;roomRef=null;roomCode=null;S=null;clearInterval(tick);
+  try{localStorage.removeItem('cc-room')}catch(e){}
+}
+// tapping the logo goes to the home screen from anywhere; a game that would be lost (Solo, a room) asks first
+function goHome(){if(USER&&NEEDNAME)return;
+  if(roomCode){if(confirm('Leave the room and go to the home screen?'))leaveRoom().then(()=>{screen='home';render();window.scrollTo(0,0)});return}
+  if(S&&!S.over&&!S.daily&&!confirm('Leave this game and go to the home screen? This game will be lost.'))return;
+  clearInterval(tick);S=null;askingPlayers=false;setup.code='';clearGridParam();if(setup.user)editingUser=false;
+  ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};screen='home';render();window.scrollTo(0,0)}
+async function leaveRoom(){
+  const ref=roomRef;
+  if(ref&&room&&room.status==='lobby'){
+    try{await ref.transaction(r=>{if(!r)return r;if(r.players)delete r.players[ME];
+      const left=lobbyOrder(r);if(!left.length)return null;if(r.host===ME)r.host=left[0];return r})}catch(e){}
+  }else if(ref){try{await ref.child('players/'+ME+'/on').set(false)}catch(e){}}
+  dropRoom();render();
+}
+function syncRoom(){
+  const r=room;
+  if(r.status==='lobby'){S=null;clearInterval(tick);render();return}
+  const n=r.cfg.n,g=roomGrid(r);
+  if(!versionOK(r)){S=null;clearInterval(tick);render();return}
+  if(!g){toast('This room has a broken grid. Start a rematch.','bad');return}
+  const order=r.order||lobbyOrder(r);
+  const cellMap=r.cells||{};
+  const cells=g.answers.map((_,i)=>cellMap[i]?{o:cellMap[i].o,c:cellMap[i].c,p:cellMap[i].p||0,sb:cellMap[i].sb||0}:{o:-1,c:null});
+  S={mode:'online',n,seed:r.seed,diff:r.cfg.diff||'normal',code:makeCode(n,r.seed,r.cfg.diff),rows:g.rows,cols:g.cols,answers:g.answers,cells,
+     used:cells.filter(c=>c.c).map(c=>c.c),
+     players:order.map(pid=>({pid,uid:(r.players[pid]||{}).uid||null,name:(r.players[pid]||{}).name||'Gone',on:(r.players[pid]||{}).on!==false,score:0})),
+     gid:'f-'+roomCode+'-'+(r.started||r.seed),
+     turn:r.turn||0,timer:r.cfg.timer,deadline:r.deadline||0,turnStart:r.started||0,passes:r.passes||0,over:r.status==='over',wrong:r.wrong||0,
+     me:order.indexOf(ME),host:r.host===ME};
+  if(S.over){computeScores();clearInterval(tick)}
+  if(r.ev&&r.ev.id!==seenEv){
+    if(!firstSync){toast(r.ev.text,r.ev.kind);if(r.ev.ci!=null&&r.ev.kind==='good')ui.fresh=r.ev.ci;
+      if(r.ev.kind==='good'||r.ev.kind==='bad')say(r.ev.kind==='good'?'happy':'sad',r.ev.kind==='good'?'Stamped.':'Denied entry.',r.ev.text)}
+    seenEv=r.ev.id;
+  }
+  firstSync=false;
+  if(S.over||S.turn!==S.me)ui.sel=-1;
+  if(!S.over)ensureTick();
+  render();
+}
+function ensureTick(){clearInterval(tick);if(S&&S.timer&&!S.over)tick=setInterval(onTick,250)}
+function advance(r,len){
+  const filled=Object.keys(r.cells||{}).length;
+  if(filled>=r.cfg.n*r.cfg.n||(r.passes||0)>=len){r.status='over';r.deadline=0;return}
+  r.turn=((r.turn||0)+1)%len;
+  r.started=Date.now()+offset;
+  r.deadline=r.cfg.timer?Date.now()+offset+r.cfg.timer*1000:0;
+}
+async function onlineGuess(ci,cid){
+  const c=byCode[cid];let note='';
+  try{
+    const res=await roomRef.transaction(r=>{
+      if(!r)return r;
+      if(r.status!=='playing'){note='over';return}
+      const order=r.order;if(order[r.turn||0]!==ME){note='turn';return}
+      r.cells=r.cells||{};
+      if(r.cells[ci]){note='taken';return}
+      if(Object.values(r.cells).some(x=>x.c===cid)){note='used';return}
+      const g=roomGrid(r);const ok=g.answers[ci].includes(c.i);
+      const nm=(r.players[ME]||{}).name||'Someone';
+      if(ok){const pts=valuesFor(g.answers)[ci],sb=speedPts(Date.now()+offset-(r.started||Date.now()+offset),r.cfg.timer);
+        r.cells[ci]={o:r.turn||0,c:cid,p:pts,sb};r.passes=0;r.ev={id:evId(),kind:'good',ci,text:nm+': '+c.n+' fits. +'+pts+(sb?' +'+sb+' speed':'')}}
+      else{r.wrong=(r.wrong||0)+1;r.ev={id:evId(),kind:'bad',text:nm+': '+c.n+" doesn't fit there."}}
+      advance(r,order.length);return r;
+    });
+    if(!res.committed){toast(note==='turn'?'It is not your turn any more.':note==='taken'?'Someone already filled that square.':note==='used'?c.n+' is already on the board.':'The game is over.','bad')}
+  }catch(e){console.error(e);toast('That move did not go through. Check the connection.','bad')}
+}
+async function onlineAct(kind){
+  try{await roomRef.transaction(r=>{
+    if(!r)return r;
+    const nm=(r.players[ME]||{}).name||'Someone';
+    if(kind==='pass'){if(r.status!=='playing'||r.order[r.turn||0]!==ME)return;r.passes=(r.passes||0)+1;r.ev={id:evId(),kind:'',text:nm+' passed.'};advance(r,r.order.length);return r}
+    if(kind==='end'){if(r.status!=='playing')return;r.status='over';r.deadline=0;r.ev={id:evId(),kind:'',text:nm+' ended the game.'};return r}
+    if(kind==='start'||kind==='rematch'){
+      if(r.host!==ME)return;
+      const order=kind==='start'?lobbyOrder(r):(r.order||lobbyOrder(r)).filter(pid=>r.players[pid]);
+      if(order.length<2)return;
+      r.order=order;r.seed=freshSeed(r.cfg.n,r.cfg.diff);{const gg=gridFor(r.cfg.n,r.seed,r.cfg.diff);r.rows=gg.rows;r.cols=gg.cols}r.v=APP_VERSION;r.cells=null;r.passes=0;r.wrong=0;r.turn=0;r.status='playing';
+      r.started=Date.now()+offset;
+      r.deadline=r.cfg.timer?Date.now()+offset+r.cfg.timer*1000:0;
+      r.ev={id:evId(),kind:'',text:kind==='start'?'Game on. '+(r.players[order[0]].name)+' starts.':'Rematch. New grid.'};return r}
+    if(kind==='lobby'){if(r.host!==ME)return;r.status='lobby';r.cells=null;r.order=null;r.seed=null;r.deadline=0;return r}
+  })}catch(e){console.error(e);toast('That did not go through. Check the connection.','bad')}
+}
+async function tryTimeout(turn,deadline){
+  if(!roomRef||tryTimeout.busy===deadline)return;tryTimeout.busy=deadline;
+  try{await roomRef.transaction(r=>{
+    if(!r)return r;
+    if(r.status!=='playing'||(r.turn||0)!==turn||r.deadline!==deadline||Date.now()+offset<deadline)return;
+    const nm=(r.players[r.order[turn]]||{}).name||'Someone';
+    r.ev={id:evId(),kind:'bad',text:"Time's up for "+nm+'.'};advance(r,r.order.length);return r})}catch(e){}
+}
+function lobbyView(){
+  const r=room,order=lobbyOrder(r),isHost=r.host===ME;
+  const link=location.origin+location.pathname+'?room='+roomCode;
+  return `<section class="panel namecard"><span class="label">Room code</span><p class="roomcode">${roomCode}</p>
+    <p class="hint">Friends open Capitals, choose <b>With friends</b>, then type this code under Join. Or send them the link:</p>
+    <pre class="sharebox" id="linkbox">${esc(link)}</pre>
+    <button class="ghost" id="copylink">Copy link</button>
+    ${versionOK(r)?'':'<p class="hint" style="color:var(--bad)">This room was made with a different version of the game. Reload the page; if it still shows this, ask the host to reload and create a new room.</p>'}
+    <span class="label">Players ${order.length}/6</span>
+    <div class="players">${order.map((pid,i)=>{const p=r.players[pid];return `<div class="lp ${p.on===false?'off':''}" ${p.uid?`data-stats="${esc(p.uid)}" role="button" tabindex="0"`:''}><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)}<span class="tag">${[pid===r.host?'host':'',pid===ME?'you':'',p.on===false?'offline':''].filter(Boolean).join(' · ')}</span></div>`}).join('')}</div>
+    <p class="hint">${r.cfg.n} × ${r.cfg.n} grid · ${DLABEL[r.cfg.diff||'normal']} · ${r.cfg.timer?r.cfg.timer+' s per turn':'no turn timer'}</p>
+    ${isHost?`<button class="primary" id="ostart" ${order.length<2?'disabled style="opacity:.5"':''}>${order.length<2?'Waiting for players…':'Start game'}</button>`:`<p class="hint">Waiting for the host to start the game.</p>`}
+    <button class="ghost" id="leave">Leave room</button></section>`;
+}
+
+/* ---- new version check ---- */
+let newVersion=false;
+async function checkVersion(){
+  if(location.protocol!=='https:'||!FB_OK)return;
+  try{const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;const j=await r.json();
+    if(j.v&&j.v!==APP_VERSION&&!newVersion){
+      // not in the middle of a game: load the new version straight away (once per version, so it can never loop)
+      let done='';try{done=sessionStorage.getItem('cc-reloaded')||''}catch(e){}
+      if((!S||S.over)&&done!==j.v){try{sessionStorage.setItem('cc-reloaded',j.v)}catch(e){}const u=new URL(location.href);u.searchParams.set('v',j.v);location.replace(u.toString());return}
+      newVersion=true;render()}}catch(e){}
+}
+setTimeout(checkVersion,1500);setInterval(checkVersion,60000);
+
+/* ---- toast ---- */
+let tt=null;
+function toast(msg,kind){ui.toast={msg,kind};clearTimeout(tt);tt=setTimeout(()=>{ui.toast=null;drawLayer()},2200);drawLayer()}
+
+/* ---- render ---- */
+const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const app=document.getElementById('app'),layer=document.getElementById('layer');
+const pinStyle=i=>`background:var(--p${i})`;
+const colRef=j=>'ABCDE'[j], rowRef=i=>String(i+1);
+
+function render(){
+  const body=screen==='stats'?statsView():screen==='archive'?archiveView():S?gameView():((editingUser||(USER&&NEEDNAME))?nameView():(roomCode&&room?lobbyView():(askingPlayers?playersView():setupView())));
+  watchResult();
+  app.innerHTML=Geomingo.header({game:GAME_NAME,coord:S?(S.daily?'Daily #'+S.day:S.code)+(S.mode==='online'?' · room '+roomCode:''):(roomCode?'Room '+roomCode:''),menu:menuBtn()})+(newVersion?`<div class="status" style="border-color:var(--sea)"><span class="who" style="white-space:normal">A new version of the game is available.</span><button class="primary" id="reload" style="padding:8px 12px;font-size:.9rem">Reload</button></div>`:'')+body;
+  bind();drawLayer();fitHeaders();saveDaily();recordGame();
+  if(S&&!S.over&&S.timer)onTickVisual();
+}
+// Keep header labels as large as possible: shrink only the ones that would not fit their square.
+// One text size for all category titles in a grid (the largest that lets every title fit inside
+// its square with its margin), then shrink individually only if a title still does not fit.
+// the info icon is glued to the last word so it can never wrap onto a line of its own
+function titleWithInfo(t){
+  const i=t.lastIndexOf(' '),head=i<0?'':t.slice(0,i+1),last=i<0?t:t.slice(i+1),icon='\u00A0<span class="ib">i</span>';
+  // short last words are glued to the icon; long ones (which may need hyphenating) are left free
+  return last.replace(/\u00AD/g,'').length<=7?esc(head)+'<span style="white-space:nowrap">'+esc(last)+icon+'</span>':esc(t)+icon}
+function fitHeaders(){
+  const ts=[...document.querySelectorAll('.hd .ht')];if(!ts.length)return;
+  ts.forEach(t=>t.style.fontSize='');
+  const fits=t=>{const box=t.parentElement,cs=getComputedStyle(box),ref=box.querySelector('.ref');
+    const free=box.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-(ref?ref.offsetHeight+1:0);
+    return t.scrollHeight<=free+0.5&&t.scrollWidth<=t.clientWidth+0.5};
+  const board=document.querySelector('.board'),floor=board&&board.classList.contains('b5')?11:board&&board.classList.contains('b4')?12:13;
+  let f=parseFloat(getComputedStyle(ts[0]).fontSize),n=0;
+  const setAll=v=>ts.forEach(t=>t.style.fontSize=v+'px');
+  while(ts.some(t=>!fits(t))&&f>floor&&n++<40){f-=.5;setAll(f)}
+  ts.forEach(t=>{let g=f,m=0;while(!fits(t)&&g>7&&m++<30){g-=.5;t.style.fontSize=g+'px'}});
+  // shared top offset per header line: centre the tallest block, start every other block at the same height
+  ['.hd.col','.hd.rowh'].forEach(sel=>{
+    const hs=[...document.querySelectorAll(sel)];if(!hs.length)return;
+    hs.forEach(h=>h.style.paddingTop='');
+    const cs=getComputedStyle(hs[0]),pt=parseFloat(cs.paddingTop),pb=parseFloat(cs.paddingBottom);
+    const inner=hs[0].clientHeight-pt-pb;
+    const tall=Math.max(...hs.map(h=>{const r=h.querySelector('.ref'),t=h.querySelector('.ht');return (r?r.offsetHeight+1:0)+(t?t.offsetHeight:0)}));
+    const off=Math.max(0,(inner-tall)/2);
+    hs.forEach(h=>h.style.paddingTop=(pt+off)+'px');
+  });
+  const cb=document.querySelector('.cbrand');
+  if(cb){cb.style.fontSize='';const box=cb.parentElement;let h=parseFloat(getComputedStyle(cb).fontSize),k=0;
+    while(cb.scrollWidth>box.clientWidth-parseFloat(getComputedStyle(box).paddingLeft)*2&&h>8&&k++<40){h-=.5;cb.style.fontSize=h+'px'}}
+  // country names on guessed squares: shrink a name until no word is cut and it stays below the corner badges
+  // stamps on guessed squares: shrink the name (and the small line) until no word is cut and the stamp fits its square
+  document.querySelectorAll('.cell.flag .gm-stamp').forEach(st=>{const nm=st.querySelector('.sn'),sm=st.querySelector('small');if(!nm)return;
+    const fl=!!st.querySelector('.sf'),room=st.clientHeight*(fl?.55:1);let f=Math.min(fl?18:24,Math.round(st.clientWidth*(fl?.17:.21))),k=0;nm.style.fontSize=f+'px';
+    const tall=()=>fl?nm.offsetHeight+(sm?sm.offsetHeight:0)>room:st.scrollHeight>room+0.5;
+    while((nm.scrollWidth>nm.clientWidth+0.5||tall())&&f>6&&k++<60){f-=.5;nm.style.fontSize=f+'px'}
+    if(sm){sm.style.fontSize='';let g=parseFloat(getComputedStyle(sm).fontSize),j=0;while(sm.scrollWidth>st.clientWidth-4&&g>6&&j++<20){g-=.5;sm.style.fontSize=g+'px'}}});
+}
+try{document.fonts&&document.fonts.ready.then(()=>fitHeaders())}catch(e){}
+addEventListener('resize',()=>{clearTimeout(fitHeaders.t);fitHeaders.t=setTimeout(fitHeaders,120)});
+function onTickVisual(){const left=S.deadline-now();const bar=document.querySelector('.tbar');const sub=document.getElementById('tleft');if(bar)bar.style.width=Math.max(0,left/(S.timer*1000)*100)+'%';if(sub)sub.textContent=Math.max(0,Math.ceil(left/1000))+'s'}
+
+const MHINT={solo:'1 player.',online:'2–6 players, each on their own phone.'};
+const DLABEL={easy:'Easy',normal:'Normal',hard:'Hard'};
+const DHINT={
+  easy:'For everyone. Well-known topics, lots of possible answers.',
+  normal:'For geography fans. A wider mix of topics, some tricky squares.',
+  hard:'For experts. Tricky topics, few possible answers.'};
+const DEXAMPLE={
+  easy:'"In Europe" × "On the coast", "Over 1M people" × "In Africa"',
+  normal:'"Over 1,000 m high" × "In the tropics", "On the Mediterranean" × "Name ends in A"',
+  hard:'"On the Danube" × "10+ letters", "Over 2,000 m high" × "Name contains Z"'};
+function seg(name,opts,val){return `<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-seg="${name}" data-v="${v}" aria-pressed="${String(v)===String(val)}">${l}</button>`).join('')}</div>`}
+// player stats page: your own (from this device and your account) or another player's public summary (profiles/<uid>)
+let STATS_UID=null,statsBack='home';const statsCache={};
+function openStats(uid){STATS_UID=uid||null;if(screen!=='stats')statsBack=screen;screen='stats';ui.reveal=-1;
+  if(STATS_UID&&!(USER&&STATS_UID===USER.uid)&&statsCache[STATS_UID]===undefined&&initFB())
+    db.ref('gprofiles/citygrid/'+STATS_UID).once('value').then(s=>{statsCache[STATS_UID]=s.val()||null;render()}).catch(()=>{statsCache[STATS_UID]=null;render()});
+  render();window.scrollTo(0,0)}
+function statsView(){
+  const mine=!STATS_UID||(USER&&STATS_UID===USER.uid);let st,name;
+  const back=`<div class="backline"><button class="linkbtn" id="sback">← Back</button><span class="ht">${'%NAME%'}</span></div>`;
+  if(mine){st=computeStats(loadHist(),loadGames());name=PROFILE||setup.user||'You'}
+  else{const p=statsCache[STATS_UID];
+    if(p===undefined)return `<section class="panel">${back.replace('%NAME%','Player')}<p class="hint">Loading…</p></section>`;
+    if(!p||!p.d)return `<section class="panel">${back.replace('%NAME%','Player')}<p class="hint">No stats yet for this player.</p></section>`;
+    st=p;name=p.name||'Player'}
+  const tile=(v,l)=>`<div class="st"><b>${v}</b><span>${l}</span></div>`,D=st.d,So=st.s,F=st.f,bd=So.byDiff||{};
+  const row=k=>{const x=bd[k]||{played:0,best:0,avg:0};return `<tr><td>${k[0].toUpperCase()+k.slice(1)}</td><td>${x.played}</td><td>${x.best}</td><td>${x.avg}</td></tr>`};
+  return `<section class="panel stats">${back.replace('%NAME%',esc(name))}
+    ${mine&&!USER?'<p class="hint">Guest stats stay on this device. Sign in to keep them in your account and let other players see them.</p>':''}
+    <span class="label">Today's grid</span>
+    <div class="stgrid">${tile(D.played,'played')}${tile(D.streak,'streak')}${tile(D.max,'best streak')}${tile(D.best,'best score')}${tile(D.avg,'average')}${tile(D.perfect,'perfect grids')}</div>
+    <span class="label">Solo</span>
+    <div class="stgrid">${tile(So.played,'games')}${tile(So.best,'best score')}${tile(So.avg,'average')}${tile(So.perfect,'perfect grids')}${tile(So.acc===undefined?'–':So.acc+'%','accuracy')}${tile(So.squares===undefined?'–':So.squares,'squares')}</div>
+    ${So.played?`<table class="sttab"><tr><th></th><th>Games</th><th>Best</th><th>Average</th></tr>${row('easy')}${row('normal')}${row('hard')}</table>`:''}
+    <span class="label">With friends</span>
+    <div class="stgrid">${tile(F.played,'games')}${tile(F.wins,'wins')}${tile(F.pct+'%','win rate')}${tile(F.best,'best score')}${tile(F.avg===undefined?'–':F.avg,'average')}${tile(F.place===undefined||!F.played?'–':String(F.place),'avg. place')}</div>
+  </section>`}
+// welcome: sign in with Google (name kept in the account, ranking, synced stats) or play as a guest on this device
+function nameView(){
+  if(USER&&NEEDNAME){const first=((USER.displayName||'').trim().split(/\s+/)[0]||'').slice(0,16);
+    return `<section class="panel namecard"><p class="big">Choose your name</p>
+      <label class="label" for="pickname">Your name in Geomingo</label>
+      <input id="pickname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.user||first)}">
+      <p class="hint">It appears in the daily ranking and on your results. Choose carefully: it stays with your account and can't be changed later.</p>
+      <button class="primary" id="savepick">Save name</button></section>`}
+  // without Google sign-in (Firebase not reachable) the name is typed and stays on this device
+  return `<section class="panel namecard"><p class="big">Who's playing?</p>
+    <label class="label" for="uname">Your name</label>
+    <input id="uname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.user)}">
+    <p class="hint">Shown on the grid, the scoreboard and the result you share. It stays on this device.</p>
+    <button class="primary" id="savename">${setup.user?'Save name':'Continue'}</button></section>`;
+}
+function playersView(){
+  return `<section class="panel namecard"><p class="big">Who's playing?</p>
+    <p class="hint">Enter a name for each of the ${setup.names.length} players. You play in this order, passing the phone round.</p>
+    <div class="players">${setup.names.map((nm,i)=>`<div class="prow"><span class="pin" style="${pinStyle(i)}"></span><input id="pname${i}" data-pn="${i}" value="${esc(nm)}" maxlength="16" placeholder="Player ${i+1}'s name" aria-label="Player ${i+1} name" autocomplete="off"></div>`).join('')}</div>
+    <div class="row-btns"><button class="ghost" id="backsetup">Back</button><button class="primary" id="goplay" style="flex:1">Start game</button></div></section>`;
+}
+function confirmPlayers(){
+  const names=setup.names.map(x=>x.trim());
+  const empty=names.findIndex(x=>!x);
+  if(empty>=0){toast('Enter a name for player '+(empty+1)+'.','bad');const el=document.getElementById('pname'+empty);if(el)el.focus();return}
+  const low=names.map(x=>x.toLowerCase());
+  const dup=low.findIndex((x,i)=>low.indexOf(x)!==i);
+  if(dup>=0){toast('Two players are called '+names[dup]+'. Use different names.','bad');return}
+  setup.names=names;askingPlayers=false;buildThenStart();
+}
+// home: three ways to play. 'solo' and 'friends' are the settings screens behind two of them
+let screen='home';
+const screenFor=s=>!s?'home':s.archive?'archive':s.daily?'home':s.mode==='solo'?'solo':'friends';
+// top-left corner of a board: the daily grid shows its number (GRID #3), other games Mingo's head
+const cornerHTML=day=>day?`<div class="corner dnum" aria-label="Grid number ${day}"><span class="dl">Grid</span><span class="dn${day>=100?' long':''}">#${day}</span></div>`
+  :`<div class="corner" aria-hidden="true">${Geomingo.mingo('head',30)}</div>`;
+// a right answer on the grid: a passport stamp with the city's name, its code and its points
+const stampCell=(c,cell,cls)=>Geomingo.stampHTML(c.n,c.k3+' · +'+((cell.p||0)+(cell.sb||0)),cls);
+// today's grid shown open on the home screen: tapping a square starts (or continues) the daily game there
+function dailyBoard(saved){
+  const dg=saved?null:dailyGrid();if(!saved&&!dg)return '';
+  const rows=saved?saved.rows:dg.g.rows,cols=saved?saved.cols:dg.g.cols,n=cols.length;
+  let h=`<div class="board-wrap dboard"><div class="board b${n}" lang="en" style="grid-template-columns:repeat(${n+1},minmax(0,1fr))">${cornerHTML(dayNumber(todayKey()))}`;
+  cols.forEach((k,j)=>h+=`<div class="hd col" data-info="${k}" role="button" tabindex="0" aria-label="${esc(CATS[k].label)}: explain"><span class="ref">${colRef(j)}</span><span class="ht">${titleWithInfo(CATS[k].short)}</span></div>`);
+  rows.forEach((rk,i)=>{
+    h+=`<div class="hd rowh" data-info="${rk}" role="button" tabindex="0" aria-label="${esc(CATS[rk].label)}: explain"><span class="ref">${rowRef(i)}</span><span class="ht">${titleWithInfo(CATS[rk].short)}</span></div>`;
+    for(let j=0;j<n;j++){const ci=i*n+j,cell=saved&&saved.cells[ci];
+      if(cell&&cell.o>=0){const c=byCode[cell.c];h+=`<div class="cell taken flag">${stampCell(c,cell,'')}</div>`}
+      else h+=`<button class="cell" data-dcell="${ci}" aria-label="Square ${colRef(j)+rowRef(i)}: start today's grid"><span class="plus"></span></button>`}
+  });
+  return h+`</div></div>`;
+}
+function homeView(){
+  const key=todayKey(),d=loadDaily(),ms=msToNextDay(),next=`${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min`;
+  const date=new Date(key+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
+  const done=d&&d.S.over,p=done&&d.S.players[0];
+  if(done)recordDaily(d.S); // also counts a game finished before stats existed, or on a device that was offline
+  if(USER&&acctRef&&acctRef.key!==key)watchToday(); // a new day began while the page was open
+  watchLB();
+  const mine=lbMine(),nPlayers=LB?Object.keys(LB).length:0;
+  const rankLine=mine?`<span class="hrank"><b>#${mine.rank}</b> of ${mine.total} today · top ${mine.top}%</span>`
+    :USER?(nPlayers?`<span class="hrank">${nPlayers} player${nPlayers===1?'':'s'} in today's ranking</span>`:'')
+    :AUTH_OK?`<span class="hrank">Sign in to join today's ranking${nPlayers?` (${nPlayers} player${nPlayers===1?'':'s'})`:''}.</span>`:'';
+  // signed in and today's try was used on another device of the account: show that result instead of the grid
+  const other=!done&&USER&&otherDevice(ACCT_TODAY)?ACCT_TODAY:null;
+  // played: green squares for the answers you got, grey for the rest (like the shared result); tap to see the full grid
+  const doneCard=(status,n,got,score,cells,hint)=>`<button class="hcard" id="daily"><span class="hm">Today's grid #${dayNumber(key)} · ${status}</span><span class="dsum"><span class="dsq" style="grid-template-columns:repeat(${n},1fr)" aria-hidden="true">${got.map(x=>`<i class="${x?'on':''}"></i>`).join('')}</span><span class="dtxt"><span class="ht">${score} points</span><span class="hs">${cells} of ${n*n} squares</span></span>${(st=>`<span class="dstats"><span><b>${st.streak}</b>streak</span><span><b>${st.played}</b>played</span><span><b>${st.best}</b>best</span></span>`)(dailyStats())}</span>${rankLine}<span class="hs">${hint}</span><span class="hm">Next grid in ${next}</span></button>`;
+  const daily=done?doneCard('done',d.S.n,d.S.cells.map(c=>c.o>=0),p.score,p.cells,'Tap to see your grid, the ranking and share it.')
+    :other?doneCard(other.f===0?'started on another device':'played on another device',other.n||DAILY_N,[...(other.g||'').padEnd((other.n||DAILY_N)**2,'0')].map(x=>x==='1'),other.s||0,other.c||0,other.f===0?'You started it on another device with this account. One try per account.':'You played it on another device with this account.')
+    :`<div class="hcard ac"><span class="hm">#${dayNumber(key)} · ${date}</span><span class="ht">Today's grid</span><span class="hs">${d?'You started it: tap a square to continue.':'Compete with everyone: the same grid, one try. Tap a square to start.'}</span>${dailyBoard(d&&d.S)}</div>`;
+  const st=Geomingo.streak();
+  const hi=done?Geomingo.hello('happy','Stamped for today.'+(st>1?' '+st+'-day streak.':''),`Today's grid: ${p.score} points. Next grid in ${next}.`)
+    :other?Geomingo.hello('think','Played on another device.',`Next grid in ${next}.`)
+    :d?Geomingo.hello('think','Your grid is waiting.','Tap a square to carry on. One try.')
+    :Geomingo.hello('pass','GeoPass ready.','Tap a square to start. Every right answer is a stamp. One try, the same grid for everyone.');
+  return `<section class="home">
+    ${hi}
+    <div class="userline"><span class="pin" style="background:var(--sea)"></span>Playing as ${esc(setup.user)}${USER||AUTH_OK?'':'<button class="ghost" id="chname">Change</button>'}
+      ${AUTH_OK&&!USER&&noBanner()?`<span class="uright"><button class="ghost" id="signin">Sign in</button></span>`:''}</div>
+    ${AUTH_OK&&!USER&&!noBanner()?`<div class="gbanner"><span>Sign in to join the daily ranking</span><button class="primary" id="bsignin">Sign in</button><button class="linkbtn" id="bclose" aria-label="Close">✕</button></div>`:''}
+    ${daily}
+    ${TEST?`<div class="testbar"><span>Test mode${TESTDAY?' · day '+TESTDAY:''}</span><button class="ghost" id="dreset">Test: reset today's grid</button>
+      <small class="tdiag">${(()=>{const a=ACCT_TODAY,hh=loadHist()[key],l=loadDaily();return `version ${APP_VERSION} · this device ${ME}<br>account today: ${USER?(a?`device ${a.d||'none'}, ${a.s} pts, ${a.f===1?'finished':a.f===0?'started':'old format'}, full game ${a.j?'yes':'no'}`:'nothing'):'not signed in'}<br>this device today: ${l?(l.S.over?l.S.players[0].score+' pts, finished':'in progress'):'nothing'} · stats today: ${hh?hh.s+' pts':'none'}`})()}</small></div>`:''}
+    <div class="hrow">
+    <button class="hcard" data-go="solo"><span class="ht">Solo</span><span class="hs">Train on unlimited grids, at your level.</span></button>
+    <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to 6 players.</span></button>
+    </div>
+  </section>
+  <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name a capital that fits its row <em>and</em> its column, each capital once per grid. Tap <span class="ib">i</span> to see what a category means. Full rules in <b>How to play</b>.</p></section>`;
+}
+function setupView(){
+  if(screen==='home')return homeView();
+  const fr=screen==='friends';
+  setup.mode=fr?'online':'solo';
+  if(![0,10,30].includes(setup.timer))setup.timer=0;
+  const vs=setup.mode==='versus',on=setup.mode==='online',pc=parseCode(setup.code),fg=pc&&{...pc,code:setup.code.trim().toUpperCase()};
+  return `<section class="panel">
+    <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">${fr?'With friends':'Solo'}</span></div>
+    ${fr?`<p class="hint">${MHINT.online} The host creates a room and shares its link or code.</p>`:''}
+    ${vs?`<div class="field"><span class="label">Players</span>${seg('np',[[2,'2'],[3,'3'],[4,'4']],setup.names.length)}</div>`:''}
+    ${fg&&!on?`<div class="field"><span class="label">Friend's grid</span><p class="hint" style="color:var(--ink);font-size:1rem"><b>${esc(fg.code)}</b> · ${fg.n} × ${fg.n} · ${fg.diff[0].toUpperCase()+fg.diff.slice(1)}. You play exactly the squares your friend played.</p><button class="ghost" id="nofg">Play a random grid instead</button></div>`:`
+    <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['normal','Normal'],['hard','Hard']],setup.diff||'normal')}<p class="hint">${DHINT[setup.diff||'normal']}</p></div>`}
+    <div class="field"><span class="label">Time per turn</span>${seg('timer',[[0,'Off'],[10,'10 s'],[30,'30 s']],setup.timer)}</div>
+    ${on&&!USER?`<div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||'')}"><p class="hint">So your friends know who's playing.</p></div>`:''}
+    ${on?`<div class="field">${FB_OK?'':'<p class="hint">Online play only works on the published site with Firebase connected.</p>'}<button class="primary" id="create" ${FB_OK?'':'disabled style="opacity:.5"'}>Create room</button></div>
+    <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK?'':'disabled'}>Join</button></div></div>`:`
+    <button class="primary" id="start">${vs?'Next: player names':'Start game'}</button>`}
+  </section>
+  <section class="panel"><span class="label">Quick rules</span><ul class="rules">
+    <li>Fill each square with a capital that matches its row <em>and</em> its column.</li>
+    <li>Each capital once per grid. Tap <span class="ib">i</span> to see what a category means.</li>
+    ${on?'<li>Everyone on their own phone: the host creates a room and shares the code.</li>':vs?'<li>Take turns on one phone. A wrong answer or time-out passes the turn.</li>':'<li>You have a few more guesses than squares.</li>'}
+    <li>Harder squares, quick answers and full lines score more.</li>
+    <li>Full rules: <b>How to play</b> at the top.</li>
+  </ul></section>`;
+}
+function gameView(){
+  const n=S.n;let h='';
+  if(!S.over){
+    const p=S.players[S.turn];
+    h+=`<div class="status"><span class="pin" style="${S.mode==='solo'?'background:var(--sea)':pinStyle(S.turn)}"></span><span class="who">${S.mode==='solo'?esc(S.players[0].name)+"'s grid":S.mode==='online'?(S.turn===S.me?'Your turn':'Waiting for '+esc(p.name)):esc(p.name)+"'s turn"}</span><span class="sub">${DLABEL[S.diff||'normal']} · ${S.mode==='solo'?liveScore(0)+' pts · '+S.guesses+' guesses':''}${S.timer?` <span id="tleft">${S.timer}s</span>`:''}</span>${S.timer?'<span class="tbar" style="width:100%"></span>':''}</div>`;
+  }
+  if(S.mode!=='solo')h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${!S.over&&i===S.turn?'on':''} ${p.on===false?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${S.over?p.score:liveScore(i)}</b></span>`).join('')}</div>`;
+  if(S.over)h+=resultsView();
+  else{const m=mood&&mood.g===gameKey()?mood:null,p=S.players[S.turn];
+    h+=m?Geomingo.hello(m.pose,m.t,m.s)
+      :S.mode==='online'?Geomingo.hello('pass',S.turn===S.me?'Your turn.':'Waiting for '+p.name+'…','Name a capital that fits its row and its column.')
+      :S.mode==='versus'?Geomingo.hello('pass',p.name+', your turn.','Name a capital that fits its row and its column.')
+      :Geomingo.hello('pass',S.n*S.n+' stamps to win.','Each capital must match its row and its column. '+S.guesses+' guesses.')}
+  h+=`<div class="board-wrap"><div class="board b${n}" lang="en" style="grid-template-columns:repeat(${n+1},minmax(0,1fr))">`;
+  h+=cornerHTML(S.daily?S.day:0);
+  S.cols.forEach((k,j)=>h+=`<div class="hd col" data-info="${k}" role="button" tabindex="0" aria-label="${esc(CATS[k].label)}: explain"><span class="ref">${colRef(j)}</span><span class="ht">${titleWithInfo(CATS[k].short)}</span></div>`);
+  S.rows.forEach((rk,i)=>{
+    h+=`<div class="hd rowh" data-info="${rk}" role="button" tabindex="0" aria-label="${esc(CATS[rk].label)}: explain"><span class="ref">${rowRef(i)}</span><span class="ht">${titleWithInfo(CATS[rk].short)}</span></div>`;
+    for(let j=0;j<n;j++){
+      const ci=i*n+j,cell=S.cells[ci];
+      const ref=colRef(j)+rowRef(i);
+      if(cell.o>=0){const c=byCode[cell.c];
+        h+=`<button class="cell taken flag ${ui.fresh===ci?'new':''}" data-cell="${ci}" aria-label="${ref}: ${esc(c.n)}">${stampCell(c,cell,S.mode==='solo'?'':'c'+cell.o)}</button>`;
+      }else if(S.over){
+        h+=`<button class="cell miss" data-cell="${ci}" aria-label="${ref}: show answers"><span class="nm">${S.answers[ci].length} possible</span></button>`;
+      }else h+=`<button class="cell ${ui.sel===ci?'sel':''}" data-cell="${ci}" aria-label="Square ${ref}"><span class="plus"></span></button>`;
+    }
+  });
+  h+=`</div></div>`;
+  ui.fresh=-1;
+  if(!S.over)h+=`<div class="actions">${S.mode==='solo'||(S.mode==='online'&&S.turn!==S.me)?'':'<button class="ghost" id="pass">Pass turn</button>'}<button class="ghost" id="giveup">${S.mode==='solo'?'Give up':'End game'}</button><button class="ghost" id="newg">${S.mode==='online'?'Leave room':'New setup'}</button></div>`;
+  else h+=answersView();
+  return h;
+}
+function shareText(){
+  const n=S.n;let g='';
+  for(let i=0;i<n;i++){for(let j=0;j<n;j++){const o=S.cells[i*n+j].o;g+=o<0?'⬜':(S.mode==='solo'?'🟩':['🟥','🟦','🟨','🟪','🟩','🟫'][o])}g+='\n'}
+  const head=S.daily?`${Geomingo.share(GAME_NAME)} #${S.day} — ${S.players[0].score} pts (${S.players[0].cells}/${n*n})`:S.mode==='solo'?`${Geomingo.share(GAME_NAME)} ${S.code} — ${S.players[0].score} pts (${S.players[0].cells}/${n*n})`:`${Geomingo.share(GAME_NAME)} ${S.code} — `+S.players.map(p=>p.name+' '+p.score).join(', ');
+  return head+'\n'+g.trim();
+}
+// link that opens this exact grid (?grid=4E-KQPMT), sent together with the result
+// the daily grid links to the game itself, so friends use their own one try instead of replaying it as a free grid
+function gridLink(){return location.origin+location.pathname+(S.daily?'':'?grid='+encodeURIComponent(S.code))}
+function shareMessage(){return shareText()+'\n\n'+(S.daily?"Play today's grid: ":'Play this grid: ')+gridLink()}
+// phones: the system share menu (WhatsApp, Telegram...); elsewhere: copy result and link
+// computers: our own panel with WhatsApp, Telegram and Copy (the Windows/Mac share menu rarely offers them)
+const TOUCH=matchMedia('(pointer:coarse)').matches;
+function shareResult(){const t=shareMessage();
+  if(navigator.share&&TOUCH){navigator.share({text:t}).catch(e=>{if(e&&e.name!=='AbortError')copyShare()})}
+  else{ui.sharing=true;drawLayer()}}
+function copyShare(){const t=shareMessage();
+  // if the clipboard API is blocked, put the full message (with the link) in the result box, select it
+  // and try the older copy command; if that fails too, the text stays selected for a manual copy
+  const manual=()=>{const el=document.getElementById('share');if(el)el.textContent=t;selectShare();
+    let ok=false;try{ok=document.execCommand('copy')}catch(e){}
+    if(ok)toast('Result and link copied.','good');else toast('Copy blocked here. The text is selected: copy it manually.')};
+  try{navigator.clipboard.writeText(t).then(()=>toast('Result and link copied.','good'),manual)}catch(e){manual()}}
+function shareView(){const enc=encodeURIComponent;
+  return `<div class="infoscrim" id="sharescrim"></div><div class="infobox" role="dialog" aria-modal="true" aria-labelledby="sht">
+    <h2 id="sht">Share your result</h2><p class="meta">Friends who open the link play this same grid.</p>
+    <div class="sharebtns"><a class="primary" href="https://wa.me/?text=${enc(shareMessage())}" target="_blank" rel="noopener">WhatsApp</a>
+    <a class="primary" href="https://t.me/share/url?url=${enc(gridLink())}&text=${enc(shareText())}" target="_blank" rel="noopener">Telegram</a>
+    <button class="ghost" id="sharecopy">Copy result and link</button></div>
+    <button class="linkbtn" id="shareclose">Close</button></div>`}
+function breakdown(p){return `<p class="hint bdline">${p.cells} squares ${p.base} · speed ${p.speed} · lines ${p.lines}×${LINE_BONUS} = ${p.bonus}</p>`}
+// Mingo's verdict on a finished game: {pose, t, s}
+function verdict(){const n=S.n;
+  if(S.mode==='solo'){const p=S.players[0],f=p.cells/(n*n),st=S.daily&&!S.archive?Geomingo.streak():0;
+    const sub=p.cells+' of '+n*n+' squares · '+p.score+' points';
+    return f>=1?{pose:'happy',t:'Full page. Every square stamped.',s:sub}
+      :f>=.6?{pose:'happy',t:'Landed.'+(st>1?' '+st+'-day streak.':''),s:sub}
+      :f>=.3?{pose:'think',t:'A few gaps in the pages.',s:sub}:{pose:'sad',t:'Rough crossing, this one.',s:sub}}
+  const top=Math.max(...S.players.map(p=>p.score)),win=S.players.filter(p=>p.score===top);
+  if(S.mode==='online'&&S.me>=0){const me=S.players[S.me];
+    return me.score===top?{pose:'happy',t:win.length>1?'A draw. Well played.':'You win. First through the gate.',s:me.score+' points · '+me.cells+' squares'}
+      :{pose:'think',t:'So close. Rematch?',s:me.score+' points · '+me.cells+' squares'}}
+  return {pose:'happy',t:win.length>1?'A draw at '+top+' points.':win[0].name+' wins.',s:'Well played, everyone.'}}
+const verdictHTML=()=>{const v=verdict();return Geomingo.hello(v.pose,v.t,v.s,{key:'res'})};
+// the next daily game of Geomingo not played yet: the big button of today's result (Back to menu once every game is played)
+// every game is a trip: one line, the same small size in every game, so no name ever wraps (a touch smaller only on very narrow phones)
+const TRIP_STYLE='flex:1;display:flex;align-items:center;justify-content:center;min-width:0;white-space:nowrap;font-size:clamp(10px,calc((100vw - 170px)/15.5),14px);letter-spacing:.03em;padding:13.5px 8px 10.5px';
+const nextGameBtn=g=>g?`<a class="primary" href="${g.href}" style="${TRIP_STYLE}">Next trip: ${esc(g.name)} →</a>`:`<button class="primary" id="newg" style="flex:1">Back to menu</button>`;
+const afterNextHTML=g=>g?`<button class="ghost" id="newg">Back to menu</button>`:`<p class="hint">You have played all of today's games. New ones at midnight, Spain time.</p>`;
+// when a game you were playing ends: straight to the summary at the top of the page (no window over it)
+let liveKey='';
+function watchResult(){if(!S){liveKey='';return}const k=gameKey();
+  if(!S.over){liveKey=k;return}
+  if(liveKey!==k)return;liveKey='';
+  setTimeout(()=>window.scrollTo({top:0,behavior:'smooth'}),50)}
+function resultsView(){
+  if(S.daily){const p=S.players[0],n=S.n,ms=msToNextDay(),next=S.archive?null:Geomingo.nextGame('citygrid');
+    return `<section class="panel respanel">${verdictHTML()}<span class="label">${S.dayof?'':S.archive?'Archive · ':''}Daily grid #${S.day}${S.dayof?' · played on its day':''}</span><p class="big">${p.score} points</p>${breakdown(p)}<p class="hint">${p.cells} of ${n*n} squares. ${S.wrong} wrong guess${S.wrong===1?'':'es'}. ${S.dayof?'You played this grid on its day, so it can\'t be played again.':S.archive?'Archive games don\'t count for the ranking or your streak.':`Share it: friends play today's grid with their own one try. Next grid in ${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min.`}</p><pre class="sharebox" id="share">${esc(shareText())}</pre><div class="row-btns"><button class="ghost" id="copy">Share</button>${S.archive?`<button class="primary" id="newg" style="flex:1">Back to archive</button>`:nextGameBtn(next)}</div>${S.archive?'':afterNextHTML(next)}</section>${lbView(S.archive?S.daily:null)}`}
+  if(S.mode==='solo'){const p=S.players[0];const n=S.n;
+    return `<section class="panel respanel">${verdictHTML()}<p class="big">${p.score} points</p>${breakdown(p)}<p class="hint">${p.cells} of ${n*n} squares. ${S.wrong} wrong guess${S.wrong===1?'':'es'}. Share sends your result with a link: friends who open it play this same grid.</p><pre class="sharebox" id="share">${esc(shareText())}</pre><div class="row-btns"><button class="ghost" id="copy">Share</button><button class="primary" id="again" style="flex:1">New grid</button></div><button class="ghost" id="newg">Change settings</button></section>`}
+  const ranked=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score||b.cells-a.cells);
+  const top=ranked[0].score,winners=ranked.filter(p=>p.score===top);
+  return `<section class="panel respanel">${verdictHTML()}<p class="big">${winners.length>1?'Draw at '+top+' points':esc(winners[0].name)+' wins'}</p>
+   <div class="podium">${ranked.map((p,r)=>`<div class="place ${p.score===top?'win':''}" ${p.uid?`data-stats="${esc(p.uid)}" role="button" tabindex="0"`:''}><span class="rk">${r+1}</span><span class="pin" style="${pinStyle(p.i)}"></span><span class="nm">${esc(p.name)}</span><span class="pt">${p.score}</span></div><div class="bd">${breakdown(p)}</div>`).join('')}</div>
+   <pre class="sharebox" id="share">${esc(shareText())}</pre>
+   <div class="row-btns"><button class="ghost" id="copy">Share</button>${S.mode==='online'&&!S.host?'':'<button class="primary" id="again" style="flex:1">Rematch, new grid</button>'}</div>
+   ${S.mode==='online'?(S.host?'':'<p class="hint">The host can start a rematch.</p>')+'<button class="ghost" id="newg">Leave room</button>':'<button class="ghost" id="newg">Change settings</button>'}</section>`;
+}
+function answersView(){
+  if(ui.reveal<0)return `<p class="hint">Tap any square to see every capital that fits it.</p>`;
+  const ci=ui.reveal,n=S.n,i=Math.floor(ci/n),j=ci%n;
+  const list=S.answers[ci].map(x=>C[x]);
+  return `<section class="panel answers"><p class="hdr"><span>${colRef(j)}${rowRef(i)} · ${esc(CATS[S.rows[i]].label)} × ${esc(CATS[S.cols[j]].label)}</span><span class="nsol">${list.length} answer${list.length===1?'':'s'}</span></p><p>${list.map(c=>`${esc(c.n)}`).join(' · ')}</p></section>`;
+}
+
+/* ---- guess sheet ---- */
+// The list shows names only, never flags, in every difficulty.
+// Easy: names that start with or contain what you typed.
+// Normal and Hard: only names that start with what you typed, so the list gives less away.
+function matches(q){
+  const k=N(q);if(!k)return[];
+  const easy=S&&S.diff==='easy';
+  const starts=[],inside=[];
+  for(const c of C){if(c.ak.some(a=>a.startsWith(k))||c.k.startsWith(k))starts.push(c);else if(easy&&c.k.includes(k))inside.push(c)}
+  return starts.concat(inside).slice(0,8);
+}
+// line icons for the menu (24×24, drawn with the text colour)
+const ICONS={menu:'M4 6h16M4 12h16M4 18h16',games:'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',help:'M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18M12 17v.01M12 13.5a1.5 1.5 0 0 1 1-1.5a2.6 2.6 0 1 0-3-4',
+  archive:'M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2M16 3v4M8 3v4M4 11h16',
+  stats:'M4 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1M10 8h4a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1M16 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1',
+  credits:'M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0M3 6v13M12 6v13M21 6v13',
+  signout:'M14 8V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-2M9 12h12l-3-3M18 15l3-3',
+  signin:'M14 8V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-2M20 12H7l3-3M10 15l-3-3'};
+const ico=k=>`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[k]}"/></svg>`;
+const menuBtn=()=>`<button class="helpbtn" id="menu" aria-haspopup="true" aria-expanded="${ui.menu?'true':'false'}">${ico('menu')}Menu</button>`;
+function drawLayer(){
+  let h='';
+  // header menu: How to play, Archive, My stats, Credits, sign in/out
+  if(ui.menu){const it=(k,label,cls)=>`<button class="mitem${cls?' '+cls:''}" data-menu="${k}">${ico(k)}${label}</button>`;
+    h+=`<div class="menuscrim" id="menuscrim"></div><nav class="menubox" aria-label="Menu" style="top:${Math.round(((m=>m?m.getBoundingClientRect().bottom:54)(document.getElementById('menu')))+4)}px">${it('help','How to play')}${it('archive','Archive')}${it('stats','My stats')}${it('credits','Credits &amp; data sources')}${it('games','All Geomingo games')}${AUTH_OK?(USER?it('signout','Sign out','out'):it('signin','Sign in with Google','out')):''}</nav>`}
+  if(S&&!S.over&&ui.sel>=0){
+    const n=S.n,i=Math.floor(ui.sel/n),j=ui.sel%n;
+    const res=matches(ui.query);
+    h+=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Name a capital">
+      <div class="q"><i>${colRef(j)}${rowRef(i)}</i><button class="qcat" data-info="${S.rows[i]}">${esc(CATS[S.rows[i]].label)}<span class="ib">i</span></button> <i>×</i> <button class="qcat" data-info="${S.cols[j]}">${esc(CATS[S.cols[j]].label)}<span class="ib">i</span></button></div>
+      <input id="gq" placeholder="Type a capital…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(ui.query)}">
+      <ul class="sugg" id="sugg">${sugg(res)}</ul>
+      <div class="bar"><button class="ghost" id="cancel">Back to grid</button></div></div>`;
+  }
+  if(S&&S.mode==='versus'&&S.waiting&&!S.over){const p=S.players[S.turn];
+    h+=`<div class="handoff" role="dialog" aria-modal="true" aria-labelledby="hot">
+      <span class="pin big" style="${pinStyle(S.turn)}"></span>
+      <h2 id="hot">${esc(p.name)}'s turn</h2>
+      <p>Pass the phone to ${esc(p.name)}.${S.timer?` The ${S.timer}-second clock starts when you tap.`:''}</p>
+      <div class="scores">${S.players.map((q,i)=>`<span class="chip ${i===S.turn?'on':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(q.name)} <b>${liveScore(i)}</b></span>`).join('')}</div>
+      <button class="primary" id="ready">I'm ready</button></div>`}
+  if(ui.sharing&&S&&S.over)h+=shareView();
+  if(ui.credits){
+    h+=`<div class="infoscrim" id="credscrim"></div><div class="infobox helpbox credits" role="dialog" aria-modal="true" aria-labelledby="credt">
+      <h2 id="credt">Credits</h2>
+      <p>Capitals is part of Geomingo, free and independent daily geography games: the sister of <a href="https://geomingo.com/countries/">Countries</a>, with capitals instead of countries. It is not affiliated with any other grid or geography game.</p>
+      <dl>
+        <dt>City data</dt>
+        <dd><a href="https://www.geonames.org" target="_blank" rel="noopener">GeoNames</a> (via the <i>all-the-cities</i> package): names, coordinates and population of each city, under the <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">Creative Commons Attribution 4.0</a> licence. Adapted: English names, a few outdated populations corrected (Buenos Aires, Taipei, Kuwait City, Luxembourg, Thimphu, Bridgetown, Bandar Seri Begawan, Astana).</dd>
+        <dt>Capitals</dt>
+        <dd>One capital per country, the 195 countries of Country Grid without the territories. Where a country has more than one, the game uses the seat of government: La Paz (Bolivia) and Pretoria (South Africa). Country names come from Country Grid's data (<a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a>, <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL 1.0</a>, adapted). "Not its country's biggest city" follows Wikipedia, <a href="https://en.wikipedia.org/wiki/List_of_countries_whose_capital_is_not_their_largest_city" target="_blank" rel="noopener">List of countries whose capital is not their largest city</a>, plus China.</dd>
+        <dt>Coasts, seas, rivers and height</dt>
+        <dd>Compiled by hand from Wikipedia (text under <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>) and checked against the <a href="https://www.naturalearthdata.com" target="_blank" rel="noopener">Natural Earth</a> coastline (public domain), October 2026. Each category's <span class="ib">i</span> explains the exact rule and the doubtful cases.</dd>
+        <dt>Megacities</dt>
+        <dd>United Nations, World Urbanization Prospects 2018: the 33 urban areas over 10 million people, as listed in Wikipedia, <a href="https://en.wikipedia.org/wiki/Megacity" target="_blank" rel="noopener">Megacity</a>.</dd>
+        <dt>Olympic Games and World Cup finals</dt>
+        <dd>From Wikipedia: <a href="https://en.wikipedia.org/wiki/List_of_Olympic_Games_host_cities" target="_blank" rel="noopener">List of Olympic Games host cities</a> (up to Milano Cortina 2026) and <a href="https://en.wikipedia.org/wiki/List_of_FIFA_World_Cup_finals" target="_blank" rel="noopener">List of FIFA World Cup finals</a> (up to 2026).</dd>
+        <dt>Fonts</dt>
+        <dd>Archivo, Public Sans and Courier Prime, from <a href="https://fonts.google.com" target="_blank" rel="noopener">Google Fonts</a>, under the SIL Open Font License.</dd>
+        <dt>Accuracy</dt>
+        <dd>City limits, populations and capitals can change and can be disputed. The game follows the data above; if an answer looks wrong, tap the category's <span class="ib">i</span> to see the exact rule used.</dd>
+      </dl>
+      <button class="primary" id="credok">Close</button></div>`}
+  if(ui.help){
+    const ks=[2,3,4,5,6,7,8,9,40],ev=cellValues(ks.map(k=>Array(k).fill(0)));
+    const ex=ks.map((k,i)=>`<tr><td>${i+1}.</td><td>${k} possible capitals</td><td>${ev[i]} pts</td></tr>`).join('');
+    h+=`<div class="infoscrim" id="helpscrim"></div><div class="infobox helpbox" role="dialog" aria-modal="true" aria-labelledby="helpt">
+      <h2 id="helpt">How to play</h2>
+      <h3>The idea</h3><ul>
+      <li>The grid has a category on every row and every column, for example "In Europe" and "On the coast".</li>
+      <li>Fill each square with a capital that matches <b>both</b> its row and its column. For that pair, Lisbon or Athens would work.</li>
+      <li>You can answer with any of the ${C.length} capitals in the game, one per country, from Tokyo to Tarawa. Each one can be used once per grid. The list shows each capital's country to help you.</li>
+      <li>Tap the <span class="ib">i</span> next to a category to read exactly what it means.</li>
+      <li>Every grid can always be finished: whatever answers are given, each empty square keeps at least one capital that fits.</li></ul>
+      <h3>Your turn</h3><ul>
+      <li>Tap an empty square, start typing a capital and pick it from the list.</li>
+      <li>A right answer puts the capital's name in the square and gives you the points. A wrong answer or running out of time ends your turn.</li>
+      <li>With other players, you take turns. The game ends when the grid is full, or when every player passes one after another.</li></ul>
+      <h3>Modes</h3><ul>
+      <li><b>Today's grid</b>: one ${DAILY_N} × ${DAILY_N} Normal grid, the same for everyone, new every day at midnight CET. You get one try; if you leave, you continue where you stopped.</li>
+      <li><b>Solo</b>: unlimited grids on your own, with a few more guesses than there are squares. Aim for the highest score.</li>
+      <li><b>With friends</b>: 2 to 6 players online, each on their own phone. The host creates a room and shares its 4-letter code or link; the others join with it.</li></ul>
+      <h3>Difficulty</h3><ul>
+      <li><b>Easy</b>: ${DHINT.easy} The capital list finds any part of a name. <i>Example: ${DEXAMPLE.easy}.</i></li>
+      <li><b>Normal</b>: ${DHINT.normal} The capital list finds names by their first letters, so you need to know the answer. <i>Example: ${DEXAMPLE.normal}.</i></li>
+      <li><b>Hard</b>: ${DHINT.hard} The capital list works as in Normal. <i>Example: ${DEXAMPLE.hard}.</i></li>      <li>At the end, <b>Share</b> sends your result with a link, for example on WhatsApp or Telegram. Friends who open it play exactly your grid. The grid code shows the level: <b>4E-</b> easy, <b>4-</b> normal, <b>4H-</b> hard.</li></ul>
+      <h3>Scoring</h3><ul>
+      <li><b>Square points, 0 to ${SQ_MAX}</b>: the squares of each grid are ranked from hardest (fewest capitals fit) to easiest (most capitals fit), and the points go up in equal steps. The hardest square is worth ${SQ_MAX}. Every correct answer in a square earns the same points, and you discover them when the square is filled.</li>
+      <li><b>Speed bonus</b>: +${SPEED_PER_SEC} for every whole second left on your clock when you answer (counted from ${SPEED_WINDOW} seconds when the timer is off).</li>
+      <li><b>Line bonus</b>: +${LINE_BONUS} for every full row or column where all the squares are yours.</li>
+      <li>The highest total wins.</li></ul>
+      <h3>Example: the 9 squares of a 3 × 3 grid, ranked</h3>
+      <table class="ptable">${ex}</table>
+      <p class="hint">Data sources and licences: see <b>Credits &amp; data sources</b> at the bottom of the page.</p>
+      <button class="primary" id="helpok">Got it</button></div>`}
+  if(ui.info!=null&&CATS[ui.info]){const k=CATS[ui.info];
+    h+=`<div class="infoscrim" id="infoscrim"></div><div class="infobox" role="dialog" aria-modal="true" aria-labelledby="infot"><span class="label">Category</span><h2 id="infot">${esc(k.label)}</h2><p>${esc(k.desc)}</p><span class="meta">${k.count} capitals in the game match this on its own.</span><button class="primary" id="infook">Got it</button></div>`}
+  if(ui.toast)h+=`<div class="toast ${ui.toast.kind||''}" role="status">${esc(ui.toast.msg)}</div>`;
+  const had=document.getElementById('gq');const caret=had?had.selectionStart:null;
+  layer.innerHTML=h;
+  const rd=document.getElementById('ready');if(rd){rd.onclick=playerReady;rd.focus()}
+  const sc=document.getElementById('shareclose');
+  if(sc){const close=()=>{ui.sharing=false;drawLayer()};sc.onclick=close;document.getElementById('sharescrim').onclick=close;
+    layer.querySelectorAll('.sharebtns a').forEach(a=>a.addEventListener('click',close));
+    document.getElementById('sharecopy').onclick=()=>{close();copyShare()}}
+  const ck=document.getElementById('credok');
+  if(ck){const close=()=>{ui.credits=false;drawLayer()};ck.onclick=close;document.getElementById('credscrim').onclick=close}
+  const ms=document.getElementById('menuscrim');
+  if(ms){ms.onclick=()=>{ui.menu=false;drawLayer()};
+    layer.querySelectorAll('[data-menu]').forEach(b=>b.onclick=()=>{const k=b.dataset.menu;ui.menu=false;
+      if(k==='help'){ui.help=true;drawLayer()}else if(k==='credits'){ui.credits=true;drawLayer()}
+      else if(k==='stats')openStats(USER?USER.uid:null);else if(k==='games')location.href=Geomingo.HOME;else if(k==='archive')openArchive();
+      else if(k==='signin'){drawLayer();signIn()}else if(k==='signout'){drawLayer();signOut()}})}
+  const hk=document.getElementById('helpok');
+  if(hk){const close=()=>{ui.help=false;drawLayer()};hk.onclick=close;document.getElementById('helpscrim').onclick=close}
+  const ok=document.getElementById('infook');
+  if(ok){const close=()=>{ui.info=null;drawLayer()};ok.onclick=close;document.getElementById('infoscrim').onclick=close;ok.focus()}
+  layer.querySelectorAll('[data-info]').forEach(b=>b.onclick=e=>{e.preventDefault();ui.info=+b.dataset.info;drawLayer()});
+  const gq=document.getElementById('gq');
+  if(gq){if(ui.info==null){gq.focus();if(caret!=null)gq.setSelectionRange(caret,caret)}
+    gq.oninput=e=>{ui.query=e.target.value;document.getElementById('sugg').innerHTML=sugg(matches(ui.query));bindSugg()};
+    gq.onkeydown=e=>{if(e.key==='Enter'){const r=matches(ui.query).filter(c=>!S.used.includes(c.c));if(r[0])guess(ui.sel,r[0].c)}if(e.key==='Escape'){ui.sel=-1;render()}};
+    bindSugg();
+    document.getElementById('cancel').onclick=document.getElementById('scrim').onclick=()=>{ui.sel=-1;ui.query='';render()};
+  }
+}
+function sugg(res){if(!ui.query)return `<li class="hint" style="padding:8px 2px">Start typing. You only get one try per turn.</li>`;if(!res.length)return `<li class="hint" style="padding:8px 2px">No capital matches “${esc(ui.query)}”.</li>`;
+  return res.map(c=>{const u=S.used.includes(c.c);return `<li><button data-g="${c.c}" ${u?'disabled':''}>${esc(c.n)}${u?'<span class="tag">used</span>':'<span class="co">'+esc(c.co.n)+'</span>'}</button></li>`}).join('')}
+function bindSugg(){layer.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>guess(ui.sel,b.dataset.g))}
+
+/* ---- bindings ---- */
+function bind(){
+  app.querySelectorAll('[data-seg]').forEach(b=>b.onclick=()=>{const k=b.dataset.seg,v=b.dataset.v;
+    if(k==='np'){const n=+v;while(setup.names.length<n)setup.names.push('');setup.names.length=n}
+    else setup[k]=(k==='mode'||k==='diff')?v:+v;render()});
+  app.querySelectorAll('[data-pn]').forEach(inp=>inp.oninput=e=>{setup.names[+inp.dataset.pn]=e.target.value});
+  const $=id=>document.getElementById(id);
+  if($('nofg'))$('nofg').onclick=()=>{setup.code='';clearGridParam();render()};
+  if($('addp'))$('addp').onclick=()=>{if(setup.names.length<4){setup.names.push('Player '+(setup.names.length+1));render()}};
+  if($('remp'))$('remp').onclick=()=>{if(setup.names.length>2){setup.names.pop();render()}};
+  if($('start'))$('start').onclick=()=>{if(setup.mode==='versus'){if(!setup.names[0])setup.names[0]=setup.user;askingPlayers=true;render();setTimeout(()=>{const e=setup.names.findIndex(x=>!x.trim());const el=document.getElementById('pname'+(e<0?0:e));if(el)el.focus()},30)}else buildThenStart()};
+  if($('goplay'))$('goplay').onclick=confirmPlayers;
+  if($('backsetup'))$('backsetup').onclick=()=>{askingPlayers=false;render()};
+  app.querySelectorAll('[data-pn]').forEach(inp=>inp.onkeydown=e=>{if(e.key==='Enter'){const nx=document.getElementById('pname'+(+inp.dataset.pn+1));if(nx)nx.focus();else confirmPlayers()}});
+  if($('uname')){const u=$('uname');setTimeout(()=>u.focus(),30);u.onkeydown=e=>{if(e.key==='Enter')saveUser(u.value)};$('savename').onclick=()=>saveUser(u.value)}
+  if($('bsignin'))$('bsignin').onclick=signIn;
+  if($('bclose'))$('bclose').onclick=()=>{try{localStorage.setItem('cc-nobanner','1')}catch(e){}render()};
+  if($('chname'))$('chname').onclick=()=>{editingUser=true;render()};
+  if($('gsignin'))$('gsignin').onclick=signIn;
+  if($('mystats'))$('mystats').onclick=()=>openStats(USER?USER.uid:null);
+  if($('aback'))$('aback').onclick=()=>{screen=archBack==='archive'?'home':archBack;render()};
+  app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
+  if($('sback'))$('sback').onclick=()=>{screen=statsBack==='stats'?'home':statsBack;render()};
+  app.querySelectorAll('[data-stats]').forEach(b=>{b.onclick=()=>openStats(b.dataset.stats);b.onkeydown=e=>{if(e.key==='Enter')openStats(b.dataset.stats)}});
+  if($('pickname')){const u=$('pickname');setTimeout(()=>u.focus(),30);u.onkeydown=e=>{if(e.key==='Enter')saveProfile(u.value)};$('savepick').onclick=()=>saveProfile(u.value)}
+  app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{screen=b.dataset.go;render()});
+  if($('signin'))$('signin').onclick=signIn;
+  if($('signin2'))$('signin2').onclick=signIn;
+  if($('signout'))$('signout').onclick=signOut;
+  // test reset: forget today's game on this device and, when signed in, in the account too (the public ranking keeps its first result)
+  if($('dreset'))$('dreset').onclick=()=>{try{localStorage.removeItem('cc-daily');const h=loadHist();delete h[todayKey()];saveHist(h)}catch(e){}
+    dailyCache=null;S=null;dailyUp='';
+    if(USER&&db&&!TESTDAY)db.ref('users/'+USER.uid+'/cities/daily/'+todayKey()).remove().catch(()=>{});
+    toast('Today\'s grid reset (test mode).','good');render()};
+  app.querySelectorAll('[data-dcell]').forEach(b=>b.onclick=()=>{const ci=+b.dataset.dcell;playDaily();
+    if(S&&S.daily&&!S.over&&S.cells[ci].o<0){ui.sel=ci;ui.query='';render()}});
+  if($('brand')){$('brand').onclick=goHome;$('brand').onkeydown=e=>{if(e.key==='Enter')goHome()}}
+  if($('home'))$('home').onclick=()=>{screen='home';setup.code='';clearGridParam();render()};
+  if($('pass'))$('pass').onclick=pass;
+  if($('giveup'))$('giveup').onclick=()=>{const b=$('giveup');if(b.dataset.armed){endGame()}else{b.dataset.armed='1';b.textContent='Tap again to confirm'}};
+  if($('create'))$('create').onclick=createRoom;
+  if($('menu'))$('menu').onclick=()=>{ui.menu=!ui.menu;drawLayer()};
+  if($('reload'))$('reload').onclick=()=>{location.replace(location.pathname+'?v='+Date.now()+(roomCode?'&room='+roomCode:''))};
+  if($('jcode'))$('jcode').oninput=e=>{setup.join=e.target.value};
+  if($('jcode'))$('jcode').onkeydown=e=>{if(e.key==='Enter')joinRoom($('jcode').value)};
+  if($('join'))$('join').onclick=()=>joinRoom($('jcode').value);
+  if($('ostart'))$('ostart').onclick=()=>{toast('Building the grid…');setTimeout(()=>onlineAct('start'),40)};
+  if($('leave'))$('leave').onclick=leaveRoom;
+  if($('copylink'))$('copylink').onclick=()=>{const t=document.getElementById('linkbox').textContent;try{navigator.clipboard.writeText(t).then(()=>toast('Link copied.','good'),()=>toast('Copy blocked. Select the link and copy it.'))}catch(e){}};
+  if($('newg')&&S&&S.mode==='online')$('newg').onclick=leaveRoom;
+  else if($('newg'))$('newg').onclick=()=>{screen=screenFor(S);clearInterval(tick);S=null;askingPlayers=false;setup.code='';render()};
+  if($('again'))$('again').onclick=()=>{if(S.mode==='online'){onlineAct('rematch');return}setup.code='';buildThenStart()};
+  if($('copy'))$('copy').onclick=shareResult;
+  if($('daily'))$('daily').onclick=()=>{const d=loadDaily();if(USER&&otherDevice(ACCT_TODAY)&&!(d&&d.S.over)){toast('Played on another device with this account. Open it there to see the full grid.');return}playDaily()};
+  app.querySelectorAll('[data-info]').forEach(b=>{b.onclick=()=>{ui.info=+b.dataset.info;drawLayer()};b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();b.click()}}});
+  app.querySelectorAll('[data-cell]').forEach(b=>b.onclick=()=>{
+    const ci=+b.dataset.cell;
+    if(S.over){ui.reveal=ci;render();return}
+    if(S.cells[ci].o>=0)return;
+    if(S.mode==='online'&&S.turn!==S.me){toast('Wait for your turn. It is '+S.players[S.turn].name+"'s go.");return}
+    ui.sel=ci;ui.query='';render();
+  });
+}
+function selectShare(){const el=document.getElementById('share');if(!el)return;const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r)}
+
+/* ---- hot reload state ---- */
+function start(data){
+  const keepUser=setup.user;
+  if(data&&data.S){S=data.S;setup={...setup,...(data.setup||{})};}
+  // nobody has to pick a name to play: without one you are Guest (sign in later from the home screen or the menu)
+  setup.user=setup.user||keepUser||'Guest';
+  editingUser=!setup.user;
+  if(editingUser||(S&&S.mode==='online'))S=null;
+  if(S&&!S.over)startTurn();
+  try{if(new URLSearchParams(location.search).has('friends')&&!S){screen='friends';history.replaceState(null,'',location.pathname)}}catch(e){}
+  try{const q=new URLSearchParams(location.search).get('room');if(q&&/^[A-Za-z]{4}$/.test(q)){setup.mode='online';setup.join=q.toUpperCase();screen='friends'}}catch(e){}
+  // a shared result link (?grid=4E-KQPMT) opens the setup screen ready to play that same grid
+  try{const g=new URLSearchParams(location.search).get('grid');if(g&&parseCode(g)){setup.code=g.trim().toUpperCase();if(setup.mode==='online')setup.mode='solo';screen='solo';if(S&&S.mode!=='online')S=null}}catch(e){}
+  initAuth();watchLB();
+  if(FB_OK&&!S){let saved='';try{saved=localStorage.getItem('cc-room')||''}catch(e){}
+    if(saved&&initFB()){listenRoom(saved)}}
+  render();
+}
+document.getElementById('creditsbtn').onclick=()=>{ui.credits=true;drawLayer()};
+window.claude?.hot?.snapshot?.(()=>({S,setup}));
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
+</body>
+</html>

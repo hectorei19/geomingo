@@ -4,7 +4,7 @@ Part of [Geomingo](https://geomingo.com/). Colours, fonts, Mingo, the header and
 
 Geography quiz: name the ten countries of a ranking ("The 10 most populous countries", "The 10 countries with the longest coastline"...). A country outside the top 10 costs one of 3 lives.
 
-Part of [Geomingo](https://geomingo.com/), daily geography games: [Countries](https://geomingo.com/countries/), [Cities](https://geomingo.com/cities/), [Connections](https://geomingo.com/connections/) and [Top 10](https://geomingo.com/top10/).
+Part of [Geomingo](https://geomingo.com/), daily geography games: [Countries](https://geomingo.com/countries/), [Capitals](https://geomingo.com/capitals/), [Connections](https://geomingo.com/connections/) and [Top 10](https://geomingo.com/top10/).
 
 - The page opens on today's list, open and playable on the home screen (like Countries' grid), with Solo and With friends below.
 - Today's list: the same for everyone, new at midnight CET (Spain), one try. Lists come in a shuffled order, so none repeats until all have been used.
