@@ -20,7 +20,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610242200" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610242200">
 <script src="../brand/mingo.js?v=202610251800"></script>
-<script src="../brand/account.js?v=202610250900"></script>
+<script src="../brand/account.js?v=202610251930"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -564,9 +564,11 @@ let LB=null,lbRef=null,lbDate=null,lbSent='';
 function submitLB(date,e){if(!USER||!db||TESTDAY||date!==todayKey()||e.f!==1||e.d!==ME)return;
   if(LB&&LB[USER.uid]||lbSent===USER.uid+date)return;lbSent=USER.uid+date;
   db.ref('lb/citygrid/'+date+'/'+USER.uid).set({name:(PROFILE||setup.user||'Player').slice(0,16),s:e.s,c:e.c,t:TS()}).catch(()=>{})}
+// the last rows seen of today's ranking show at once, until the live ones come
+function lbCached(k){try{const c=JSON.parse(localStorage.getItem('cc-lbc')||'null');return c&&c.date===k&&c.rows||null}catch(e){return null}}
 function watchLB(){if(!FB_OK||TESTDAY||!initFB())return;const k=todayKey();if(lbDate===k)return;
-  if(lbRef)lbRef.off();lbDate=k;LB=null;lbRef=db.ref('lb/citygrid/'+k);
-  lbRef.on('value',s=>{LB=s.val()||{};if(!S||S.daily)render()},()=>{})}
+  if(lbRef)lbRef.off();lbDate=k;LB=lbCached(k);lbRef=db.ref('lb/citygrid/'+k);
+  lbRef.on('value',s=>{LB=s.val()||{};try{localStorage.setItem('cc-lbc',JSON.stringify({date:k,rows:LB}))}catch(e){}if(!S||S.daily)render()},()=>{})}
 // ranking order: more points first, then more squares, then whoever finished first
 function lbRows(src){return Object.entries(src||LB||{}).map(([uid,v])=>({uid,...v})).sort((a,b)=>b.s-a.s||b.c-a.c||(a.t||0)-(b.t||0))}
 // a past day's ranking (archive games): read once, only to look at it
@@ -581,9 +583,9 @@ function lbView(date){if(!FB_OK||TESTDAY)return '';
   const rows=lbRows(),me=USER&&USER.uid,i=rows.findIndex(r=>r.uid===me);
   const row=(r,k)=>`<li class="${r.uid===me?'me':''}" data-stats="${esc(r.uid)}" role="button" tabindex="0"><span class="rk">${k+1}</span><span class="nm">${esc(r.name||'Player')}</span><span class="sq">${r.c}/${DAILY_N*DAILY_N}</span><span class="pt">${r.s}</span></li>`;
   const list=rows.slice(0,10).map(row).join('')+(i>=10?`<li class="gap">…</li>`+row(rows[i],i):'');
-  const foot=!USER?(AUTH_OK?`<button class="ghost" id="signin2">Sign in to join today's ranking</button>${carryable(loadDaily())?'<p class="hint">Your result is added when you sign in.</p>':''}`:''):i<0?`<p class="hint">Your result joins the ranking when you finish today's grid signed in.</p>`:'';
+  const foot=!USER&&!MAYBE_IN()?(AUTH_OK?`<button class="ghost" id="signin2">Sign in to join today's ranking</button>${carryable(loadDaily())?'<p class="hint">Your result is added when you sign in.</p>':''}`:''):i<0?`<p class="hint">Your result joins the ranking when you finish today's grid signed in.</p>`:'';
   return `<section class="panel lb"><span class="label">Today's ranking${rows.length?` · ${rows.length} player${rows.length===1?'':'s'}`:''}</span>${rows.length?`<ol class="lbl">${list}</ol>`:`<p class="hint">Nobody in today's ranking yet.</p>`}${foot}</section>`}
-function lbMine(){if(!USER||!LB)return null;const rows=lbRows(),i=rows.findIndex(r=>r.uid===USER.uid);
+function lbMine(){const id=USER?USER.uid:MAYBE_IN()&&(Geomingo.account.user||{}).uid;if(!id||!LB)return null;const rows=lbRows(),i=rows.findIndex(r=>r.uid===id);
   return i<0?null:{rank:i+1,total:rows.length,top:Math.max(1,Math.round((i+1)/rows.length*100))}}
 function dailyStats(){return dailyStatsFrom(loadHist())}
 function dailyStatsFrom(h){const days=Object.keys(h).sort(),day=k=>Math.round(Date.parse(k+'T12:00Z')/864e5);
@@ -883,6 +885,9 @@ function saveProfile(v){const name=(v||'').trim().slice(0,16);if(!name){toast('T
   db.ref('users/'+USER.uid+'/profile').transaction(cur=>cur?undefined:{name}).then(r=>{const n=(r.snapshot.val()||{}).name;if(n)applyProfile(n)})
     .catch(()=>toast('Could not save your name. Try again.','bad'))}
 const AUTH_OK=FB_OK&&typeof firebase.auth==='function';
+// until Firebase says who you are, a device that was signed in last time is shown as signed in (no Sign in banner flashing)
+let AUTH_KNOWN=false;
+const MAYBE_IN=()=>!USER&&!AUTH_KNOWN&&!!(window.Geomingo&&Geomingo.account&&Geomingo.account.wasSignedIn);
 // keep the account's entry for today up to date, so another device that starts today's grid locks it here at once
 function watchToday(){if(acctRef){acctRef.off();acctRef=null}ACCT_TODAY=null;if(!USER||!db||TESTDAY)return;
   acctRef=db.ref('users/'+USER.uid+'/cities/daily/'+todayKey());
@@ -890,8 +895,8 @@ function watchToday(){if(acctRef){acctRef.off();acctRef=null}ACCT_TODAY=null;if(
     if(otherDevice(ACCT_TODAY)){const h=loadHist(),{j,...entry}=ACCT_TODAY;h[todayKey()]=entry;saveHist(h)}
     adoptDaily(ACCT_TODAY);
     if(!S||S.daily)render()})}
-function initAuth(){if(!AUTH_OK||!initFB())return;
-  firebase.auth().onAuthStateChanged(u=>{USER=u||null;PROFILE=null;NEEDNAME=false;watchToday();if(USER){loadProfile();syncHist();syncGames().then(publishSoon);syncArch()}else ARCH_REMOTE=null;render()});
+function initAuth(){if(!AUTH_OK||!initFB()){AUTH_KNOWN=true;return}
+  firebase.auth().onAuthStateChanged(u=>{USER=u||null;AUTH_KNOWN=true;PROFILE=null;NEEDNAME=false;watchToday();if(USER){loadProfile();syncHist();syncGames().then(publishSoon);syncArch()}else ARCH_REMOTE=null;render()});
   firebase.auth().getRedirectResult().catch(e=>authError(e))}
 function authError(e){const c=(e&&e.code)||'';if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request')return;
   toast(c==='auth/unauthorized-domain'||c==='auth/operation-not-allowed'?'Sign-in is not set up yet for this site.':'Could not sign in. Try again.','bad')}
@@ -1204,7 +1209,7 @@ function statsView(){
   const tile=(v,l)=>`<div class="st"><b>${v}</b><span>${l}</span></div>`,D=st.d,So=st.s,F=st.f,bd=So.byDiff||{};
   const row=k=>{const x=bd[k]||{played:0,best:0,avg:0};return `<tr><td>${k[0].toUpperCase()+k.slice(1)}</td><td>${x.played}</td><td>${x.best}</td><td>${x.avg}</td></tr>`};
   return `<section class="panel stats">${back.replace('%NAME%',esc(name))}
-    ${mine&&!USER?'<p class="hint">Guest stats stay on this device. Sign in to keep them in your account and let other players see them.</p>':''}
+    ${mine&&!USER&&!MAYBE_IN()?'<p class="hint">Guest stats stay on this device. Sign in to keep them in your account and let other players see them.</p>':''}
     <span class="label">Today's grid</span>
     <div class="stgrid">${tile(D.played,'played')}${tile(D.streak,'streak')}${tile(D.max,'best streak')}${tile(D.best,'best score')}${tile(D.avg,'average')}${tile(D.perfect,'perfect grids')}</div>
     <span class="label">Solo</span>
@@ -1274,7 +1279,7 @@ function homeView(){
   watchLB();
   const mine=lbMine(),nPlayers=LB?Object.keys(LB).length:0;
   const rankLine=mine?`<span class="hrank"><b>#${mine.rank}</b> of ${mine.total} today · top ${mine.top}%</span>`
-    :USER?(nPlayers?`<span class="hrank">${nPlayers} player${nPlayers===1?'':'s'} in today's ranking</span>`:'')
+    :USER||MAYBE_IN()?(nPlayers?`<span class="hrank">${nPlayers} player${nPlayers===1?'':'s'} in today's ranking</span>`:'')
     :AUTH_OK?`<span class="hrank">Sign in to join today's ranking${nPlayers?` (${nPlayers} player${nPlayers===1?'':'s'})`:''}.</span>`:'';
   // signed in and today's try was used on another device of the account: show that result instead of the grid
   const other=!done&&USER&&otherDevice(ACCT_TODAY)?ACCT_TODAY:null;
@@ -1291,8 +1296,8 @@ function homeView(){
   return `<section class="home">
     ${hi}
     <div class="userline"><span class="pin" style="background:var(--sea)"></span>Playing as ${esc(setup.user)}${USER||AUTH_OK?'':'<button class="ghost" id="chname">Change</button>'}
-      ${AUTH_OK&&!USER&&noBanner()?`<span class="uright"><button class="ghost" id="signin">Sign in</button></span>`:''}</div>
-    ${AUTH_OK&&!USER&&!noBanner()?`<div class="gbanner"><span>Sign in to join the daily ranking</span><button class="primary" id="bsignin">Sign in</button><button class="linkbtn" id="bclose" aria-label="Close">✕</button></div>`:''}
+      ${AUTH_OK&&!USER&&!MAYBE_IN()&&noBanner()?`<span class="uright"><button class="ghost" id="signin">Sign in</button></span>`:''}</div>
+    ${AUTH_OK&&!USER&&!MAYBE_IN()&&!noBanner()?`<div class="gbanner"><span>Sign in to join the daily ranking</span><button class="primary" id="bsignin">Sign in</button><button class="linkbtn" id="bclose" aria-label="Close">✕</button></div>`:''}
     ${daily}
     ${TEST?`<div class="testbar"><span>Test mode${TESTDAY?' · day '+TESTDAY:''}</span><button class="ghost" id="dreset">Test: reset today's grid</button>
       <small class="tdiag">${(()=>{const a=ACCT_TODAY,hh=loadHist()[key],l=loadDaily();return `version ${APP_VERSION} · this device ${ME}<br>account today: ${USER?(a?`device ${a.d||'none'}, ${a.s} pts, ${a.f===1?'finished':a.f===0?'started':'old format'}, full game ${a.j?'yes':'no'}`:'nothing'):'not signed in'}<br>this device today: ${l?(l.S.over?l.S.players[0].score+' pts, finished':'in progress'):'nothing'} · stats today: ${hh?hh.s+' pts':'none'}`})()}</small></div>`:''}
@@ -1316,7 +1321,7 @@ function setupView(){
     ${fg&&!on?`<div class="field"><span class="label">Friend's grid</span><p class="hint" style="color:var(--ink);font-size:1rem"><b>${esc(fg.code)}</b> · ${fg.n} × ${fg.n} · ${fg.diff[0].toUpperCase()+fg.diff.slice(1)}. You play exactly the squares your friend played.</p><button class="ghost" id="nofg">Play a random grid instead</button></div>`:`
     <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['normal','Normal'],['hard','Hard']],setup.diff||'normal')}<p class="hint">${DHINT[setup.diff||'normal']}</p></div>`}
     <div class="field"><span class="label">Time per turn</span>${seg('timer',[[0,'Off'],[10,'10 s'],[30,'30 s']],setup.timer)}</div>
-    ${on&&!USER?`<div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||'')}"><p class="hint">So your friends know who's playing.</p></div>`:''}
+    ${on&&!USER&&!MAYBE_IN()?`<div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||'')}"><p class="hint">So your friends know who's playing.</p></div>`:''}
     ${on?`<div class="field">${FB_OK?'':'<p class="hint">Online play only works on the published site with Firebase connected.</p>'}<button class="primary" id="create" ${FB_OK?'':'disabled style="opacity:.5"'}>Create room</button></div>
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK?'':'disabled'}>Join</button></div></div>`:`
     <button class="primary" id="start">${vs?'Next: player names':'Start game'}</button>`}
