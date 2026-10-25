@@ -915,7 +915,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/ci
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202610250100';
+const APP_VERSION='202610251200';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
@@ -1407,22 +1407,18 @@ function verdict(){const n=S.n;
       :{pose:'think',t:'So close. Rematch?',s:me.score+' points · '+me.cells+' squares'}}
   return {pose:'happy',t:win.length>1?'A draw at '+top+' points.':win[0].name+' wins.',s:'Well played, everyone.'}}
 const verdictHTML=()=>{const v=verdict();return Geomingo.hello(v.pose,v.t,v.s,{key:'res'})};
-// the next daily game of Geomingo not played yet
-const nextGameHTML=()=>{const g=Geomingo.nextGame('citygrid');
-  return g?`<a class="primary nextgame" href="${g.href}">Next game: ${esc(g.name)} →</a>`:`<p class="hint">You have played all of today's games. New ones at midnight, Spain time.</p>`};
-// when a game you were playing ends: the result window, with Mingo, your score, Share and the next game
+// the next daily game of Geomingo not played yet: the big button of today's result (Back to menu once every game is played)
+const nextGameBtn=g=>g?`<a class="primary" href="${g.href}" style="flex:1">Next game: ${esc(g.name)} →</a>`:`<button class="primary" id="newg" style="flex:1">Back to menu</button>`;
+const afterNextHTML=g=>g?`<button class="ghost" id="newg">Back to menu</button>`:`<p class="hint">You have played all of today's games. New ones at midnight, Spain time.</p>`;
+// when a game you were playing ends: straight to the summary at the top of the page (no window over it)
 let liveKey='';
 function watchResult(){if(!S){liveKey='';return}const k=gameKey();
   if(!S.over){liveKey=k;return}
   if(liveKey!==k)return;liveKey='';
-  const v=verdict(),me=S.mode==='online'&&S.me>=0?S.players[S.me]:S.players[0],n=S.n;
-  setTimeout(()=>Geomingo.resultWindow({game:'citygrid',pose:v.pose,title:v.t,num:me.score.toLocaleString('en'),unit:'Points',stat:me.cells+' of '+n*n+' squares',room:S.mode!=='solo',
-    mini:Geomingo.mini(S.cells.map(c=>S.mode==='online'?c.o===S.me:c.o>=0),n),
-    sub:S.daily&&!S.archive?"Share it: friends play today's grid with their own one try.":'',
-    share:shareResult,next:S.daily&&!S.archive?Geomingo.nextGame('citygrid'):null,allDone:S.daily&&!S.archive,close:'See the grid'}),500)}
+  setTimeout(()=>window.scrollTo({top:0,behavior:'smooth'}),50)}
 function resultsView(){
-  if(S.daily){const p=S.players[0],n=S.n,ms=msToNextDay();
-    return `<section class="panel respanel">${verdictHTML()}<span class="label">${S.dayof?'':S.archive?'Archive · ':''}Daily grid #${S.day}${S.dayof?' · played on its day':''}</span><p class="big">${p.score} points</p>${breakdown(p)}<p class="hint">${p.cells} of ${n*n} squares. ${S.wrong} wrong guess${S.wrong===1?'':'es'}. ${S.dayof?'You played this grid on its day, so it can\'t be played again.':S.archive?'Archive games don\'t count for the ranking or your streak.':`Share it: friends play today's grid with their own one try. Next grid in ${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min.`}</p><pre class="sharebox" id="share">${esc(shareText())}</pre><div class="row-btns"><button class="ghost" id="copy">Share</button><button class="primary" id="newg" style="flex:1">${S.archive?'Back to archive':'Back to menu'}</button></div>${S.archive?'':nextGameHTML()}</section>${lbView(S.archive?S.daily:null)}`}
+  if(S.daily){const p=S.players[0],n=S.n,ms=msToNextDay(),next=S.archive?null:Geomingo.nextGame('citygrid');
+    return `<section class="panel respanel">${verdictHTML()}<span class="label">${S.dayof?'':S.archive?'Archive · ':''}Daily grid #${S.day}${S.dayof?' · played on its day':''}</span><p class="big">${p.score} points</p>${breakdown(p)}<p class="hint">${p.cells} of ${n*n} squares. ${S.wrong} wrong guess${S.wrong===1?'':'es'}. ${S.dayof?'You played this grid on its day, so it can\'t be played again.':S.archive?'Archive games don\'t count for the ranking or your streak.':`Share it: friends play today's grid with their own one try. Next grid in ${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min.`}</p><pre class="sharebox" id="share">${esc(shareText())}</pre><div class="row-btns"><button class="ghost" id="copy">Share</button>${S.archive?`<button class="primary" id="newg" style="flex:1">Back to archive</button>`:nextGameBtn(next)}</div>${S.archive?'':afterNextHTML(next)}</section>${lbView(S.archive?S.daily:null)}`}
   if(S.mode==='solo'){const p=S.players[0];const n=S.n;
     return `<section class="panel respanel">${verdictHTML()}<p class="big">${p.score} points</p>${breakdown(p)}<p class="hint">${p.cells} of ${n*n} squares. ${S.wrong} wrong guess${S.wrong===1?'':'es'}. Share sends your result with a link: friends who open it play this same grid.</p><pre class="sharebox" id="share">${esc(shareText())}</pre><div class="row-btns"><button class="ghost" id="copy">Share</button><button class="primary" id="again" style="flex:1">New grid</button></div><button class="ghost" id="newg">Change settings</button></section>`}
   const ranked=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score||b.cells-a.cells);

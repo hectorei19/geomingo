@@ -77,7 +77,7 @@
 <script defer src="firebase-config.js?v=202610192300"></script>
 <script src="../shared/data.js?v=202610192300"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202610250900"></script>
+<script src="../shared/minigames.js?v=202610251200"></script>
 <script>
 /* ---- the rankings ----
    Only numbers Countries already uses (DATA and the country data), with the sources named in its Credits.
@@ -150,7 +150,7 @@ function suggHTML(){if(!query)return '';const res=matches(query);
   if(!res.length)return `<li class="hint" style="padding:8px 2px">No country matches “${esc(query)}”.</li>`;
   return res.map(c=>{const f=S.found.includes(c.c),w=S.wrong.includes(c.c);
     return `<li><button data-g="${c.c}" ${f||w?'disabled':''}>${esc(c.n)}${f?'<span class="tag">found</span>':w?'<span class="tag">not in it</span>':''}</button></li>`}).join('')}
-// Mingo's key for the game on screen (his bubble and the result window belong to one game)
+// Mingo's key for the game on screen (his bubble and the summary belong to one game)
 const tKey=()=>S?S.mode+':'+(S.date||'')+':'+S.list+':'+(roomCode||''):'';
 const livesTxt=()=>S.lives+' li'+(S.lives===1?'fe':'ves')+' left.';
 function guess(code){if(!S||S.over)return;const c=byCode[code];
@@ -393,8 +393,8 @@ function onlineHTML(){const cur=S.players[S.turn]||{};
   h+=`<div class="row-btns">${S.host&&!S.over?'<button class="ghost" id="oend" style="flex:1">End game</button>':''}<button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;
   return h}
 function render(){
-  // today's list is played on the home screen too: the result window follows the game, whatever the screen
-  if(S&&S.mode!=='online')watchResult(tKey(),S.over,resultWindow);
+  // today's list is played on the home screen too: the summary follows the game, whatever the screen
+  if(S&&S.mode!=='online')watchResult(tKey(),S.over);
   if(roomCode&&room){app.innerHTML=S&&S.mode==='online'?onlineHTML():lobbyHTML();bind();return}
   if(view==='home'){app.innerHTML=homeHTML();bind();return}
   if(view==='friends'){app.innerHTML=friendsHTML();bind();return}
@@ -408,20 +408,18 @@ function render(){
   if(!S.over)h+=quickRules();
   app.innerHTML=h;bind();
 }
-// Mingo's verdict, for the result panel and the result window
+// Mingo's verdict, for the result panel
 function verdict(){const f=S.found.length;
   return S.won?(S.lives===LIVES?{pose:'happy',t:'Full page. Perfect ten.',s:'Not a single life lost.'}:{pose:'happy',t:'Landed. All ten.',s:livesTxt()})
     :f>=6?{pose:'think',t:'So close. '+f+' of 10.',s:'No lives left. The full list is below.'}:{pose:'sad',t:'Rough crossing, this one.',s:f+' of 10 found. The full list is below.'}}
-function resultWindow(){const v=verdict(),daily=S.mode==='daily';
-  return {game:'top10',pose:v.pose,title:v.t,num:S.found.length+'/10',unit:'Found',mini:Geomingo.mini(S.top.map(c=>S.found.includes(c)),5),
-    stat:S.lives+' '+(S.lives===1?'life':'lives')+' left',share:()=>share(shareMessage()),next:daily?Geomingo.nextGame('top10'):null,allDone:daily,close:'See the list'}}
 function resultHTML(){const v=verdict();
   const head=S.won?(S.lives===LIVES?'Perfect ten!':'All ten found'):`${S.found.length} of 10`;
   return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Top 10 #'+S.num:'Practice list'}</span><p class="big">${head}</p>
     <p class="hint">${S.won?`You named the whole list with ${S.lives} li${S.lives===1?'fe':'ves'} left.`:'No lives left. The full list is below.'} ${S.mode==='daily'?`Next list in ${nextIn()}.`:''}</p>
     <pre class="sharebox" id="share">${esc(shareText())}</pre>
-    <div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="ghost" id="again" style="flex:1">${S.mode==='daily'?'Practice list':'New list'}</button></div>
-    ${nextGameHTML('top10')}
+    ${S.mode==='daily'?`<div class="row-btns"><button class="ghost" id="copy">Share</button>${nextGameBtn('top10')}</div>
+    <button class="ghost" id="again">Practice list</button>${allPlayedHTML('top10')}`
+    :`<div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="ghost" id="again" style="flex:1">New list</button></div>`}
     ${S.mode==='daily'?`<span class="label">Your daily lists</span>${statsHTML()}`:''}</section>${S.mode==='daily'?rankingHTML():''}`}
 // today's ranking (signed-in players, first try of the day): countries found, then fewer misses, then who finished first
 const rankingHTML=()=>Geomingo.account.rankingHTML('top10',{what:'list',score:r=>[r.s+'/10',r.m?r.m+' miss'+(r.m===1?'':'es'):'no misses']});
