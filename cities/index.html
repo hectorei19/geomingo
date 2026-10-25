@@ -915,7 +915,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/ci
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202610251200';
+const APP_VERSION='202610251300';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
@@ -1408,7 +1408,9 @@ function verdict(){const n=S.n;
   return {pose:'happy',t:win.length>1?'A draw at '+top+' points.':win[0].name+' wins.',s:'Well played, everyone.'}}
 const verdictHTML=()=>{const v=verdict();return Geomingo.hello(v.pose,v.t,v.s,{key:'res'})};
 // the next daily game of Geomingo not played yet: the big button of today's result (Back to menu once every game is played)
-const nextGameBtn=g=>g?`<a class="primary" href="${g.href}" style="flex:1">Next game: ${esc(g.name)} →</a>`:`<button class="primary" id="newg" style="flex:1">Back to menu</button>`;
+// every game is a trip: one line, the same small size in every game, so no name ever wraps (a touch smaller only on very narrow phones)
+const TRIP_STYLE='flex:1;min-width:0;white-space:nowrap;font-size:clamp(10px,calc((100vw - 170px)/15.5),14px);letter-spacing:.03em;padding:12px 8px';
+const nextGameBtn=g=>g?`<a class="primary" href="${g.href}" style="${TRIP_STYLE}">Next trip: ${esc(g.name)} →</a>`:`<button class="primary" id="newg" style="flex:1">Back to menu</button>`;
 const afterNextHTML=g=>g?`<button class="ghost" id="newg">Back to menu</button>`:`<p class="hint">You have played all of today's games. New ones at midnight, Spain time.</p>`;
 // when a game you were playing ends: straight to the summary at the top of the page (no window over it)
 let liveKey='';

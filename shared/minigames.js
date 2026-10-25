@@ -45,9 +45,11 @@ function moodHTML(key,pose,t,s){const m=mood&&mood.key===key?mood:{pose,t,s};ret
 let liveKey='';
 function watchResult(key,over){if(!key)return;if(!over){liveKey=key;return}
   if(liveKey!==key)return;liveKey='';setTimeout(()=>window.scrollTo({top:0,behavior:'smooth'}),50)}
-// the next game of the day not played yet: the big button of a daily result (All games once every game is played)
+// the next game of the day not played yet: the big button of a daily result (All games once every trip is done)
+// every game is a trip: one line, the same small size in every game, so no name ever wraps (a touch smaller only on very narrow phones)
+const TRIP_STYLE='flex:1;min-width:0;white-space:nowrap;font-size:clamp(10px,calc((100vw - 170px)/15.5),14px);letter-spacing:.03em;padding:12px 8px';
 function nextGameBtn(cur){const g=Geomingo.nextGame(cur);
-  return g?`<a class="primary" href="${g.href}" style="flex:1">Next game: ${esc(g.name)} →</a>`:`<a class="primary" href="${Geomingo.HOME}" style="flex:1">All games</a>`}
+  return g?`<a class="primary" href="${g.href}" style="${TRIP_STYLE}">Next trip: ${esc(g.name)} →</a>`:`<a class="primary" href="${Geomingo.HOME}" style="flex:1">All games</a>`}
 const allPlayedHTML=cur=>Geomingo.nextGame(cur)?'':`<p class="hint">You have played all of today's games. New ones at midnight, Spain time.</p>`;
 function drawMenu(open){let box=$('menulayer');
   if(!box){box=document.createElement('div');box.id='menulayer';document.body.appendChild(box)}
