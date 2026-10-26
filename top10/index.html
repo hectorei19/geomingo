@@ -68,42 +68,6 @@
 .t10peek{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:100%;margin-top:6px}
 .t10peek i{font-style:normal;font-family:var(--display);font-weight:700;color:var(--flamingo-text);border:2px dashed var(--line);border-radius:10px;padding:8px 0;text-align:center}
 .t10peek i.on{background:var(--lagoon-soft);border-style:solid}
-/* while playing: the ten places as two rows of five squares (1-5, 6-10) that fill with flags; tapping one flips it */
-.t10grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:0;padding:0;list-style:none}
-.t10grid .sq{position:relative;aspect-ratio:1;perspective:400px;border:0;padding:0;background:none;font:inherit;color:inherit;cursor:default}
-.t10grid .sq.e{border:2px dashed var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:1.15rem;color:var(--flamingo-text)}
-.t10grid .fl{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .45s ease}
-.t10grid .sq.flipped .fl{transform:rotateY(180deg)}
-.t10grid .fa,.t10grid .bk{position:absolute;inset:0;border-radius:10px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}
-.t10grid .fa{background-size:cover;background-position:center;border:2px solid var(--lagoon)}
-.t10grid .bk{transform:rotateY(180deg);background:var(--bg);border:2px solid var(--lagoon);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:2px;text-align:center}
-.t10grid .bk b{font-family:var(--display);font-weight:800;font-stretch:75%;font-size:10px;line-height:1.05;text-transform:uppercase;overflow-wrap:normal;max-width:100%}
-.t10grid .bk small{font-size:10px;font-weight:700;color:var(--ink-2);line-height:1.05}
-.t10grid .bk i{font-style:normal;font-family:var(--display);font-weight:800;font-size:11px;color:var(--flamingo-text)}
-.t10grid .sq.on{cursor:pointer}
-.t10grid .sq.new .fl{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}
-.t10grid .rk,.t10grid .cc{position:absolute;z-index:1;background:#0F1626;color:#fff;font-family:var(--display);font-weight:800;font-stretch:75%;font-size:.72rem;line-height:1.15}
-.t10grid .rk{top:0;left:0;padding:1px 5px 2px 4px;border-radius:0 0 7px 0}
-.t10grid .cc{bottom:0;left:0;padding:2px 5px 1px 4px;border-radius:0 7px 0 0}
-/* look B: the name in a band under the flag */
-.lkB .sq{aspect-ratio:4/5}
-.lkB .fa{display:flex;align-items:flex-end}
-.lkB .fa .nm{width:100%;background:rgba(8,16,26,.78);color:#fff;font-weight:700;font-size:9.5px;line-height:1.05;padding:3px 2px;text-align:center;overflow-wrap:anywhere}
-/* look C: a passport stamp, small flag and the name in ink */
-.lkC .fa{background:var(--bg)!important;border-color:var(--lagoon);color:var(--lagoon);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:3px 2px;transform:rotate(var(--r,0deg))}
-.lkC .fa img{height:16px;width:auto;max-width:80%;border-radius:2px}
-.lkC .fa b{font-family:var(--display);font-weight:900;font-stretch:75%;font-size:8.5px;line-height:1;text-transform:uppercase;text-align:center;overflow-wrap:normal;max-width:100%}
-.lkC .rk{background:none;color:var(--flamingo-text);font-size:.7rem;padding:2px 5px}
-.t10grid+.wrongs{font-size:.85rem}
-/* look D: name and figure in the band under the flag */
-.lkD .sq,.lkE .sq{aspect-ratio:4/5}
-.lkD .fa,.lkE .fa{display:flex;align-items:flex-end}
-.lkD .fa .nm,.lkE .fa .nm{width:100%;background:rgba(8,16,26,.8);color:#fff;font-weight:700;font-size:9.5px;line-height:1.05;padding:3px 2px;text-align:center;overflow-wrap:anywhere;display:flex;flex-direction:column;gap:1px}
-.lkD .fa .nm em{font-style:normal;font-family:var(--display);font-weight:800;font-stretch:80%;font-size:10.5px;color:var(--gold);white-space:nowrap}
-/* look E: the figure written under each square */
-.lkE{row-gap:4px}
-.lkE .sqw{display:flex;flex-direction:column}
-.lkE .fig{display:block;min-height:16px;margin-top:3px;text-align:center;font-family:var(--display);font-weight:800;font-stretch:80%;font-size:11px;color:var(--gold);white-space:nowrap;overflow:hidden}
 </style>
 <link rel="stylesheet" href="../brand/geomingo.css?v=202610260100">
 </head>
@@ -274,7 +238,7 @@ function guess(code){if(!S||S.over)return;const c=byCode[code];
   if(i>=0){S.found.push(code);fresh=code;Geomingo.stamp('top10',c.n,'#'+placeOf(listById(S.list),code));if(S.found.length>=10){S.over=true;S.won=true}}
   else{S.wrong.push(code);S.lives--;if(S.lives<=0)S.over=true}
     save();render();if(S.over)window.scrollTo(0,0);
-  if(i>=0){if(!S.over){say(tKey(),'happy','Stamped: '+c.n+', #'+placeOf(listById(S.list),code)+'.',figOf(code)+'. '+(10-S.found.length)+' to go.');render()}return}
+  if(i>=0){if(!S.over){say(tKey(),'happy','Stamped: '+c.n+', #'+placeOf(listById(S.list),code)+'.',(10-S.found.length)+' to go.');render()}return}
   const r=placeOf(listById(S.list),code)-1;
   if(!S.over){say(tKey(),'sad','Denied entry.',`${c.n} is not in the top 10${r>=0?` (it is #${r+1})`:' (no figure for it)'}. `+livesTxt());render()}}
 
@@ -446,33 +410,9 @@ const seg=(name,opts,val)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<
 function askHTML(tkt){const l=listById(S.list),on=S.mode==='online';
   let h=`<p class="t10q">${esc(l.title)}</p>${S.top.length>10?`<p class="hint" style="margin:0">${S.top.length} countries share the places down to 10th: any of them counts. Find 10 to win.</p>`:''}<button class="linkbtn" id="src" style="align-self:flex-start;padding:0">Where the numbers come from</button>`;
   if(S.over)return h;
-  h+=gridHTML();
   if(!on||S.turn===S.me)h+=`<div class="t10in"><input id="q" placeholder="Type a country…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(query)}" aria-label="Type a country"><ul class="sugg" id="sugg">${suggHTML()}</ul></div>`;
   if(on&&S.turn===S.me)h+=`<button class="ghost" id="opass" style="align-self:flex-start">Pass</button>`;
   if(!on)h+=giveUpHTML();
-  return h}
-// while playing: the ten places as two rows of five squares; a found country shows its flag (look A: its code,
-// B: its name under the flag, C: a passport stamp); tapping it flips it over to show the place, the name and the figure
-const LOOK=(new URLSearchParams(location.search).get('look')||'A').toUpperCase();
-let flips={};
-// a country's figure in the list being played, in full (for Mingo and the back of a square) and short (on the square)
-const figOf=c=>{const l=listById(S.list),x=ranking(l).find(y=>y.c===c);return x?l.fmt(x.v):''};
-const shortFig=t=>t.replace(/ per million people$/,'/M ppl').replace(/ people per km²$/,'/km²').replace(/ (people|medals|letters|neighbours)$/,'').replace(/ years$/,' yrs')
-  .replace(/ trillion/,'tn').replace(/ billion/,'bn').replace(/ million/,'M');
-function gridHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries(r.map(x=>[x.c,x.v])),on=S.mode==='online';
-  // each found country sits in its own place; a country tied with the 10th takes a free square of its tie
-  const slot=Array(10).fill(null),pl=c=>placeOf(l,c);
-  S.found.forEach(c=>{const i=S.top.indexOf(c);if(i<10&&!slot[i])slot[i]=c});
-  S.found.filter(c=>!slot.includes(c)).forEach(c=>{const i=slot.findIndex((x,j)=>!x&&pl(S.top[j])===pl(c));if(i>=0)slot[i]=c});
-  const sq=(c,i)=>{if(!c)return `<span class="sq e">${i+1}</span>`;const co=byCode[c],p=pl(c),pc=on&&S.by[c]!=null?`--lagoon:var(--p${S.by[c]%6})`:'';
-    const tabs=`<span class="rk">${p}</span>${LOOK==='A'?`<span class="cc">${c}</span>`:''}`;
-    const face=LOOK==='C'?`<span class="fa" style="--r:${(i*37%7)-3}deg">${tabs}<img src="${FLAGS[c]}" alt=""><b>${esc(co.n)}</b></span>`
-      :`<span class="fa" style="background-image:url('${FLAGS[c]}')">${tabs}${LOOK==='B'?`<span class="nm">${esc(co.n)}</span>`:LOOK==='D'?`<span class="nm">${esc(co.n)}<em>${esc(shortFig(l.fmt(val[c])))}</em></span>`:LOOK==='E'?`<span class="nm">${esc(co.n)}</span>`:''}</span>`;
-    return `<button class="sq on${fresh===c?' new':''}${flips[c]?' flipped':''}" data-flip="${c}" style="${pc}" aria-label="#${p} ${esc(co.n)}: ${esc(l.fmt(val[c]))}"><span class="fl">${face}
-      <span class="bk"><i>#${p}</i><b>${esc(co.n)}</b><small>${esc(l.fmt(val[c]))}</small></span></span></button>`};
-  const sqE=(c,i)=>`<span class="sqw">${sq(c,i)}<span class="fig">${c?esc(shortFig(l.fmt(val[c]))):''}</span></span>`;
-  let h=`<div class="t10grid lk${LOOK}">${slot.map(LOOK==='E'?sqE:sq).join('')}</div>`;fresh=null;
-  if(S.wrong.length)h+=`<p class="wrongs">Not in the top 10: ${S.wrong.map(c=>{const p=pl(c);return esc(byCode[c].n)+(p?` (#${p})`:'')+(on?` <span class="pin" style="${pinStyle(S.by[c])}"></span>`:'')}).join(' · ')}</p>`;
   return h}
 function listHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries(r.map(x=>[x.c,x.v])),on=S.mode==='online';
   const pin=c=>on&&S.by[c]!=null?`<span class="pin" style="${pinStyle(S.by[c])}" title="${esc(S.players[S.by[c]].name)}"></span>`:'';
@@ -536,7 +476,7 @@ function onlineHTML(){const cur=S.players[S.turn]||{};
       ${S.host?`<div class="row-btns"><button class="primary" id="orematch" style="flex:1">Rematch</button><button class="ghost" id="olobby" style="flex:1">Back to room</button></div>`:'<p class="hint">Waiting for the host to start a rematch.</p>'}</section>`}
   else if(S.me>=0&&!S.lives)h+=`<p class="hint">You are out of lives: watch the others finish.</p>`;
   if(!S.over&&!cur.on&&S.turn!==S.me)h+=`<button class="ghost" id="oskip">${esc(cur.name)} is offline: skip their turn</button>`;
-  h+=`<section class="panel">${askHTML()}</section>${S.over?listHTML():''}`;
+  h+=`<section class="panel">${askHTML()}</section>${listHTML()}`;
   h+=`<div class="row-btns">${S.host&&!S.over?'<button class="ghost" id="oend" style="flex:1">End game</button>':''}<button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;
   return h}
 function render(){
@@ -551,13 +491,19 @@ function render(){
   if(!S||!l){app.innerHTML=header('Top <span>10</span>','')+`<section class="panel"><p class="hint">Could not load the list. Try again later.</p></section>`;bind();return}
   let h=header('Top <span>10</span>',S.mode==='daily'?'Daily #'+S.num:S.mode==='archive'?'Archive #'+S.num:'Solo');
   h+=`<div class="backline"><button class="linkbtn" id="${S.mode==='archive'?'archback':S.mode==='free'?'soloback':'home'}">← Back</button><span class="ht">${S.mode==='daily'?"Today's list":S.mode==='archive'?'List #'+S.num:'Solo'}</span></div>`;
+  // the ticket, as in every game: Mingo on top, then who is travelling, countries found and lives left
+  const cell=Geomingo.tk,tk=()=>Geomingo.ticket(moodHTML(tKey(),'pass','10 stamps to win.','In any order. A country outside the top 10 costs a life.'),
+    cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Found',S.found.length+'/10','tk-pts')+cell('Lives',livesHTML(S.lives,LIVES),'tk-gs'));
+  // a guess while this list is on screen: only the ticket and the list change. The box you type in stays
+  // where it is, so the phone keeps its keyboard open and the page does not jump up and down
+  const g=$('t10game'),q=$('q');
+  if(!S.over&&g&&g.dataset.k===tKey()&&q){const y=q.getBoundingClientRect().top;
+    $('t10tk').innerHTML=tk();$('t10ls').innerHTML=listHTML();if(q.value!==query)q.value=query;drawSugg();
+    const dy=q.getBoundingClientRect().top-y;if(dy)window.scrollBy(0,dy);return}
   if(S.over)h+=resultHTML();
-  else{const cell=Geomingo.tk;
-    // the ticket, as in every game: Mingo on top, then who is travelling, countries found and lives left
-    h+=Geomingo.ticket(moodHTML(tKey(),'pass','10 stamps to win.','In any order. A country outside the top 10 costs a life.'),
-      cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Found',S.found.length+'/10','tk-pts')+cell('Lives',livesHTML(S.lives,LIVES),'tk-gs'))}
-  h+=`<section class="panel">${askHTML(true)}</section>${S.over?listHTML():''}`;
-  if(!S.over)h+=quickRules(' Full rules in <b>How to play</b>.');
+  else h+=`<div id="t10tk" style="display:contents">${tk()}</div>`;
+  h+=`<section class="panel">${askHTML(true)}</section><div id="t10ls" style="display:contents">${listHTML()}</div>`;
+  if(!S.over)h+=quickRules(' Full rules in <b>How to play</b>.')+`<i id="t10game" data-k="${esc(tKey())}" hidden></i>`;
   app.innerHTML=h;bind();
 }
 // Mingo's verdict, for the result panel
@@ -590,7 +536,8 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li><b>Today's list</b>: the same for everyone, new every day at midnight CET. One try, saved on this device. Missed one? Play it in <b>Menu → Archive</b>.</li>
   <li><b>Solo</b>: unlimited practice lists, a different one each time until you have played them all. Share sends a link to the same list.</li>
   <li><b>With friends</b>: online, 2 to ${MAXP} players, each on their own phone. The host creates a room and shares its code or link. You take turns naming a country: one in the top 10 scores a point for you, one outside costs one of your ${LIVES} lives. The round ends when the ten are found, everyone is out of lives or everyone passes. Most points wins.</li></ul>`}
-function drawSugg(){const u=$('sugg');if(u){u.innerHTML=suggHTML();u.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>guess(b.dataset.g))}}
+// tapping a suggestion does not take the focus from the box, so the phone keyboard stays open
+function drawSugg(){const u=$('sugg');if(u){u.innerHTML=suggHTML();u.querySelectorAll('[data-g]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>guess(b.dataset.g)})}}
 function bind(){
   if($('daily'))$('daily').onclick=openDaily;
   app.querySelectorAll('[data-go="free"]').forEach(b=>b.onclick=openSolo);
@@ -606,11 +553,12 @@ function bind(){
   // give up: the list ends as it stands and the full ranking is shown
   bindGiveUp(()=>{if(!S||S.over||S.mode==='online')return;S.over=true;query='';typing=false;if(view==='home')view='game';save();render();window.scrollTo(0,0)});
   if($('src'))$('src').onclick=()=>{const l=listById(S.list);dialog(esc(l.title),`<p>${esc(l.src)}</p><p class="hint">Independent countries only. Places with no figure in the source are left out.</p>`)};
-  app.querySelectorAll('[data-flip]').forEach(b=>b.onclick=()=>{const c=b.dataset.flip;flips[c]=!flips[c];b.classList.toggle('flipped',flips[c]);b.classList.remove('new')});
   const q=$('q');
   if(q){q.oninput=e=>{query=e.target.value;drawSugg()};
     q.onkeydown=e=>{if(e.key==='Enter'){const m=matches(query).filter(c=>!S.found.includes(c.c)&&!S.wrong.includes(c.c));if(m[0])guess(m[0].c)}};
     drawSugg();
+    // on a phone, when the keyboard opens, the list's title and the box go to the top of the screen, with the suggestions under them
+    if(TOUCH&&view==='game')q.onfocus=()=>setTimeout(()=>{const p=q.closest('.panel');if(p&&document.activeElement===q)window.scrollBy({top:p.getBoundingClientRect().top-8,behavior:'smooth'})},350);
     // on the home screen the box gets the focus only once you have started typing, so phones do not open the keyboard at once
     if(query||typing||(!TOUCH&&view!=='home'))setTimeout(()=>{q.focus();q.setSelectionRange(q.value.length,q.value.length)},0)}
   if($('copy'))$('copy').onclick=()=>share(shareMessage());
