@@ -164,7 +164,7 @@ function trainHTML(){const q=T.q,s=trainStats()[T.diff]||{best:0},done=q.st!=='p
   h+=`<section class="panel play">${silBoxHTML(q,done)}`;
   if(done)h+=revealHTML(q)+`<button class="primary" id="tnext">Next shape</button>`;
   else h+=triesHTML(q,true)+answerBoxHTML(q,giveUpHTML());
-  return h+`</section>`}
+  return h+`</section>`+(done?'':quickRules(' Full rules in <b>How to play</b>.'))}
 
 /* ---- Daily: nine shapes on a 3 x 3 board, the same for everyone, one board a day at Normal level ----
    The level shuffles its countries once per cycle (same order for everyone, from the cycle number) and deals
@@ -240,7 +240,7 @@ function dailyHTML(){let h=header('Silhou<span>ette</span>',(D.arch?'Archive #':
   h+=`<div class="backline"><button class="linkbtn" id="${D.arch?'archback':'home'}">← Back</button><span class="ht">${D.arch?'Board #'+D.num:"Today's shapes"}</span></div>`;
   if(D.over)h+=dailyResultHTML(D)+`<section class="panel play">${boardHTML(D)}</section>`;
   else{const q=D.qs[D.sel];
-    h+=Geomingo.ticket(dailyMood(),tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Shape',(D.sel+1)+'/9')+tk('Named',rightOf(D),'tk-pts')+tk('Lives',livesHTML(q?TRIES-q.tries.length:0,TRIES),'tk-gs'))+`<section class="panel">${dailyPlayHTML(D,true)}</section>`}
+    h+=Geomingo.ticket(dailyMood(),tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Shape',(D.sel+1)+'/9')+tk('Named',rightOf(D),'tk-pts')+tk('Lives',livesHTML(q?TRIES-q.tries.length:0,TRIES),'tk-gs'))+`<section class="panel">${dailyPlayHTML(D,true)}</section>`+quickRules(' Full rules in <b>How to play</b>.')}
   return h}
 function dailyMood(){const started=D.qs.some(q=>q.st!=='play');
   return moodHTML(silKey(),started?'think':'pass',started?'Keep going: '+rightOf(D)+' of 9 so far.':'GeoPass ready.',started?'Tap any shape to jump to it.':'Nine shapes, nine stamps to win, the same for everyone. '+TRIES+' lives each.')}

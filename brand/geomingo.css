@@ -350,8 +350,10 @@ button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
 .gm-input{min-height:50px;border:1.5px solid var(--ink);border-radius:8px;background:var(--bg);color:var(--ink);padding:10px 14px;font-size:17px;width:100%}
 .gm-namebox .gm-rbody{gap:10px}
 .lb .ghost[data-gm-signin]{align-self:flex-start;margin-top:8px}
-.linkbtn.giveup{align-self:center;color:var(--muted)}
-.linkbtn.giveup[data-armed]{color:var(--coral-text)}
+/* Give up: a coral pill with a flag, centred under the game; the second tap confirms */
+.linkbtn.giveup{align-self:center;min-height:44px;padding:10px 26px;border:1.5px solid var(--coral-text);border-radius:999px;text-decoration:none;color:var(--coral-text);font-weight:700;font-size:1rem}
+.linkbtn.giveup::before{content:"⚑\00a0\00a0"}
+.linkbtn.giveup[data-armed]{background:var(--coral-text);color:var(--bg)}
 
 /* My stats (brand/account.js statsPage), the same in every game: you, then a card per way to play */
 .gm-stats{display:flex;flex-direction:column;gap:12px;text-align:left}

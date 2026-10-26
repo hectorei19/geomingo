@@ -497,6 +497,7 @@ function render(){
     h+=Geomingo.ticket(moodHTML(tKey(),'pass','10 stamps to win.','In any order. A country outside the top 10 costs a life.'),
       cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Found',S.found.length+'/10','tk-pts')+cell('Lives',livesHTML(S.lives,LIVES),'tk-gs'))}
   h+=`<section class="panel">${askHTML(true)}</section>${listHTML()}`;
+  if(!S.over)h+=quickRules(' Full rules in <b>How to play</b>.');
   app.innerHTML=h;bind();
 }
 // Mingo's verdict, for the result panel

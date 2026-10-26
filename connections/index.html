@@ -448,7 +448,7 @@ function render(keepShake){
   h+=`</div>`;
   if(!S.over){
     h+=`<div class="cx-actions"><button class="ghost" id="shuf">Shuffle</button><button class="ghost" id="desel" ${sel.length?'':'disabled'}>Deselect all</button><button class="primary" id="submit" ${sel.length===4?'':'disabled'}>Submit</button></div>${on?'':giveUpHTML()}
-    ${catsHTML()}`}
+    ${catsHTML()}${rulesPanel()}`}
   app.innerHTML=h;bind();
 }
 // optional help: the names of the four categories, in no particular order (not which country goes where)
