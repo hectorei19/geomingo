@@ -14,7 +14,7 @@
 const G=window.Geomingo;if(!G)return;
 const SDK='https://www.gstatic.com/firebasejs/10.12.2/';
 // the Firebase web config (not secret: access is controlled by the database rules), for pages without their own
-const CONFIG={apiKey:'AIzaSyBSHPqTRcuA3orK4W5LKbRNTNij48a4hdQ',authDomain:'borderline-90920.firebaseapp.com',
+const CONFIG={apiKey:'AIzaSyBSHPqTRcuA3orK4W5LKbRNTNij48a4hdQ',authDomain:'auth.geomingo.com',
   databaseURL:'https://borderline-90920-default-rtdb.europe-west1.firebasedatabase.app',projectId:'borderline-90920',
   storageBucket:'borderline-90920.firebasestorage.app',messagingSenderId:'934438573870',appId:'1:934438573870:web:3461a8b859b9267187ccbf'};
 const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}};
