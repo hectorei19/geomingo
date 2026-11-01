@@ -1364,7 +1364,7 @@ function gameView(){
     const stub=S.mode==='solo'
       ?cell('Traveller',esc(S.players[0].name),'tk-name')+cell('Class',DLABEL[S.diff||'normal'])+cell('Points',liveScore(0),'tk-pts')+cell('Guesses',S.guesses,'tk-gs')+time
       :S.players.map((q,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${q.on===false?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(q.name)}</i><b>${liveScore(i)}</b></div>`).join('')+time;
-    h+=Geomingo.ticket(say,stub,{timer:S.timer});
+    h+=Geomingo.ticket(say,stub,{timer:S.timer,color:S.mode==='solo'?'':`var(--p${S.turn})`});
   }
   h+=`<div class="board-wrap"><div class="board b${n}" lang="en" style="grid-template-columns:repeat(${n+1},minmax(0,1fr))">`;
   h+=cornerHTML(S.daily?S.day:0);

@@ -468,7 +468,7 @@ function onlineHTML(){const cur=S.players[S.turn]||{};
     const say=moodHTML(tKey(),'pass',S.turn===S.me?'Your turn.':'Waiting for '+cur.name+'…',S.found.length+' of 10 found. Name a country in the top 10.');
     const stub=S.players.map((p,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${!p.on||!p.lives?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)}</i><b>${p.score} <small aria-label="${p.lives} lives left" style="color:var(--coral);font-size:13px">${'♥'.repeat(p.lives)}</small></b></div>`).join('')
       +(S.timer?cell('Time',`<span id="tleft">${Math.max(0,Math.ceil((S.deadline-now())/1000))}s</span>`):'');
-    h+=Geomingo.ticket(say,stub,{timer:S.timer})}
+    h+=Geomingo.ticket(say,stub,{timer:S.timer,color:`var(--p${S.turn%6})`})}
   else h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${!p.on||!p.lives?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${p.score}</b></span>`).join('')}</div>`;
   if(S.over){const rk=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score||a.miss-b.miss),best=rk[0],tie=rk.length>1&&rk[1].score===best.score&&rk[1].miss===best.miss;
     const mine=S.players[S.me];if(mine)logFriends('t10-friends',roomCode+':'+S.list+':'+(room&&room.created||''),1+rk.filter(p=>p.score>mine.score||p.score===mine.score&&p.miss<mine.miss).length,mine.score);
