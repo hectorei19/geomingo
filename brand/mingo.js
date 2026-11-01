@@ -87,8 +87,73 @@ const INK=['var(--green)','var(--blue)','var(--violet)','var(--coral-text)'];
 // one stamp: stamp('borderline','Strasbourg','FR') when a right answer lands
 // whoever listens (../brand/account.js keeps the GeoPass in your account) hears of every new stamp
 const stampHooks=[];
-function stamp(g,t,s){const p=pass(),x={g,t:String(t),s:s?String(s):'',d:dayKey()};p.n++;p.list.push(x);p.list=p.list.slice(-240);
+// stamp('borderline','France','','FRA'): the 4th value, the country's code, ticks that game for the country in the atlas
+function stamp(g,t,s,code){const p=pass(),x={g,t:String(t),s:s?String(s):'',d:dayKey()};
+  if(code&&GBIT[g]&&ATLAS[code]){x.c=code;const a=atlas(p);a[code]=(a[code]||0)|GBIT[g]}
+  p.n++;p.list.push(x);p.list=p.list.slice(-240);
   store.set('gm-pass',JSON.stringify(p));refreshPass();stampHooks.forEach(f=>{try{f(x)}catch(e){}});return p.n}
+
+/* ---------- the atlas: the 196 countries and which games have stamped each one (gm-pass .atlas) ----------
+   A country is yours once you get it right in every game it can come up in: Countries, Capitals (its capital),
+   Silhouette and Top 10 (Héctor, 2026-11-01). Israel and Palestine have no capital in Capitals and Vanuatu is in
+   no Top 10 list, so those games don't count for them. ATLAS[code] = {n: name, r: continent, m: the games it can
+   come up in (bits, GBIT), k: capital}. Made from Silhouette's, Countries' and Capitals' data and Top 10's lists. */
+const GBIT={borderline:1,citygrid:2,silhouette:4,top10:8};
+const ATLAS={};"AFG|Afghanistan|AS|15|Kabul;ALB|Albania|EU|15|Tirana;DZA|Algeria|AF|15|Algiers;AND|Andorra|EU|15|Andorra la Vella;AGO|Angola|AF|15|Luanda;ATG|Antigua and Barbuda|NA|15|St. John's;ARG|Argentina|SA|15|Buenos Aires;ARM|Armenia|AS|15|Yerevan;AUS|Australia|OC|15|Canberra;AUT|Austria|EU|15|Vienna;AZE|Azerbaijan|AS|15|Baku;BHS|Bahamas|NA|15|Nassau;BHR|Bahrain|AS|15|Manama;BGD|Bangladesh|AS|15|Dhaka;BRB|Barbados|NA|15|Bridgetown;BLR|Belarus|EU|15|Minsk;BEL|Belgium|EU|15|Brussels;BLZ|Belize|NA|15|Belmopan;BEN|Benin|AF|15|Porto-Novo;BTN|Bhutan|AS|15|Thimphu;BOL|Bolivia|SA|15|La Paz;BIH|Bosnia and Herzegovina|EU|15|Sarajevo;BWA|Botswana|AF|15|Gaborone;BRA|Brazil|SA|15|Brasília;BRN|Brunei|AS|15|Bandar Seri Begawan;BGR|Bulgaria|EU|15|Sofia;BFA|Burkina Faso|AF|15|Ouagadougou;BDI|Burundi|AF|15|Gitega;KHM|Cambodia|AS|15|Phnom Penh;CMR|Cameroon|AF|15|Yaoundé;CAN|Canada|NA|15|Ottawa;CPV|Cape Verde|AF|15|Praia;CAF|Central African Republic|AF|15|Bangui;TCD|Chad|AF|15|N'Djamena;CHL|Chile|SA|15|Santiago;CHN|China|AS|15|Beijing;COL|Colombia|SA|15|Bogotá;COM|Comoros|AF|15|Moroni;CRI|Costa Rica|NA|15|San José;HRV|Croatia|EU|15|Zagreb;CUB|Cuba|NA|15|Havana;CYP|Cyprus|EU|15|Nicosia;CZE|Czechia|EU|15|Prague;DNK|Denmark|EU|15|Copenhagen;DJI|Djibouti|AF|15|Djibouti;DMA|Dominica|NA|15|Roseau;DOM|Dominican Republic|NA|15|Santo Domingo;COD|DR Congo|AF|15|Kinshasa;ECU|Ecuador|SA|15|Quito;EGY|Egypt|AF|15|Cairo;SLV|El Salvador|NA|15|San Salvador;GNQ|Equatorial Guinea|AF|15|Malabo;ERI|Eritrea|AF|15|Asmara;EST|Estonia|EU|15|Tallinn;SWZ|Eswatini|AF|15|Mbabane;ETH|Ethiopia|AF|15|Addis Ababa;FJI|Fiji|OC|15|Suva;FIN|Finland|EU|15|Helsinki;FRA|France|EU|15|Paris;GAB|Gabon|AF|15|Libreville;GMB|Gambia|AF|15|Banjul;GEO|Georgia|AS|15|Tbilisi;DEU|Germany|EU|15|Berlin;GHA|Ghana|AF|15|Accra;GRC|Greece|EU|15|Athens;GRD|Grenada|NA|15|St. George's;GTM|Guatemala|NA|15|Guatemala City;GIN|Guinea|AF|15|Conakry;GNB|Guinea-Bissau|AF|15|Bissau;GUY|Guyana|SA|15|Georgetown;HTI|Haiti|NA|15|Port-au-Prince;HND|Honduras|NA|15|Tegucigalpa;HUN|Hungary|EU|15|Budapest;ISL|Iceland|EU|15|Reykjavík;IND|India|AS|15|Delhi;IDN|Indonesia|AS|15|Jakarta;IRN|Iran|AS|15|Tehran;IRQ|Iraq|AS|15|Baghdad;IRL|Ireland|EU|15|Dublin;ISR|Israel|AS|13|;ITA|Italy|EU|15|Rome;CIV|Ivory Coast|AF|15|Yamoussoukro;JAM|Jamaica|NA|15|Kingston;JPN|Japan|AS|15|Tokyo;JOR|Jordan|AS|15|Amman;KAZ|Kazakhstan|AS|15|Astana;KEN|Kenya|AF|15|Nairobi;KIR|Kiribati|OC|15|Tarawa;UNK|Kosovo|EU|15|Pristina;KWT|Kuwait|AS|15|Kuwait City;KGZ|Kyrgyzstan|AS|15|Bishkek;LAO|Laos|AS|15|Vientiane;LVA|Latvia|EU|15|Riga;LBN|Lebanon|AS|15|Beirut;LSO|Lesotho|AF|15|Maseru;LBR|Liberia|AF|15|Monrovia;LBY|Libya|AF|15|Tripoli;LIE|Liechtenstein|EU|15|Vaduz;LTU|Lithuania|EU|15|Vilnius;LUX|Luxembourg|EU|15|Luxembourg;MDG|Madagascar|AF|15|Antananarivo;MWI|Malawi|AF|15|Lilongwe;MYS|Malaysia|AS|15|Kuala Lumpur;MDV|Maldives|AS|15|Malé;MLI|Mali|AF|15|Bamako;MLT|Malta|EU|15|Valletta;MHL|Marshall Islands|OC|15|Majuro;MRT|Mauritania|AF|15|Nouakchott;MUS|Mauritius|AF|15|Port Louis;MEX|Mexico|NA|15|Mexico City;FSM|Micronesia|OC|15|Palikir;MDA|Moldova|EU|15|Chișinău;MCO|Monaco|EU|15|Monaco;MNG|Mongolia|AS|15|Ulaanbaatar;MNE|Montenegro|EU|15|Podgorica;MAR|Morocco|AF|15|Rabat;MOZ|Mozambique|AF|15|Maputo;MMR|Myanmar|AS|15|Naypyidaw;NAM|Namibia|AF|15|Windhoek;NRU|Nauru|OC|15|Yaren;NPL|Nepal|AS|15|Kathmandu;NLD|Netherlands|EU|15|Amsterdam;NZL|New Zealand|OC|15|Wellington;NIC|Nicaragua|NA|15|Managua;NER|Niger|AF|15|Niamey;NGA|Nigeria|AF|15|Abuja;PRK|North Korea|AS|15|Pyongyang;MKD|North Macedonia|EU|15|Skopje;NOR|Norway|EU|15|Oslo;OMN|Oman|AS|15|Muscat;PAK|Pakistan|AS|15|Islamabad;PLW|Palau|OC|15|Ngerulmud;PSE|Palestine|AS|13|;PAN|Panama|NA|15|Panama City;PNG|Papua New Guinea|OC|15|Port Moresby;PRY|Paraguay|SA|15|Asunción;PER|Peru|SA|15|Lima;PHL|Philippines|AS|15|Manila;POL|Poland|EU|15|Warsaw;PRT|Portugal|EU|15|Lisbon;QAT|Qatar|AS|15|Doha;COG|Republic of the Congo|AF|15|Brazzaville;ROU|Romania|EU|15|Bucharest;RUS|Russia|EU|15|Moscow;RWA|Rwanda|AF|15|Kigali;KNA|Saint Kitts and Nevis|NA|15|Basseterre;LCA|Saint Lucia|NA|15|Castries;VCT|Saint Vincent and the Grenadines|NA|15|Kingstown;WSM|Samoa|OC|15|Apia;SMR|San Marino|EU|15|San Marino;STP|São Tomé and Príncipe|AF|15|São Tomé;SAU|Saudi Arabia|AS|15|Riyadh;SEN|Senegal|AF|15|Dakar;SRB|Serbia|EU|15|Belgrade;SYC|Seychelles|AF|15|Victoria;SLE|Sierra Leone|AF|15|Freetown;SGP|Singapore|AS|15|Singapore;SVK|Slovakia|EU|15|Bratislava;SVN|Slovenia|EU|15|Ljubljana;SLB|Solomon Islands|OC|15|Honiara;SOM|Somalia|AF|15|Mogadishu;ZAF|South Africa|AF|15|Pretoria;KOR|South Korea|AS|15|Seoul;SSD|South Sudan|AF|15|Juba;ESP|Spain|EU|15|Madrid;LKA|Sri Lanka|AS|15|Colombo;SDN|Sudan|AF|15|Khartoum;SUR|Suriname|SA|15|Paramaribo;SWE|Sweden|EU|15|Stockholm;CHE|Switzerland|EU|15|Bern;SYR|Syria|AS|15|Damascus;TWN|Taiwan|AS|15|Taipei;TJK|Tajikistan|AS|15|Dushanbe;TZA|Tanzania|AF|15|Dodoma;THA|Thailand|AS|15|Bangkok;TLS|Timor-Leste|AS|15|Dili;TGO|Togo|AF|15|Lomé;TON|Tonga|OC|15|Nukuʻalofa;TTO|Trinidad and Tobago|NA|15|Port of Spain;TUN|Tunisia|AF|15|Tunis;TUR|Türkiye|AS|15|Ankara;TKM|Turkmenistan|AS|15|Ashgabat;TUV|Tuvalu|OC|15|Funafuti;UGA|Uganda|AF|15|Kampala;UKR|Ukraine|EU|15|Kyiv;ARE|United Arab Emirates|AS|15|Abu Dhabi;GBR|United Kingdom|EU|15|London;USA|United States|NA|15|Washington;URY|Uruguay|SA|15|Montevideo;UZB|Uzbekistan|AS|15|Tashkent;VUT|Vanuatu|OC|7|Port Vila;VEN|Venezuela|SA|15|Caracas;VNM|Vietnam|AS|15|Hanoi;YEM|Yemen|AS|15|Sanaa;ZMB|Zambia|AF|15|Lusaka;ZWE|Zimbabwe|AF|15|Harare".split(';').forEach(r=>{const [c,n,re,m,k]=r.split('|');ATLAS[c]={n,r:re,m:+m,k}});
+const bits=m=>(m&1)+(m>>1&1)+(m>>2&1)+(m>>3&1);
+// the first time: what the latest stamps on this device already say (names of countries and capitals)
+function atlasFromList(list){const a={},by={};
+  for(const c in ATLAS){by['n'+ATLAS[c].n.toLowerCase()]=c;if(ATLAS[c].k)by['k'+ATLAS[c].k.toLowerCase()]=c}
+  (list||[]).forEach(x=>{const b=GBIT[x.g];if(!b)return;const c=x.c&&ATLAS[x.c]?x.c:by[(x.g==='citygrid'?'k':'n')+String(x.t).toLowerCase()];
+    if(c)a[c]=(a[c]||0)|b});return a}
+function atlas(p){p=p||pass();if(!p.atlas||typeof p.atlas!=='object'){p.atlas=atlasFromList(p.list);store.set('gm-pass',JSON.stringify(p))}return p.atlas}
+// one country: {have: the games done, of: how many it needs, n: how many done, mine: true when all of them}
+function country(code,a){const c=ATLAS[code],h=((a||atlas())[code]||0)&c.m;return {have:h,n:bits(h),of:bits(c.m),mine:h===c.m}}
+const countriesMine=a=>{a=a||atlas();return Object.keys(ATLAS).filter(c=>country(c,a).mine).length};
+
+/* ---------- km and levels: every daily game you finish earns km for how well it went ----------
+   up to 100 for the result, +20 for a perfect game, +50 on a day you play all five */
+const LEVELS=[['Tourist',0],['Traveller',500],['Explorer',2000],['Ambassador',5000],['Globetrotter',10000]];
+const ALL5=50;
+const pts=f=>{f=Math.max(0,Math.min(1,+f||0));return Math.round(f*100)+(f>=1?20:0)};
+const cxPts=(won,m)=>won?Math.max(40,100-15*(+m||0))+(m?0:20):20;
+// this device's daily games, from each game's own history: {day: {game id: km}}
+function ledger(){const L={},add=(d,id,mi)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))(L[d]=L[d]||{})[id]=mi};
+  [['bl-hist','borderline'],['cc-hist','citygrid']].forEach(([k,id])=>{const h=json(k)||{};
+    for(const d in h){const e=h[d];if(e&&e.f!==0){const n=+e.n||3;add(d,id,pts((+e.c||0)/(n*n)))}}});
+  const cx=json('cx-hist')||{};for(const d in cx)if(cx[d])add(d,'connections',cxPts(cx[d].w,cx[d].m));
+  const t=json('t10-hist')||{};for(const d in t)if(t[d])add(d,'top10',pts((+t[d].f||0)/10));
+  const s=json('sil-hist')||{};for(const d in s){const v=Object.values(s[d]||{}).filter(x=>typeof x==='number');if(v.length)add(d,'silhouette',pts(Math.max(...v)/9))}
+  return L}
+const dayTotal=day=>{const v=Object.values(day||{});return v.reduce((a,b)=>a+b,0)+(v.length>=5?ALL5:0)};
+function level(km){let i=0;LEVELS.forEach((l,k)=>{if(km>=l[1])i=k});const next=LEVELS[i+1];
+  return {i,name:LEVELS[i][0],next,pct:next?Math.round((km-LEVELS[i][1])/(next[1]-LEVELS[i][1])*100):100}}
+function geo(){const L=ledger(),k=dayKey();let km=0,games=0;
+  for(const d in L){km+=dayTotal(L[d]);games+=Object.keys(L[d]).length}
+  return {L,km,miles:km,games,today:L[k]||{},todayKm:dayTotal(L[k]),todayMiles:dayTotal(L[k]),streak:streak()}}
+function bestStreak(){const n=k=>Math.round(Date.parse(k+'T12:00Z')/864e5),v=[...new Set(days().map(n))].sort((a,b)=>a-b);let b=0,c=0,prev=null;
+  v.forEach(x=>{c=prev!=null&&x===prev+1?c+1:1;b=Math.max(b,c);prev=x});return b}
+
+/* ---------- visas: special entries for special games ----------
+   [ink, mark, name, what it takes, done?, progress 0..1 while not done, progress text] */
+function visas(){const H=k=>json(k)||{},vals=o=>Object.values(o).filter(Boolean),L=ledger(),p=pass(),bs=bestStreak(),cm=countriesMine();
+  const grid=vals(H('bl-hist')).concat(vals(H('cc-hist'))).some(e=>e.f!==0&&+e.c>0&&+e.c>=(+e.n||3)*(+e.n||3));
+  const sil=vals(H('sil-hist')).some(d=>Object.values(d).some(v=>v===9));
+  const fr=['cx-friends','t10-friends','sil-friends'].some(k=>(H(k).w||0)>0);
+  const up=(n,of)=>[n>=of,Math.min(1,n/of),fmt(Math.min(n,of))+' / '+fmt(of)];
+  return [
+    ['#C94A58','7','Week on the road','7 days in a row',...up(bs,7)],
+    ['#A07C1E','5/5','Grand tour','All five dailies in one day',Object.values(L).some(d=>Object.keys(d).length>=5),0,''],
+    ['#2A56B8','0✕','Clean sweep','Connections with no mistakes',vals(H('cx-hist')).some(e=>e.w&&!+e.m),0,''],
+    ['#25744F','10','Full list','All ten in a Top 10',vals(H('t10-hist')).some(e=>+e.f>=10),0,''],
+    ['#C94A58','▦','Perfect grid','Every square of a daily grid',grid,0,''],
+    ['#6B4BA8','9/9','Eagle eye','9 out of 9 in Silhouette',sil,0,''],
+    ['#2A56B8','2+','Good company','Win a game with friends',fr,0,''],
+    ['#A07C1E','1','New homeland','Your first country',...up(cm,1)],
+    ['#25744F','100','Collector','100 stamps',...up(p.n,100)],
+    ['#C94A58','30','Month away','30 days in a row',...up(bs,30)],
+    ['#6B4BA8','50','Citizen of the world','50 countries',...up(cm,50)],
+    ['#1D2B4C','1K','Full passport','1,000 stamps',...up(p.n,1000)]]}
 const stamps=()=>pass().n;
 const stampsToday=g=>pass().list.filter(x=>x.d===dayKey()&&(!g||x.g===g)).length;
 // a stamp: name, small line, optional flag picture; a player class (c0…c5) gives the player's ink instead
@@ -182,28 +247,97 @@ function resultWindow(o){const g=game(o.game)||{name:o.gameName||''},nx=o.next||
   const box=openWindow(html,(g.name||'Game')+' result',o.onClose);box._acts={share:()=>o.share&&o.share()};
   const f=box.querySelector('[data-gm-act="share"]')||box.querySelector('a,button');if(f)f.focus()}
 
-/* the GeoPass booklet: the holder's page and the stamps */
-function openPass(){const p=pass(),n=p.n,k=dayKey(),s=streak(),today=p.list.filter(x=>x.d===k),earlier=p.list.filter(x=>x.d!==k).slice(-9).reverse();
-  const name=(store.get('bl-user')||store.get('cc-user')||'').trim().slice(0,16);
-  const mrz=(s=>s.toUpperCase().replace(/[^A-Z0-9]+/g,'<'))('P<WLDMINGO<<AND<'+(name||'YOU'))+'<'.repeat(14);
-  const sub=x=>{const g=game(x.g);return [x.s,g?g.name:''].filter(Boolean).join(' · ')};
-  const html='<div class="gm-book"><div class="gm-bbar"><b>GEOPASS</b><span style="font-family:var(--type);font-size:12px;opacity:.8">geomingo</span><button data-gm-act="close">Close</button></div><div class="gm-spread">'+
-    '<div class="gm-leaf"><h4>Passport · Geomingo</h4><div class="gm-idrow"><span class="gm-photo">'+mingo('pass',84)+'</span><div class="gm-fields">'+
-      '<div><span>Holder</span><b>Mingo &amp; '+esc(name||'you')+'</b></div><div><span>Nationality</span><b>World</b></div><div><span>Stamps</span><b>'+fmt(n)+'</b></div>'+
-      '<div><span>Streak</span><b>'+s+' day'+(s===1?'':'s')+'</b></div><div><span>Issued</span><b>'+esc(dateText(p.since))+'</b></div></div></div>'+
-      '<span class="gm-mrz">'+esc(mrz.slice(0,32))+'<br>GEOPASS'+String(n).padStart(5,'0')+'&lt;&lt;GEOMINGO&lt;&lt;&lt;&lt;&lt;&lt;</span></div>'+
-    '<div class="gm-leaf"><h4>Visas &amp; entries</h4>'+
-      (today.length?'<span class="gm-lab">Today</span><div class="gm-visas">'+today.slice(-12).reverse().map(x=>stampHTML(x.t,sub(x),'today')).join('')+'</div>'
-        :'<p class="gm-empty">No stamps yet today. Every right answer in a game is a new stamp.</p>')+
-      (earlier.length?'<span class="gm-lab">Earlier</span><div class="gm-visas">'+earlier.map(x=>stampHTML(x.t,[x.s,dateText(x.d,{weekday:'short'})].filter(Boolean).join(' · '))).join('')+'</div>':'')+
-      '<div class="gm-ticker"><span>'+fmt(n)+' stamps</span><span>'+days().length+' days played</span><span>'+s+'-day streak</span></div></div>'+
-    '</div></div>';
-  const box=openWindow(html,'Your GeoPass');const c=box.querySelector('[data-gm-act="close"]');if(c)c.focus()}
+/* ---------- the GeoPass: one passport, the same from the home page and from every game ----------
+   The data page on top (Mingo, name, level, km, streak, stamps, countries), then three pages:
+   Passport (the route through the levels, the latest stamps, how it works), Countries (the atlas) and Visas. */
+const PINK={borderline:'#C94A58',citygrid:'#A07C1E',connections:'#2A56B8',top10:'#25744F',silhouette:'#6B4BA8'};
+const GORDER=[['borderline','Countries'],['citygrid','Capitals'],['silhouette','Silhouette'],['top10','Top 10']];
+const CONT=[['all','All'],['EU','Europe'],['AS','Asia'],['AF','Africa'],['AM','Americas'],['OC','Oceania']];
+const inCont=(c,k)=>k==='all'||(k==='AM'?c.r==='NA'||c.r==='SA':c.r===k);
+let gpTab='passport',gpCont='all',SHAPES=null,shapesBusy=false;
+// the outlines come from Silhouette's file, loaded the first time the Countries page opens
+function loadShapes(then){if(SHAPES)return then();
+  const use=()=>{try{SHAPES={};COUNTRIES.forEach(c=>SHAPES[c.c]=c.p)}catch(e){SHAPES={}}then()};
+  if(typeof COUNTRIES!=='undefined')return use();
+  if(shapesBusy)return;shapesBusy=true;const sc=document.createElement('script');sc.src=ROOT+'silhouette/countries.js?v=202610230100';
+  sc.onload=()=>{shapesBusy=false;use()};sc.onerror=()=>{shapesBusy=false;SHAPES={};then()};document.head.appendChild(sc)}
+function paperStamp(x){const ink=PINK[x.g]||'#1D2B4C',g=game(x.g),round=x.g==='silhouette',r=(hsh(x.t+x.d)%11)-5;
+  const sub=[x.s,g?g.name:''].filter(Boolean).join(' · ');
+  const w=Math.max(...String(x.t).split(' ').map(v=>v.length)),fs=round?(w>9?8:w>7?9.5:w>5?11:12):(w>12?11:14);
+  return '<span class="gp-st'+(round?' round':'')+'" style="--c:'+ink+';--r:'+r+'deg"><b style="font-size:'+fs+'px">'+esc(x.t)+'</b><small>'+esc(sub)+'</small></span>'}
+function routeHTML(km){const lv=level(km),at=i=>8+i*21,me=lv.next?at(lv.i)+21*lv.pct/100:at(lv.i);
+  return '<div class="gp-route" role="img" aria-label="'+esc(lv.name+', '+fmt(km)+' km'+(lv.next?'. '+fmt(lv.next[1]-km)+' km to '+lv.next[0]:''))+'">'+
+    '<span class="ln"></span><span class="lnd" style="width:'+(me-8)+'%"></span>'+
+    LEVELS.map((l,i)=>'<span class="p'+(i<=lv.i?' ok':'')+'" style="left:'+at(i)+'%"><i></i><small>'+l[0]+'</small><em>'+(l[1]?fmt(l[1]):'0')+'</em></span>').join('')+
+    '<span class="me" style="left:'+me+'%">'+mingo('pass',26)+'</span></div>'}
+function howHTML(){return '<ul class="gp-how">'+
+  '<li><b>Stamps.</b> Every right answer in any game is a stamp on that day\'s page.</li>'+
+  '<li><b>Km.</b> Every daily game you finish earns up to 100 km for how well it went. A perfect game +20, all five in one day +'+ALL5+'.</li>'+
+  '<li><b>Levels.</b> Km move you along the route: '+LEVELS.map(l=>l[0]+(l[1]?' ('+fmt(l[1])+')':'')).join(', ')+'.</li>'+
+  '<li><b>Countries.</b> A country is yours when you get it right in every game it comes up in: Countries, Capitals (its capital), Silhouette and Top 10. The dots show which ones you have.</li>'+
+  '<li><b>Visas.</b> Special entries for special games, like a week in a row or a perfect grid.</li></ul>'}
+function pagePassport(P){const p=pass(),lv=level(P.km),k=dayKey(),by={};
+  p.list.slice().reverse().forEach(x=>{(by[x.d]=by[x.d]||[]).push(x)});
+  const ds=Object.keys(by).sort().reverse().slice(0,5);
+  const st=ds.length?ds.map(d=>{const L=by[d],more=L.length-12;
+      return '<div class="gp-day">'+esc(d===k?'Today · '+dateText(d,{day:'numeric',month:'short'}):dateText(d,{weekday:'short',day:'numeric',month:'short'}))+'</div><div class="gp-sts">'+
+        L.slice(0,12).map(paperStamp).join('')+(more>0?'<span class="gp-more">+'+more+' more</span>':'')+'</div>'}).join('')
+    :'<p class="gp-empty">No stamps yet. Every right answer in a game is a new stamp.</p>';
+  return '<div class="gp-sec"><h4>My route</h4><span>'+(lv.next?fmt(lv.next[1]-P.km)+' km to '+lv.next[0]:'Top level reached')+'</span></div>'+routeHTML(P.km)+
+    '<div class="gp-sec"><h4>Latest stamps</h4><span>'+fmt(p.n)+' in all</span></div>'+st+
+    '<details class="gp-det"><summary>How it works</summary>'+howHTML()+'</details>'}
+function pageCountries(){const a=atlas(),codes=Object.keys(ATLAS),mine=countriesMine(a),way=codes.filter(c=>{const x=country(c,a);return x.n&&!x.mine}).length;
+  const R=52,C2=2*Math.PI*R,frac=mine/codes.length,wfrac=(mine+way)/codes.length;
+  const bars=CONT.slice(1).map(([k,n])=>{const L=codes.filter(c=>inCont(ATLAS[c],k)),m=L.filter(c=>country(c,a).mine).length;
+    return '<div><span>'+n+'</span><i><b style="width:'+Math.round(m/L.length*100)+'%"></b></i><small>'+m+'/'+L.length+'</small></div>'}).join('');
+  const list=codes.filter(c=>inCont(ATLAS[c],gpCont)).map(c=>[c,country(c,a)])
+    .sort((x,y)=>(y[1].mine-x[1].mine)||(y[1].n/y[1].of-x[1].n/x[1].of)||(x[1].n?ATLAS[x[0]].n.localeCompare(ATLAS[y[0]].n):hsh(x[0])-hsh(y[0]))); // the ones not visited yet in a mixed order, so the order gives no names away
+  const cell=([c,x])=>{const d=ATLAS[c],o=!x.n,path=SHAPES&&SHAPES[c];
+    const dots=GORDER.filter(([g])=>d.m&GBIT[g]).map(([g])=>'<i style="'+(x.have&GBIT[g]?'background:'+PINK[g]:'')+'"></i>').join('');
+    return '<button class="gp-c'+(x.mine?' mine':o?' off':' half')+'" data-gp-c="'+c+'" aria-label="'+esc(o?'A country you have not visited yet':d.n+': '+x.n+' of '+x.of+' games'+(x.mine?', yours':''))+'">'+
+      (path?'<svg viewBox="-4 -4 108 108" aria-hidden="true"><path d="'+path+'"/></svg>':'<svg viewBox="0 0 100 100" aria-hidden="true"></svg>')+
+      '<small>'+(o?'? ? ?':esc(d.n))+'</small><span class="dots">'+dots+'</span></button>'};
+  return '<div class="gp-atl"><div class="gp-ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="'+R+'" class="t"/>'+
+      '<circle cx="60" cy="60" r="'+R+'" class="w" stroke-dasharray="'+(C2*wfrac)+' '+C2+'"/><circle cx="60" cy="60" r="'+R+'" class="m" stroke-dasharray="'+(C2*frac)+' '+C2+'"/></svg>'+
+      '<div><b>'+mine+'</b><small>of '+codes.length+'</small><small>countries</small></div></div><div class="gp-cont">'+bars+'</div></div>'+
+    '<p class="gp-rule">'+(way?'<b>'+way+'</b> on the way. ':'')+'A country is yours when you get it right in <b>every game</b> it comes up in. Tap one to see which you have.</p>'+
+    '<div class="gp-info" id="gp-info" aria-live="polite"></div>'+
+    '<div class="gp-chips" role="group" aria-label="Continent">'+CONT.map(([k,n])=>'<button data-gp-cont="'+k+'" aria-pressed="'+(k===gpCont)+'">'+n+'</button>').join('')+'</div>'+
+    '<div class="gp-grid">'+list.map(cell).join('')+'</div>'}
+function pageVisas(){const V=visas(),got=V.filter(v=>v[4]).length;
+  return '<div class="gp-sec"><h4>Visas</h4><span>'+got+' of '+V.length+'</span></div><div class="gp-visas">'+V.map(([ink,mk,n,what,ok,pr,txt])=>
+    '<div class="gp-visa'+(ok?'':' lock')+'" style="--c:'+ink+'"><span class="em">'+esc(mk)+'</span><b>'+esc(n)+'</b><small>'+esc(what)+'</small>'+
+      (!ok&&txt?'<span class="pb"><i style="width:'+Math.round(pr*100)+'%"></i></span><small>'+esc(txt)+'</small>':'')+'</div>').join('')+'</div>'}
+function countryInfo(c){const d=ATLAS[c],x=country(c);
+  if(!x.n)return 'A country you haven\'t visited yet. Get it right in '+GORDER.filter(([g])=>d.m&GBIT[g]).map(g=>g[1]).join(', ')+' to make it yours.';
+  return '<b>'+esc(d.n)+'</b>'+(x.mine?' is yours. ':' · ')+GORDER.filter(([g])=>d.m&GBIT[g]).map(([g,n])=>'<span class="'+(x.have&GBIT[g]?'ok':'no')+'">'+(x.have&GBIT[g]?'✓':'·')+' '+n+(g==='citygrid'&&d.k?' ('+esc(d.k)+')':'')+'</span>').join(' ')}
+function openPass(tab){if(typeof tab==='string')gpTab=tab;
+  const P=geo(),p=pass(),lv=level(P.km),name=traveller(),a=atlas(p),cm=countriesMine(a);
+  const mrz=(s=>s.toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Z0-9]+/g,'<'))('P<WLD'+(name==='Guest'?'GUEST':name)+'<<'+lv.name)+'<'.repeat(44);
+  const tabs=[['passport','Passport'],['countries','Countries'],['visas','Visas']];
+  const html='<div class="gp"><div class="gp-bar"><svg class="gp-emb" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-3 3.5-3 14.5 0 18M12 3c3 3.5 3 14.5 0 18"/></svg><b>GEOPASS</b><button data-gm-act="close">Close</button></div>'+
+    '<div class="gp-data"><div class="gp-dh"><span>Passport · Geomingo</span><span>P · WLD</span></div><div class="gp-id"><span class="gp-photo">'+mingo('pass',70)+'</span>'+
+      '<div class="gp-f"><div class="w"><span>Holder</span><b>'+esc(name==='Guest'?'Guest traveller':name)+'</b></div>'+
+      '<div><span>Distance</span><b>'+fmt(P.km)+' km</b></div><div><span>Streak</span><b>'+P.streak+' day'+(P.streak===1?'':'s')+'</b></div>'+
+      '<div><span>Stamps</span><b>'+fmt(p.n)+'</b></div><div><span>Countries</span><b>'+cm+' / '+Object.keys(ATLAS).length+'</b></div></div>'+
+      '<span class="gp-lvl">'+esc(lv.name)+'</span></div>'+
+      '<div class="gp-mrz">'+esc(mrz.slice(0,36))+'<br>GEOPASS'+String(p.n).padStart(6,'0')+'&lt;'+esc(String(P.km))+'KM&lt;&lt;'+esc(dateText(p.since).replace(/ /g,'').toUpperCase())+'&lt;&lt;&lt;&lt;&lt;&lt;</div></div>'+
+    '<div class="gp-tabs" role="tablist">'+tabs.map(([k,n])=>'<button role="tab" data-gp-tab="'+k+'" aria-selected="'+(k===gpTab)+'">'+n+'</button>').join('')+'</div>'+
+    '<div class="gp-page" role="tabpanel"></div></div>';
+  const box=openWindow(html,'Your GeoPass'),pg=box.querySelector('.gp-page');
+  const draw=()=>{box.querySelectorAll('[data-gp-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.gpTab===gpTab)));
+    pg.innerHTML=(gpTab==='countries'?pageCountries():gpTab==='visas'?pageVisas():pagePassport(P))+'<span class="gp-pn">'+({passport:2,countries:3,visas:4}[gpTab])+'</span>';
+    if(gpTab==='countries'&&!SHAPES)loadShapes(()=>{if(gpTab==='countries'&&pg.isConnected)draw()})};
+  box.addEventListener('click',e=>{const t=e.target.closest('[data-gp-tab],[data-gp-cont],[data-gp-c]');if(!t)return;
+    if(t.dataset.gpTab){gpTab=t.dataset.gpTab;draw();box.querySelector('.gp').scrollTop=box.querySelector('.gp-tabs').offsetTop-8}
+    else if(t.dataset.gpCont){gpCont=t.dataset.gpCont;draw()}
+    else{const i=box.querySelector('#gp-info');if(i){i.innerHTML=countryInfo(t.dataset.gpC);i.classList.add('on')}}});
+  draw();const c=box.querySelector('[data-gm-act="close"]');if(c)c.focus()}
 
 /* a little grid of squares for the result card (true = got it) */
 function mini(list,cols){return '<div class="gm-mini" style="grid-template-columns:repeat('+cols+',16px)" aria-hidden="true">'+list.map(x=>'<i class="'+(x?'ok':'')+'"></i>').join('')+'</div>'}
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
-  days,streak,pass,stamp,stamps,stampsToday,stampHTML,openPass,mingo,hello,tk,ticket,traveller,header,passBtn,themeBtn,toggleTheme,currentTheme,
+  days,streak,pass,stamp,stamps,stampsToday,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,LEVELS,ALL5,pts,cxPts,ledger,dayTotal,level,geo,visas,howHTML,mingo,hello,tk,ticket,traveller,header,passBtn,themeBtn,toggleTheme,currentTheme,
   resultWindow,openWindow,closeWindow,mini,esc,refreshPass,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();

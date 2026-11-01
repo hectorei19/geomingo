@@ -20,8 +20,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611010600"></script>
-<script src="../brand/account.js?v=202611010100"></script>
+<script src="../brand/mingo.js?v=202611011600"></script>
+<script src="../brand/account.js?v=202611011600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -72,7 +72,7 @@
 .ready{display:flex}
 @media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611010700">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611011600">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -131,7 +131,7 @@ function bindAnswer(q,onPick){const box=$('q');if(!box)return;
 // Mingo reacts to each answer in his bubble above the shape
 const tk=Geomingo.tk;
 function feedback(q,res,code,key,left){
-  if(res==='right'){Geomingo.stamp('silhouette',byCode[q.c].n);say(key,'happy','Stamped: '+byCode[q.c].n+'.',q.tries.length?'Got it on try '+(q.tries.length+1)+'.':'First try.')}
+  if(res==='right'){Geomingo.stamp('silhouette',byCode[q.c].n,'',q.c);say(key,'happy','Stamped: '+byCode[q.c].n+'.',q.tries.length?'Got it on try '+(q.tries.length+1)+'.':'First try.')}
   else if(res==='wrong')say(key,'sad','Denied entry.',`It's not ${byCode[code].n}. ${livesWord(left)} left.`);
   else say(key,'sad','It was '+byCode[q.c].n+'.',`Not ${byCode[code].n}. No lives left: the game is over.`)}
 const silKey=()=>view==='train'&&T?'train:'+T.diff:D?'sil:'+D.date:'';
@@ -416,7 +416,7 @@ async function onlinePick(code){if(!O||O.status!=='round'||O.q.st!=='play')retur
     if(!r.committed)return;
     const a=r.snapshot.val(),left=Math.max(0,LIVES-before-(a.tries||[]).length);res=right?'right':left<=0?'out':'wrong';
     query='';typing=res==='wrong';
-    if(res==='right'){Geomingo.stamp('silhouette',byCode[code].n);toast(`Stamped: ${byCode[code].n}. +${pts}`,'good')}
+    if(res==='right'){Geomingo.stamp('silhouette',byCode[code].n,'',code);toast(`Stamped: ${byCode[code].n}. +${pts}`,'good')}
     else toast(`Not ${byCode[code].n}.${res==='out'?' No lives left: you sit out the rest of the game.':` ${livesWord(left)} left.`}`,'bad');
     if(res!=='wrong')moveOn()}
   catch(e){console.error(e);toast('That answer did not go through. Check the connection.','bad')}}
