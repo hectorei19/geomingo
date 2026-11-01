@@ -12,12 +12,12 @@
 .t10list .nm .pin{flex:none}
 </style>
 <title>Top 10 · Geomingo</title>
-<meta name="description" content="Name the 10 countries of a ranking with 3 lives. A new list every day. Daily geography games from Geomingo.">
+<meta name="description" content="Name the 10 countries of a ranking with 5 lives. A new list every day. Daily geography games from Geomingo.">
 <meta name="theme-color" content="#151E30">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Geomingo">
 <meta property="og:title" content="Top 10 · Geomingo">
-<meta property="og:description" content="Name the 10 countries of a ranking. 3 lives. A new list every day.">
+<meta property="og:description" content="Name the 10 countries of a ranking. 5 lives. A new list every day.">
 <meta property="og:url" content="https://geomingo.com/top10/">
 <meta property="og:image" content="https://geomingo.com/brand/og.png?v=2">
 <meta property="og:image:width" content="1200">
@@ -88,7 +88,7 @@
 /* ---- the rankings ----
    Only numbers Countries already uses (DATA and the country data), with the sources named in its Credits.
    Independent countries only. A list is used only when the 10th and 11th places are not tied. */
-const T10_FIRST='2026-10-19',LIVES=3;
+const T10_FIRST='2026-10-19',LIVES=5;
 const SOVC=C.filter(c=>!c.t);
 const n0=v=>Math.round(v).toLocaleString('en-GB');
 const ppl=v=>v>=1e9?(v/1e9).toFixed(2)+' billion':v>=1e6?(v/1e6).toFixed(1)+' million':n0(v);
@@ -257,7 +257,7 @@ const shareMessage=()=>shareText()+'\n\n'+(S.mode==='free'?'Play this list: ':"P
    Players take turns naming a country: one in the top 10 scores a point for whoever named it,
    one outside costs that player one of their lives. The game ends when the ten are found, everyone is out of lives or everyone passes. */
 const FB_OK=()=>typeof firebase!=='undefined'&&typeof firebase.database==='function'&&!!(window.FIREBASE_CONFIG&&/^https:\/\//.test(FIREBASE_CONFIG.databaseURL||''));
-const ROOM_V='t10-202610251900',MAXP=6,TIMERS=[0,15,30];
+const ROOM_V='t10-202611010600',MAXP=6,TIMERS=[0,15,30];
 let db=null,room=null,roomRef=null,roomCode=null,seenEv=null,firstSync=true,joining=false,offset=0,tick=null;
 const now=()=>Date.now()+offset;
 let ME=load('t10-pid','');if(!ME){ME='p'+Math.random().toString(36).slice(2,10);store('t10-pid',ME)}
