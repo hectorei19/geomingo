@@ -69,9 +69,9 @@
 .t10peek{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:100%;margin-top:6px}
 .t10peek i{font-style:normal;font-family:var(--display);font-weight:700;color:var(--flamingo-text);border:2px dashed var(--line);border-radius:10px;padding:8px 0;text-align:center}
 .t10peek i.on{background:var(--lagoon-soft);border-style:solid}
-/* on phones: Geomingo's own small letter keyboard, fixed at the bottom, so the phone keyboard never opens
-   and the whole list stays in sight while you type */
-.kbdock{position:fixed;left:0;right:0;bottom:0;z-index:15;max-width:560px;margin:0 auto;background:var(--guil);border-top:2px solid var(--line);border-radius:14px 14px 0 0;padding:7px 6px calc(8px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:7px}
+/* on phones: the box and the suggestions sit in a bar at the bottom of the screen; when the phone keyboard opens,
+   the bar rides just above it and the list gets compact, so the ten places stay in sight while you type */
+.kbdock{position:fixed;will-change:transform;left:0;right:0;bottom:0;z-index:15;max-width:560px;margin:0 auto;background:var(--guil);border-top:2px solid var(--line);border-radius:14px 14px 0 0;padding:7px 6px calc(8px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:7px}
 .kbdock .sugg{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;gap:8px;height:40px;align-items:center;padding:0 4px;max-height:none;scrollbar-width:none}
 .kbdock .sugg::-webkit-scrollbar{display:none}
 .kbdock .sugg li{flex:none}
@@ -79,16 +79,19 @@
 .kbdock .sugg button img{width:18px;height:18px}
 .kbdock .sugg .tag{display:none}
 .kbdock .sugg .hint{font-size:13px;line-height:1.25;white-space:normal;flex:1;padding:0!important}
-.kbdock #q{width:100%;border:2px solid var(--blue);border-radius:10px;padding:9px 12px;font-size:17px;font-weight:600;background:var(--bg);color:var(--ink);pointer-events:none;caret-color:transparent}
-.kbdock #q:placeholder-shown{border-color:var(--line)}
-.mkb{display:flex;flex-direction:column;gap:6px}
-.mkb div{display:flex;gap:5px;justify-content:center}
-.mkb button{flex:0 1 34px;height:40px;min-width:0;border:0;border-radius:8px;background:var(--page);color:var(--ink);font:700 17px var(--body);padding:0;touch-action:manipulation;-webkit-user-select:none;user-select:none}
-.mkb button:active{background:var(--coral);color:var(--on-coral)}
-.mkb button.w{flex-basis:52px;background:var(--line);font-size:15px}
+.kbdock #q{width:100%;border:2px solid var(--blue);border-radius:10px;padding:9px 12px;font-size:17px;font-weight:600;background:var(--bg);color:var(--ink)}
+.kbdock #q:not(:focus){border-color:var(--line)}
 body.kbon .t10list li{min-height:33px;padding:1px 12px}
 body.kbon .t10ask{padding:12px 14px;gap:8px}
 body.kbon .t10ask .t10q{font-size:1.3rem}
+body.kbopen .kbdock{padding-bottom:7px;border-radius:0}
+body.kbopen .t10list li{min-height:24px;padding:0 12px;border-top-width:1px}
+body.kbopen .t10list .rk{font-size:1rem}
+body.kbopen .t10list .nm{font-size:.92rem}
+body.kbopen .t10list .mini{width:18px;height:18px}
+body.kbopen .t10ask{padding:6px 12px;gap:2px}
+body.kbopen .t10ask .t10q{font-size:.95rem}
+body.kbopen .wrongs{font-size:.8rem}
 body.kbon .gm-toast{bottom:calc(var(--kbh,0px) + 10px)}
 body.kbon .kbgu{display:flex;flex-direction:column;align-items:center;gap:14px}
 body.kbon .kbgu #src{align-self:center!important}
@@ -246,7 +249,7 @@ const archiveView=()=>header('Top <span>10</span>','Archive')+archiveHTML({first
 
 /* ---- the search box: names only, found by their first letters, like Countries ---- */
 function matches(q){const k=N(q),l=listById(S.list);if(!k)return[];return SOVC.filter(c=>(!l.reg||l.reg.in(c))&&(c.k.startsWith(k)||c.ak.some(a=>a.startsWith(k)))).slice(0,8)}
-function suggHTML(){if(!query)return KB?'<li class="hint">The countries that start with your letters show up here. Tap one to guess.</li>':'';const res=matches(query);
+function suggHTML(){if(!query)return KB?'<li class="hint">Type the first letters of a country, then tap it here.</li>':'';const res=matches(query);
   if(!res.length){const l=listById(S.list),k=N(query),out=l.reg&&SOVC.find(c=>c.k.startsWith(k)||c.ak.some(a=>a.startsWith(k)));
     return `<li class="hint" style="padding:8px 2px">${out?`${esc(out.n)} is not in ${esc(l.reg.name)}: only countries in ${esc(l.reg.name)} count in this list.`:`No country matches “${esc(query)}”.`}</li>`}
   return res.map(c=>{const f=S.found.includes(c.c),w=S.wrong.includes(c.c);
@@ -439,25 +442,17 @@ function askHTML(tkt){const l=listById(S.list),on=S.mode==='online';
   if(on&&S.turn===S.me)h+=`<button class="ghost" id="opass" style="align-self:flex-start">Pass</button>`;
   if(!on&&!KB)h+=giveUpHTML();
   return h}
-// the small keyboard: the letters you type, the countries that start with them (tap one to guess) and the keys
+// phones: the box and the countries that start with your letters (tap one to guess), in a bar at the bottom
 const KB=TOUCH||/[?&]kb=1/.test(location.search);
 const kbDockHTML=()=>`<div class="kbdock" id="kbdock"><ul class="sugg" id="sugg">${suggHTML()}</ul>
-  <input id="q" readonly inputmode="none" tabindex="-1" placeholder="Tap the letters of a country" value="${esc(query)}" aria-label="Your country">
-  <div class="mkb">${['QWERTYUIOP','ASDFGHJKL','␣ZXCVBNM⌫'].map(r=>`<div>${[...r].map(k=>k==='␣'?'<button class="w" data-k=" " aria-label="Space">space</button>':k==='⌫'?'<button class="w" data-k="del" aria-label="Delete">⌫</button>':`<button data-k="${k}">${k}</button>`).join('')}</div>`).join('')}</div></div>`;
-// a key: the letters change and so do the suggestions. The first key of a list brings its title to the top of the screen
-let kbTop='';
-function kbKey(k){if(!S||S.over||!$('q'))return;
-  if(k==='del')query=query.slice(0,-1);
-  else if(k===' '){if(query&&!query.endsWith(' '))query+=' '}
-  else if(query.length<30)query=(query+k.toLowerCase()).replace(/(^|[ \-])(\S)/g,(m,a,b)=>a+b.toUpperCase());
-  typing=!!query;$('q').value=query;drawSugg();
-  if(kbTop!==tKey()){kbTop=tKey();const t=document.querySelector('.t10ask');if(t){const y=t.getBoundingClientRect().top-8;if(y>0)window.scrollBy({top:y,behavior:'smooth'})}}}
-// a computer keyboard works too, when the small keyboard is on screen
-document.addEventListener('keydown',e=>{if(!KB||!$('kbdock')||e.metaKey||e.ctrlKey||e.altKey||document.querySelector('.gm-scrim,.infobox'))return;
-  if(e.key==='Backspace'){e.preventDefault();kbKey('del')}
-  else if(e.key===' '){e.preventDefault();kbKey(' ')}
-  else if(e.key==='Enter'){const m=matches(query).filter(c=>!S.found.includes(c.c)&&!S.wrong.includes(c.c));if(m[0])guess(m[0].c)}
-  else if(/^[a-zA-Z]$/.test(e.key))kbKey(e.key.toUpperCase())});
+  <input id="q" placeholder="Type a country…" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="go" value="${esc(query)}" aria-label="Type a country"></div>`;
+// the bar follows the phone keyboard: it sits just above it while it is open, and there is room under the page
+// so you can still scroll to the end of the list
+function placeDock(){const d=$('kbdock');if(!d){document.body.style.paddingBottom='';return}
+  const vv=window.visualViewport,kb=vv?Math.max(0,Math.round(innerHeight-vv.height-vv.offsetTop)):0,h=d.offsetHeight;
+  d.style.transform=kb>40?`translateY(${-kb}px)`:'';
+  document.body.style.setProperty('--kbh',h+'px');document.body.style.paddingBottom=(h+(kb>40?kb:0)+12)+'px'}
+if(window.visualViewport){visualViewport.addEventListener('resize',placeDock);visualViewport.addEventListener('scroll',placeDock)}
 function listHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries(r.map(x=>[x.c,x.v])),on=S.mode==='online';
   const pin=c=>on&&S.by[c]!=null?`<span class="pin" style="${pinStyle(S.by[c])}" title="${esc(S.players[S.by[c]].name)}"></span>`:'';
   let h=`<ol class="t10list">${S.top.map((c,i)=>{const f=S.found.includes(c),show=f||S.over,co=byCode[c];
@@ -599,17 +594,19 @@ function bind(){
   // give up: the list ends as it stands and the full ranking is shown
   bindGiveUp(()=>{if(!S||S.over||S.mode==='online')return;S.over=true;query='';typing=false;if(view==='home')view='game';save();render();window.scrollTo(0,0)});
   if($('src'))$('src').onclick=()=>{const l=listById(S.list);dialog(esc(l.title),`<p>${esc(l.src)}</p><p class="hint">Independent countries only. Places with no figure in the source are left out.</p>`)};
-  // the small keyboard: its keys, and room under the page so the end of the page is not hidden behind it
+  // the bar at the bottom with the box (phones)
   const dock=$('kbdock');document.body.classList.toggle('kbon',!!dock);
-  if(dock){dock.querySelectorAll('[data-k]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>kbKey(b.dataset.k)});drawSugg();
-    const hgt=dock.offsetHeight;document.body.style.setProperty('--kbh',hgt+'px');document.body.style.paddingBottom=(hgt+12)+'px'}
-  else document.body.style.paddingBottom='';
-  const q=KB?null:$('q');
+  if(!dock)document.body.classList.remove('kbopen');
+  placeDock();
+  if(dock)setTimeout(()=>{if(document.activeElement!==$('q')){document.body.classList.remove('kbopen');placeDock()}},120);
+  const q=$('q');
   if(q){q.oninput=e=>{query=e.target.value;drawSugg()};
     q.onkeydown=e=>{if(e.key==='Enter'){const m=matches(query).filter(c=>!S.found.includes(c.c)&&!S.wrong.includes(c.c));if(m[0])guess(m[0].c)}};
     drawSugg();
     // on a phone, when the keyboard opens, the list's title and the box go to the top of the screen, with the suggestions under them
-    if(TOUCH&&view==='game')q.onfocus=()=>setTimeout(()=>{const p=q.closest('.panel');if(p&&document.activeElement===q)window.scrollBy({top:p.getBoundingClientRect().top-8,behavior:'smooth'})},350);
+    if(KB){q.onfocus=()=>{document.body.classList.add('kbopen');setTimeout(()=>{placeDock();const p=document.querySelector('.t10ask');if(p&&document.activeElement===q)window.scrollBy({top:p.getBoundingClientRect().top-8-(visualViewport?visualViewport.offsetTop:0)})},350)};
+      q.onblur=()=>setTimeout(()=>{if(document.activeElement!==q){document.body.classList.remove('kbopen');placeDock()}},150)}
+    else if(TOUCH&&view==='game')q.onfocus=()=>setTimeout(()=>{const p=q.closest('.panel');if(p&&document.activeElement===q)window.scrollBy({top:p.getBoundingClientRect().top-8,behavior:'smooth'})},350);
     // on the home screen the box gets the focus only once you have started typing, so phones do not open the keyboard at once
     if(query||typing||(!TOUCH&&view!=='home'))setTimeout(()=>{q.focus();q.setSelectionRange(q.value.length,q.value.length)},0)}
   if($('copy'))$('copy').onclick=()=>share(shareMessage());
