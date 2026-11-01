@@ -449,9 +449,13 @@ const kbDockHTML=()=>`<div class="kbdock" id="kbdock"><ul class="sugg" id="sugg"
 // the bar follows the phone keyboard: it sits just above it while it is open, and there is room under the page
 // so you can still scroll to the end of the list
 function placeDock(){const d=$('kbdock');if(!d){document.body.style.paddingBottom='';return}
-  const vv=window.visualViewport,kb=vv?Math.max(0,Math.round(innerHeight-vv.height-vv.offsetTop)):0,h=d.offsetHeight;
-  d.style.transform=kb>40?`translateY(${-kb}px)`:'';
-  document.body.style.setProperty('--kbh',h+'px');document.body.style.paddingBottom=(h+(kb>40?kb:0)+12)+'px'}
+  const vv=window.visualViewport,h=d.offsetHeight,open=!!vv&&document.body.classList.contains('kbopen');
+  // keyboard open: the bar is pinned to the top of the page area and moved down to the bottom of what you can see
+  // (visualViewport), so it touches the keyboard on every phone, whatever the browser does with its address bar
+  if(open){d.style.top='0';d.style.bottom='auto';d.style.transform=`translateY(${Math.round(vv.offsetTop+vv.height-h)}px)`}
+  else{d.style.top='';d.style.bottom='';d.style.transform=''}
+  const hidden=open?Math.max(0,document.documentElement.clientHeight-vv.height):0;
+  document.body.style.setProperty('--kbh',h+'px');document.body.style.paddingBottom=(h+hidden+12)+'px'}
 if(window.visualViewport){visualViewport.addEventListener('resize',placeDock);visualViewport.addEventListener('scroll',placeDock)}
 function listHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries(r.map(x=>[x.c,x.v])),on=S.mode==='online';
   const pin=c=>on&&S.by[c]!=null?`<span class="pin" style="${pinStyle(S.by[c])}" title="${esc(S.players[S.by[c]].name)}"></span>`:'';
@@ -604,7 +608,7 @@ function bind(){
     q.onkeydown=e=>{if(e.key==='Enter'){const m=matches(query).filter(c=>!S.found.includes(c.c)&&!S.wrong.includes(c.c));if(m[0])guess(m[0].c)}};
     drawSugg();
     // on a phone, when the keyboard opens, the list's title and the box go to the top of the screen, with the suggestions under them
-    if(KB){q.onfocus=()=>{document.body.classList.add('kbopen');setTimeout(()=>{placeDock();const p=document.querySelector('.t10ask');if(p&&document.activeElement===q)window.scrollBy({top:p.getBoundingClientRect().top-8-(visualViewport?visualViewport.offsetTop:0)})},350)};
+    if(KB){q.onfocus=()=>{document.body.classList.add('kbopen');placeDock();setTimeout(()=>{placeDock();const p=document.querySelector('.t10ask');if(p&&document.activeElement===q)window.scrollBy({top:p.getBoundingClientRect().top-8-(visualViewport?visualViewport.offsetTop:0)})},350)};
       q.onblur=()=>setTimeout(()=>{if(document.activeElement!==q){document.body.classList.remove('kbopen');placeDock()}},150)}
     else if(TOUCH&&view==='game')q.onfocus=()=>setTimeout(()=>{const p=q.closest('.panel');if(p&&document.activeElement===q)window.scrollBy({top:p.getBoundingClientRect().top-8,behavior:'smooth'})},350);
     // on the home screen the box gets the focus only once you have started typing, so phones do not open the keyboard at once
