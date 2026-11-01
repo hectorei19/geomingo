@@ -22,8 +22,8 @@ const GAMES=[
   {id:'borderline',name:'Countries',path:'countries/',gate:'1',hint:'Fill the grid with countries'},
   {id:'citygrid',name:'Capitals',path:'capitals/',gate:'2',hint:'Fill the grid with capitals'},
   {id:'connections',name:'Connections',path:'connections/',gate:'3',hint:'Find 4 hidden groups'},
-  {id:'top10',name:'Top 10',path:'top10/',gate:'4',hint:'Name a ranking. 3 lives.'},
-  {id:'silhouette',name:'Silhouette',path:'silhouette/',gate:'5',hint:'Which country is it?'}];
+  {id:'top10',name:'Top 10',path:'top10/',gate:'4',hint:'Name the top 10 countries'},
+  {id:'silhouette',name:'Silhouette',path:'silhouette/',gate:'5',hint:'Guess the hidden country'}];
 GAMES.forEach(g=>g.href=ROOT+g.path);
 const live=()=>GAMES.filter(g=>!g.soon);
 const game=id=>GAMES.find(g=>g.id===id);
