@@ -22,8 +22,8 @@ const GAMES=[
   {id:'borderline',name:'Countries',path:'countries/',gate:'1',hint:'Fill the grid with countries'},
   {id:'citygrid',name:'Capitals',path:'capitals/',gate:'2',hint:'Fill the grid with capitals'},
   {id:'connections',name:'Connections',path:'connections/',gate:'3',hint:'Find 4 hidden groups'},
-  {id:'top10',name:'Top 10',path:'top10/',gate:'4',hint:'Name a ranking. 3 lives.'},
-  {id:'silhouette',name:'Silhouette',path:'silhouette/',gate:'5',hint:'Which country is it?'}];
+  {id:'top10',name:'Top 10',path:'top10/',gate:'4',hint:'Name the top 10 countries'},
+  {id:'silhouette',name:'Silhouette',path:'silhouette/',gate:'5',hint:'Guess the hidden country'}];
 GAMES.forEach(g=>g.href=ROOT+g.path);
 const live=()=>GAMES.filter(g=>!g.soon);
 const game=id=>GAMES.find(g=>g.id===id);
@@ -126,10 +126,11 @@ function hello(pose,title,sub,o){o=o||{};const key=o.key||'main',txt=pose+title,
 
 /* the in-game ticket, the same in every game while you play: Mingo's message (a hello()) on top, a tear line,
    then the stub with the game's numbers, one tk(label, value, class) each (tk-pts gold, tk-gs coral, tk-name wider).
-   Values are HTML: escape names before passing them. o.timer adds the countdown bar along the bottom (.tbar). */
+   Values are HTML: escape names before passing them. o.timer adds the countdown bar along the bottom (.tbar);
+   o.color paints it in the colour of the player whose turn it is (e.g. 'var(--p1)'). */
 function tk(k,v,c){return '<div class="tk-c'+(c?' '+c:'')+'"><i>'+k+'</i><b>'+v+'</b></div>'}
 function ticket(say,stub,o){o=o||{};
-  return '<section class="ticket">'+say+'<div class="tk-tear" aria-hidden="true"></div><div class="tk-stub">'+stub+'</div>'+(o.timer?'<span class="tbar" style="width:100%"></span>':'')+'</section>'}
+  return '<section class="ticket">'+say+'<div class="tk-tear" aria-hidden="true"></div><div class="tk-stub">'+stub+'</div>'+(o.timer?'<span class="tbar" style="width:100%'+(o.color?';background:'+o.color:'')+'"></span>':'')+'</section>'}
 // the traveller's name on the ticket: the account's, else the one played with in Countries or Capitals
 function traveller(){const a=window.Geomingo&&window.Geomingo.account;return ((a&&a.name)||store.get('bl-user')||store.get('cc-user')||'Guest').trim().slice(0,16)||'Guest'}
 

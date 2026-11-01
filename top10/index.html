@@ -12,12 +12,12 @@
 .t10list .nm .pin{flex:none}
 </style>
 <title>Top 10 · Geomingo</title>
-<meta name="description" content="Name the 10 countries of a ranking with 3 lives. A new list every day. Daily geography games from Geomingo.">
+<meta name="description" content="Name the 10 countries of a ranking with 5 lives. A new list every day. Daily geography games from Geomingo.">
 <meta name="theme-color" content="#151E30">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Geomingo">
 <meta property="og:title" content="Top 10 · Geomingo">
-<meta property="og:description" content="Name the 10 countries of a ranking. 3 lives. A new list every day.">
+<meta property="og:description" content="Name the 10 countries of a ranking. 5 lives. A new list every day.">
 <meta property="og:url" content="https://geomingo.com/top10/">
 <meta property="og:image" content="https://geomingo.com/brand/og.png?v=2">
 <meta property="og:image:width" content="1200">
@@ -27,7 +27,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202610260940" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202610260940">
 <link rel="manifest" href="../brand/site.webmanifest?v=2">
-<script src="../brand/mingo.js?v=202610251900"></script>
+<script src="../brand/mingo.js?v=202611010600"></script>
 <script src="../brand/account.js?v=202610260200"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -88,7 +88,7 @@
 /* ---- the rankings ----
    Only numbers Countries already uses (DATA and the country data), with the sources named in its Credits.
    Independent countries only. A list is used only when the 10th and 11th places are not tied. */
-const T10_FIRST='2026-10-19',LIVES=3;
+const T10_FIRST='2026-10-19',LIVES=5;
 const SOVC=C.filter(c=>!c.t);
 const n0=v=>Math.round(v).toLocaleString('en-GB');
 const ppl=v=>v>=1e9?(v/1e9).toFixed(2)+' billion':v>=1e6?(v/1e6).toFixed(1)+' million':n0(v);
@@ -257,7 +257,7 @@ const shareMessage=()=>shareText()+'\n\n'+(S.mode==='free'?'Play this list: ':"P
    Players take turns naming a country: one in the top 10 scores a point for whoever named it,
    one outside costs that player one of their lives. The game ends when the ten are found, everyone is out of lives or everyone passes. */
 const FB_OK=()=>typeof firebase!=='undefined'&&typeof firebase.database==='function'&&!!(window.FIREBASE_CONFIG&&/^https:\/\//.test(FIREBASE_CONFIG.databaseURL||''));
-const ROOM_V='t10-202610251900',MAXP=6,TIMERS=[0,15,30];
+const ROOM_V='t10-202611010600',MAXP=6,TIMERS=[0,15,30];
 let db=null,room=null,roomRef=null,roomCode=null,seenEv=null,firstSync=true,joining=false,offset=0,tick=null;
 const now=()=>Date.now()+offset;
 let ME=load('t10-pid','');if(!ME){ME='p'+Math.random().toString(36).slice(2,10);store('t10-pid',ME)}
@@ -468,7 +468,7 @@ function onlineHTML(){const cur=S.players[S.turn]||{};
     const say=moodHTML(tKey(),'pass',S.turn===S.me?'Your turn.':'Waiting for '+cur.name+'…',S.found.length+' of 10 found. Name a country in the top 10.');
     const stub=S.players.map((p,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${!p.on||!p.lives?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)}</i><b>${p.score} <small aria-label="${p.lives} lives left" style="color:var(--coral);font-size:13px">${'♥'.repeat(p.lives)}</small></b></div>`).join('')
       +(S.timer?cell('Time',`<span id="tleft">${Math.max(0,Math.ceil((S.deadline-now())/1000))}s</span>`):'');
-    h+=Geomingo.ticket(say,stub,{timer:S.timer})}
+    h+=Geomingo.ticket(say,stub,{timer:S.timer,color:`var(--p${S.turn%6})`})}
   else h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${!p.on||!p.lives?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${p.score}</b></span>`).join('')}</div>`;
   if(S.over){const rk=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score||a.miss-b.miss),best=rk[0],tie=rk.length>1&&rk[1].score===best.score&&rk[1].miss===best.miss;
     const mine=S.players[S.me];if(mine)logFriends('t10-friends',roomCode+':'+S.list+':'+(room&&room.created||''),1+rk.filter(p=>p.score>mine.score||p.score===mine.score&&p.miss<mine.miss).length,mine.score);
@@ -492,13 +492,19 @@ function render(){
   if(!S||!l){app.innerHTML=header('Top <span>10</span>','')+`<section class="panel"><p class="hint">Could not load the list. Try again later.</p></section>`;bind();return}
   let h=header('Top <span>10</span>',S.mode==='daily'?'Daily #'+S.num:S.mode==='archive'?'Archive #'+S.num:'Solo');
   h+=`<div class="backline"><button class="linkbtn" id="${S.mode==='archive'?'archback':S.mode==='free'?'soloback':'home'}">← Back</button><span class="ht">${S.mode==='daily'?"Today's list":S.mode==='archive'?'List #'+S.num:'Solo'}</span></div>`;
+  // the ticket, as in every game: Mingo on top, then who is travelling, countries found and lives left
+  const cell=Geomingo.tk,tk=()=>Geomingo.ticket(moodHTML(tKey(),'pass','10 stamps to win.','In any order. A country outside the top 10 costs a life.'),
+    cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Found',S.found.length+'/10','tk-pts')+cell('Lives',livesHTML(S.lives,LIVES),'tk-gs'));
+  // a guess while this list is on screen: only the ticket and the list change. The box you type in stays
+  // where it is, so the phone keeps its keyboard open and the page does not jump up and down
+  const g=$('t10game'),q=$('q');
+  if(!S.over&&g&&g.dataset.k===tKey()&&q){const y=q.getBoundingClientRect().top;
+    $('t10tk').innerHTML=tk();$('t10ls').innerHTML=listHTML();if(q.value!==query)q.value=query;drawSugg();
+    const dy=q.getBoundingClientRect().top-y;if(dy)window.scrollBy(0,dy);return}
   if(S.over)h+=resultHTML();
-  else{const cell=Geomingo.tk;
-    // the ticket, as in every game: Mingo on top, then who is travelling, countries found and lives left
-    h+=Geomingo.ticket(moodHTML(tKey(),'pass','10 stamps to win.','In any order. A country outside the top 10 costs a life.'),
-      cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Found',S.found.length+'/10','tk-pts')+cell('Lives',livesHTML(S.lives,LIVES),'tk-gs'))}
-  h+=`<section class="panel">${askHTML(true)}</section>${listHTML()}`;
-  if(!S.over)h+=quickRules(' Full rules in <b>How to play</b>.');
+  else h+=`<div id="t10tk" style="display:contents">${tk()}</div>`;
+  h+=`<section class="panel">${askHTML(true)}</section><div id="t10ls" style="display:contents">${listHTML()}</div>`;
+  if(!S.over)h+=quickRules(' Full rules in <b>How to play</b>.')+`<i id="t10game" data-k="${esc(tKey())}" hidden></i>`;
   app.innerHTML=h;bind();
 }
 // Mingo's verdict, for the result panel
@@ -531,7 +537,8 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li><b>Today's list</b>: the same for everyone, new every day at midnight CET. One try, saved on this device. Missed one? Play it in <b>Menu → Archive</b>.</li>
   <li><b>Solo</b>: unlimited practice lists, a different one each time until you have played them all. Share sends a link to the same list.</li>
   <li><b>With friends</b>: online, 2 to ${MAXP} players, each on their own phone. The host creates a room and shares its code or link. You take turns naming a country: one in the top 10 scores a point for you, one outside costs one of your ${LIVES} lives. The round ends when the ten are found, everyone is out of lives or everyone passes. Most points wins.</li></ul>`}
-function drawSugg(){const u=$('sugg');if(u){u.innerHTML=suggHTML();u.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>guess(b.dataset.g))}}
+// tapping a suggestion does not take the focus from the box, so the phone keyboard stays open
+function drawSugg(){const u=$('sugg');if(u){u.innerHTML=suggHTML();u.querySelectorAll('[data-g]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>guess(b.dataset.g)})}}
 function bind(){
   if($('daily'))$('daily').onclick=openDaily;
   app.querySelectorAll('[data-go="free"]').forEach(b=>b.onclick=openSolo);
@@ -551,6 +558,8 @@ function bind(){
   if(q){q.oninput=e=>{query=e.target.value;drawSugg()};
     q.onkeydown=e=>{if(e.key==='Enter'){const m=matches(query).filter(c=>!S.found.includes(c.c)&&!S.wrong.includes(c.c));if(m[0])guess(m[0].c)}};
     drawSugg();
+    // on a phone, when the keyboard opens, the list's title and the box go to the top of the screen, with the suggestions under them
+    if(TOUCH&&view==='game')q.onfocus=()=>setTimeout(()=>{const p=q.closest('.panel');if(p&&document.activeElement===q)window.scrollBy({top:p.getBoundingClientRect().top-8,behavior:'smooth'})},350);
     // on the home screen the box gets the focus only once you have started typing, so phones do not open the keyboard at once
     if(query||typing||(!TOUCH&&view!=='home'))setTimeout(()=>{q.focus();q.setSelectionRange(q.value.length,q.value.length)},0)}
   if($('copy'))$('copy').onclick=()=>share(shareMessage());

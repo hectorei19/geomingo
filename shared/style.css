@@ -187,7 +187,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .arch .an{font-family:var(--display);font-weight:900;font-size:1.5rem;min-width:52px;color:var(--sea)}
 .arch .ad{flex:1;display:flex;flex-direction:column;gap:2px}
 .arch .ad small{color:var(--ink-2);font-size:.85rem}
-.arch .as{font-family:var(--mono);font-size:.78rem;color:var(--ink-2);text-align:right}
+.arch .as{font-family:var(--mono);font-size:.78rem;color:var(--ink-2);text-align:right;flex:none;min-width:8ch}
 .arch .as.done{color:var(--good)}
 .arch .dsq{width:44px;gap:2px}
 .corner.dnum{flex-direction:column;gap:2px;padding:4px}
