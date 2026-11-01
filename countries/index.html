@@ -20,8 +20,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611010600"></script>
-<script src="../brand/account.js?v=202611010100"></script>
+<script src="../brand/mingo.js?v=202611011600"></script>
+<script src="../brand/account.js?v=202611011600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -320,7 +320,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .b3 .cell.flag .gm-stamp .sn{font-size:14px!important}
 .b5 .cell.flag .gm-stamp .sn{font-size:10px!important}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611010700">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611011600">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -1042,7 +1042,7 @@ function guess(ci,cid){
     S.cells[ci]={o:S.turn,c:cid,p:pts,sb};S.used.push(cid);S.passes=0;ui.fresh=ci;
     const nl=lineCounts()[S.turn]-before;
     const left=S.mode==='solo'?S.guesses-1:0;
-    if(S.mode!=='versus')Geomingo.stamp('borderline',c.n);
+    if(S.mode!=='versus')Geomingo.stamp('borderline',c.n,'',c.c);
     say('happy','Stamped: '+c.n+'.','+'+pts+' pts'+(sb?' · +'+sb+' speed':'')+(nl?' · +'+nl*LINE_BONUS+' for the line':'')+(S.mode==='solo'?(left>0?' · '+left+' guess'+(left===1?'':'es')+' left':''):' for '+p.name+'.'));
   }else{
     S.wrong++;
@@ -1123,7 +1123,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/da
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202610260100';
+const APP_VERSION='202611011600';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
@@ -1265,7 +1265,7 @@ async function onlineGuess(ci,cid){
       else{r.wrong=(r.wrong||0)+1;r.ev={id:evId(),kind:'bad',text:nm+': '+c.n+" doesn't fit there."}}
       advance(r,order.length);return r;
     });
-    if(res.committed&&fit)Geomingo.stamp('borderline',c.n);
+    if(res.committed&&fit)Geomingo.stamp('borderline',c.n,'',c.c);
     if(!res.committed){toast(note==='turn'?'It is not your turn any more.':note==='taken'?'Someone already filled that square.':note==='used'?c.n+' is already on the board.':'The game is over.','bad')}
   }catch(e){console.error(e);toast('That move did not go through. Check the connection.','bad')}
 }

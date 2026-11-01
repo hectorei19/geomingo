@@ -125,10 +125,13 @@ function syncPass(){const id=uid(),ref=db.ref('users/'+id+'/pass');
     if(!R)M={n:L.n,since:L.since,list:L.list};
     else if(L.u===id)M={n:Math.max(R.n||0,L.n),since:since(R.since,L.since),list:asList(R.list).length>=L.list.length?asList(R.list):L.list};
     else M={n:(R.n||0)+L.n,since:since(R.since,L.since),list:[...asList(R.list),...L.list].sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0).slice(-240)};
+    // the atlas (which games stamped each country): both sides together, plus what the stamps list says
+    const A=Object.assign({},G.atlasFromList?G.atlasFromList(M.list):{});[R&&R.atlas,G.atlas(L)].forEach(o=>{for(const c in o||{})A[c]=(A[c]||0)|(+o[c]||0)});M.atlas=A;
     put('gm-pass',Object.assign({},M,{u:id}));ref.set(M).catch(()=>{});G.refreshPass();changed()}).catch(()=>{})}
 G.onStamp(x=>{const id=uid(),p=json('gm-pass');if(!id||!db||!p||p.u!==id)return;
   db.ref('users/'+id+'/pass').transaction(cur=>{cur=cur||{n:0,since:x.d,list:[]};const l=asList(cur.list);l.push(x);
-    return {n:(cur.n||0)+1,since:cur.since||x.d,list:l.slice(-240)}}).catch(()=>{});
+    const at=Object.assign({},cur.atlas||{}),b=x.c&&G.GBIT[x.g];if(b)at[x.c]=(at[x.c]||0)|b;
+    return {n:(cur.n||0)+1,since:cur.since||x.d,list:l.slice(-240),atlas:at}}).catch(()=>{});
   markToday()});
 // the days you played (the streak): every device's, together
 function syncDays(){const id=uid(),ref=db.ref('users/'+id+'/days');
