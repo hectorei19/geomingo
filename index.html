@@ -57,7 +57,7 @@ main{display:flex;flex-direction:column;gap:18px}
 .c3 .tile .tt{font-size:8.4cqw;letter-spacing:0;gap:2cqw}
 .c3 .tile.ctr svg{margin:1cqw 0 1.5cqw}
 .c3 .tile b{font-size:14cqw;font-stretch:72%}
-.c3 .tile.ctr small{font-size:8.6cqw;line-height:1.2;white-space:normal;letter-spacing:0;-webkit-line-clamp:2}
+.c3 .tile.ctr small{font-size:8.6cqw;letter-spacing:-.01em}
 .tile.soon{background:transparent;border:2px dashed #4A5570;color:var(--muted);box-shadow:none}
 .tile.soon svg{stroke:currentColor}
 /* the GeoPass card */
@@ -176,8 +176,10 @@ const set=(id,h)=>{const el=document.getElementById(id);if(el&&el.innerHTML!==h)
 const DONE_WORD={borderline:'Score',citygrid:'Score',connections:'Groups',top10:'Found',silhouette:'Found',customs:'Points'};
 function doneLine(id,label){if(id==='connections'&&label==='Solved')label='4/4';
   return /\d/.test(label)&&DONE_WORD[id]?DONE_WORD[id]+' · '+esc(label):esc(label)}
+// short line under the name, one line in a box a third of the width
+const HINT3={borderline:'Fill a country grid',citygrid:'Fill a capital grid',connections:'Find 4 groups',top10:'Name the top 10',silhouette:'Guess the country',customs:'Guess from clues'};
 function tile(g,P){const r=G.result(g.id),lk=look(g.id),mi=P.today[g.id];
-  const state=r.done?'✓ '+(mi!=null?'+'+mi+' KM':esc(r.label)):'TO VISIT',hint=r.done?doneLine(g.id,r.label):esc(g.hint);
+  const state=r.done?'✓ '+(mi!=null?'+'+mi+' KM':esc(r.label)):'TO VISIT',hint=r.done?doneLine(g.id,r.label):esc(HINT3[g.id]||g.hint);
   const lab='aria-label="'+esc(g.name)+', trip '+g.gate+': '+(r.done?'played today, '+esc(r.label):'play')+'"';
   return '<li><a class="tile'+(lk.ctr?' ctr':'')+'" href="'+g.href+'" style="--c:'+lk.c+'" '+lab+'><span class="tt"><span>TRIP '+g.gate+'</span><span class="s2">'+state+'</span></span>'+lk.svg+
     '<b>'+esc(g.name)+'</b><small>'+hint+'</small><span class="s3">'+state+'</span></a></li>'}
