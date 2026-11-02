@@ -302,7 +302,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .respanel .gm-hello{margin:-4px 0 -6px}
 .corner .mingo{width:auto;height:88%}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611011600">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611020155">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -1317,7 +1317,7 @@ function homeView(){
   </section>
   ${QRULES}`;
 }
-const QRULES=`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name a capital that fits its row <em>and</em> its column, each capital once per grid. Tap <span class="ib">i</span> to see what a category means. Full rules in <b>How to play</b>.</p></section>`;
+const QRULES=`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name a capital that fits its row and its column, each capital once per grid. Tap <span class="ib">i</span> to see what a category means. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function setupView(){
   if(screen==='home')return homeView();
   const fr=screen==='friends';
@@ -1337,7 +1337,7 @@ function setupView(){
     <button class="primary" id="start">${vs?'Next: player names':'Start game'}</button>`}
   </section>
   <section class="panel"><span class="label">Quick rules</span><ul class="rules">
-    <li>Fill each square with a capital that matches its row <em>and</em> its column.</li>
+    <li>Fill each square with a capital that matches its row and its column.</li>
     <li>Each capital once per grid. Tap <span class="ib">i</span> to see what a category means.</li>
     ${on?'<li>Everyone on their own phone: the host creates a room and shares the code.</li>':vs?'<li>Take turns on one phone. A wrong answer or time-out passes the turn.</li>':'<li>You have a few more guesses than squares.</li>'}
     <li>Harder squares, quick answers and full lines score more.</li>
@@ -1482,6 +1482,8 @@ const ICONS={menu:'M4 6h16M4 12h16M4 18h16',games:'M4 4h6v6H4zM14 4h6v6h-6zM4 14
   signin:'M14 8V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-2M20 12H7l3-3M10 15l-3-3'};
 const ico=k=>`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[k]}"/></svg>`;
 const menuBtn=()=>`<button class="helpbtn" id="menu" aria-haspopup="true" aria-expanded="${ui.menu?'true':'false'}">${ico('menu')}Menu</button>`;
+// "How to play" in the Quick rules box opens the full rules
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.qhelp')){ui.menu=false;ui.help=true;drawLayer()}});
 function drawLayer(){
   let h='';
   // header menu: How to play, Archive, My stats, Credits, sign in/out

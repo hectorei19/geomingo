@@ -341,7 +341,12 @@ button.hcard:hover,button.hcard:active{border-color:var(--ink);background:var(--
 .hd .ref{font-family:var(--type);font-weight:700;color:var(--coral-text);font-size:.7rem}
 .hd .ht{font-family:var(--display);font-weight:800;font-stretch:85%;text-transform:uppercase;letter-spacing:.01em}
 .hd[data-info]:hover{background:var(--guil)}
-.ib{color:var(--blue);font-family:var(--type);font-style:normal;font-weight:700;border-width:1px}
+/* info icon: drawn (circle + calligraphic i) so the i sits exactly in the centre on every phone; the letter stays for screen readers */
+.ib,.hd .ht .ib{display:inline-block;vertical-align:-.2em;padding:0;border:0;border-radius:50%;color:transparent;overflow:hidden;text-indent:-9em;font-style:normal;text-transform:none;line-height:1;background-color:var(--blue);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10.9' fill='none' stroke='%23000' stroke-width='1.7'/%3E%3Ccircle cx='13.35' cy='7.15' r='1.35'/%3E%3Cpath d='M10.6 11.1 Q11.6 10.2 12.5 10.4 L11.2 15.4 Q10.9 16.8 12.1 16.4 Q12.9 16.1 13.6 15.2' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10.9' fill='none' stroke='%23000' stroke-width='1.7'/%3E%3Ccircle cx='13.35' cy='7.15' r='1.35'/%3E%3Cpath d='M10.6 11.1 Q11.6 10.2 12.5 10.4 L11.2 15.4 Q10.9 16.8 12.1 16.4 Q12.9 16.1 13.6 15.2' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/100% 100% no-repeat}
+.ib{font-size:1em;width:1.15em;height:1.15em}
+.hd .ht .ib{width:11px;height:11px;vertical-align:-1px}
+/* "How to play" in the Quick rules box: a real link that opens the full rules */
+.qhelp{background:none;border:0;padding:0;margin:0;font:inherit;font-weight:700;color:var(--blue);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 .corner{border:0!important;border-radius:8px;background:none;font-family:var(--type);color:var(--muted)}
 .corner.dnum .dl{font-family:var(--type);font-weight:400;letter-spacing:.08em}
 .corner.dnum .dn{font-family:var(--display);font-weight:900;font-stretch:90%;color:var(--coral-text)}
