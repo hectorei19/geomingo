@@ -71,13 +71,15 @@
 .cpre i{flex:1;aspect-ratio:3/4;border-radius:8px;border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--mono);font-size:.8rem;color:var(--ink-2)}
 
 /* ---- Passport look (proposal): the play area is a cream card, navy ink, dotted border, rubber stamps ---- */
-.panel.pp{--sheet:#F1E9D6;--paper:#F1E9D6;--page:#F1E9D6;--bg:#F1E9D6;--ink:#1D2B4C;--ink-2:#5B6173;--muted:#5B6173;--rule:#B8AC8E;--line:#B8AC8E;
+.panel,.hcard,.gm-rank{--sheet:#F1E9D6;--paper:#F1E9D6;--page:#F1E9D6;--bg:#F1E9D6;--ink:#1D2B4C;--ink-2:#5B6173;--muted:#5B6173;--rule:#B8AC8E;--line:#B8AC8E;
   --gold:#8E5F0E;--good:#2F6B47;--bad:#B23A47;--red:#B23A47;--green:#2F6B47;--blue:#2A56B8;--coral:#E8616F;--flamingo:#C94A58;--flamingo-text:#B23A47;--coral-text:#B23A47;
   --sea-soft:#E4D9BF;--p4-soft:#DDE2C8;--p0-soft:#EED6CC;--stamp:#2A3A68;--hl:rgba(240,196,70,.38);
   position:relative;color:var(--ink);border:0;border-radius:20px;padding:20px 18px 18px;overflow:hidden;
   background:#F1E9D6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .33 0 0 0 0 .18 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   box-shadow:inset 0 0 60px rgba(150,120,70,.28),0 18px 40px -18px rgba(0,0,0,.9)}
-.panel.pp::before{content:"";position:absolute;inset:9px;border:2.5px dotted rgba(29,43,76,.6);border-radius:13px;pointer-events:none}
+.hcard{position:relative;padding:20px 20px 18px}
+.hcard.soon{opacity:.8}
+.panel::before,.hcard::before{content:"";position:absolute;inset:9px;border:2.5px dotted rgba(29,43,76,.6);border-radius:13px;pointer-events:none}
 .pp .label{color:var(--ink-2)}
 .pp .ink{filter:url(#ppink)}
 .pp .play{position:relative;z-index:1}
