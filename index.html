@@ -57,6 +57,10 @@ main{display:flex;flex-direction:column;gap:18px}
 .tile.ctr{gap:3px;padding-bottom:10px}
 .tile.ctr small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:clamp(10px,3.1vw,12.5px);letter-spacing:-.01em}
 .tile.ctr svg{margin:0 -4px 4px}
+/* 3 per row: no subtitle (no room on phones), a bigger picture instead */
+.c3 .tile.ctr small{display:none}
+.c3 .tile.ctr svg{margin:4px 0 2px}
+.c3 .tile b{word-spacing:.12em}
 .tile.soon{background:transparent;border:2px dashed #4A5570;color:var(--muted);box-shadow:none}
 .tile.soon svg{stroke:currentColor}
 /* the GeoPass card */
@@ -141,7 +145,7 @@ footer{display:flex;flex-direction:column;gap:4px;align-items:center;padding-top
   </header>
   <main>
     <div class="hrow"><span class="hmingo"></span><div class="gm-head"><span class="gm-lab" id="dep">Today</span><h2>Today's itinerary</h2></div><button class="mypass" id="mypass" type="button" aria-label="Open my GeoPass"></button></div>
-    <ul class="tiles" id="games"></ul>
+    <ul class="tiles c3" id="games"></ul>
     <button class="friends" id="friends"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20c1-3.5 3.5-5.5 6.5-5.5s5.5 2 6.5 5.5M15 14.5c2.8 0 5 1.6 6 4.5"/></svg>Travel with friends</button>
     <section class="pass" id="pass" aria-label="Your GeoPass"></section>
     <section class="week" id="week" aria-label="This week's ranking" hidden></section>
@@ -170,7 +174,7 @@ const look=id=>LOOK[id]||{c:'#9AA6B6',svg:''};
 const LEVELS=G.LEVELS,ALL5=G.ALL5,pts=G.pts,cxPts=G.cxPts,dayTotal=G.dayTotal,level=G.level,geo=G.geo;
 /* ---- the page ---- */
 const set=(id,h)=>{const el=document.getElementById(id);if(el&&el.innerHTML!==h)el.innerHTML=h}; // redraw only what changed (keeps keyboard focus)
-// the tile of a game; one more tile keeps the place of the next game ("Coming soon")
+// the tile of a game; "Coming soon" tiles fill the grid up to 9 games (3 rows of 3)
 // the line under a played game: what the result is, then the result
 const DONE_WORD={borderline:'Score',citygrid:'Score',connections:'Groups',top10:'Found',silhouette:'Found',customs:'Points'};
 function doneLine(id,label){if(id==='connections'&&label==='Solved')label='4/4';
@@ -180,7 +184,7 @@ function tile(g,P){const r=G.result(g.id),lk=look(g.id),mi=P.today[g.id];
   const lab='aria-label="'+esc(g.name)+', trip '+g.gate+': '+(r.done?'played today, '+esc(r.label):'play')+'"';
   return '<li><a class="tile'+(lk.ctr?' ctr':'')+'" href="'+g.href+'" style="--c:'+lk.c+'" '+lab+'><span class="tt"><span>TRIP '+g.gate+'</span><span class="s2">'+state+'</span></span>'+lk.svg+
     '<b>'+esc(g.name)+'</b><small>'+hint+'</small><span class="s3">'+state+'</span></a></li>'}
-const SOON='<li><div class="tile soon ctr" aria-label="Coming soon: a new game"><span class="tt"><span>TRIP '+(G.live().length+1)+'</span><span class="s2">SOON</span></span>'+
+const SOON=n=>'<li><div class="tile soon ctr" aria-label="Coming soon: a new game"><span class="tt"><span>TRIP '+n+'</span><span class="s2">SOON</span></span>'+
   '<svg viewBox="-14 -9 46 48" preserveAspectRatio="xMidYMid meet" aria-hidden="true" style="stroke:none"><path d="M0 0 H18 M0 30 H18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M2 1 C2 10 8 12 9 15 C10 12 16 10 16 1 Z M2 29 C2 20 8 18 9 15 C10 18 16 20 16 29 Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M5 5 H13 C12 9 10 11 9 13 C8 11 6 9 5 5 Z M4 28 C6 23 12 23 14 28 Z" fill="currentColor"/><path d="M9 15 V24" stroke="currentColor" stroke-width="1" stroke-dasharray="1.5 1.5"/></svg>'+
   '<b>New game</b><small>Coming soon</small><span class="s3">SOON</span></div></li>';
 // the short name on today's boxes, and the result under the km: right answers out of the total
@@ -214,7 +218,8 @@ function draw(){const P=geo();
   document.querySelectorAll('.hmingo').forEach(el=>{if(!el.firstChild)el.innerHTML=G.mingo('pass',56)});
   document.querySelectorAll('[data-gm-acctslot]').forEach(el=>{const h=G.acctHTML?G.acctHTML():'';if(el.innerHTML!==h)el.innerHTML=h});
   set('dep',esc(G.dateText(G.dayKey(),{weekday:'short',day:'numeric',month:'short'})));
-  set('games',G.live().map(g=>tile(g,P)).join('')+(G.live().length%2?SOON:''));
+  const nl=G.live().length;let soon='';for(let n=nl+1;n<=Math.max(9,Math.ceil(nl/3)*3);n++)soon+=SOON(n);
+  set('games',G.live().map(g=>tile(g,P)).join('')+soon);
   set('pass',passHTML(P));
   set('mypass',myPassHTML(P));
   drawWeek()}
