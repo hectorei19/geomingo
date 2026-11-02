@@ -20,8 +20,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611011600"></script>
-<script src="../brand/account.js?v=202611011600"></script>
+<script src="../brand/mingo.js?v=202611020430"></script>
+<script src="../brand/account.js?v=202611020430"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -75,7 +75,7 @@
 .ready{display:flex}
 @media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611020310">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611020430">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -206,7 +206,7 @@ function noLives(G){if(!G.over&&!livesLeft(G.qs)){G.qs.forEach(q=>{if(q.st==='pl
 function dailySave(){if(!D)return;
   if(D.arch){const a=load('sil-arch',{});a[D.date]=D;store('sil-arch',a);return}
   const d=dailyAll();d[D.diff]=D;d.over=d.over||D.over;store('sil-daily',d);
-  if(D.over){const h=load('sil-hist',{}),day=h[D.date]||{};if(day[D.diff]==null){day[D.diff]=D.qs.filter(q=>q.st==='right').length;h[D.date]=day;store('sil-hist',h);if(!TESTDAY)Geomingo.account.done('sil-'+D.diff)}}}
+  if(D.over){const h=load('sil-hist',{}),day=h[D.date]||{};if(day[D.diff]==null){day[D.diff]=D.qs.filter(q=>q.st==='right').length;h[D.date]=day;store('sil-hist',h);if(!TESTDAY){Geomingo.clock.stop('silhouette',D.date,rightOf(D)/9);Geomingo.account.done('sil-'+D.diff)}}}}
 function dailyPick(code){const q=D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;
   const res=answer(q,code,livesLeft(D.qs));query='';typing=res==='wrong';
   if(res==='out')noLives(D);
@@ -548,6 +548,8 @@ function homeHTML(){const key=todayKey();
 function goHome(){if(roomCode){if(!confirm('Leave the room and go to the home screen?'))return;leaveRoom().then(()=>{view='home';render()});return}
   view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
 function render(){
+  // the clock of the visas starts when today's shapes are first on screen (home or board), unless the board is already over
+  if(!TESTDAY&&!roomCode&&(view==='home'||view==='daily'&&D&&!D.arch)){const g=dailyGame();if(!g.over)Geomingo.clock.start('silhouette',todayKey())}
   // a board found out of lives on opening: save its end (history, ranking) once
   if(D&&D.ended){delete D.ended;dailySave()}
   // when the daily board you were playing ends: straight to its summary (on the home screen too)

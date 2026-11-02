@@ -27,8 +27,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611011600"></script>
-<script src="../brand/account.js?v=202611011600"></script>
+<script src="../brand/mingo.js?v=202611020430"></script>
+<script src="../brand/account.js?v=202611020430"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -83,7 +83,7 @@ body.kbon .t10list .mini{width:18px;height:18px}
 body.kbon .kbgu{display:flex;flex-direction:column;align-items:center;gap:14px}
 body.kbon .kbgu #src{align-self:center!important}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611020310">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611020430">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -205,7 +205,7 @@ let S=null,mode='daily',view='home',query='',fresh=null,typing=false;
 const dailySaved=()=>{const d=load('t10-daily',null);return d&&d.date===todayKey()?d.S:null};
 function save(){if(!S||S.mode==='online')return;
   if(S.mode==='daily'){store('t10-daily',{date:S.date,over:S.over,S});
-    if(S.over){const h=load('t10-hist',{});if(!h[S.date]){h[S.date]={f:S.found.length,l:S.lives};store('t10-hist',h);if(!TESTDAY)Geomingo.account.done('top10')}}}
+    if(S.over){const h=load('t10-hist',{});if(!h[S.date]){h[S.date]={f:S.found.length,l:S.lives};store('t10-hist',h);if(!TESTDAY){Geomingo.clock.stop('top10',S.date,S.found.length/10);Geomingo.account.done('top10')}}}}
   else if(S.mode==='archive'){const a=load('t10-arch',{});a[S.date]=S;store('t10-arch',a)}
   else{if(S.over&&!S.logged){S.logged=1;logSolo('t10-solo',{p:S.found.length>=10?1:0,f:S.found.length,best:S.found.length})}
     store('t10-free',S)}}
@@ -499,6 +499,8 @@ function onlineHTML(){const cur=S.players[S.turn]||{};
   h+=`<div class="row-btns">${S.host&&!S.over?'<button class="ghost" id="oend" style="flex:1">End game</button>':''}<button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;
   return h}
 function render(){
+  // the clock of the visas starts when today's list is first on screen (home or game), unless it is already over
+  if(!TESTDAY&&!roomCode&&(view==='home'||view==='game'&&S&&S.mode==='daily')){const d=dailySaved();if(!(d&&d.over))Geomingo.clock.start('top10',todayKey())}
   // today's list is played on the home screen too: the summary follows the game, whatever the screen
   if(S&&S.mode!=='online')watchResult(tKey(),S.over);
   if(roomCode&&room){app.innerHTML=S&&S.mode==='online'?onlineHTML():lobbyHTML();bind();return}
