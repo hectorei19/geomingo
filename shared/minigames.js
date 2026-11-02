@@ -155,7 +155,7 @@ function openSheet(o){sheet=Object.assign({text:''},o);
   q.oninput=e=>{sheet.text=e.target.value;drawSheetSugg()};
   q.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const c=sheet.first(sheet.text);if(c)pickSheet(c)}if(e.key==='Escape')closeSheet()};
   $('sback').onclick=$('sscrim').onclick=closeSheet;
-  drawSheetSugg();q.focus({preventScroll:true})}
+  drawSheetSugg();q.focus()}
 function closeSheet(){if(!sheet)return;sheet=null;const q=$('sq');if(q)q.blur();sheetLayer().innerHTML=''}
 // after every render of a game: the button (and any [data-ask] spot, like an empty place) opens the sheet.
 // An open sheet stays open while the same question is still on screen, otherwise it closes.

@@ -460,31 +460,4 @@ function mini(list,cols){return '<div class="gm-mini" style="grid-template-colum
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
   days,streak,pass,stamp,stamps,stampsToday,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,traveller,header,passBtn,themeBtn,toggleTheme,currentTheme,
   resultWindow,openWindow,closeWindow,mini,esc,refreshPass,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
-// Typing on a phone: while a typing sheet is open (the bottom panel with the box and the phone keyboard),
-// the page behind it stays where it was. The browser likes to scroll the page up when the keyboard opens,
-// hiding the ticket and the header; we put it back, and when the sheet closes the page returns to exactly
-// where it was, so you see the whole screen again. You can still move the page by hand meanwhile: then
-// it stays where you left it. A game that scrolls on purpose (window.scrollTo) wins over all this.
-(function keepPage(){
-  if(/\/(countries|capitals)\//.test(location.pathname))return;   // Countries and Capitals keep the browser's own behaviour
-  if(!window.MutationObserver||!document.body){document.addEventListener('DOMContentLoaded',keepPage,{once:true});return}
-  const go=window.scrollTo.bind(window);
-  let open=false,restY=window.scrollY,touching=false,openedAt=0,timers=[],until=0;
-  const stop=()=>{timers.forEach(clearTimeout);timers=[];until=0};
-  const put=()=>{if(Math.abs(window.scrollY-restY)>1)go(0,restY)};
-  window.scrollTo=function(){stop();const r=go.apply(window,arguments);restY=window.scrollY;return r};
-  addEventListener('touchstart',()=>{touching=true;stop()},{passive:true,capture:true});
-  addEventListener('touchend',()=>{touching=false},{passive:true,capture:true});
-  addEventListener('touchcancel',()=>{touching=false},{passive:true,capture:true});
-  addEventListener('scroll',()=>{
-    if(touching||(!open&&!until)){restY=window.scrollY;return}
-    if(open&&Date.now()-openedAt<1200)put();       // the browser's jump when the keyboard opens
-    else if(until&&Date.now()<until)put()           // ... and when it closes
-  },{passive:true});
-  const settle=()=>{stop();until=Date.now()+1200;put();[60,150,300,500,800,1200].forEach(t=>timers.push(setTimeout(put,t)));
-    timers.push(setTimeout(()=>{until=0},1250))};
-  if(window.visualViewport)visualViewport.addEventListener('resize',()=>{if(until&&Date.now()<until)put()});
-  new MutationObserver(()=>{const now=!!document.querySelector('.sheet');if(now===open)return;open=now;
-    if(open){stop();openedAt=Date.now();put()}else settle()}).observe(document.body,{childList:true,subtree:true});
-})();
 })();
