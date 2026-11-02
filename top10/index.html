@@ -414,7 +414,7 @@ async function tryTimeout(turn,deadline){
     r.passes=(r.passes||0)+1;r.ev={id:evId(),kind:'bad',text:"Time's up for "+((r.players[r.order[turn]]||{}).name||'someone')+'.'};advance(r);return r})}catch(e){}}
 function onTick(){if(!S||S.mode!=='online'||S.over||!S.timer){clearInterval(tick);return}
   const left=S.deadline-now(),bar=document.querySelector('.tbar'),sub=$('tleft');
-  if(bar)bar.style.width=Math.max(0,left/(S.timer*1000)*100)+'%';
+  if(bar){bar.style.width=Math.max(0,left/(S.timer*1000)*100)+'%';bar.classList.toggle('low',left<=5000)}
   if(sub)sub.textContent=Math.max(0,Math.ceil(left/1000))+'s';
   if(left<=-400)tryTimeout(S.turn,S.deadline)}
 

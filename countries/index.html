@@ -954,7 +954,7 @@ function onTick(){
   if(!S||S.over||!S.timer){clearInterval(tick);return}
   const left=S.deadline-now();
   const bar=document.querySelector('.tbar');const sub=document.getElementById('tleft');
-  if(bar)bar.style.width=Math.max(0,left/(S.timer*1000)*100)+'%';
+  if(bar){bar.style.width=Math.max(0,left/(S.timer*1000)*100)+'%';bar.classList.toggle('low',left<=5000)}
   if(sub)sub.textContent=Math.max(0,Math.ceil(left/1000))+'s';
   if(S.mode==='online'){if(left<=-400)tryTimeout(S.turn,S.deadline);return}
   if(left<=0){
@@ -1367,7 +1367,7 @@ function fitHeaders(){
 }
 try{document.fonts&&document.fonts.ready.then(()=>fitHeaders())}catch(e){}
 addEventListener('resize',()=>{clearTimeout(fitHeaders.t);fitHeaders.t=setTimeout(fitHeaders,120)});
-function onTickVisual(){const left=S.deadline-now();const bar=document.querySelector('.tbar');const sub=document.getElementById('tleft');if(bar)bar.style.width=Math.max(0,left/(S.timer*1000)*100)+'%';if(sub)sub.textContent=Math.max(0,Math.ceil(left/1000))+'s'}
+function onTickVisual(){const left=S.deadline-now();const bar=document.querySelector('.tbar');const sub=document.getElementById('tleft');if(bar){bar.style.width=Math.max(0,left/(S.timer*1000)*100)+'%';bar.classList.toggle('low',left<=5000)}if(sub)sub.textContent=Math.max(0,Math.ceil(left/1000))+'s'}
 
 const MHINT={solo:'1 player.',online:'Play online, 2 to 6 players, each on their own phone.'};
 const DLABEL={easy:'Easy',normal:'Normal',hard:'Hard'};
