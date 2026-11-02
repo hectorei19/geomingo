@@ -81,11 +81,19 @@ main{display:flex;flex-direction:column;gap:18px}
 .ladder{display:flex;justify-content:space-between;font-family:var(--type);font-size:11px;color:#C9CED6;margin-top:-4px}
 .ladder b{color:#F3D98B}
 .slots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
-.slot{aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:2px dashed #4A5570;color:var(--muted);text-decoration:none;font-family:var(--type);font-weight:700;font-size:10px;text-align:center;line-height:1.1}
-.slot b{font-family:var(--display);font-weight:900;font-size:14px;line-height:1}
+.slot{border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 2px;border:2px dashed #4A5570;color:var(--muted);text-decoration:none;text-align:center;min-width:0}
+.slot small{font-family:var(--type);font-weight:700;font-size:8.5px;text-transform:uppercase;line-height:1;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot b{font-family:var(--display);font-weight:900;font-size:17px;line-height:1}
+.slot i{font-style:normal;font-size:10.5px;color:#C9CED6;line-height:1}
 .slot.on{border:2.5px solid var(--c);color:var(--c);background:rgba(255,255,255,.05)}
-.slot.on:nth-child(odd){transform:rotate(-4deg)}.slot.on:nth-child(even){transform:rotate(4deg)}
-.pass .note{font-size:13px;color:#C9CED6;margin:0}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stat{border:1px solid #3A3A2A;border-radius:10px;padding:8px 6px;text-align:center;background:rgba(255,255,255,.03)}
+.stat b{display:block;font-family:var(--display);font-weight:900;font-size:20px;color:#F3D98B;line-height:1}
+.stat span{display:block;font-size:11.5px;color:#C9CED6;margin-top:4px;line-height:1.15}
+.pass .km{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.pass .km em{font-style:normal;font-size:15px;color:var(--ink)}
+.pass .note{font-size:13px;color:#C9CED6;margin:0;line-height:1.35}
+.pass .note b{color:#F3D98B}
 .pass hr{border:0;height:1px;background:#3A3A2A;margin:0}
 .pass .acct{font-size:14px;color:var(--ink);margin:0}
 .gbtn{min-height:50px;border-radius:12px;border:0;background:#F6F8F5;color:#16202F;display:flex;align-items:center;justify-content:center;gap:10px;font-family:var(--body);font-weight:700;font-size:16px;cursor:pointer}
@@ -174,22 +182,30 @@ function tile(g,P){const r=G.result(g.id),lk=look(g.id),mi=P.today[g.id];
 const SOON='<li><div class="tile soon ctr" aria-label="Coming soon: a new game"><span class="tt"><span>TRIP 6</span><span class="s2">SOON</span></span>'+
   '<svg viewBox="-14 -9 46 48" preserveAspectRatio="xMidYMid meet" aria-hidden="true" style="stroke:none"><path d="M0 0 H18 M0 30 H18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M2 1 C2 10 8 12 9 15 C10 12 16 10 16 1 Z M2 29 C2 20 8 18 9 15 C10 18 16 20 16 29 Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M5 5 H13 C12 9 10 11 9 13 C8 11 6 9 5 5 Z M4 28 C6 23 12 23 14 28 Z" fill="currentColor"/><path d="M9 15 V24" stroke="currentColor" stroke-width="1" stroke-dasharray="1.5 1.5"/></svg>'+
   '<b>New game</b><small>Coming soon</small><span class="s3">SOON</span></div></li>';
+// the short name on today's boxes, and the result under the km: right answers out of the total
+const SHORT={connections:'Connect.'};
+function boxResult(id,r){
+  if(id==='borderline'||id==='citygrid'){const e=(json(id==='borderline'?'bl-hist':'cc-hist')||{})[G.dayKey()];
+    if(e&&e.f!==0&&e.c!=null){const n=+e.n||3;return (+e.c||0)+'/'+n*n}return ''}
+  return r.label==='Solved'?'4/4':r.label==='Done'?'':(r.label||'')}
 function passHTML(P){const lv=level(P.miles),live=G.live(),played=live.filter(g=>G.result(g.id).done).length,acc=A(),u=acc&&acc.user;
-  const slots=live.map(g=>{const r=G.result(g.id),lk=look(g.id);
-    return r.done?'<a class="slot on" href="'+g.href+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+': '+esc(r.label)+'"><b>'+esc(r.label.length>6?'✓':r.label)+'</b>'+g.gate+'</a>'
-      :'<a class="slot" href="'+g.href+'" aria-label="'+esc(g.name)+': not played yet"><b>'+g.gate+'</b></a>'}).join('');
-  const note=played===live.length?'All five played today: +'+ALL5+' bonus km. New trips at midnight.'
-    :'Play all five today for +'+ALL5+' bonus km.';
-  const foot=!acc||!acc.ready?'<p class="acct">Saved on this device.</p>'
-    :u?'<p class="acct">Signed in as <b>'+esc(acc.name||u.displayName||'')+'</b>. Your GeoPass is saved in your account, on every device.</p>'
-    :'<p class="acct"><b>Sign in to keep your km.</b> Your GeoPass follows you to any phone, and you join the weekly ranking.</p><button class="gbtn" data-gm-signin><i aria-hidden="true">G</i>Continue with Google</button>';
+  const slots=live.map(g=>{const r=G.result(g.id),lk=look(g.id),mi=P.today[g.id],nm=esc(SHORT[g.id]||g.name);
+    if(!r.done)return '<a class="slot" href="'+g.href+'" aria-label="'+esc(g.name)+': not played yet"><small>'+nm+'</small><b>–</b><i>to play</i></a>';
+    const res=boxResult(g.id,r);
+    return '<a class="slot on" href="'+g.href+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+': '+(mi!=null?'+'+mi+' km, ':'')+esc(res)+'"><small>'+nm+'</small><b>'+(mi!=null?'+'+mi:'✓')+'</b><i>'+esc(res)+'</i></a>'}).join('');
+  const note='Each box: the km that game gave you today, and your result. '+(played===live.length?'All five played: <b>+'+ALL5+' bonus km</b>. New trips at midnight.'
+    :'Play all five today for <b>+'+ALL5+' bonus km</b>.');
+  // signed in: nothing to say here (the header already shows it); a guest gets the sign-in button
+  const foot=acc&&acc.ready&&!u?'<hr><p class="acct"><b>Sign in to keep your km.</b> Your GeoPass follows you to any phone, and you join the weekly ranking.</p><button class="gbtn" data-gm-signin><i aria-hidden="true">G</i>Continue with Google</button>':'';
+  const st=(n,t)=>'<div class="stat"><b>'+n+'</b><span>'+t+'</span></div>';
   return '<div class="row"><span class="lab">My GeoPass</span><span class="lvl">'+lv.name+'</span></div>'+
     '<button class="who" id="openpass" aria-label="Open your GeoPass: '+fmt(P.miles)+' km, level '+lv.name+'">'+G.mingo(played?'happy':'pass',56)+
-      '<span><span class="mi">'+fmt(P.miles)+'</span><span class="sub">km · '+fmt(G.stamps())+' stamps · '+G.countriesMine()+' countries · '+P.streak+'-day streak</span></span></button>'+
+      '<span><span class="km"><span class="mi">'+fmt(P.miles)+'</span><em>km travelled</em></span><span class="sub">Every daily game moves you up to 100 km.</span></span></button>'+
     '<div class="bar" role="img" aria-label="'+(lv.next?lv.pct+'% of the way to '+lv.next[0]:'Top level')+'"><i style="width:'+lv.pct+'%"></i></div>'+
     '<div class="ladder" aria-hidden="true"><b>'+lv.name.toUpperCase()+'</b><span>'+(lv.next?'NEXT · '+lv.next[0].toUpperCase()+' '+fmt(lv.next[1]):'TOP LEVEL')+'</span></div>'+
+    '<div class="stats">'+st(fmt(G.stamps()),'stamps<br>(right answers)')+st(G.countriesMine(),'countries<br>unlocked')+st(P.streak,(P.streak===1?'day':'days')+' in<br>a row')+'</div>'+
     '<span class="lab">Today · '+played+' of '+live.length+' games'+(P.todayMiles?' · +'+fmt(P.todayMiles)+' km':'')+'</span>'+
-    '<div class="slots">'+slots+'</div><p class="note">'+note+'</p><hr>'+foot}
+    '<div class="slots">'+slots+'</div><p class="note">'+note+'</p>'+foot}
 function myPassHTML(P){const lv=level(P.miles);
   return '<svg viewBox="0 0 22 28" aria-hidden="true"><rect x="1" y="1" width="20" height="26" rx="3" fill="#0A1328" stroke="#D4AD4B" stroke-width="1.5"/><circle cx="11" cy="12" r="5" fill="none" stroke="#D4AD4B" stroke-width="1.2"/><path d="M6 12h10M11 7c-2 3-2 7 0 10M11 7c2 3 2 7 0 10" fill="none" stroke="#D4AD4B" stroke-width=".9"/><path d="M6 22h10" stroke="#D4AD4B" stroke-width="1.2"/></svg>'+
     '<span><small>My pass</small><b>'+fmt(P.miles)+' km</b><em>'+lv.name+'</em></span>'}
