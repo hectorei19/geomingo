@@ -341,7 +341,10 @@ button.hcard:hover,button.hcard:active{border-color:var(--ink);background:var(--
 .hd .ref{font-family:var(--type);font-weight:700;color:var(--coral-text);font-size:.7rem}
 .hd .ht{font-family:var(--display);font-weight:800;font-stretch:85%;text-transform:uppercase;letter-spacing:.01em}
 .hd[data-info]:hover{background:var(--guil)}
-.ib,.hd .ht .ib{display:inline-flex;align-items:center;justify-content:center;color:var(--blue);font-family:var(--body);font-style:normal;font-weight:700;text-transform:none;letter-spacing:0;line-height:1;border-width:1px}
+.ib,.hd .ht .ib{display:inline-flex;align-items:center;justify-content:center;color:var(--blue);font-family:Georgia,"Times New Roman",serif;font-style:italic;font-weight:400;text-transform:none;letter-spacing:0;line-height:1;border-width:1px}
+/* a small calligraphic "i": smaller letter, same circle size as before */
+.ib{font-size:.8em;width:1.5em;height:1.5em}
+.hd .ht .ib{font-size:8px;width:11px;height:11px}
 /* "How to play" in the Quick rules box: a real link that opens the full rules */
 .qhelp{background:none;border:0;padding:0;margin:0;font:inherit;font-weight:700;color:var(--blue);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 .corner{border:0!important;border-radius:8px;background:none;font-family:var(--type);color:var(--muted)}
