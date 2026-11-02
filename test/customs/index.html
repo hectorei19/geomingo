@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-game="customs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>Customs (test) · Geomingo</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="Guess the country from the clues at the customs desk. Five new travellers every day. Daily geography games from Geomingo.">
+<meta name="theme-color" content="#151E30">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Geomingo">
+<meta property="og:title" content="Customs · Geomingo">
+<meta property="og:description" content="Guess the country from the clues. New travellers every day.">
+<meta property="og:url" content="https://geomingo.com/customs/">
+<meta property="og:image" content="https://geomingo.com/brand/og.png?v=2">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../../brand/icons/favicon.svg?v=202611011030" type="image/svg+xml">
+<link rel="icon" href="../../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../../brand/icons/apple-touch-icon.png?v=202611011030">
+<link rel="manifest" href="../../brand/site.webmanifest?v=3">
+<script src="../../brand/mingo.js?v=202611020700"></script>
+<script src="../../brand/account.js?v=202611020700"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&family=Special+Elite&display=swap">
+<link rel="stylesheet" href="../../shared/style.css?v=202610252300">
+<style>
+/* Customs: one traveller at a time at the desk, five clues opened one by one, the answer box under them */
+.play{display:flex;flex-direction:column;gap:12px;width:100%}
+.desk{display:flex;gap:6px;width:100%}
+.desk button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px 6px;background:var(--sheet);border:2px dashed var(--line);border-radius:10px;color:var(--ink-2);font:inherit;font-size:.7rem;cursor:default}
+.desk button b{font-family:var(--mono);font-size:.95rem;color:var(--ink)}
+.desk button.sel{border:2px solid var(--flamingo);color:var(--ink)}
+.desk button.right{border-style:solid;border-color:var(--good);background:var(--p4-soft)}
+.desk button.wrong{border-style:solid;border-color:var(--bad);background:var(--p0-soft)}
+.desk button.right,.desk button.wrong{cursor:pointer}
+.clues{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.clue{display:flex;gap:12px;align-items:flex-start;background:var(--sheet);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px}
+.clue .ci{flex:none;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--sea-soft);color:var(--ink);font-family:var(--mono);font-weight:700;font-size:.85rem}
+.clue .ct{display:flex;flex-direction:column;gap:2px;min-width:0}
+.clue .ct span{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.clue .ct b{font-weight:600;font-size:1rem;line-height:1.3}
+.clue .ct small{font-size:.85rem;color:var(--ink-2)}
+.clue .fl{width:84px;height:56px;object-fit:cover;border-radius:4px;box-shadow:0 0 0 1px var(--rule);margin-top:4px;background:var(--rule)}
+.clue.new{border-color:var(--gold)}
+.clue.off{border-style:dashed;opacity:.55}
+.clue.off .ci{background:transparent;box-shadow:inset 0 0 0 1.5px var(--rule)}
+.worth{display:flex;align-items:center;gap:8px;font-size:.92rem;color:var(--ink-2)}
+.worth b{font-family:var(--mono);color:var(--gold)}
+.worth .linkbtn{margin-left:auto}
+.missed{margin:0;font-size:.92rem;color:var(--ink-2)}
+.reveal{display:flex;align-items:center;gap:12px;background:var(--sheet);border:2px solid var(--good);border-radius:16px;padding:10px 12px}
+.reveal.wrong{border-color:var(--bad)}
+.reveal .flag{width:48px;height:36px;object-fit:cover;border-radius:3px;box-shadow:0 0 0 1px var(--rule);flex:none;background:var(--rule)}
+.reveal .rn{display:flex;flex-direction:column;min-width:0}
+.reveal .rn b{font-family:var(--display);font-weight:700;font-size:1.4rem;line-height:1.1}
+.reveal .rn small{color:var(--ink-2);font-size:.9rem}
+.reveal .rpts{margin-left:auto;font-family:var(--mono);font-size:.95rem;white-space:nowrap;color:var(--gold)}
+.ans{display:flex;flex-direction:column;gap:6px}
+.ans input{width:100%;border:1.5px solid var(--ink);border-radius:5px;padding:12px;font-size:1.1rem;background:var(--paper)}
+.ans .sugg{max-height:none}
+.dsq{grid-template-columns:repeat(5,1fr);width:100px}
+.dsq i.mid{background:var(--p2)}
+.dsq i.bad{background:var(--bad)}
+.arch .dsq{width:64px}
+.cpre{display:flex;gap:6px;width:100%}
+.cpre i{flex:1;aspect-ratio:3/4;border-radius:8px;border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--mono);font-size:.8rem;color:var(--ink-2)}
+
+/* ---- Passport look (proposal): the play area is a cream card, navy ink, dotted border, rubber stamps ---- */
+.panel.pp{--sheet:#F1E9D6;--paper:#F1E9D6;--page:#F1E9D6;--bg:#F1E9D6;--ink:#1D2B4C;--ink-2:#5B6173;--muted:#5B6173;--rule:#B8AC8E;--line:#B8AC8E;
+  --gold:#8E5F0E;--good:#2F6B47;--bad:#B23A47;--red:#B23A47;--green:#2F6B47;--blue:#2A56B8;--coral:#E8616F;--flamingo:#C94A58;--flamingo-text:#B23A47;--coral-text:#B23A47;
+  --sea-soft:#E4D9BF;--p4-soft:#DDE2C8;--p0-soft:#EED6CC;--stamp:#2A3A68;--hl:rgba(240,196,70,.38);
+  position:relative;color:var(--ink);border:0;border-radius:20px;padding:20px 18px 18px;overflow:hidden;
+  background:#F1E9D6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .33 0 0 0 0 .18 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  box-shadow:inset 0 0 60px rgba(150,120,70,.28),0 18px 40px -18px rgba(0,0,0,.9)}
+.panel.pp::before{content:"";position:absolute;inset:9px;border:2.5px dotted rgba(29,43,76,.6);border-radius:13px;pointer-events:none}
+.pp .label{color:var(--ink-2)}
+.pp .ink{filter:url(#ppink)}
+.pp .play{position:relative;z-index:1}
+/* the desk: five little ID stubs */
+.pp .desk button{background:rgba(255,255,255,.35);border:1.5px dashed rgba(29,43,76,.45);border-radius:8px;font-family:var(--type);color:var(--ink-2);position:relative}
+.pp .desk button b{font-family:"Special Elite",var(--type);font-size:1.05rem}
+.pp .desk button.sel{border:2px solid var(--ink);background:#FBF6EA;box-shadow:0 2px 0 rgba(29,43,76,.25)}
+.pp .desk button.right{border:2px solid var(--good);background:transparent;color:var(--good)}
+.pp .desk button.wrong{border:2px solid var(--bad);background:transparent;color:var(--bad)}
+.pp .desk button.right b,.pp .desk button.wrong b{color:inherit}
+/* the card head: flag slot, the big question mark, the worth stamp */
+.pphd{display:grid;grid-template-columns:76px 1fr 86px;align-items:center;gap:8px;margin-top:2px}
+.ppfl{width:76px;height:54px;border:2.5px solid var(--ink);border-radius:5px;padding:3px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.3)}
+.ppfl img{width:100%;height:100%;object-fit:cover;border-radius:2px;display:block}
+.ppfl span{font-family:"Special Elite",var(--type);font-size:1.6rem;color:var(--ink-2)}
+.ppq{text-align:center;font-family:"Special Elite",var(--type);font-size:3.4rem;line-height:1;color:var(--ink)}
+.ppworth{justify-self:end;transform:rotate(-7deg);border:2.5px solid var(--bad);color:var(--bad);border-radius:6px;padding:4px 6px;text-align:center;font-family:"Special Elite",var(--type);line-height:1.05;text-transform:uppercase}
+.ppworth small{display:block;font-size:.62rem;letter-spacing:.14em}
+.ppworth b{display:block;font-size:1.35rem;font-weight:400}
+.pptv{text-align:center;font-family:var(--type);font-size:.78rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-2);margin:-2px 0 0}
+/* the clues: typed lines on the card */
+.pp .clues{gap:0;border-top:1.5px dotted rgba(29,43,76,.45)}
+.pp .clue{background:transparent;border:0;border-bottom:1.5px dotted rgba(29,43,76,.45);border-radius:0;padding:10px 2px;gap:10px}
+.pp .clue .ci{width:26px;height:26px;background:transparent;border:1.8px solid var(--ink);font-size:.8rem;font-family:"Special Elite",var(--type);margin-top:1px}
+.pp .clue .ct span{font-family:var(--type);font-weight:700;letter-spacing:.12em;font-size:.7rem}
+.pp .clue .ct b{font-family:var(--type);font-weight:700;font-size:.98rem;letter-spacing:-.02em;line-height:1.3}
+.pp .clue .ct small{font-family:var(--type);font-size:.86rem;color:var(--ink-2)}
+.pp .clue.new .ct b{background:linear-gradient(transparent 12%,var(--hl) 12%,var(--hl) 88%,transparent 88%);box-decoration-break:clone;-webkit-box-decoration-break:clone;padding:0 2px;margin-left:-2px}
+.pp .clue.new{border-color:rgba(29,43,76,.45)}
+.pp .clue.off{opacity:.55;border-style:dotted}
+.pp .clue.off .ci{border-style:dashed;box-shadow:none}
+.pp .clue.off .ct b{font-weight:400;color:transparent;border-bottom:1.5px solid rgba(29,43,76,.35);width:70%;height:1.1em;margin-top:2px}
+.pp .worth{font-family:var(--type);font-size:.9rem}
+.pp .worth b{color:var(--bad)}
+.pp .missed{font-family:var(--type);color:var(--bad);text-decoration:line-through;text-decoration-thickness:1.5px}
+.ppform{display:flex;flex-direction:column;gap:4px}
+.ppform>small{font-family:var(--type);font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+.pp .askbtn,.pp .ans input{background:rgba(255,255,255,.4);border:0;border-bottom:2.5px solid var(--ink);border-radius:4px 4px 0 0;color:var(--ink-2);font-family:var(--type)}
+.pp .giveup{color:var(--bad);border-color:var(--bad);background:transparent}
+.ppfoot{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-top:-4px}
+.ppfoot .mingo{flex:none;margin:-6px -4px -8px 0}
+.ppwm{position:absolute;z-index:0;right:-8px;top:46%;transform:rotate(-14deg);border:4px double rgba(29,43,76,.11);color:rgba(29,43,76,.11);border-radius:10px;padding:4px 14px;font-family:"Special Elite",var(--type);font-size:2.6rem;letter-spacing:.12em;pointer-events:none}
+/* the back of the card: the answer, stamped */
+.ppback{position:relative;border-radius:14px;padding:12px 12px 14px;background:rgba(255,255,255,.28);border:1.5px solid rgba(29,43,76,.25);display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.ppbtop{position:relative;height:96px}
+.ppseal{position:absolute;left:4px;top:2px;width:88px;height:88px;border:3px solid var(--stamp);border-radius:50%;display:flex;align-items:center;justify-content:center;transform:rotate(-8deg);box-shadow:inset 0 0 0 4px #F1E9D6,inset 0 0 0 5.5px var(--stamp)}
+.ppseal .mingo{width:60px;height:60px}
+.ppring{position:absolute;right:0;top:-6px;width:128px;height:128px;transform:rotate(12deg);color:var(--stamp);opacity:.8}
+.ppname{position:relative;margin-top:-12px;font-family:"Special Elite",var(--type);font-weight:400;font-size:2.5rem;line-height:1;text-transform:uppercase;letter-spacing:.02em;color:var(--ink);overflow-wrap:anywhere}
+.ppname.long{font-size:1.8rem}
+.ppmid{display:flex;align-items:center;gap:12px;min-height:110px}
+.ppsil{width:120px;height:110px;flex:none}
+.ppsil path{fill:#3A4256}
+.ppverdict{margin-left:auto;transform:rotate(-9deg);border:3px solid currentColor;border-radius:8px;padding:6px 10px;text-align:center;font-family:"Special Elite",var(--type);text-transform:uppercase;line-height:1.05;color:var(--good)}
+.ppverdict b{display:block;font-size:1.25rem;font-weight:400;letter-spacing:.06em}
+.ppverdict small{display:block;font-size:.8rem;letter-spacing:.1em}
+.ppback.no .ppverdict{color:var(--bad)}
+.pptags{display:flex;flex-wrap:wrap;gap:6px}
+.pptags span{position:relative;background:#E3D6B8;color:var(--ink);font-family:var(--type);font-weight:700;font-size:.88rem;padding:4px 10px 4px 16px;clip-path:polygon(8px 0,100% 0,100% 100%,8px 100%,0 50%)}
+.pptags span::before{content:"";position:absolute;left:7px;top:50%;width:4px;height:4px;margin-top:-2px;border-radius:50%;background:#F1E9D6}
+.pp .reveal{background:transparent;border:0;border-bottom:1.5px dotted rgba(29,43,76,.45);border-radius:0;padding:10px 2px}
+.pp .reveal .rn b{font-family:"Special Elite",var(--type);font-weight:400;text-transform:uppercase}
+.pp .reveal .rn small{font-family:var(--type);font-size:.82rem}
+.pp .reveal .rpts{font-family:"Special Elite",var(--type);font-size:1.1rem;color:var(--good);border:2px solid currentColor;border-radius:5px;padding:1px 6px;transform:rotate(-6deg)}
+.pp .reveal.wrong .rpts{color:var(--bad)}
+</style>
+<link rel="stylesheet" href="../../brand/geomingo.css?v=202611020500">
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
+<div id="layer"></div>
+
+<script src="../../shared/data.js?v=202610192300"></script>
+<script src="../../shared/games.js?v=202610240100"></script>
+<script src="../../shared/minigames.js?v=202611020300"></script>
+<script>
+/* ---- Customs: a traveller at the desk, and you work out where they come from ----
+   Each traveller hands over five clues, one at a time, from vague to obvious: size, where on the map, language and
+   road side, neighbours, flag. Name the country after k clues and it is worth 6 - k points (5 down to 1).
+   A wrong answer opens the next clue; a wrong answer with all five open lets the traveller go (0 points).
+   A traveller is {c: country code, k: clues open, tries: wrong answers, st: 'play' | 'right' | 'wrong'}. */
+const CLUES=5,PER=5,MAX=CLUES*PER,FIRST='2026-11-02';
+const SOV=C.filter(c=>!c.t);
+const cByCode=Object.fromEntries(SOV.map(c=>[c.c,c]));
+const flagSrc=c=>FLAGS[c]||'';
+const contName={EU:'Europe',AS:'Asia',AF:'Africa',NA:'North or Central America',SA:'South America',OC:'Oceania'};
+const worth=q=>CLUES+1-q.k;
+const ptsOf=q=>q.st==='right'?worth(q):0;
+// v: which clue of each group this traveller gives (picked once, so a saved game keeps its clues)
+const newQ=(c,rand)=>{rand=rand||Math.random;return {c,k:1,tries:[],st:'play',v:GROUPS.map(()=>Math.floor(rand()*1e6))}};
+let query='',typing=false;
+
+/* ---- the clues: five groups, from not obvious to obvious ----
+   Each group is a list of possible clues; a traveller gets one at random from each group (only the ones the
+   country has data for), so the same country can come back with other clues. */
+// European number format: dot for thousands, comma for decimals (4.964 km, 83,7 years)
+const num=(n,d)=>Number(n).toLocaleString('de-DE',d==null?{maximumFractionDigits:3}:{minimumFractionDigits:d,maximumFractionDigits:d});
+function popText(n){if(n>=1e9)return num(+(n/1e9).toFixed(2))+' billion';if(n>=1e6)return num(+(n/1e6).toFixed(n>=1e8?0:1))+' million';
+  if(n>=1e4)return num(Math.round(n/1e3)*1e3);return num(Math.round(n/10)*10)}
+const areaText=a=>num(a>=1e4?Math.round(a/1e3)*1e3:a>=100?Math.round(a/10)*10:a)+' km²';
+const latText=l=>Math.abs(l)<1?'right on the Equator':Math.round(Math.abs(l))+'° '+(l>=0?'north':'south')+' of the Equator';
+const listText=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
+const isIn=(k,c)=>(EXTRA[k]||DATA[k]||[]).includes(c);
+const nbOf=c=>c.b.filter(b=>cByCode[b]);
+// a language named after the country gives it away (Icelandic, Italian, German…)
+const giveaway=(c,w)=>N(w).slice(0,4)===c.k.slice(0,4);
+const FLAGCOL=[['flag_red','red'],['flag_white','white'],['flag_blue','blue'],['flag_green','green'],['flag_yellow','yellow'],['flag_black','black'],['flag_orange','orange']];
+const FLAGSYM=[['flag_star','a star'],['flag_moon','a crescent moon'],['flag_sun','a sun'],['flag_cross','a cross'],['flag_uj','the Union Jack'],['flag_arms','a coat of arms'],['flag_animal','an animal']];
+const SEAS=[['sea_med','the Mediterranean'],['sea_carib','the Caribbean Sea'],['sea_baltic','the Baltic Sea'],['sea_black','the Black Sea'],['sea_red','the Red Sea'],['sea_gulf','the Persian Gulf'],['sea_caspian','the Caspian Sea'],['sea_north','the North Sea']];
+// facts for group 3: [data key, what it says]
+const FACTS=[['ind_uk','Became independent from the United Kingdom'],['ind_es','Became independent from Spain'],['pol_eu','A member of the European Union'],['pol_nato','A member of NATO'],
+  ['pol_cw','A member of the Commonwealth'],['pol_g20','A member of the G20'],['pol_mon','A monarchy, with a king, queen, emir or similar'],['pol_opec','A member of OPEC, the oil exporters'],
+  ['pol_ussr','Was part of the Soviet Union'],['arab','A member of the Arab League'],['asean','A member of ASEAN, in Southeast Asia'],['nukes','Has nuclear weapons'],['noarmy','Has no army of its own'],
+  ['nuclear','Makes electricity in nuclear power plants'],['sp_summer','Has hosted the Summer Olympics'],['sp_winter','Has hosted the Winter Olympics'],['sp_wchost','Has hosted the men\'s football World Cup'],
+  ['sp_wcwin','Has won the men\'s football World Cup'],['sp_f1','Has a Formula 1 race'],['euro','Takes part in Eurovision'],['metro','Has a metro system'],['wc','Has played at the men\'s football World Cup']];
+const GROUPS=[
+  // 1 Curiosities
+  ['Curiosity',c=>{const d=c.c,o=[],V=k=>DATA[k][d];
+    if(V('life'))o.push(['Life expectancy: '+num(V('life'))+' years','How long people live on average']);
+    if(V('age'))o.push(['Median age: '+num(V('age'))+' years','Half the people are younger than this']);
+    if(V('forest')!=null)o.push(['Forest covers '+Math.round(V('forest'))+'% of the land','']);
+    if(V('elev'))o.push(['Highest point: '+num(V('elev'))+' m above the sea','']);
+    o.push(V('olymp')?['Has won '+num(V('olymp'))+' Olympic medal'+(V('olymp')===1?'':'s'),'Summer and Winter Games, all time']:['Has never won an Olympic medal','Summer and Winter Games, all time']);
+    if(V('urban')!=null)o.push([Math.round(V('urban'))+'% of the people live in towns and cities','']);
+    if(V('co2')!=null)o.push(['CO₂ per person: '+num(V('co2'))+' tonnes a year','']);
+    if(V('cpi')!=null)o.push(['Corruption score: '+V('cpi')+' out of 100','100 is the cleanest (Transparency International)']);
+    if(V('hdi'))o.push(['Human development index: '+num(V('hdi')),'From 0 to 1: health, schooling and income']);
+    return o}],
+  // 2 Numbers
+  ['Numbers',c=>{const d=c.c,o=[],V=k=>DATA[k][d];
+    o.push(['Population: '+popText(V('pop')||0)+' inhabitants','']);
+    o.push(['Area: '+areaText(c.a),'']);
+    if(V('gdp'))o.push(['Wealth per person: '+num(Math.round(V('gdp')/100)*100)+' US dollars a year','GDP per person']);
+    if(V('coast'))o.push(['Coastline: '+num(Math.round(V('coast')))+' km','']);
+    if(V('cappop')&&CAPOK(c))o.push(['The capital has '+popText(V('cappop'))+' inhabitants','']);
+    if(V('landb'))o.push(['Land borders: '+num(V('landb'))+' km in all','']);
+    return o}],
+  // 3 History, clubs and the flag described
+  ['History and clubs',c=>{const d=c.c,f=FACTS.filter(([k])=>isIn(k,d)).map(x=>x[1]),o=[];
+    for(let i=0;i+1<f.length;i+=2)o.push([f[i],f[i+1]]);if(f.length%2)o.push([f[f.length-1],'']);
+    const col=FLAGCOL.filter(([k])=>isIn(k,d)).map(x=>x[1]),sym=FLAGSYM.filter(([k])=>isIn(k,d)).map(x=>x[1]);
+    o.push(['Its flag is '+listText(col),sym.length?'With '+listText(sym):'']);
+    if(c.cu.includes('EUR'))o.push(['Pays with the euro','']);
+    return o}],
+  // 4 The map
+  ['On the map',c=>{const d=c.c,nb=nbOf(c),o=[],ct=contName[c.r];
+    o.push([ct+', '+latText(c.lat),'']);
+    o.push([ct+(c.ll?', landlocked: no coast':!nb.length?', an island country':', with a coast'),nb.length?nb.length+' land neighbour'+(nb.length===1?'':'s'):'No land borders']);
+    const sea=SEAS.filter(([k])=>isIn(k,d)).map(x=>x[1]);if(sea.length)o.push([ct+', on '+listText(sea),'']);
+    const lg=c.lg.filter(l=>!giveaway(c,l));
+    if(lg.length===c.lg.length&&lg.length)o.push([ct+'. '+(lg.length>1?'Languages: ':'Language: ')+listText(lg.slice(0,3))+(lg.length>3?' and '+(lg.length-3)+' more':''),'Drives on the '+(LEFT.has(d)?'left':'right')]);
+    return o}],
+  // 5 The obvious
+  ['The obvious',c=>{const nb=nbOf(c).map(b=>cByCode[b].n).sort(),o=[];
+    if(nb.length)o.push([nb.length>6?'Borders '+listText(nb.slice(0,6))+' and '+(nb.length-6)+' more':'Borders '+listText(nb),'']);
+    if(c.cap&&!giveaway(c,c.cap))o.push(['The capital starts with '+c.cap[0].toUpperCase(),c.cap.replace(/[ \-'.]/g,'').length+' letters']);
+    o.push(['','',true]);
+    return o}]];
+function clue(q,i){const c=cByCode[q.c],[lab,f]=GROUPS[i],o=f(c),v=(q.v||[])[i];
+  // old saves without v: always the same pick for the country
+  const x=o[(v!=null?v:seedOf(q.c+i))%o.length];
+  return x[2]?{ico:i+1,lab:'Flag',main:'',sub:'',flag:q.c}:{ico:i+1,lab,main:x[0],sub:x[1]}}
+function cluesHTML(q){const done=q.st!=='play';
+  return `<ol class="clues">${Array.from({length:CLUES},(_,i)=>{
+    if(i>=q.k&&!done)return `<li class="clue off"><span class="ci">${i+1}</span><span class="ct"><span>Clue ${i+1} · ${CLUES-i} point${CLUES-i===1?'':'s'}</span><b>Locked</b></span></li>`;
+    const x=clue(q,i);
+    return `<li class="clue${!done&&i===q.k-1&&i>0?' new':''}${i>=q.k?' off':''}"><span class="ci">${x.ico}</span><span class="ct"><span>${x.lab}</span>${x.flag?'<b>Pinned to the top of the card</b>':x.main?`<b>${esc(x.main)}</b>`:''}${x.sub?`<small>${esc(x.sub)}</small>`:''}</span></li>`}).join('')}</ol>`}
+
+/* answering: the same box as in the other games */
+function matches(t){const k=N(t);if(!k)return [];
+  const ex=[],st=[],ins=[];for(const c of SOV){if(c.k===k||c.ak.includes(k))ex.push(c);else if(c.k.startsWith(k)||c.ak.some(a=>a.startsWith(k)))st.push(c);else if(k.length>=3&&(c.k.includes(k)||c.ak.some(a=>a.includes(k))))ins.push(c)}
+  return [...ex,...st,...ins].slice(0,6)}
+function suggHTML(q){if(!query)return SHEETS?'<li class="hint" style="padding:8px 2px">Start typing, then tap the country.</li>':'';const res=matches(query);
+  if(!res.length)return `<li class="hint" style="padding:8px 2px">No country matches “${esc(query)}”.</li>`;
+  return res.map(c=>{const t=q.tries.includes(c.c);return `<li><button data-g="${c.c}" ${t?'disabled':''}>${esc(c.n)}${t?'<span class="tag">not it</span>':''}</button></li>`}).join('')}
+function answerBoxHTML(q){
+  if(SHEETS)return askBtnHTML();
+  return `<div class="ans"><input id="q" placeholder="Type a country…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(query)}" aria-label="Type a country"><ul class="sugg" id="sugg">${suggHTML(q)}</ul></div>`}
+function bindAnswer(q,onPick){
+  if(SHEETS){bindAsk($('askbtn')?{key:q.c+':'+q.k+':'+view,back:'Back to the clues',
+    head:`<span>Where is this traveller from? <i>${worth(q)} point${worth(q)===1?'':'s'}</i></span>`,
+    sugg:t=>{query=t;return suggHTML(q)},first:t=>{const m=matches(t).filter(c=>!q.tries.includes(c.c));return m[0]&&m[0].c},pick:onPick}:null);return}
+  const box=$('q');if(!box)return;
+  const draw=()=>{const u=$('sugg');if(u){u.innerHTML=suggHTML(q);u.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>onPick(b.dataset.g))}};
+  box.oninput=e=>{query=e.target.value;draw()};
+  box.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const m=matches(query).filter(c=>!q.tries.includes(c.c));if(m[0])onPick(m[0].c)}};
+  draw();if(query||typing)setTimeout(()=>{box.focus();box.setSelectionRange(box.value.length,box.value.length)},0)}
+// one answer: 'right', 'wrong' (the next clue opens) or 'out' (all five were open: the traveller goes)
+function answer(q,code){if(code===q.c){q.st='right';return 'right'}
+  q.tries.push(code);if(q.k>=CLUES){q.st='wrong';return 'out'}q.k++;return 'wrong'}
+// ask for the next clue without answering; with all five open, "I don't know" lets the traveller go
+function nextClue(q){if(q.st!=='play')return;if(q.k<CLUES)q.k++;else q.st='wrong'}
+const tk=Geomingo.tk;
+function feedback(q,res,code,key){const n=cByCode[q.c].n;
+  if(res==='right'){Geomingo.stamp('customs',n,'+'+worth(q),q.c);say(key,'happy','Stamped: '+n+'.','+'+worth(q)+' point'+(worth(q)===1?'':'s')+(q.k===1?'. One clue was enough.':' with '+q.k+' clues.'))}
+  else if(res==='wrong')say(key,'sad','Not '+cByCode[code].n+'.','Clue '+q.k+' is open. Now worth '+worth(q)+'.');
+  else say(key,'sad','It was '+n+'.',code?'Not '+cByCode[code].n+'. No clues left.':'All five clues used.')}
+const shapeOf=c=>{try{const x=COUNTRIES.find(o=>o.c===c);return x&&x.p}catch(e){return null}};
+const ringSVG=()=>`<svg class="ppring ink" viewBox="0 0 120 120" aria-hidden="true"><defs><path id="pprp" d="M60 60m-43 0a43 43 0 1 1 86 0a43 43 0 1 1-86 0"/></defs><circle cx="60" cy="60" r="57" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="60" cy="60" r="33" fill="none" stroke="currentColor" stroke-width="2"/><text fill="currentColor" font-family="Special Elite,Courier Prime,monospace" font-size="15" letter-spacing="2.2"><textPath href="#pprp" textLength="262" lengthAdjust="spacing">GEOMINGO ★ CUSTOMS ★ ENTRY ★</textPath></text></svg>`;
+function backHTML(q){const c=cByCode[q.c],ok=q.st==='right',sh=shapeOf(q.c);
+  const tags=[c.cap,contName[c.r].replace(' or Central',''),c.ll?'Landlocked':nbOf(c).length?'Coast':'Island',c.cu.includes('EUR')?'Euro':'',isIn('pol_mon',q.c)?'Monarchy':'',popText(DATA.pop[q.c]||0)+' people'].filter(Boolean);
+  return `<div class="ppback ${ok?'ok':'no'}"><div class="ppbtop"><span class="ppseal ink">${Geomingo.mingo(ok?'happy':'sad',60)}</span>${ringSVG()}</div>
+    <b class="ppname ink${c.n.length>11?' long':''}">${esc(c.n)}</b>
+    <div class="ppmid">${sh?`<svg class="ppsil" viewBox="0 0 100 100" aria-hidden="true"><path d="${sh}"/></svg>`:''}<span class="ppverdict ink"><b>${ok?'Admitted':'Denied'}</b><small>${ok?'+'+worth(q)+' pts · '+q.k+' clue'+(q.k===1?'':'s'):'0 pts'}</small></span></div>
+    <div class="pptags">${tags.map(t=>`<span>${esc(t)}</span>`).join('')}</div></div>`}
+function revealHTML(q){const c=cByCode[q.c],ok=q.st==='right';
+  return `<div class="reveal ${ok?'':'wrong'}"><img class="flag" src="${flagSrc(q.c)}" alt=""><span class="rn"><b>${esc(c.n)}</b><small>${ok?'Right with '+q.k+' clue'+(q.k===1?'':'s'):'The answer'} · capital ${esc(c.cap)}</small></span><span class="rpts">${ok?'+'+worth(q):'0'}</span></div>`}
+const deskHTML=G=>`<div class="desk" role="group" aria-label="The five travellers">${G.qs.map((q,i)=>{const cls=[i===G.sel&&!G.over?'sel':'',q.st==='right'?'right':q.st==='wrong'?'wrong':''].join(' ');
+  return `<button data-tv="${i}" class="${cls}" aria-label="Traveller ${i+1}${q.st==='play'?'':': '+esc(cByCode[q.c].n)}">#${i+1}<b>${q.st==='right'?'+'+worth(q):q.st==='wrong'?'0':i===G.sel&&!G.over?'?':'–'}</b></button>`}).join('')}</div>`;
+const pointsOf=G=>G.qs.reduce((n,q)=>n+ptsOf(q),0);
+const rightOf=G=>G.qs.filter(q=>q.st==='right').length;
+const wrongOf=G=>G.qs.reduce((n,q)=>n+q.tries.length,0);
+// the game's play area: the five at the desk, the clues of the one at the desk, the answer box
+function playHTML(G){const q=G.qs[G.sel],last=G.justDone!=null?G.qs[G.justDone]:null;G.justDone=null;
+  let h=deskHTML(G);
+  if(last&&last.st!=='play'&&last!==q)h+=backHTML(last);
+  if(G.over)return `<div class="play">${h}</div>`;
+  const flagOpen=Array.from({length:q.k},(_,i)=>clue(q,i)).some(x=>x.flag);
+  h+=`<div class="pphd"><span class="ppfl">${flagOpen?`<img src="${flagSrc(q.c)}" alt="The traveller's flag">`:'<span>?</span>'}</span><span class="ppq ink">?</span><span class="ppworth ink"><small>Worth</small><b>${worth(q)} pt${worth(q)===1?'':'s'}</b></span></div>`+
+    `<p class="pptv">Traveller ${G.sel+1} of ${PER}</p>`+cluesHTML(q)+
+    `<div class="worth">Clue ${q.k} of ${CLUES} open<button class="linkbtn" id="nextclue">${q.k<CLUES?'Next clue':'I don\'t know'}</button></div>`+
+    (q.tries.length?`<p class="missed">Not ${q.tries.map(c=>esc(cByCode[c].n)).join(', not ')}.</p>`:'')+`<div class="ppform"><small>Country of origin</small>${answerBoxHTML(q)}</div>`+
+    `<div class="ppfoot">${giveUpHTML()}${Geomingo.mingo('think',62)}</div><span class="ppwm" aria-hidden="true">CUSTOMS</span>`;
+  return `<div class="play">${h}</div>`}
+// after a traveller leaves the desk: the next one still waiting, or the game is over
+function advance(G){if(G.qs[G.sel].st==='play')return;G.justDone=G.sel;const n=G.qs.findIndex(q=>q.st==='play');if(n<0)G.over=true;else G.sel=n}
+const sq=q=>q.st==='right'?(q.k===1?'🟩':q.k<=3?'🟨':'🟧'):'🟥';
+const sqClass=q=>q.st==='right'?(q.k<=2?'on':'mid'):q.st==='wrong'?'bad':'';
+const squaresHTML=G=>`<span class="dsq" aria-hidden="true">${G.qs.map(q=>`<i class="${sqClass(q)}"></i>`).join('')}</span>`;
+
+/* ---- Daily: five travellers, the same for everyone, new at midnight CET ----
+   Three well-known countries (10 million people or more) and two of the rest, each dealt from its own deck shuffled
+   once per cycle, so no country comes back until its deck is used up. Saved as cu-daily {date, over, S: the game}. */
+function dailyQs(key){const n=dayNum(key,FIRST)-1,deal=(pool,per,tag)=>{const codes=pool.map(c=>c.c).sort(),days=Math.floor(codes.length/per);
+    const cyc=Math.floor(n/days),i=((n%days)+days)%days;return shuffle(codes,rngFrom(seedOf('customs-'+tag+'-'+cyc))).slice(i*per,(i+1)*per)};
+  const big=SOV.filter(c=>(DATA.pop[c.c]||0)>=1e7),rest=SOV.filter(c=>(DATA.pop[c.c]||0)<1e7);
+  const a=deal(big,3,'big'),b=deal(rest,2,'rest');
+  return shuffle([a[0],a[1],b[0],a[2],b[1]],rngFrom(seedOf('customs-order-'+key))).map(c=>newQ(c,rngFrom(seedOf('customs-clues-'+key+'-'+c))))}
+let D=null;
+const dailySaved=()=>{const d=load('cu-daily',null);return d&&d.date===todayKey()?d:null};
+function dailyGame(){const d=dailySaved();if(d&&d.S)return d.S;
+  return {mode:'daily',date:todayKey(),num:dayNum(todayKey(),FIRST),qs:dailyQs(todayKey()),sel:0,over:false}}
+function dailySave(){if(!D)return;
+  if(D.mode==='archive'){const a=load('cu-arch',{});a[D.date]=D;store('cu-arch',a);if(D.over)logHist(D);return}
+  store('cu-daily',{date:D.date,over:D.over,S:D});
+  if(D.over&&logHist(D)&&!TESTDAY){Geomingo.clock.stop('customs',D.date,pointsOf(D)/MAX);Geomingo.account.done('customs')}}
+// a finished daily (on its day) goes into the history once: {p points, r travellers named, m wrong answers}
+function logHist(G){if(G.mode!=='daily')return false;const h=load('cu-hist',{});if(h[G.date])return false;
+  h[G.date]={p:pointsOf(G),r:rightOf(G),m:wrongOf(G)};store('cu-hist',h);return true}
+const custKey=()=>view==='train'&&T?'train':D?'cu:'+D.date+':'+D.mode:'';
+function dailyPick(code){const q=D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;
+  const res=answer(q,code);query='';typing=res==='wrong';
+  feedback(q,res,code,custKey());advance(D);dailySave();render();if(D.over)window.scrollTo(0,0)}
+function dailyNextClue(){const q=D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;nextClue(q);
+  if(q.st==='wrong')feedback(q,'out','',custKey());else say(custKey(),'think','Clue '+q.k+' is open.','Now worth '+worth(q)+'.');
+  advance(D);dailySave();render();if(D.over)window.scrollTo(0,0)}
+function dailyShareText(G){return `${Geomingo.share('Customs')} #${G.num}${G.mode==='archive'?' (archive)':''} — ${pointsOf(G)}/${MAX}\n${G.qs.map(sq).join('')}`}
+const dailyShare=G=>dailyShareText(G)+"\n\nPlay today's Customs: "+pageLink();
+function verdict(G){const p=pointsOf(G),r=rightOf(G);
+  return r===PER&&p>=20?{pose:'happy',t:'Waved through. '+p+' points.',s:'All five named.'}:r===PER?{pose:'happy',t:'All five stamped.',s:p+' of '+MAX+' points.'}
+    :r>=3?{pose:'happy',t:r+' of 5 stamped.',s:p+' points. Tap a traveller to see who it was.'}:r>=1?{pose:'think',t:'A long queue today.',s:r+' of 5, '+p+' points.'}
+    :{pose:'sad',t:'Nobody got through today.',s:'Solo helps.'}}
+// the result, on top of the page, as in every game
+function resultHTML(G){const p=pointsOf(G),v=verdict(G);
+  if(G.mode==='archive')return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Archive · Customs #${G.num}</span><p class="big">${p} points</p>
+    <p class="hint">${rightOf(G)} of 5 named. Archive games don't count for the ranking or your streak.</p>
+    <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
+    <div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="primary" id="archback" style="flex:1">Back to archive</button></div></section>`;
+  return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Customs #${G.num}</span><p class="big">${p} points</p>
+    <p class="hint">${rightOf(G)} of 5 named. Next travellers in ${nextIn()}.</p>
+    <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
+    <div class="row-btns"><button class="ghost" id="copy">Share</button>${nextGameBtn('customs')}</div>
+    <button class="ghost" id="playsolo">Play Solo</button>
+    ${allPlayedHTML('customs')}
+    <span class="label">Your daily games</span>${statTiles(Object.keys(load('cu-hist',{})).length,cuAverage(),streakOf(load('cu-hist',{})))}</section>${rankingHTML()}`}
+// the summary under a finished game: who each traveller was
+const summaryHTML=G=>`<section class="panel pp"><span class="label">The travellers</span>${G.qs.map(revealHTML).join('')}</section>`;
+// today's ranking (signed-in players, first try of the day): points, then fewer wrong answers, then who finished first
+const rankingHTML=()=>Geomingo.account.rankingHTML('customs',{what:'game',score:r=>[r.s+' pts',r.m+' wrong']});
+Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&D.mode==='daily'&&D.date===todayKey()){D=dailyGame();liveKey=''}
+  if(!typing&&(view==='home'||view==='daily'&&D&&D.over))render()});
+function openDaily(){D=dailyGame();query='';view='daily';render();window.scrollTo(0,0)}
+function ticketHTML(G,mode){const q=G.qs[G.sel];
+  return Geomingo.ticket(moodHTML(custKey(),G.qs.some(x=>x.st!=='play')||q.k>1?'think':'pass','A traveller at the desk.','Read the clue and name the country. Every new clue lowers the points.'),
+    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Desk',(G.sel+1)+'/'+PER)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth','+'+worth(q),'tk-gs'),{mode,num:G.num})}
+function dailyHTML(){const arch=D.mode==='archive';let h=header('Customs',(arch?'Archive #':'Daily #')+D.num);
+  h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's travellers"}</span></div>`;
+  if(D.over)return h+resultHTML(D)+summaryHTML(D);
+  return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel pp">${playHTML(D)}</section>`+quickRules()}
+const cuAverage=()=>{const h=load('cu-hist',{}),v=Object.values(h);return v.length?EU(v.reduce((a,e)=>a+(+e.p||0),0)/v.length,1):'–'};
+
+/* ---- the archive: past days, one try each on this device ---- */
+const archDay=k=>{const e=load('cu-hist',{})[k];return e?e.p+' pts':null};
+function openArchive(){view='archive';query='';typing=false;render();window.scrollTo(0,0)}
+function playArchive(k){if(archDay(k)){toast('You played this day already.');return}
+  const a=load('cu-arch',{});D=a[k]||{mode:'archive',date:k,num:dayNum(k,FIRST),qs:dailyQs(k),sel:0,over:false};
+  query='';typing=false;view='daily';dailySave();render();window.scrollTo(0,0)}
+const archiveView=()=>header('Customs','Archive')+archiveHTML({first:FIRST,label:'Day',num:k=>dayNum(k,FIRST),
+  played:archDay,saved:k=>load('cu-arch',{})[k]||null,done:g=>[pointsOf(g)+' pts',squaresHTML(g)]});
+
+/* ---- Solo: five random travellers from anywhere, as many games as you like (cu-solo keeps the numbers) ---- */
+let T=null;
+function openSolo(){view='solo';query='';typing=false;render();window.scrollTo(0,0)}
+function soloHTML(){return header('Customs','Solo')+`<section class="panel">
+  <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Solo</span></div>
+  <p class="hint">Five travellers, a new set every game. Up to ${MAX} points.</p>
+  <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['hard','Hard']],soloDiff())}<p class="hint">${soloDiff()==='easy'?'Well-known countries, with 10 million people or more':'Any of the 197 countries'}.</p></div>
+  <button class="primary" id="start">Start game</button></section>${quickRules()}`}
+const soloDiff=()=>load('cu-diff','easy')==='hard'?'hard':'easy';
+const seg=(name,opts,val)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-seg="${name}" data-v="${v}" aria-pressed="${v===val}">${l}</button>`).join('')}</div>`;
+function openTrain(){const pool=soloDiff()==='easy'?SOV.filter(c=>(DATA.pop[c.c]||0)>=1e7):SOV,codes=shuffle(pool.map(c=>c.c),Math.random).slice(0,PER);
+  T={mode:'solo',qs:codes.map(c=>newQ(c)),sel:0,over:false};mood=null;view='train';query='';typing=false;render();window.scrollTo(0,0)}
+function trainEnd(){if(T.logged)return;T.logged=1;logSolo('cu-solo',{p:pointsOf(T),best:pointsOf(T),r:rightOf(T)})}
+function trainPick(code){const q=T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;
+  const res=answer(q,code);query='';typing=res==='wrong';feedback(q,res,code,custKey());advance(T);if(T.over)trainEnd();render();if(T.over)window.scrollTo(0,0)}
+function trainNextClue(){const q=T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;nextClue(q);
+  if(q.st==='wrong')feedback(q,'out','',custKey());else say(custKey(),'think','Clue '+q.k+' is open.','Now worth '+worth(q)+'.');
+  advance(T);if(T.over)trainEnd();render();if(T.over)window.scrollTo(0,0)}
+function trainHTML(){let h=header('Customs','Solo')+`<div class="backline"><button class="linkbtn" id="soloback">← Back</button><span class="ht">Solo</span></div>`;
+  if(T.over){const p=pointsOf(T),s=load('cu-solo',null)||{};
+    return h+`<section class="panel">${Geomingo.hello(p>=15?'happy':'think',p+' points.',rightOf(T)+' of 5 named. Your best Solo game: '+(s.best||p)+'.',{key:'res'})}<span class="label">Solo</span><p class="big">${p} points</p>
+      <button class="primary" id="tagain">New game</button></section>`+summaryHTML(T)}
+  return h+ticketHTML(T,'practice')+`<section class="panel pp">${playHTML(T)}</section>`+quickRules()}
+
+/* ---- stats, rules, credits ---- */
+function myStatsHTML(){const h=load('cu-hist',{}),so=load('cu-solo',null)||{n:0};
+  return statsPageHTML({game:'Customs',hist:h,unit:'day',avg:cuAverage(),lbs:d=>[{path:'lb/customs',dates:d}],num:k=>'Customs #'+dayNum(k,FIRST),
+    solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'named']]},
+    friends:{n:0,w:0,place:0,best:0,third:[0,'best']}})}
+const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Five travellers, five clues each, from not obvious to obvious. Name the country with 1 clue for 5 points, with 2 for 4, down to 1 point with all five. A wrong answer opens the next clue. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+function rulesHTML(){return `<h3>The idea</h3><ul>
+  <li>Five travellers come to the customs desk, one at a time. Work out which country each one comes from.</li>
+  <li>Only the 197 independent countries, never territories.</li></ul>
+  <h3>The clues</h3><ul>
+  <li>Each traveller has five clues, from not obvious to obvious, one from each group:</li>
+  <li><b>1 Curiosity</b>: life expectancy, median age, forest, highest point, Olympic medals, city life, CO₂, corruption or development score.</li>
+  <li><b>2 Numbers</b>: population, area, wealth per person, coastline, the capital's size or the length of its borders.</li>
+  <li><b>3 History and clubs</b>: independence, the EU, NATO, the Commonwealth, the Arab League, World Cups and Olympics hosted, nuclear power… or its flag described in words.</li>
+  <li><b>4 On the map</b>: continent with how far from the Equator, the coast, its seas, or its languages and driving side.</li>
+  <li><b>5 The obvious</b>: its neighbours, the capital's first letter or the flag.</li>
+  <li>Which clue of each group you get is random, so a country can come back with other clues.</li>
+  <li>You start with clue 1. Tap <b>Next clue</b> to open another one.</li></ul>
+  <h3>Points</h3><ul>
+  <li>Name the country with 1 clue open: <b>5 points</b>. With 2: 4. With 3: 3. With 4: 2. With all 5: 1.</li>
+  <li>A wrong answer opens the next clue, so it costs a point. A wrong answer with all five clues open, or <b>I don't know</b>, lets the traveller go with 0.</li>
+  <li>Best game: ${MAX} points. <b>Give up</b> ends the game as it stands.</li></ul>
+  <h3>How to answer</h3><ul>
+  <li>Tap <b>Type a country…</b>, start typing and tap the country in the list.</li>
+  <li>Names are in English. Accents, capitals and spaces don't matter, and common other names work too (Holland, Burma, UK…).</li></ul>
+  <h3>Modes</h3><ul>
+  <li><b>Today's travellers</b>: five countries, the same for everyone, new every day at midnight CET. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>
+  <li><b>Solo</b>: five random travellers, as many games as you like. <b>Easy</b>: well-known countries (10 million people or more). <b>Hard</b>: any country.</li>
+  <li><b>With friends</b>: coming soon.</li></ul>`}
+function creditsHTML(){return DATA_CREDITS}
+
+/* ---- home: today's travellers on top, then Solo and With friends, as in the other games ---- */
+let view='home';
+const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
+function homeHTML(){const key=todayKey();
+  if(!D||D.mode!=='daily'||D.date!==key)D=dailyGame();
+  const h=load('cu-hist',{});let daily;
+  if(D.over)daily=`<button class="hcard" id="daily"><span class="hm">Customs #${D.num} · done</span><span class="dsum">${squaresHTML(D)}<span class="dtxt"><span class="ht">${pointsOf(D)} points</span><span class="hs">${rightOf(D)} of 5 named</span></span>${dstatsHTML(streakOf(h),Object.keys(h).length,cuAverage())}</span><span class="hs">Tap to see the travellers and share your result.</span><span class="hm">Next travellers in ${nextIn()}</span></button>`;
+  else{const started=D.qs.some(q=>q.st!=='play'||q.k>1||q.tries.length);
+    daily=`<button class="hcard ac" id="daily"><span class="hm">#${D.num} · ${dateLabel(key)}</span><span class="ht">Today's travellers</span><span class="hs">${started?'You started: '+pointsOf(D)+' points so far. Tap to carry on.':'Five countries, the same for everyone, one try. Tap to open the desk.'}</span>
+      <span class="cpre" aria-hidden="true">${D.qs.map((q,i)=>`<i>${q.st==='right'?'+'+worth(q):q.st==='wrong'?'0':'#'+(i+1)}</i>`).join('')}</span></button>`}
+  const st=Geomingo.streak(),p=D.over?pointsOf(D):0;
+  const hello=D.over?Geomingo.hello(p?'happy':'sad',p?'Stamped for today.'+(st>1?' '+st+'-day streak.':''):'Rough crossing today.',"Today's travellers are done. Next ones in "+nextIn()+'.')
+    :Geomingo.hello('pass','GeoPass ready.','Five travellers at the desk. Every one you name is a stamp.');
+  return header('Customs','')+`<section class="home">${hello}${Geomingo.account.userHTML()}${daily}${D.over?rankingHTML():''}
+    <div class="hrow"><button class="hcard" data-go="train"><span class="ht">Solo</span><span class="hs">Practice on unlimited travellers, at your pace.</span></button>
+    <div class="hcard soon" aria-disabled="true"><span class="ht">With friends</span><span class="hs">Play online, 2 to 6 players. (coming soon)</span></div></div></section>${quickRules()}`}
+function goHome(){view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
+function render(){
+  if(!TESTDAY&&(view==='home'||view==='daily'&&D&&D.mode==='daily')){const g=dailyGame();if(!g.over)Geomingo.clock.start('customs',todayKey())}
+  if(D&&D.mode==='daily')watchResult('cu:'+D.date,D.over);
+  if(view==='train')app.innerHTML=trainHTML();
+  else if(view==='solo')app.innerHTML=soloHTML();
+  else if(view==='archive')app.innerHTML=archiveView();
+  else if(view==='daily')app.innerHTML=dailyHTML();
+  else app.innerHTML=homeHTML();
+  bind()}
+function bind(){
+  if(!$('askbtn'))closeSheet();
+  if(view==='train')bindGiveUp(()=>{if(T.over)return;T.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});T.over=true;trainEnd();render();window.scrollTo(0,0)});
+  else bindGiveUp(()=>{if(!D||D.over)return;D.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});D.over=true;query='';typing=false;dailySave();render();window.scrollTo(0,0)});
+  if($('home'))$('home').onclick=goHome;
+  app.querySelectorAll('[data-go="train"]').forEach(b=>b.onclick=openSolo);
+  if($('playsolo'))$('playsolo').onclick=openSolo;
+  if($('soloback'))$('soloback').onclick=openSolo;
+  if($('archback'))$('archback').onclick=openArchive;
+  if($('start'))$('start').onclick=openTrain;
+  if($('tagain'))$('tagain').onclick=openTrain;
+  if($('daily'))$('daily').onclick=openDaily;
+  if($('copy'))$('copy').onclick=()=>share(dailyShare(D));
+  app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
+  const G=view==='train'?T:view==='daily'?D:null;
+  app.querySelectorAll('[data-tv]').forEach(b=>b.onclick=()=>{const q=G&&G.qs[+b.dataset.tv];if(q&&q.st!=='play')toast(cByCode[q.c].n+(q.st==='right'?' · +'+worth(q):''))});
+  if($('nextclue'))$('nextclue').onclick=view==='train'?trainNextClue:dailyNextClue;
+  app.querySelectorAll('[data-seg="diff"]').forEach(b=>b.onclick=()=>{store('cu-diff',b.dataset.v);render()});
+  if(view==='train'&&T&&!T.over)bindAnswer(T.qs[T.sel],trainPick);
+  else if(view==='daily'&&D&&!D.over)bindAnswer(D.qs[D.sel],dailyPick)}
+render();
+// a new day while the page was in the background: today's new travellers
+document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(view==='home'||view==='daily'&&D&&D.mode==='daily'&&D.date!==todayKey()){D=null;if(view==='daily')openDaily();else render()}});
+// passport look: the country outlines for the back of the card come from Silhouette's file
+if(typeof COUNTRIES==='undefined'){const sc=document.createElement('script');sc.src='../../silhouette/countries.js?v=202610230100';sc.onload=()=>{if(view!=='home')render()};document.head.appendChild(sc)}
+</script>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="ppink"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.6 1.55" result="m"/><feComposite in="SourceGraphic" in2="m" operator="in"/></filter></svg>
+</body>
+</html>

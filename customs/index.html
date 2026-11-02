@@ -25,7 +25,7 @@
 <script src="../brand/account.js?v=202611020700"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&family=Special+Elite&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
 <link rel="stylesheet" href="../shared/style.css?v=202610252300">
 <style>
 /* Customs: one traveller at a time at the desk, five clues opened one by one, the answer box under them */
@@ -68,80 +68,6 @@
 .arch .dsq{width:64px}
 .cpre{display:flex;gap:6px;width:100%}
 .cpre i{flex:1;aspect-ratio:3/4;border-radius:8px;border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--mono);font-size:.8rem;color:var(--ink-2)}
-
-/* ---- Passport look (proposal): the play area is a cream card, navy ink, dotted border, rubber stamps ---- */
-.panel.pp{--sheet:#F1E9D6;--paper:#F1E9D6;--page:#F1E9D6;--bg:#F1E9D6;--ink:#1D2B4C;--ink-2:#5B6173;--muted:#5B6173;--rule:#B8AC8E;--line:#B8AC8E;
-  --gold:#8E5F0E;--good:#2F6B47;--bad:#B23A47;--red:#B23A47;--green:#2F6B47;--blue:#2A56B8;--coral:#E8616F;--flamingo:#C94A58;--flamingo-text:#B23A47;--coral-text:#B23A47;
-  --sea-soft:#E4D9BF;--p4-soft:#DDE2C8;--p0-soft:#EED6CC;--stamp:#2A3A68;--hl:rgba(240,196,70,.38);
-  position:relative;color:var(--ink);border:0;border-radius:20px;padding:20px 18px 18px;overflow:hidden;
-  background:#F1E9D6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .33 0 0 0 0 .18 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  box-shadow:inset 0 0 60px rgba(150,120,70,.28),0 18px 40px -18px rgba(0,0,0,.9)}
-.panel.pp::before{content:"";position:absolute;inset:9px;border:2.5px dotted rgba(29,43,76,.6);border-radius:13px;pointer-events:none}
-.pp .label{color:var(--ink-2)}
-.pp .ink{filter:url(#ppink)}
-.pp .play{position:relative;z-index:1}
-/* the desk: five little ID stubs */
-.pp .desk button{background:rgba(255,255,255,.35);border:1.5px dashed rgba(29,43,76,.45);border-radius:8px;font-family:var(--type);color:var(--ink-2);position:relative}
-.pp .desk button b{font-family:"Special Elite",var(--type);font-size:1.05rem}
-.pp .desk button.sel{border:2px solid var(--ink);background:#FBF6EA;box-shadow:0 2px 0 rgba(29,43,76,.25)}
-.pp .desk button.right{border:2px solid var(--good);background:transparent;color:var(--good)}
-.pp .desk button.wrong{border:2px solid var(--bad);background:transparent;color:var(--bad)}
-.pp .desk button.right b,.pp .desk button.wrong b{color:inherit}
-/* the card head: flag slot, the big question mark, the worth stamp */
-.pphd{display:grid;grid-template-columns:76px 1fr 86px;align-items:center;gap:8px;margin-top:2px}
-.ppfl{width:76px;height:54px;border:2.5px solid var(--ink);border-radius:5px;padding:3px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.3)}
-.ppfl img{width:100%;height:100%;object-fit:cover;border-radius:2px;display:block}
-.ppfl span{font-family:"Special Elite",var(--type);font-size:1.6rem;color:var(--ink-2)}
-.ppq{text-align:center;font-family:"Special Elite",var(--type);font-size:3.4rem;line-height:1;color:var(--ink)}
-.ppworth{justify-self:end;transform:rotate(-7deg);border:2.5px solid var(--bad);color:var(--bad);border-radius:6px;padding:4px 6px;text-align:center;font-family:"Special Elite",var(--type);line-height:1.05;text-transform:uppercase}
-.ppworth small{display:block;font-size:.62rem;letter-spacing:.14em}
-.ppworth b{display:block;font-size:1.35rem;font-weight:400}
-.pptv{text-align:center;font-family:var(--type);font-size:.78rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-2);margin:-2px 0 0}
-/* the clues: typed lines on the card */
-.pp .clues{gap:0;border-top:1.5px dotted rgba(29,43,76,.45)}
-.pp .clue{background:transparent;border:0;border-bottom:1.5px dotted rgba(29,43,76,.45);border-radius:0;padding:10px 2px;gap:10px}
-.pp .clue .ci{width:26px;height:26px;background:transparent;border:1.8px solid var(--ink);font-size:.8rem;font-family:"Special Elite",var(--type);margin-top:1px}
-.pp .clue .ct span{font-family:var(--type);font-weight:700;letter-spacing:.12em;font-size:.7rem}
-.pp .clue .ct b{font-family:var(--type);font-weight:700;font-size:.98rem;letter-spacing:-.02em;line-height:1.3}
-.pp .clue .ct small{font-family:var(--type);font-size:.86rem;color:var(--ink-2)}
-.pp .clue.new .ct b{background:linear-gradient(transparent 12%,var(--hl) 12%,var(--hl) 88%,transparent 88%);box-decoration-break:clone;-webkit-box-decoration-break:clone;padding:0 2px;margin-left:-2px}
-.pp .clue.new{border-color:rgba(29,43,76,.45)}
-.pp .clue.off{opacity:.55;border-style:dotted}
-.pp .clue.off .ci{border-style:dashed;box-shadow:none}
-.pp .clue.off .ct b{font-weight:400;color:transparent;border-bottom:1.5px solid rgba(29,43,76,.35);width:70%;height:1.1em;margin-top:2px}
-.pp .worth{font-family:var(--type);font-size:.9rem}
-.pp .worth b{color:var(--bad)}
-.pp .missed{font-family:var(--type);color:var(--bad);text-decoration:line-through;text-decoration-thickness:1.5px}
-.ppform{display:flex;flex-direction:column;gap:4px}
-.ppform>small{font-family:var(--type);font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
-.pp .askbtn,.pp .ans input{background:rgba(255,255,255,.4);border:0;border-bottom:2.5px solid var(--ink);border-radius:4px 4px 0 0;color:var(--ink-2);font-family:var(--type)}
-.pp .giveup{color:var(--bad);border-color:var(--bad);background:transparent}
-.ppfoot{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-top:-4px}
-.ppfoot .mingo{flex:none;margin:-6px -4px -8px 0}
-.ppwm{position:absolute;z-index:0;right:-8px;top:46%;transform:rotate(-14deg);border:4px double rgba(29,43,76,.11);color:rgba(29,43,76,.11);border-radius:10px;padding:4px 14px;font-family:"Special Elite",var(--type);font-size:2.6rem;letter-spacing:.12em;pointer-events:none}
-/* the back of the card: the answer, stamped */
-.ppback{position:relative;border-radius:14px;padding:12px 12px 14px;background:rgba(255,255,255,.28);border:1.5px solid rgba(29,43,76,.25);display:flex;flex-direction:column;gap:8px;overflow:hidden}
-.ppbtop{position:relative;height:96px}
-.ppseal{position:absolute;left:4px;top:2px;width:88px;height:88px;border:3px solid var(--stamp);border-radius:50%;display:flex;align-items:center;justify-content:center;transform:rotate(-8deg);box-shadow:inset 0 0 0 4px #F1E9D6,inset 0 0 0 5.5px var(--stamp)}
-.ppseal .mingo{width:60px;height:60px}
-.ppring{position:absolute;right:0;top:-6px;width:128px;height:128px;transform:rotate(12deg);color:var(--stamp);opacity:.8}
-.ppname{position:relative;margin-top:-12px;font-family:"Special Elite",var(--type);font-weight:400;font-size:2.5rem;line-height:1;text-transform:uppercase;letter-spacing:.02em;color:var(--ink);overflow-wrap:anywhere}
-.ppname.long{font-size:1.8rem}
-.ppmid{display:flex;align-items:center;gap:12px;min-height:110px}
-.ppsil{width:120px;height:110px;flex:none}
-.ppsil path{fill:#3A4256}
-.ppverdict{margin-left:auto;transform:rotate(-9deg);border:3px solid currentColor;border-radius:8px;padding:6px 10px;text-align:center;font-family:"Special Elite",var(--type);text-transform:uppercase;line-height:1.05;color:var(--good)}
-.ppverdict b{display:block;font-size:1.25rem;font-weight:400;letter-spacing:.06em}
-.ppverdict small{display:block;font-size:.8rem;letter-spacing:.1em}
-.ppback.no .ppverdict{color:var(--bad)}
-.pptags{display:flex;flex-wrap:wrap;gap:6px}
-.pptags span{position:relative;background:#E3D6B8;color:var(--ink);font-family:var(--type);font-weight:700;font-size:.88rem;padding:4px 10px 4px 16px;clip-path:polygon(8px 0,100% 0,100% 100%,8px 100%,0 50%)}
-.pptags span::before{content:"";position:absolute;left:7px;top:50%;width:4px;height:4px;margin-top:-2px;border-radius:50%;background:#F1E9D6}
-.pp .reveal{background:transparent;border:0;border-bottom:1.5px dotted rgba(29,43,76,.45);border-radius:0;padding:10px 2px}
-.pp .reveal .rn b{font-family:"Special Elite",var(--type);font-weight:400;text-transform:uppercase}
-.pp .reveal .rn small{font-family:var(--type);font-size:.82rem}
-.pp .reveal .rpts{font-family:"Special Elite",var(--type);font-size:1.1rem;color:var(--good);border:2px solid currentColor;border-radius:5px;padding:1px 6px;transform:rotate(-6deg)}
-.pp .reveal.wrong .rpts{color:var(--bad)}
 </style>
 <link rel="stylesheet" href="../brand/geomingo.css?v=202611020500">
 </head>
@@ -244,7 +170,7 @@ function cluesHTML(q){const done=q.st!=='play';
   return `<ol class="clues">${Array.from({length:CLUES},(_,i)=>{
     if(i>=q.k&&!done)return `<li class="clue off"><span class="ci">${i+1}</span><span class="ct"><span>Clue ${i+1} · ${CLUES-i} point${CLUES-i===1?'':'s'}</span><b>Locked</b></span></li>`;
     const x=clue(q,i);
-    return `<li class="clue${!done&&i===q.k-1&&i>0?' new':''}${i>=q.k?' off':''}"><span class="ci">${x.ico}</span><span class="ct"><span>${x.lab}</span>${x.flag?'<b>Pinned to the top of the card</b>':x.main?`<b>${esc(x.main)}</b>`:''}${x.sub?`<small>${esc(x.sub)}</small>`:''}</span></li>`}).join('')}</ol>`}
+    return `<li class="clue${!done&&i===q.k-1&&i>0?' new':''}${i>=q.k?' off':''}"><span class="ci">${x.ico}</span><span class="ct"><span>${x.lab}</span>${x.main?`<b>${esc(x.main)}</b>`:''}${x.sub?`<small>${esc(x.sub)}</small>`:''}${x.flag?`<img class="fl" src="${flagSrc(x.flag)}" alt="A flag">`:''}</span></li>`}).join('')}</ol>`}
 
 /* answering: the same box as in the other games */
 function matches(t){const k=N(t);if(!k)return [];
@@ -275,14 +201,6 @@ function feedback(q,res,code,key){const n=cByCode[q.c].n;
   if(res==='right'){Geomingo.stamp('customs',n,'+'+worth(q),q.c);say(key,'happy','Stamped: '+n+'.','+'+worth(q)+' point'+(worth(q)===1?'':'s')+(q.k===1?'. One clue was enough.':' with '+q.k+' clues.'))}
   else if(res==='wrong')say(key,'sad','Not '+cByCode[code].n+'.','Clue '+q.k+' is open. Now worth '+worth(q)+'.');
   else say(key,'sad','It was '+n+'.',code?'Not '+cByCode[code].n+'. No clues left.':'All five clues used.')}
-const shapeOf=c=>{try{const x=COUNTRIES.find(o=>o.c===c);return x&&x.p}catch(e){return null}};
-const ringSVG=()=>`<svg class="ppring ink" viewBox="0 0 120 120" aria-hidden="true"><defs><path id="pprp" d="M60 60m-43 0a43 43 0 1 1 86 0a43 43 0 1 1-86 0"/></defs><circle cx="60" cy="60" r="57" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="60" cy="60" r="33" fill="none" stroke="currentColor" stroke-width="2"/><text fill="currentColor" font-family="Special Elite,Courier Prime,monospace" font-size="15" letter-spacing="2.2"><textPath href="#pprp" textLength="262" lengthAdjust="spacing">GEOMINGO ★ CUSTOMS ★ ENTRY ★</textPath></text></svg>`;
-function backHTML(q){const c=cByCode[q.c],ok=q.st==='right',sh=shapeOf(q.c);
-  const tags=[c.cap,contName[c.r].replace(' or Central',''),c.ll?'Landlocked':nbOf(c).length?'Coast':'Island',c.cu.includes('EUR')?'Euro':'',isIn('pol_mon',q.c)?'Monarchy':'',popText(DATA.pop[q.c]||0)+' people'].filter(Boolean);
-  return `<div class="ppback ${ok?'ok':'no'}"><div class="ppbtop"><span class="ppseal ink">${Geomingo.mingo(ok?'happy':'sad',60)}</span>${ringSVG()}</div>
-    <b class="ppname ink${c.n.length>11?' long':''}">${esc(c.n)}</b>
-    <div class="ppmid">${sh?`<svg class="ppsil" viewBox="0 0 100 100" aria-hidden="true"><path d="${sh}"/></svg>`:''}<span class="ppverdict ink"><b>${ok?'Admitted':'Denied'}</b><small>${ok?'+'+worth(q)+' pts · '+q.k+' clue'+(q.k===1?'':'s'):'0 pts'}</small></span></div>
-    <div class="pptags">${tags.map(t=>`<span>${esc(t)}</span>`).join('')}</div></div>`}
 function revealHTML(q){const c=cByCode[q.c],ok=q.st==='right';
   return `<div class="reveal ${ok?'':'wrong'}"><img class="flag" src="${flagSrc(q.c)}" alt=""><span class="rn"><b>${esc(c.n)}</b><small>${ok?'Right with '+q.k+' clue'+(q.k===1?'':'s'):'The answer'} · capital ${esc(c.cap)}</small></span><span class="rpts">${ok?'+'+worth(q):'0'}</span></div>`}
 const deskHTML=G=>`<div class="desk" role="group" aria-label="The five travellers">${G.qs.map((q,i)=>{const cls=[i===G.sel&&!G.over?'sel':'',q.st==='right'?'right':q.st==='wrong'?'wrong':''].join(' ');
@@ -293,14 +211,11 @@ const wrongOf=G=>G.qs.reduce((n,q)=>n+q.tries.length,0);
 // the game's play area: the five at the desk, the clues of the one at the desk, the answer box
 function playHTML(G){const q=G.qs[G.sel],last=G.justDone!=null?G.qs[G.justDone]:null;G.justDone=null;
   let h=deskHTML(G);
-  if(last&&last.st!=='play'&&last!==q)h+=backHTML(last);
+  if(last&&last.st!=='play'&&last!==q)h+=revealHTML(last);
   if(G.over)return `<div class="play">${h}</div>`;
-  const flagOpen=Array.from({length:q.k},(_,i)=>clue(q,i)).some(x=>x.flag);
-  h+=`<div class="pphd"><span class="ppfl">${flagOpen?`<img src="${flagSrc(q.c)}" alt="The traveller's flag">`:'<span>?</span>'}</span><span class="ppq ink">?</span><span class="ppworth ink"><small>Worth</small><b>${worth(q)} pt${worth(q)===1?'':'s'}</b></span></div>`+
-    `<p class="pptv">Traveller ${G.sel+1} of ${PER}</p>`+cluesHTML(q)+
-    `<div class="worth">Clue ${q.k} of ${CLUES} open<button class="linkbtn" id="nextclue">${q.k<CLUES?'Next clue':'I don\'t know'}</button></div>`+
-    (q.tries.length?`<p class="missed">Not ${q.tries.map(c=>esc(cByCode[c].n)).join(', not ')}.</p>`:'')+`<div class="ppform"><small>Country of origin</small>${answerBoxHTML(q)}</div>`+
-    `<div class="ppfoot">${giveUpHTML()}${Geomingo.mingo('think',62)}</div><span class="ppwm" aria-hidden="true">CUSTOMS</span>`;
+  h+=`<span class="label">Traveller ${G.sel+1} of ${PER}</span>`+cluesHTML(q)+
+    `<div class="worth">Worth <b>${worth(q)} point${worth(q)===1?'':'s'}</b> now<button class="linkbtn" id="nextclue">${q.k<CLUES?'Next clue':'I don\'t know'}</button></div>`+
+    (q.tries.length?`<p class="missed">Not ${q.tries.map(c=>esc(cByCode[c].n)).join(', not ')}.</p>`:'')+answerBoxHTML(q)+giveUpHTML();
   return `<div class="play">${h}</div>`}
 // after a traveller leaves the desk: the next one still waiting, or the game is over
 function advance(G){if(G.qs[G.sel].st==='play')return;G.justDone=G.sel;const n=G.qs.findIndex(q=>q.st==='play');if(n<0)G.over=true;else G.sel=n}
@@ -354,7 +269,7 @@ function resultHTML(G){const p=pointsOf(G),v=verdict(G);
     ${allPlayedHTML('customs')}
     <span class="label">Your daily games</span>${statTiles(Object.keys(load('cu-hist',{})).length,cuAverage(),streakOf(load('cu-hist',{})))}</section>${rankingHTML()}`}
 // the summary under a finished game: who each traveller was
-const summaryHTML=G=>`<section class="panel pp"><span class="label">The travellers</span>${G.qs.map(revealHTML).join('')}</section>`;
+const summaryHTML=G=>`<section class="panel"><span class="label">The travellers</span>${G.qs.map(revealHTML).join('')}</section>`;
 // today's ranking (signed-in players, first try of the day): points, then fewer wrong answers, then who finished first
 const rankingHTML=()=>Geomingo.account.rankingHTML('customs',{what:'game',score:r=>[r.s+' pts',r.m+' wrong']});
 Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&D.mode==='daily'&&D.date===todayKey()){D=dailyGame();liveKey=''}
@@ -366,7 +281,7 @@ function ticketHTML(G,mode){const q=G.qs[G.sel];
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Customs',(arch?'Archive #':'Daily #')+D.num);
   h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's travellers"}</span></div>`;
   if(D.over)return h+resultHTML(D)+summaryHTML(D);
-  return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel pp">${playHTML(D)}</section>`+quickRules()}
+  return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel">${playHTML(D)}</section>`+quickRules()}
 const cuAverage=()=>{const h=load('cu-hist',{}),v=Object.values(h);return v.length?EU(v.reduce((a,e)=>a+(+e.p||0),0)/v.length,1):'–'};
 
 /* ---- the archive: past days, one try each on this device ---- */
@@ -400,7 +315,7 @@ function trainHTML(){let h=header('Customs','Solo')+`<div class="backline"><butt
   if(T.over){const p=pointsOf(T),s=load('cu-solo',null)||{};
     return h+`<section class="panel">${Geomingo.hello(p>=15?'happy':'think',p+' points.',rightOf(T)+' of 5 named. Your best Solo game: '+(s.best||p)+'.',{key:'res'})}<span class="label">Solo</span><p class="big">${p} points</p>
       <button class="primary" id="tagain">New game</button></section>`+summaryHTML(T)}
-  return h+ticketHTML(T,'practice')+`<section class="panel pp">${playHTML(T)}</section>`+quickRules()}
+  return h+ticketHTML(T,'practice')+`<section class="panel">${playHTML(T)}</section>`+quickRules()}
 
 /* ---- stats, rules, credits ---- */
 function myStatsHTML(){const h=load('cu-hist',{}),so=load('cu-solo',null)||{n:0};
@@ -482,9 +397,6 @@ function bind(){
 render();
 // a new day while the page was in the background: today's new travellers
 document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(view==='home'||view==='daily'&&D&&D.mode==='daily'&&D.date!==todayKey()){D=null;if(view==='daily')openDaily();else render()}});
-// passport look: the country outlines for the back of the card come from Silhouette's file
-if(typeof COUNTRIES==='undefined'){const sc=document.createElement('script');sc.src='../silhouette/countries.js?v=202610230100';sc.onload=()=>{if(view!=='home')render()};document.head.appendChild(sc)}
 </script>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="ppink"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.6 1.55" result="m"/><feComposite in="SourceGraphic" in2="m" operator="in"/></filter></svg>
 </body>
 </html>
