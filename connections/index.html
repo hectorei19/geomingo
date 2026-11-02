@@ -485,20 +485,21 @@ function roomResultHTML(){const list=ranked(),cur=list.filter(p=>p.cur),pos=cur.
     <div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="primary" id="rematch" style="flex:1" ${waiting?'disabled':''}>${waiting?'Waiting for the others…':'Play again'}</button></div>
   </section>`}
 function rulesHTML(){return `<h3>The idea</h3><ul>
-  <li>There are 16 countries. They form <b>four groups of four</b>, and each group shares a hidden category, for example "Uses the euro" or "Flag has a crescent moon".</li>
-  <li>Every country belongs to exactly one group: it fits its own category and none of the other three.</li>
-  <li>There is only <b>one way</b> to split all 16 into four groups. No other four of the 16 share a category. Very broad traits (a flag colour, in the tropics, a big capital…) are never categories, so four blue flags are just a mistake. Stuck? <b>Show the 4 categories</b> lists their names (your shared result says so).</li>
+  <li>You see 16 countries. They make <b>four groups of four</b>, and each group shares something, for example "Uses the euro" or "Flag has a crescent moon".</li>
+  <li>Every country is in exactly one group, and there is only <b>one way</b> to split the 16. Very broad things (a flag colour, a big capital…) are never a group, so four blue flags are just a trap.</li>
   <li>Only independent countries appear, never territories.</li></ul>
-  <h3>Playing</h3><ul>
-  <li>Tap four countries and then <b>Submit</b>. If they share a category, the group is revealed with its name and colour.</li>
-  <li>If not, it costs one of your <b>${MAX_MISTAKES} lives</b>. "One away…" means three of the four belong together.</li>
-  <li><b>Shuffle</b> moves the tiles around; <b>Deselect all</b> clears your choice.</li>
-  <li>Colours go from easiest to trickiest: ${TEMOJI.join(' ')} (yellow, green, blue, purple).</li>
-  <li>Tap <span class="ib">i</span> on a group to read exactly what its category means. The categories and data are the same as in Countries.</li></ul>
+  <h3>How to play</h3><ul>
+  <li>Tap four countries, then tap <b>Submit</b>.</li>
+  <li>Right: the four join a group with its name and their flags.</li>
+  <li>Wrong: you lose one of your <b>${MAX_MISTAKES} lives</b>. "One away" means three of your four belong together.</li>
+  <li>The game ends when you find all four groups or run out of lives. <b>Give up</b> ends it early and shows the answer.</li>
+  <li><b>Shuffle</b> moves the countries around. <b>Deselect all</b> clears your picks.</li>
+  <li>Stuck? <b>Show the 4 categories</b> tells you the four group names, but not which country goes where. Your shared result says you used it.</li>
+  <li>Groups go from easiest to trickiest: ${TEMOJI.join(' ')} (yellow, green, blue, purple). Tap <span class="ib">i</span> on a found group to see exactly what it means.</li></ul>
   <h3>Modes</h3><ul>
-  <li><b>Today's puzzle</b>: the same for everyone, new every day at midnight CET. One try, saved on this device.</li>
-  <li><b>Solo</b>: unlimited practice puzzles. Share sends a link to the same puzzle.</li>
-  <li><b>With friends</b>: online, 2 to ${MAX_PLAYERS} players, each on their own phone. One creates a room and shares its code or link. Everyone plays the same puzzle at the same time and sees the others' progress. Solving it counts first, then fewer mistakes, then speed.</li></ul>`}
+  <li><b>Today's puzzle</b>: the same for everyone, new every day at midnight CET. One try. Missed one? Play it in <b>Menu → Archive</b>.</li>
+  <li><b>Solo</b>: as many practice puzzles as you like. <b>Share</b> sends a friend a link to the same puzzle.</li>
+  <li><b>With friends</b>: 2 to ${MAX_PLAYERS} players online, each on their own phone. The host creates a room and shares its code or link. Everyone plays the same puzzle at the same time and sees how the others are doing. Solving it counts most, then fewer mistakes, then speed.</li></ul>`}
 function copyText(t,okMsg){const manual=()=>{const el=$('linkbox');if(el){const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r)}toast('Copy blocked. Select the link and copy it.')};
   try{navigator.clipboard.writeText(t).then(()=>toast(okMsg,'good'),manual)}catch(e){manual()}}
 function bind(){

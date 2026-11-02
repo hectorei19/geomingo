@@ -1547,7 +1547,7 @@ function setupView(){
     <li>Each country once per grid. Tap <span class="ib">i</span> to see what a category means.</li>
     ${on?'<li>Everyone on their own phone: the host creates a room and shares the code.</li>':vs?'<li>Take turns on one phone. A wrong answer or time-out passes the turn.</li>':'<li>You have a few more guesses than squares.</li>'}
     <li>Harder squares, quick answers and full lines score more.</li>
-    <li>Full rules: <b>How to play</b> at the top.</li>
+    <li>Full rules in <button type="button" class="qhelp">How to play</button>.</li>
   </ul></section>`;
 }
 function gameView(){
@@ -1740,36 +1740,42 @@ function drawLayer(){
       </dl>
       <button class="primary" id="credok">Close</button></div>`}
   if(ui.help){
-    const ks=[2,3,4,5,6,7,8,9,40],ev=cellValues(ks.map(k=>Array(k).fill(0)));
-    const ex=ks.map((k,i)=>`<tr><td>${i+1}.</td><td>${k} possible countries</td><td>${ev[i]} pts</td></tr>`).join('');
+    const ks=[2,3,4,5,6,7,8,9,10,12,14,17,20,25,32,45],ev=cellValues(ks.map(k=>Array(k).fill(0)));
+    const exr=i=>`<tr><td>${i+1}.</td><td>${ks[i]} countries fit</td><td>${ev[i]} pts</td></tr>`;
+    const ex=[0,1,2].map(exr).join('')+'<tr><td>…</td><td></td><td></td></tr>'+[13,14,15].map(exr).join('');
+    const G=DAILY_N*DAILY_N;
     h+=`<div class="infoscrim" id="helpscrim"></div><div class="infobox helpbox" role="dialog" aria-modal="true" aria-labelledby="helpt">
       <h2 id="helpt">How to play</h2>
       <h3>The idea</h3><ul>
-      <li>The grid has a category on every row and every column, for example "In Africa" and "Flag has a star".</li>
-      <li>Fill each square with a country that matches <b>both</b> its row and its column. For that pair, Ghana or Somalia would work.</li>
-      <li>You can answer with any of the ${C.length} countries and territories in the game, from Brazil to Greenland or Hong Kong. Each one can be used once per grid.</li>
-      <li>Tap the <span class="ib">i</span> next to a category to read exactly what it means.</li>
-      <li>Every grid can always be finished: whatever answers are given, each empty square keeps at least one country that fits.</li></ul>
-      <h3>Your turn</h3><ul>
-      <li>Tap an empty square, start typing a country and pick it from the list.</li>
-      <li>A right answer puts its flag in the square and gives you the points. A wrong answer or running out of time ends your turn.</li>
-      <li>With other players, you take turns. The game ends when the grid is full, or when every player passes one after another.</li></ul>
+      <li>Every row and every column has a category, for example "In Africa" or "Flag has a star".</li>
+      <li>Fill each square with a country that fits <b>both</b> its row and its column. For "In Africa" and "Flag has a star", Ghana or Somalia would work.</li>
+      <li>Any of the ${C.length} countries and territories in the game can be an answer, from Brazil to Greenland or Hong Kong. Each one can be used only once per grid.</li>
+      <li>Not sure what a category means? Tap its <span class="ib">i</span>.</li>
+      <li>Every grid can be finished: each empty square always has at least one country left that fits.</li></ul>
+      <h3>How to answer</h3><ul>
+      <li>Tap an empty square. A box opens: start typing a country and tap it in the list.</li>
+      <li>Right: its flag goes in the square and you get its points. Wrong: the square stays empty.</li>
+      <li>Every answer, right or wrong, uses one guess. A ${DAILY_N} × ${DAILY_N} grid has ${G} squares and you get ${G+DAILY_N} guesses, so you can miss ${DAILY_N} times. A 5 × 5 grid in Solo gives you 30 guesses for 25 squares.</li>
+      <li>The game ends when the grid is full or you run out of guesses. <b>Give up</b> ends it early.</li></ul>
       <h3>Modes</h3><ul>
-      <li><b>Today's grid</b>: one ${DAILY_N} × ${DAILY_N} Normal grid, the same for everyone, new every day at midnight CET. You get one try; if you leave, you continue where you stopped.</li>
-      <li><b>Solo</b>: unlimited grids on your own, with a few more guesses than there are squares. Aim for the highest score.</li>
-      <li><b>With friends</b>: 2 to 6 players online, each on their own phone. The host creates a room and shares its 4-letter code or link; the others join with it.</li></ul>
-      <h3>Difficulty</h3><ul>
-      <li><b>Easy</b>: ${DHINT.easy} The country list finds any part of a name. <i>Example: ${DEXAMPLE.easy}.</i></li>
-      <li><b>Normal</b>: ${DHINT.normal} The country list shows names only and finds them by their first letters, so you need to know the answer. <i>Example: ${DEXAMPLE.normal}.</i></li>
-      <li><b>Hard</b>: ${DHINT.hard} The country list works as in Normal. <i>Example: ${DEXAMPLE.hard}.</i></li>      <li>At the end, <b>Share</b> sends your result with a link, for example on WhatsApp or Telegram. Friends who open it play exactly your grid. The grid code shows the level: <b>4E-</b> easy, <b>4-</b> normal, <b>4H-</b> hard.</li></ul>
-      <h3>Scoring</h3><ul>
-      <li><b>Square points, 0 to ${SQ_MAX}</b>: the squares of each grid are ranked from hardest (fewest countries fit) to easiest (most countries fit), and the points go up in equal steps. The hardest square is worth ${SQ_MAX}. Every correct answer in a square earns the same points, and you discover them when the square is filled.</li>
-      <li><b>Speed bonus</b>: +${SPEED_PER_SEC} for every whole second left on your clock when you answer (counted from ${SPEED_WINDOW} seconds when the timer is off).</li>
-      <li><b>Line bonus</b>: +${LINE_BONUS} for every full row or column where all the squares are yours.</li>
+      <li><b>Today's grid</b>: one ${DAILY_N} × ${DAILY_N} grid at Normal level, the same for everyone, new every day at midnight CET. One try; if you leave, you carry on where you stopped. Sign in with Google to appear in the daily ranking. Missed a day? Play it in <b>Menu → Archive</b>.</li>
+      <li><b>Solo</b>: as many grids as you like. You choose the level, a 4 × 4 or 5 × 5 grid and the time per turn (Off, 15 s or 30 s).</li>
+      <li><b>With friends</b>: 2 to 6 players online, each on their own phone. The host creates a room and shares its 4-letter code or link. You take turns: a right answer scores for you, a wrong one or running out of time passes the turn. You can also tap <b>Pass turn</b>. The game ends when the grid is full or everyone passes one after another.</li>
+      <li><b>Share</b>: at the end, send your result with a link. Friends who open it play exactly your grid.</li></ul>
+      <h3>Levels</h3><ul>
+      <li><b>Easy</b>: ${DHINT.easy} The list finds a country from any part of its name. <i>Example: ${DEXAMPLE.easy}.</i></li>
+      <li><b>Normal</b>: ${DHINT.normal} The list only finds names from their first letters, so you need to know the answer. <i>Example: ${DEXAMPLE.normal}.</i></li>
+      <li><b>Hard</b>: ${DHINT.hard} The list works as in Normal. <i>Example: ${DEXAMPLE.hard}.</i></li></ul>
+      <h3>Points</h3><ul>
+      <li><b>Square</b>: 0 to ${SQ_MAX} points. Hard squares (few countries fit) are worth more, easy ones (many fit) less. You see a square's points when you fill it.</li>
+      <li><b>Speed</b>: +${SPEED_PER_SEC} for every second left on your clock when you answer right. With the timer off, the clock counts down from ${SPEED_WINDOW} seconds.</li>
+      <li><b>Lines</b>: +${LINE_BONUS} for every full row or column where all the squares are yours.</li>
       <li>The highest total wins.</li></ul>
-      <h3>Example: the 9 squares of a 3 × 3 grid, ranked</h3>
+      <h3>Example: a ${DAILY_N} × ${DAILY_N} grid</h3>
+      <p class="hint">The ${G} squares are ranked from hardest to easiest, and the points go down in equal steps. Squares with the same number of countries share the same points.</p>
       <table class="ptable">${ex}</table>
-      <p class="hint">Data sources and licences: see <b>Credits &amp; data sources</b> at the bottom of the page.</p>
+      <p class="hint">So the hardest square answered in 10 seconds is worth ${ev[0]} + ${SPEED_PER_SEC*(SPEED_WINDOW-10)} for speed = ${ev[0]+SPEED_PER_SEC*(SPEED_WINDOW-10)} points.</p>
+      <p class="hint">Where the data comes from: <b>Credits &amp; data sources</b>, at the bottom of the page.</p>
       <button class="primary" id="helpok">Got it</button></div>`}
   if(ui.info!=null&&CATS[ui.info]){const k=CATS[ui.info];
     h+=`<div class="infoscrim" id="infoscrim"></div><div class="infobox" role="dialog" aria-modal="true" aria-labelledby="infot"><span class="label">Category</span><h2 id="infot">${esc(k.label)}</h2><p>${esc(k.desc)}</p><span class="meta">${k.count} countries in the game match this on its own.</span><button class="primary" id="infook">Got it</button></div>`}

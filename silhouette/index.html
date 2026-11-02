@@ -286,20 +286,23 @@ function statsHTML(short){const h=load('sil-hist',{}),days=Object.keys(h);
     <table class="sttab"><tr><th>Solo</th><th>Shapes</th><th>Right</th><th>Best game</th></tr>${['easy','normal','hard'].map(v=>{const s=tr[v]||{n:0,ok:0,best:0};return `<tr><td>${DIFF_NAME[v]}</td><td>${s.n}</td><td>${s.n?Math.round(s.ok/s.n*100)+'%':'–'}</td><td>${s.best}</td></tr>`}).join('')}</table>`)}
 const quickRules=extra=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name the country from its shape. Every shape fills the same frame, so size is no clue. You have ${LIVES} lives for the whole game, not per shape.${extra||''}</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
-  <li>Each shape is the outline of a country. Type its name and pick it from the list.</li>
+  <li>Each shape is the outline of a country. Guess which one it is.</li>
   <li>Every shape is drawn to fill the same frame, so a big country and a small one look the same size.</li>
-  <li>You have <b>${LIVES} lives</b> for the whole game, not per shape: each wrong answer, on any shape, costs one. With no lives left the game is over. Wrong answers are listed under the shape.</li>
-  <li>Names are in English. Accents, capitals and spaces don't matter, and common other names work too (Holland, Burma, UK...).</li>
   <li>Only independent countries, never territories. Far-off islands are left out of a shape (Hawaii, French Guiana, the Canaries) so the country does not shrink to a dot. Vatican City is not in the game.</li></ul>
+  <h3>How to play</h3><ul>
+  <li>Tap <b>Type a country…</b>, start typing and tap the country in the list.</li>
+  <li>Names are in English. Accents, capitals and spaces don't matter, and common other names work too (Holland, Burma, UK…).</li>
+  <li>You have <b>${LIVES} lives</b> for the whole game, not for each shape. Every wrong answer, on any shape, costs one. Your wrong answers are listed under the shape.</li>
+  <li>With no lives left, the game is over. <b>Give up</b> ends it early.</li></ul>
   <h3>Levels</h3><ul>
-  <li>Today's shapes are always at <b>Normal</b>. In Solo and With friends you choose the level.</li>
   <li><b>Easy</b>: 54 countries most people know from maps, news and travel, north up.</li>
   <li><b>Normal</b>: all 196 countries, north up.</li>
-  <li><b>Hard</b>: all 196, each shape turned by a random angle, so north is no clue.</li></ul>
+  <li><b>Hard</b>: all 196, each shape turned at a random angle, so north is no clue.</li>
+  <li>Today's shapes are always <b>Normal</b>. In Solo and With friends you choose the level.</li></ul>
   <h3>Modes</h3><ul>
-  <li><b>Today's shapes</b>: nine shapes on a 3 × 3 board, the same for everyone, new every day at midnight CET. ${LIVES} lives for the whole board; if they run out, the shapes not named yet count as missed. One try, saved on this device.</li>
-  <li><b>Solo</b>: shape after shape at the level you choose, until your ${LIVES} lives are gone. Your best game is how many you named. No country comes back until you have seen them all.</li>
-  <li><b>With friends</b>: online rooms for 2 to 6 phones. The host chooses <b>Getting harder</b> (3 Easy, 4 Normal, 3 Hard) or a continent and a level. Everyone gets the same ten shapes at the same time, ${SECS} seconds each, with ${LIVES} lives each for the whole game: a player with none left sits out the shapes still to come. A right answer scores 500 points plus up to 500 for speed. The ranking shows after every shape and at the end.</li></ul>`}
+  <li><b>Today's shapes</b>: nine shapes on a 3 × 3 board, the same for everyone, new every day at midnight CET. Tap a shape to answer it, in any order. If your ${LIVES} lives run out, the shapes you have not named count as missed. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>
+  <li><b>Solo</b>: shape after shape at the level you choose, until your ${LIVES} lives are gone. Your score is how many you named. No country comes back until you have seen them all.</li>
+  <li><b>With friends</b>: 2 to 6 players online, each on their own phone. The host chooses <b>Getting harder</b> (3 Easy, 4 Normal, 3 Hard) or a continent and a level. Everyone gets the same ten shapes at the same time, ${SECS} seconds each, and ${LIVES} lives for the whole game; a player with none left sits out the rest. A right answer scores 500 points, plus up to 500 more for speed. The ranking shows after every shape and at the end.</li></ul>`}
 function creditsHTML(){return `<ul style="padding-left:18px">
   <li>Borders: <a href="https://github.com/topojson/world-atlas" target="_blank" rel="noopener">world-atlas</a>, from <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> 1:10m (public domain). Each country is drawn on its own map centred on itself, so no shape is stretched or cut by the date line.</li>
   <li>Country names, other names and continents: Countries' data, from <a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a> (ODbL 1.0).</li>
