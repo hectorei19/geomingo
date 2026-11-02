@@ -274,7 +274,7 @@ function hello(pose,title,sub,o){o=o||{};const key=o.key||'main',txt=pose+title,
    then the stub with the game's numbers, one tk(label, value, class) each (tk-pts gold, tk-gs coral, tk-name wider).
    Values are HTML: escape names before passing them. o.timer adds the countdown bar along the bottom (.tbar);
    o.color paints it, the ticket's edge and the playing traveller's box in the colour of the player whose turn it is
-   (e.g. 'var(--p1)'); in the last 5 seconds the bar blinks (.tbar.low, set by the game's tick). */
+   (e.g. 'var(--p1)'); in the last 5 seconds the bar pulses a glow, staying full colour (.tbar.low, set by the game's tick). */
 function tk(k,v,c){return '<div class="tk-c'+(c?' '+c:'')+'"><i>'+k+'</i><b>'+v+'</b></div>'}
 /* o.mode puts a coloured strip on top so you always know what you are playing:
    'daily' (gold, "★ Daily #N · Counts for ranking"), 'practice' (blue, "Practice") or 'archive' (blue, "Archive #N"); o.num is the number.
