@@ -8,7 +8,13 @@
 .hcard.play:hover{background:var(--sheet);border-color:var(--sea)}
 .field #fname{width:100%;border:1.5px solid var(--ink);border-radius:5px;padding:12px;font-size:1.05rem;background:var(--paper)}
 .dplay{width:100%;display:flex;flex-direction:column;gap:10px;margin-top:8px}
-.wrongs .pin{display:inline-block;vertical-align:middle}
+/* with friends: a stripe in the colour of the player who named it, on the left of each square and of each wrong answer */
+.t10list li.by{box-shadow:inset 6px 0 0 var(--pc)}
+.t10list li.by .rk{padding-left:4px}
+.wl{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.wl .w{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1.5px solid var(--line);border-left:5px solid var(--pc);border-radius:6px;font-size:.88rem;white-space:nowrap}
+.wl .w img{width:16px;height:16px;border-radius:3px;opacity:.75}
+.wl .w small{opacity:.7;font-size:.8rem}
 .t10list .nm .pin{flex:none}
 </style>
 <title>Top 10 · Geomingo</title>
@@ -432,12 +438,13 @@ function askHTML(tkt){const l=listById(S.list),on=S.mode==='online';
 // phones: a button that opens the answer sheet, as in Countries (shared/minigames.js)
 const KB=SHEETS;
 function listHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries(r.map(x=>[x.c,x.v])),on=S.mode==='online';
-  const pin=c=>on&&S.by[c]!=null?`<span class="pin" style="${pinStyle(S.by[c])}" title="${esc(S.players[S.by[c]].name)}"></span>`:'';
+  const who=c=>on&&S.by[c]!=null&&S.players[S.by[c]]?S.players[S.by[c]].name:'',pc=c=>`--pc:var(--p${S.by[c]%6})`;
   const half=Math.ceil(S.top.length/2),ask=KB&&!S.over&&(!on||S.turn===S.me);
   let h=`<ol class="t10list" style="--rows:${half}">${S.top.map((c,i)=>{const f=S.found.includes(c),show=f||S.over,co=byCode[c];
-    return `<li class="${f?'on':S.over?'miss':''}${fresh===c?' new':''}${i>=half?' c2':''}${i===half?' c2top':''}"${ask&&!f?' data-ask':''}${f&&on?` style="background:var(--p${S.by[c]%6}-soft)"`:''}><span class="rk">${placeOf(l,c)}</span><span class="nm">${show?`<img class="mini" src="${FLAGS[c]}" alt="">${esc(co.n)}${pin(c)}`:''}</span>${show?`<span class="val">${esc(l.fmt(val[c]))}</span>`:''}</li>`}).join('')}</ol>`;
+    return `<li class="${f?'on':S.over?'miss':''}${f&&on?' by':''}${fresh===c?' new':''}${i>=half?' c2':''}${i===half?' c2top':''}"${ask&&!f?' data-ask':''}${f&&on?` style="${pc(c)};background:var(--p${S.by[c]%6}-soft)" title="${esc(who(c))}"`:''}><span class="rk">${placeOf(l,c)}</span><span class="nm">${show?`<img class="mini" src="${FLAGS[c]}" alt="">${esc(co.n)}`:''}</span>${show?`<span class="val">${esc(l.fmt(val[c]))}</span>`:''}</li>`}).join('')}</ol>`;
   fresh=null;
-  if(S.wrong.length)h+=`<p class="wrongs">Not in the top 10: ${S.wrong.map(c=>{const p=placeOf(l,c);return esc(byCode[c].n)+(p?` (#${p})`:'')+(on?` <span class="pin" style="${pinStyle(S.by[c])}"></span>`:'')}).join(' · ')}</p>`;
+  if(S.wrong.length)h+=on?`<div class="wrongs">Not in the top 10:<div class="wl">${S.wrong.map(c=>{const p=placeOf(l,c);return `<span class="w" style="${pc(c)}" title="${esc(who(c))}"><img src="${FLAGS[c]}" alt="">${esc(byCode[c].n)}${p?` <small>#${p}</small>`:''}</span>`}).join('')}</div></div>`
+    :`<p class="wrongs">Not in the top 10: ${S.wrong.map(c=>{const p=placeOf(l,c);return esc(byCode[c].n)+(p?` (#${p})`:'')}).join(' · ')}</p>`;
   return h}
 const quickRules=extra=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name the ten countries of the ranking, in any order. A country outside the top 10 costs one of your ${LIVES} lives. Only independent countries count.${extra||''}</p></section>`;
 function homeHTML(){const key=todayKey(),num=dayNum(key,T10_FIRST),d=dailySaved(),h=load('t10-hist',{}),days=Object.keys(h);
