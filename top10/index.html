@@ -268,9 +268,9 @@ const shareMessage=()=>shareText()+'\n\n'+(S.mode==='free'?'Play this list: ':"P
 /* ---- online rooms (With friends), on the same Firebase Realtime Database as Countries ----
    A room lives at rooms/ABCD, like Countries', marked game:'top10' so the two games never open each other's rooms.
    Players take turns naming a country: one in the top 10 scores a point for whoever named it,
-   one outside costs that player one of their lives. The game ends when the ten are found, everyone is out of lives or everyone passes. */
+   one outside just passes the turn: there are no lives with friends. The game ends when the ten are found or everyone passes in a row. */
 const FB_OK=()=>typeof firebase!=='undefined'&&typeof firebase.database==='function'&&!!(window.FIREBASE_CONFIG&&/^https:\/\//.test(FIREBASE_CONFIG.databaseURL||''));
-const ROOM_V='t10-202611010600',MAXP=6,TIMERS=[0,15,30];
+const ROOM_V='t10-202611020600',MAXP=6,TIMERS=[0,15,30];
 let db=null,room=null,roomRef=null,roomCode=null,seenEv=null,firstSync=true,joining=false,offset=0,tick=null;
 const now=()=>Date.now()+offset;
 let ME=load('t10-pid','');if(!ME){ME='p'+Math.random().toString(36).slice(2,10);store('t10-pid',ME)}
@@ -286,7 +286,6 @@ const LET='ABCDEFGHJKLMNPQRSTUVWXYZ',randRoom=()=>[...Array(4)].map(()=>LET[Math
 const evId=()=>Math.random().toString(36).slice(2,9);
 const pinStyle=i=>`background:var(--p${i%6})`;
 const lobbyOrder=r=>Object.entries(r.players||{}).sort((a,b)=>(a[1].t||0)-(b[1].t||0)).map(x=>x[0]);
-const livesOf=(r,pid)=>{const v=(r.lives||{})[pid];return v==null?LIVES:v};
 const topOf=id=>topCodes(listById(id));
 const randomList=not=>{const o=LISTS.filter(x=>x.id!==not);return o[Math.floor(Math.random()*o.length)].id};
 function saveSetup(){const el=$('fname');if(el)setup.fname=el.value.trim().slice(0,16);store('t10-setup',{fname:setup.fname,timer:setup.timer})}
@@ -348,23 +347,22 @@ function syncRoom(){const r=room;
   if(r.status==='lobby'||!listById(r.list)){S=null;clearInterval(tick);render();return}
   const order=r.order||lobbyOrder(r),fd=r.found||{},wr=r.wrong||{},byK=o=>Object.keys(o).sort((a,b)=>o[a].k-o[b].k);
   const players=order.map((pid,i)=>{const p=r.players[pid]||{};
-    return {pid,name:p.name||'Gone',on:p.on!==false,lives:livesOf(r,pid),score:Object.values(fd).filter(x=>x.o===i).length,miss:Object.values(wr).filter(x=>x.o===i).length}});
+    return {pid,name:p.name||'Gone',on:p.on!==false,score:Object.values(fd).filter(x=>x.o===i).length,miss:Object.values(wr).filter(x=>x.o===i).length}});
   const me=order.indexOf(ME);
   S={mode:'online',list:r.list,top:topOf(r.list),found:byK(fd),wrong:byK(wr),by:Object.fromEntries([...Object.entries(fd),...Object.entries(wr)].map(([c,x])=>[c,x.o])),
-     players,turn:r.turn||0,timer:r.cfg.timer||0,deadline:r.deadline||0,over:r.status==='over',me,host:r.host===ME,lives:me>=0?players[me].lives:0};
+     players,turn:r.turn||0,timer:r.cfg.timer||0,deadline:r.deadline||0,over:r.status==='over',me,host:r.host===ME};
   S.won=S.found.length>=10;
   if(r.ev&&r.ev.id!==seenEv){if(!firstSync){toast(r.ev.text,r.ev.kind);if(r.ev.kind==='good'&&r.ev.c)fresh=r.ev.c}seenEv=r.ev.id}
   firstSync=false;
   if(S.over||S.turn!==S.me)query='';
   clearInterval(tick);if(S.timer&&!S.over)tick=setInterval(onTick,250);
   render()}
-// next turn: the next player with lives left (online players first); the game ends when nobody can play on
-function advance(r){const order=r.order,len=order.length,alive=i=>livesOf(r,order[i])>0;
-  const nAlive=order.filter((_,i)=>alive(i)).length;
-  if(Object.keys(r.found||{}).length>=10||!nAlive||(r.passes||0)>=nAlive){r.status='over';r.deadline=0;return}
+// next turn: the next player who is online (or simply the next one); the game ends when the ten are found or everyone passed in a row
+function advance(r){const order=r.order,len=order.length;
+  if(Object.keys(r.found||{}).length>=10||(r.passes||0)>=len){r.status='over';r.deadline=0;return}
   const t=r.turn||0;let next=-1;
-  for(let s=1;s<=len&&next<0;s++){const i=(t+s)%len;if(alive(i)&&(r.players[order[i]]||{}).on!==false)next=i}
-  for(let s=1;s<=len&&next<0;s++){const i=(t+s)%len;if(alive(i))next=i}
+  for(let s=1;s<=len&&next<0;s++){const i=(t+s)%len;if((r.players[order[i]]||{}).on!==false)next=i}
+  if(next<0)next=(t+1)%len;
   r.turn=next;r.deadline=r.cfg.timer?now()+r.cfg.timer*1000:0}
 async function onlineGuess(code){const c=byCode[code];let note='';
   try{const res=await roomRef.transaction(r=>{
@@ -376,9 +374,9 @@ async function onlineGuess(code){const c=byCode[code];let note='';
       const nm=(r.players[ME]||{}).name||'Someone',top=topOf(r.list),i=top.indexOf(code);
       r.k=(r.k||0)+1;r.passes=0;
       if(i>=0){r.found[code]={o:r.turn||0,k:r.k};r.ev={id:evId(),kind:'good',c:code,text:`${nm}: ${c.n} is #${placeOf(listById(r.list),code)}.`}}
-      else{r.wrong[code]={o:r.turn||0,k:r.k};r.lives=r.lives||{};r.lives[ME]=livesOf(r,ME)-1;
+      else{r.wrong[code]={o:r.turn||0,k:r.k};
         const k=placeOf(listById(r.list),code)-1;
-        r.ev={id:evId(),kind:'bad',text:`${nm}: ${c.n} is not in the top 10${k>=0?` (#${k+1})`:''}.${r.lives[ME]<=0?' Out of lives.':''}`}}
+        r.ev={id:evId(),kind:'bad',text:`${nm}: ${c.n} is not in the top 10${k>=0?` (#${k+1})`:''}.`}}
       advance(r);return r});
     if(!res.committed)toast(note==='turn'?'It is not your turn any more.':note==='tried'?c.n+' was already named.':'The game is over.','bad')}
   catch(e){console.error(e);toast('That answer did not go through. Check the connection.','bad')}}
@@ -469,7 +467,7 @@ function friendsHTML(){
     <div class="field">${FB_OK()?'':'<p class="hint">Online play needs a connection: reload the page when you are online.</p>'}<button class="primary" id="create" ${FB_OK()?'':'disabled style="opacity:.5"'}>Create room</button></div>
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK()?'':'disabled'}>Join</button></div></div>
   </section>
-  <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Everyone plays the same ranking and takes turns naming one country. A country in the top 10 scores a point for you; one outside costs you one of your ${LIVES} lives. Most countries found wins.</p></section>`}
+  <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Everyone plays the same ranking and takes turns naming one country. A country in the top 10 scores a point for you; one outside just passes the turn. No lives: you play until the ten are found. Most countries found wins.</p></section>`}
 function lobbyHTML(){const r=room,order=lobbyOrder(r),link=pageLink('?room='+roomCode);
   return header('Top <span>10</span>','room '+roomCode)+`<section class="panel namecard"><span class="label">Room code</span><p class="roomcode">${roomCode}</p>
     <p class="hint">Friends open Top 10, choose <b>With friends</b>, then type this code under Join. Or send them the link:</p>
@@ -483,16 +481,15 @@ function onlineHTML(){const cur=S.players[S.turn]||{};
   let h=header('Top <span>10</span>','room '+roomCode);
   if(!S.over){const cell=Geomingo.tk;
     const say=moodHTML(tKey(),'pass',S.turn===S.me?'Your turn.':'Waiting for '+cur.name+'…',S.found.length+' of 10 found. Name a country in the top 10.');
-    const stub=S.players.map((p,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${!p.on||!p.lives?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)}</i><b>${p.score} <small aria-label="${p.lives} lives left" style="color:var(--coral);font-size:13px">${'♥'.repeat(p.lives)}</small></b></div>`).join('')
+    const stub=S.players.map((p,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${!p.on?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)}</i><b>${p.score}</b></div>`).join('')
       +(S.timer?cell('Time',`<span id="tleft">${Math.max(0,Math.ceil((S.deadline-now())/1000))}s</span>`):'');
     h+=Geomingo.ticket(say,stub,{timer:S.timer,color:`var(--p${S.turn%6})`})}
-  else h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${!p.on||!p.lives?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${p.score}</b></span>`).join('')}</div>`;
+  else h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${!p.on?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${p.score}</b></span>`).join('')}</div>`;
   if(S.over){const rk=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score||a.miss-b.miss),best=rk[0],tie=rk.length>1&&rk[1].score===best.score&&rk[1].miss===best.miss;
     const mine=S.players[S.me];if(mine)logFriends('t10-friends',roomCode+':'+S.list+':'+(room&&room.created||''),1+rk.filter(p=>p.score>mine.score||p.score===mine.score&&p.miss<mine.miss).length,mine.score);
     h+=`<section class="panel"><span class="label">Room ${roomCode}</span><p class="big">${tie?"It's a tie":esc(best.name)+' wins'}</p>
       <p class="hint">${S.won?'All ten found.':`${S.found.length} of 10 found. The full list is below.`} ${rk.map(p=>`${esc(p.name)} ${p.score}`).join(' · ')}</p>
       ${S.host?`<div class="row-btns"><button class="primary" id="orematch" style="flex:1">Rematch</button><button class="ghost" id="olobby" style="flex:1">Back to room</button></div>`:'<p class="hint">Waiting for the host to start a rematch.</p>'}</section>`}
-  else if(S.me>=0&&!S.lives)h+=`<p class="hint">You are out of lives: watch the others finish.</p>`;
   if(!S.over&&!cur.on&&S.turn!==S.me)h+=`<button class="ghost" id="oskip">${esc(cur.name)} is offline: skip their turn</button>`;
   h+=`<section class="panel t10ask">${askHTML()}</section>${listHTML()}`;
   if(KB&&!S.over)h+=`<div class="kbgu">${S.turn===S.me?askBtnHTML():''}${srcBtn}</div>`;
@@ -558,7 +555,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Today's list</b>: the same for everyone, new every day at midnight CET. One try. Missed one? Play it in <b>Menu → Archive</b>.</li>
   <li><b>Solo</b>: as many practice lists as you like, a new one each time until you have played them all. <b>Share</b> sends a friend a link to the same list.</li>
-  <li><b>With friends</b>: 2 to ${MAXP} players online, each on their own phone. The host creates a room and shares its code or link, and can set a time per turn (Off, 15 s or 30 s). You take turns naming a country: one in the top 10 scores a point, one outside costs you one of your ${LIVES} lives. You can also tap <b>Pass</b>, and running out of time passes too. The game ends when the ten are found, everyone is out of lives or everyone passes. Most points wins.</li></ul>`}
+  <li><b>With friends</b>: 2 to ${MAXP} players online, each on their own phone. The host creates a room and shares its code or link, and can set a time per turn (Off, 15 s or 30 s). You take turns naming a country: one in the top 10 scores a point, one outside passes the turn. There are no lives. You can also tap <b>Pass</b>, and running out of time passes too. The game ends when the ten are found or everyone passes in a row. Most points wins.</li></ul>`}
 // tapping a suggestion does not take the focus from the box, so the phone keyboard stays open
 function drawSugg(){const u=$('sugg');if(u){u.innerHTML=suggHTML();u.querySelectorAll('[data-g]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>guess(b.dataset.g)})}}
 function bind(){
