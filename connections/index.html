@@ -45,7 +45,7 @@
 .grp{border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;background:var(--gc-soft);border:1.5px solid var(--gc);text-align:center}
 .grp.new{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}
 .grp .gl{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:1.25rem;line-height:1.05;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:2px}
-.grp .gl .ib{font-family:var(--ui);font-size:.75rem}
+.grp .gl .ib{font-size:.75rem}
 .grp .gm{font-size:.92rem;font-weight:600}
 .grp .gm img{margin-right:3px}
 .grp.miss{opacity:.8;border-style:dashed}
@@ -82,7 +82,7 @@
 .lp.me{border-color:var(--sea)}
 .primary[disabled]{opacity:.5;cursor:default}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611020200">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611020300">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -91,7 +91,7 @@
 
 <script src="../shared/data.js?v=202610192300"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202611020200"></script>
+<script src="../shared/minigames.js?v=202611020300"></script>
 <!-- With friends: online rooms in Countries' Firebase Realtime Database -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -418,7 +418,7 @@ function homeHTML(){const key=todayKey(),num=dayNum(key,CX_FIRST),d=dailySaved()
     <div class="hrow"><button class="hcard" data-go="free"><span class="ht">Solo</span><span class="hs">Practice on unlimited puzzles, at your pace.</span></button>
     <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to ${MAX_PLAYERS} players.</span></button></div></section>
     ${rulesPanel()}`}
-const rulesPanel=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something: a region, a flag, a language, a name… Each country is in exactly one group, and only one split works for all 16. Pick four and tap <b>Submit</b>. A wrong four costs one of your ${MAX_MISTAKES} lives. Full rules in <b>How to play</b>.</p></section>`;
+const rulesPanel=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something: a region, a flag, a language, a name… Each country is in exactly one group, and only one split works for all 16. Pick four and tap <b>Submit</b>. A wrong four costs one of your ${MAX_MISTAKES} lives. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 // the logo goes home from anywhere; in a room that means leaving it (in the middle of a game, tap twice)
 function goHome(){if(roomRef){if(S&&S.mode==='online'&&!S.over&&!leaveArmed){leaveArmed=true;render();toast('Tap again to leave the room.');return}
     leaveRoom(true);return}
