@@ -78,7 +78,7 @@ const uid=()=>user&&user.uid;
 // signing out (here, or from Countries' menu) leaves the device clean, as Countries always did:
 // the stats, today's games, the GeoPass and the name go; the account keeps them for the next sign-in
 const DEVICE_KEYS=['bl-daily','bl-hist','bl-games','bl-arch','bl-user','cc-daily','cc-hist','cc-games','cc-arch','cc-user',
-  'cx-daily','cx-hist','t10-daily','t10-hist','sil-daily','sil-hist','sil-train','gm-pass','gm-days','gm-acct','gm-lbc','gm-ranks','cx-solo','cx-friends','t10-solo','t10-friends','sil-friends','gm-feats','cu-daily','cu-hist','cu-arch','cu-solo','cu-diff'];
+  'cx-daily','cx-hist','t10-daily','t10-hist','sil-daily','sil-hist','sil-train','gm-pass','gm-days','gm-acct','gm-lbc','gm-ranks','cx-solo','cx-friends','t10-solo','t10-friends','sil-friends','gm-feats','cu-daily','cu-hist','cu-arch','cu-solo','cu-diff','gm-ms'];
 function onUser(u){const was=user;user=u||null;
   if(was&&!user){DEVICE_KEYS.forEach(k=>ls.set(k,null));ls.set('gm-acct',null);location.reload();return}
   if(user){if(!(LAST&&LAST.u===user.uid))name='';loadName()}

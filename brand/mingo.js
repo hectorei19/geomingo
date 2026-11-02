@@ -98,10 +98,21 @@ const INK=['var(--green)','var(--blue)','var(--violet)','var(--coral-text)'];
 const stampHooks=[];
 // stamp('borderline','France','','FRA'): the 4th value, the country's code, ticks that game for the country in the atlas
 function stamp(g,t,s,code){const p=pass(),x={g,t:String(t),s:s?String(s):'',d:dayKey()};
-  if(code&&GBIT[g]&&ATLAS[code]){x.c=code;const a=atlas(p);a[code]=(a[code]||0)|GBIT[g]}
+  if(code&&GBIT[g]&&ATLAS[code]){x.c=code;const a=atlas(p),was=country(code,a).mine;a[code]=(a[code]||0)|GBIT[g];
+    if(!was&&country(code,a).mine)moment({k:'c',c:code,d:x.d})}
   p.n++;p.list.push(x);p.list=p.list.slice(-240);
   store.set('gm-pass',JSON.stringify(p));refreshPass();stampHooks.forEach(f=>{try{f(x)}catch(e){}});return p.n}
 
+/* ---------- milestones: the big moments shown on the Passport page (gm-ms, this device) ----------
+   {e: [{k: 'c' country became yours (c: code) | 'v' visa (n: name), d: day}], v: the visas already held, so a new one is noticed}
+   Levels and personal bests need no record: they come from the games' histories (ledger). */
+function moments(){const m=json('gm-ms');return m&&Array.isArray(m.e)?m:{e:[]}}
+function moment(x){const m=moments();m.e.push(x);m.e=m.e.slice(-60);store.set('gm-ms',JSON.stringify(m))}
+// a visa you didn't have the last time the GeoPass was opened is a new moment (the first time, or many at once after
+// signing in on a new device, they are only remembered)
+function visaMoments(V){const m=moments(),now=V.filter(v=>v[4]).map(v=>v[2]);
+  if(Array.isArray(m.v)){const add=now.filter(n=>!m.v.includes(n));if(add.length<=3)add.forEach(n=>m.e.push({k:'v',n,d:dayKey()}))}
+  m.v=now;m.e=m.e.slice(-60);store.set('gm-ms',JSON.stringify(m))}
 /* ---------- the atlas: the 196 countries and which games have stamped each one (gm-pass .atlas) ----------
    A country is yours once you get it right in every game it can come up in: Countries, Capitals (its capital),
    Silhouette, Top 10 (Héctor, 2026-11-01) and Customs (2026-11-02: every country can come up there, so it counts for all). Israel and Palestine have no capital in Capitals and Vanuatu is in
@@ -325,7 +336,7 @@ function resultWindow(o){const g=game(o.game)||{name:o.gameName||''},nx=o.next||
 
 /* ---------- the GeoPass: one passport, the same from the home page and from every game ----------
    The data page on top (Mingo, name, level, km, streak, stamps, countries), then three pages:
-   Passport (the route through the levels, the latest stamps, how it works), Countries (the atlas) and Visas. */
+   Passport (the route, today's entry stamp, the countries almost yours, the latest milestones, how it works), Countries (the atlas) and Visas. */
 const PINK={borderline:'#C94A58',citygrid:'#A07C1E',connections:'#2A56B8',top10:'#25744F',silhouette:'#6B4BA8',customs:'#B5632A'};
 const GORDER=[['borderline','Countries'],['citygrid','Capitals'],['silhouette','Silhouette'],['top10','Top 10'],['customs','Customs']];
 const CONT=[['all','All'],['EU','Europe'],['AS','Asia'],['AF','Africa'],['AM','Americas'],['OC','Oceania']];
@@ -337,30 +348,57 @@ function loadShapes(then){if(SHAPES)return then();
   if(typeof COUNTRIES!=='undefined')return use();
   if(shapesBusy)return;shapesBusy=true;const sc=document.createElement('script');sc.src=ROOT+'silhouette/countries.js?v=202610230100';
   sc.onload=()=>{shapesBusy=false;use()};sc.onerror=()=>{shapesBusy=false;SHAPES={};then()};document.head.appendChild(sc)}
-function paperStamp(x){const ink=PINK[x.g]||'#1D2B4C',g=game(x.g),round=x.g==='silhouette',r=(hsh(x.t+x.d)%11)-5;
-  const sub=[x.s,g?g.name:''].filter(Boolean).join(' · ');
-  const w=Math.max(...String(x.t).split(' ').map(v=>v.length)),fs=round?(w>9?8:w>7?9.5:w>5?11:12):(w>12?11:14);
-  return '<span class="gp-st'+(round?' round':'')+'" style="--c:'+ink+';--r:'+r+'deg"><b style="font-size:'+fs+'px">'+esc(x.t)+'</b><small>'+esc(sub)+'</small></span>'}
 function routeHTML(km){const lv=level(km),at=i=>8+i*21,me=lv.next?at(lv.i)+21*lv.pct/100:at(lv.i);
   return '<div class="gp-route" role="img" aria-label="'+esc(lv.name+', '+fmt(km)+' km'+(lv.next?'. '+fmt(lv.next[1]-km)+' km to '+lv.next[0]:''))+'">'+
     '<span class="ln"></span><span class="lnd" style="width:'+(me-8)+'%"></span>'+
     LEVELS.map((l,i)=>'<span class="p'+(i<=lv.i?' ok':'')+'" style="left:'+at(i)+'%"><i></i><small>'+l[0]+'</small><em>'+(l[1]?fmt(l[1]):'0')+'</em></span>').join('')+
     '<span class="me" style="left:'+me+'%">'+mingo('pass',26)+'</span></div>'}
 function howHTML(){return '<ul class="gp-how">'+
-  '<li><b>Stamps.</b> Every right answer in any game is a stamp on that day\'s page.</li>'+
+  '<li><b>Stamps.</b> Every right answer in any game is one more stamp in your count.</li>'+
   '<li><b>Km.</b> Every daily game you finish earns up to 100 km for how well it went. A perfect game +20, all '+ALLW+' in one day +'+ALL5+'.</li>'+
   '<li><b>Levels.</b> Km move you along the route: '+LEVELS.map(l=>l[0]+(l[1]?' ('+fmt(l[1])+')':'')).join(', ')+'.</li>'+
   '<li><b>Countries.</b> A country is yours when you get it right in every game it comes up in: Countries, Capitals, Silhouette, Top 10 and Customs. The dots show which ones you have.</li>'+
   '<li><b>Visas.</b> Special entries for special games, like a week in a row or a perfect grid.</li></ul>'}
-function pagePassport(P){const p=pass(),lv=level(P.km),k=dayKey(),by={};
-  p.list.slice().reverse().forEach(x=>{(by[x.d]=by[x.d]||[]).push(x)});
-  const ds=Object.keys(by).sort().reverse().slice(0,5);
-  const st=ds.length?ds.map(d=>{const L=by[d],more=L.length-12;
-      return '<div class="gp-day">'+esc(d===k?'Today · '+dateText(d,{day:'numeric',month:'short'}):dateText(d,{weekday:'short',day:'numeric',month:'short'}))+'</div><div class="gp-sts">'+
-        L.slice(0,12).map(paperStamp).join('')+(more>0?'<span class="gp-more">+'+more+' more</span>':'')+'</div>'}).join('')
-    :'<p class="gp-empty">No stamps yet. Every right answer in a game is a new stamp.</p>';
+// Passport page (Héctor's option D, 2026-11-02): the route, today's entry stamp, the countries closest to being yours, the latest big moments
+const SHORT={borderline:'Countr.',citygrid:'Capit.',connections:'Conn.',top10:'Top 10',silhouette:'Silh.',customs:'Cust.'};
+function todayHTML(P){const k=dayKey(),L=live(),done=L.filter(g=>result(g.id).done).length;
+  const cells=L.map(g=>{const r=result(g.id),c=PINK[g.id]||'#1D2B4C';
+    if(!r.done)return '<a class="no" href="'+esc(g.href)+'" aria-label="'+esc(g.name)+': not played yet">'+esc(SHORT[g.id]||g.name)+'<b>–</b></a>';
+    return '<span style="--c:'+c+'" aria-label="'+esc(g.name+': '+r.label)+'">'+esc(SHORT[g.id]||g.name)+'<b>'+esc(r.label==='Solved'?'4/4':r.label)+'</b></span>'}).join('');
+  return '<div class="gp-entry'+(done?'':' off')+'"><div><div class="d">Today, '+esc(dateText(k,{day:'numeric',month:'short'}))+'</div>'+
+    '<div class="s">'+(done?'Entry stamp · '+done+' of '+L.length+' games':'No games yet today')+'</div></div><div class="k">+'+fmt(P.todayKm)+' km</div>'+
+    '<div class="gp-g">'+cells+'</div></div>'}
+function almostHTML(){const a=atlas(),k=dayKey();
+  const L=Object.keys(ATLAS).map(c=>[c,country(c,a)]).filter(([,x])=>x.n&&!x.mine)
+    .sort((A,B)=>(B[1].n/B[1].of-A[1].n/A[1].of)||(hsh(A[0]+k)-hsh(B[0]+k))); // a different few each day among the closest
+  const one=L.filter(([,x])=>x.n===x.of-1).length;
+  const rows=L.slice(0,3).map(([c,x])=>{const d=ATLAS[c],G=GORDER.filter(([g])=>d.m&GBIT[g]),miss=G.filter(([g])=>!(x.have&GBIT[g]));
+    const dots=G.map(([g])=>'<i style="'+(x.have&GBIT[g]?'background:'+PINK[g]+';border-color:'+PINK[g]:'')+'"></i>').join('');
+    const m=miss[0],gm=game(m[0]);
+    return '<div><span><b>'+esc(d.n)+'</b><small><span class="gp-dots">'+dots+'</span>'+x.n+' of '+x.of+' games</small></span>'+
+      '<a class="gp-miss" style="--c:'+PINK[m[0]]+'" href="'+esc(gm?gm.href:'#')+'">Missing: '+esc(m[1])+(miss.length>1?' +'+(miss.length-1):'')+'</a></div>'}).join('');
+  return '<div class="gp-sec"><h4>Almost yours</h4><span>'+(one?one+' one game to go':'')+'</span></div>'+
+    (rows?'<div class="gp-al">'+rows+'</div>':'<p class="gp-empty">Get a country right in any game and it starts its way to being yours.</p>')}
+// every big moment: countries and visas from gm-ms, levels and personal bests worked out from the games' histories
+function allMoments(V){const ev=moments().e.slice(),L=ledger(),ds=Object.keys(L).sort();let km=0,lv=0;const top={},n={};
+  ds.forEach(d=>{km+=dayTotal(L[d]);while(LEVELS[lv+1]&&km>=LEVELS[lv+1][1]){lv++;ev.push({k:'l',n:LEVELS[lv][0],km:LEVELS[lv][1],d})}
+    for(const g in L[d]){const v=L[d][g],had=top[g]||0;
+      if(v>=120&&had<120)ev.push({k:'b',g,km:v,p:1,d});else if((n[g]||0)>=5&&v>had)ev.push({k:'b',g,km:v,prev:had,d});
+      top[g]=Math.max(had,v);n[g]=(n[g]||0)+1}});
+  const ord={c:0,v:1,l:2,b:3};return ev.sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:ord[a.k]-ord[b.k])}
+function momentHTML(x,V){const k=dayKey(),day=x.d===k?'Today':dateText(x.d,{weekday:'short',day:'numeric',month:'short'});
+  let c='#1D2B4C',ic='',t='',s='';
+  if(x.k==='c'){const d=ATLAS[x.c];if(!d)return '';ic=x.c;t=d.n+' is yours';s='Right in all '+country(x.c).of+' games it comes up in.'}
+  else if(x.k==='v'){const v=V.find(v=>v[2]===x.n);if(!v)return '';c=v[0];ic=v[1];t='Visa: '+v[2];s=v[3]+'.'}
+  else if(x.k==='l'){ic='↑';t=x.n+' reached';s=fmt(x.km)+' km on the road.'}
+  else{const g=game(x.g);if(!g)return '';c=PINK[x.g]||c;ic='★';t=x.p?'First perfect '+g.name:'Best day yet in '+g.name;s=fmt(x.km)+' km'+(x.p?'.':'. Before: '+fmt(x.prev)+' km.')}
+  return '<li style="--c:'+c+'"><span class="ic'+(ic.length>2?' sm':'')+'">'+esc(ic)+'</span><span><b>'+esc(t)+'</b><small>'+esc(s)+'</small><em>'+esc(day)+'</em></span></li>'}
+function pagePassport(P){const lv=level(P.km),V=visas();visaMoments(V);
+  const M=allMoments(V).map(x=>momentHTML(x,V)).filter(Boolean).slice(0,3);
   return '<div class="gp-sec"><h4>My route</h4><span>'+(lv.next?fmt(lv.next[1]-P.km)+' km to '+lv.next[0]:'Top level reached')+'</span></div>'+routeHTML(P.km)+
-    '<div class="gp-sec"><h4>Latest stamps</h4><span>'+fmt(p.n)+' in all</span></div>'+st+
+    '<div class="gp-sec"><h4>Today</h4></div>'+todayHTML(P)+almostHTML()+
+    '<div class="gp-sec"><h4>Milestones</h4><span>'+(M.length?'latest':'')+'</span></div>'+
+    (M.length?'<ul class="gp-ms">'+M.join('')+'</ul>':'<p class="gp-empty">The big moments show up here: a country that becomes yours, a new visa, a new level, your best day in a game.</p>')+
     '<details class="gp-det"><summary>How it works</summary>'+howHTML()+'</details>'}
 function pageCountries(){const a=atlas(),codes=Object.keys(ATLAS),mine=countriesMine(a),way=codes.filter(c=>{const x=country(c,a);return x.n&&!x.mine}).length;
   const R=52,C2=2*Math.PI*R,frac=mine/codes.length,wfrac=(mine+way)/codes.length;
