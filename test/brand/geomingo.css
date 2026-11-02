@@ -572,3 +572,14 @@ body::after{content:"PASSPORT · GEOMINGO";position:fixed;z-index:-1;left:50%;to
 .gp{box-shadow:inset 0 0 0 1.5px #A84058,inset 0 0 0 5px #7A2036,inset 0 0 0 6px rgba(233,217,176,.45)!important}
 .gp-bar,.gp-bar b,.gp-bar h2,.gp-bar span{color:#F4F0EA!important}.gp-emb{stroke:#E9D9B0}
 .gp-bar button{background:transparent!important;border:1.5px solid #F4F0EA!important;color:#F4F0EA!important}
+/* a world map, very faint, behind the page (travel journal) */
+body{background-image:url("world.svg"),repeating-radial-gradient(circle at 115% -12%,transparent 0 14px,var(--guil) 14px 15px)!important;
+  background-size:170% auto,100% 100vh!important;background-position:30% 34vh,0 0!important;background-repeat:no-repeat!important;background-attachment:fixed!important}
+@media (min-width:700px){body{background-size:110% auto,100% 100vh!important;background-position:center 30vh,0 0!important}}
+/* data icons: population, capital, continent */
+.gm-facts{display:flex;justify-content:space-around;gap:8px;margin:2px 0;font-family:var(--body);font-weight:600;font-size:14px;color:#2C3539}
+.gm-facts span{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;min-width:0}
+.gm-facts svg{width:26px;height:26px;fill:#2C3539}
+.gm-facts b{font-family:var(--type);font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+/* the map also shows faintly inside today's card */
+.hcard.ac,.hcard#daily{background-image:url("world.svg");background-size:150% auto;background-position:40% 60%;background-repeat:no-repeat}
