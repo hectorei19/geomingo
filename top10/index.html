@@ -425,7 +425,6 @@ const srcBtn=`<button class="linkbtn" id="src" style="align-self:flex-start;padd
 function askHTML(tkt){const l=listById(S.list),on=S.mode==='online';
   let h=`<p class="t10q">${esc(l.title)}</p>${S.top.length>10?`<p class="hint" style="margin:0">${S.top.length} countries share the places down to 10th: any of them counts. Find 10 to win.</p>`:''}${KB&&!S.over?'':srcBtn}`;
   if(S.over)return h;
-  if(KB&&(!on||S.turn===S.me))h+=askBtnHTML();
   if(!KB&&(!on||S.turn===S.me))h+=`<div class="t10in"><input id="q" placeholder="Type a country…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(query)}" aria-label="Type a country"><ul class="sugg" id="sugg">${suggHTML()}</ul></div>`;
   if(on&&S.turn===S.me)h+=`<button class="ghost" id="opass" style="align-self:flex-start">Pass</button>`;
   if(!on&&!KB)h+=giveUpHTML();
@@ -496,7 +495,7 @@ function onlineHTML(){const cur=S.players[S.turn]||{};
   else if(S.me>=0&&!S.lives)h+=`<p class="hint">You are out of lives: watch the others finish.</p>`;
   if(!S.over&&!cur.on&&S.turn!==S.me)h+=`<button class="ghost" id="oskip">${esc(cur.name)} is offline: skip their turn</button>`;
   h+=`<section class="panel t10ask">${askHTML()}</section>${listHTML()}`;
-  if(KB&&!S.over)h+=`<div class="kbgu">${srcBtn}</div>`;
+  if(KB&&!S.over)h+=`<div class="kbgu">${S.turn===S.me?askBtnHTML():''}${srcBtn}</div>`;
   h+=`<div class="row-btns">${S.host&&!S.over?'<button class="ghost" id="oend" style="flex:1">End game</button>':''}<button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;
   return h}
 function render(){
@@ -523,8 +522,8 @@ function render(){
   if(S.over)h+=resultHTML();
   else h+=`<div id="t10tk" style="display:contents">${tk()}</div>`;
   h+=`<section class="panel t10ask">${askHTML(true)}</section><div id="t10ls" style="display:contents">${listHTML()}</div>`;
-  if(!S.over&&KB)h+=`<div class="kbgu">${giveUpHTML()}${srcBtn}</div>`;
-  if(!S.over)h+=quickRules(' Full rules in <b>How to play</b>.')+`<i id="t10game" data-k="${esc(tKey())}" hidden></i>`;
+  if(!S.over&&KB)h+=`<div class="kbgu">${askBtnHTML()}${giveUpHTML()}${srcBtn}</div>`;
+  if(!S.over)h+=quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')+`<i id="t10game" data-k="${esc(tKey())}" hidden></i>`;
   app.innerHTML=h;bind();
 }
 // Mingo's verdict, for the result panel
