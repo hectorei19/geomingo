@@ -466,6 +466,7 @@ window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,r
 // where it was, so you see the whole screen again. You can still move the page by hand meanwhile: then
 // it stays where you left it. A game that scrolls on purpose (window.scrollTo) wins over all this.
 (function keepPage(){
+  if(/\/(countries|capitals)\//.test(location.pathname))return;   // Countries and Capitals keep the browser's own behaviour
   if(!window.MutationObserver||!document.body){document.addEventListener('DOMContentLoaded',keepPage,{once:true});return}
   const go=window.scrollTo.bind(window);
   let open=false,restY=window.scrollY,touching=false,openedAt=0,timers=[],until=0;
