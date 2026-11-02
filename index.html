@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Geomingo · Daily geography games</title>
-<meta name="description" content="Daily geography puzzles, better with friends. Countries, Capitals, Connections, Top 10 and Silhouette: new trips every day at midnight, Spain time. Every game you play is a stamp in your GeoPass and earns km.">
+<meta name="description" content="Daily geography puzzles, better with friends. Countries, Capitals, Connections, Top 10 and Silhouette: new trips every day at midnight CET. Every game you play is a stamp in your GeoPass and earns km.">
 <meta name="theme-color" content="#151E30">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Geomingo">
@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="brand/geomingo.css?v=202611011620">
+<link rel="stylesheet" href="brand/geomingo.css?v=202611020310">
 <script src="brand/mingo.js?v=202611011600"></script>
 <script src="brand/account.js?v=202611011600"></script>
 <style>
@@ -140,7 +140,7 @@ footer{display:flex;flex-direction:column;gap:4px;align-items:center;padding-top
   </main>
   <footer>
     <p class="gm-note"><b>Daily geography puzzles, better with friends.</b></p>
-    <p class="gm-note">New trips every day at midnight, Spain time.</p>
+    <p class="gm-note">New trips every day at midnight CET.</p>
   </footer>
 </div>
 
@@ -243,7 +243,7 @@ function openMenu(){const acc=A(),u=acc&&acc.user,P=geo();
   const it=(act,c,t,m)=>'<li><button class="it" data-gm-act="'+act+'" style="--c:'+c+'"><span class="dot"></span><span class="tx">'+t+'</span><span class="mt">'+m+'</span></button></li>';
   win('Menu',who+'<ul>'+it('gp','#D4AD4B','My GeoPass',fmt(P.miles)+' km')+it('friends','#F07884','Travel with friends','')+
     it('rank','#5FC28F','This week\'s ranking','')+it('how','#A98BE0','How the GeoPass works','')+'</ul>'+
-    '<p>Daily geography puzzles, better with friends. New trips every day at midnight, Spain time. How to play and the credits are in each game\'s menu.</p>',
+    '<p>Daily geography puzzles, better with friends. New trips every day at midnight CET. How to play and the credits are in each game\'s menu.</p>',
     {gp:()=>G.openPass('passport'),friends:openFriends,how:openHow,rank:()=>{G.closeWindow();const w=document.getElementById('week');if(w&&!w.hidden)w.scrollIntoView({behavior:'smooth'})}})}
 function openFriends(){
   win('Travel with friends','<p>Online rooms for 2 to 6 phones. Choose a game, then create a room and send the code to your friends.</p><ul>'+

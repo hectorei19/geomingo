@@ -76,6 +76,8 @@ const DATA_CREDITS=`<ul style="padding-left:18px">
 function openCredits(){dialog('Credits &amp; data sources',typeof creditsHTML==='function'?creditsHTML():DATA_CREDITS)}
 // the footer's "Credits & data sources", as in every game
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#creditsbtn'))openCredits()});
+// "How to play" in the Quick rules box opens the full rules
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.qhelp'))dialog('How to play',rulesHTML())});
 /* ---- archive: past daily games, one try each, kept on this device ----
    o: {first: the first day, played: day => what you did on its day (or null), saved: day => the archive game (or null),
    num: day => its number, label: 'Puzzle', done: game => [result text, squares HTML]} */
@@ -129,3 +131,38 @@ function statsPageHTML(o){const A=window.Geomingo&&Geomingo.account,dates=Object
 const livesHTML=(left,all)=>`<span class="tk-dots" aria-label="${left} ${left===1?'life':'lives'} left">${Array.from({length:all},(_,i)=>`<i class="${i<left?'':'off'}"></i>`).join('')}</span>`;
 // the same three numbers, small, on the home screen's card of today's game once it is done
 const dstatsHTML=(streak,played,avg)=>`<span class="dstats"><span><b>${streak}</b>streak</span><span><b>${played}</b>played</span><span><b>${avg}</b>average</span></span>`;
+
+// Phones: typing an answer works as in Countries. The game shows a box-shaped button ("Type a country…");
+// tapping it opens a sheet at the bottom of the screen with the box (the phone keyboard opens), the countries
+// that match and a way back. Picking a country closes the sheet, and with it the keyboard, so you see the result.
+// ?kb=1 shows it on a computer too, for testing.
+const SHEETS=TOUCH||/[?&]kb=1/.test(location.search);
+let sheet=null;
+const askBtnHTML=()=>`<button type="button" class="askbtn" id="askbtn" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 1 0 0 13a6.5 6.5 0 0 0 0-13M15.3 15.3L20 20"/></svg>Type a country…</button>`;
+function sheetLayer(){let el=$('sheetlayer');if(!el){el=document.createElement('div');el.id='sheetlayer';document.body.appendChild(el)}return el}
+function drawSheetSugg(){const u=$('ssugg');if(!u||!sheet)return;u.innerHTML=sheet.sugg(sheet.text);
+  u.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>pickSheet(b.dataset.g))}
+function pickSheet(code){if(!sheet)return;const f=sheet.pick;closeSheet();f(code)}
+// o: {key: the question on screen, head: its line at the top, sugg(text): the list items, first(text): the code Enter picks,
+//     pick(code): the answer, back: the label of the way back}
+function openSheet(o){sheet=Object.assign({text:''},o);
+  sheetLayer().innerHTML=`<div class="scrim" id="sscrim"></div><div class="sheet" role="dialog" aria-label="Name a country">
+    ${o.head?`<div class="q">${o.head}</div>`:''}
+    <input id="sq" placeholder="Type a country…" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="go" aria-label="Type a country">
+    <ul class="sugg" id="ssugg"></ul>
+    <div class="bar"><button class="ghost" id="sback">${esc(o.back||'Back')}</button></div></div>`;
+  const q=$('sq');
+  q.oninput=e=>{sheet.text=e.target.value;drawSheetSugg()};
+  q.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const c=sheet.first(sheet.text);if(c)pickSheet(c)}if(e.key==='Escape')closeSheet()};
+  $('sback').onclick=$('sscrim').onclick=closeSheet;
+  drawSheetSugg();q.focus()}
+function closeSheet(){if(!sheet)return;sheet=null;const q=$('sq');if(q)q.blur();sheetLayer().innerHTML=''}
+// after every render of a game: the button (and any [data-ask] spot, like an empty place) opens the sheet.
+// An open sheet stays open while the same question is still on screen, otherwise it closes.
+function bindAsk(o){
+  if(!o||!$('askbtn')){closeSheet();return}
+  app.querySelectorAll('#askbtn,[data-ask]').forEach(b=>b.onclick=()=>openSheet(o));
+  if(!sheet)return;
+  if(sheet.key!==o.key){closeSheet();return}
+  const text=sheet.text;Object.assign(sheet,o,{text});
+  const h=document.querySelector('#sheetlayer .q');if(h&&o.head)h.innerHTML=o.head;drawSheetSugg()}
