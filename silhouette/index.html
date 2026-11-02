@@ -72,7 +72,7 @@
 .ready{display:flex}
 @media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611011600">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611020020">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -82,7 +82,7 @@
 <script src="countries.js?v=202610230100"></script>
 <script src="silhouette.js?v=202610230100"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202610260100"></script>
+<script src="../shared/minigames.js?v=202611020020"></script>
 <!-- online rooms (With friends): Firebase, loaded after the page so today's board shows at once -->
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -153,7 +153,7 @@ function soloHTML(){const diff=load('sil-diff','normal');
     <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Solo</span></div>
     <p class="hint">Name shape after shape until your ${LIVES} lives are gone. No country comes back until you have seen them all.</p>
     <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['normal','Normal'],['hard','Hard']],diff)}<p class="hint">${DIFF_HINT[diff]}.</p></div>
-    <button class="primary" id="start">Start game</button></section>${quickRules(' Full rules in <b>How to play</b>.')}`}
+    <button class="primary" id="start">Start game</button></section>${quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}`}
 const trainLeft=()=>Math.max(0,LIVES-T.miss);
 function trainPick(code){const q=T.q;if(q.st!=='play'||T.over)return;
   const res=answer(q,code,trainLeft());query='';typing=res==='wrong';
@@ -174,7 +174,7 @@ function trainHTML(){const q=T.q,s=trainStats()[T.diff]||{best:0},done=q.st!=='p
   if(T.over)h+=revealHTML(q)+`<span class="label">Game over</span><p class="big">${T.streak} named</p><p class="hint">${T.streak&&T.streak>=(s.best||0)?'Your best game at '+DIFF_NAME[T.diff]+'.':'Your best at '+DIFF_NAME[T.diff]+': '+(s.best||0)+' named.'}</p><button class="primary" id="tagain">New game</button>`;
   else if(done)h+=revealHTML(q)+`<button class="primary" id="tnext">Next shape</button>`;
   else h+=triesHTML(q,true)+answerBoxHTML(q,giveUpHTML());
-  return h+`</section>`+(done?'':quickRules(' Full rules in <b>How to play</b>.'))}
+  return h+`</section>`+(done?'':quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.'))}
 
 /* ---- Daily: nine shapes on a 3 x 3 board, the same for everyone, one board a day at Normal level ----
    The level shuffles its countries once per cycle (same order for everyone, from the cycle number) and deals
@@ -253,7 +253,7 @@ function dailyHTML(){let h=header('Silhou<span>ette</span>',(D.arch?'Archive #':
   h+=`<div class="backline"><button class="linkbtn" id="${D.arch?'archback':'home'}">← Back</button><span class="ht">${D.arch?'Board #'+D.num:"Today's shapes"}</span></div>`;
   if(D.over)h+=dailyResultHTML(D)+`<section class="panel play">${boardHTML(D)}</section>`;
   else{const q=D.qs[D.sel];
-    h+=Geomingo.ticket(dailyMood(),tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Shape',(D.sel+1)+'/9')+tk('Named',rightOf(D),'tk-pts')+tk('Lives',livesHTML(livesLeft(D.qs),LIVES),'tk-gs'))+`<section class="panel">${dailyPlayHTML(D,true)}</section>`+quickRules(' Full rules in <b>How to play</b>.')}
+    h+=Geomingo.ticket(dailyMood(),tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Shape',(D.sel+1)+'/9')+tk('Named',rightOf(D),'tk-pts')+tk('Lives',livesHTML(livesLeft(D.qs),LIVES),'tk-gs'))+`<section class="panel">${dailyPlayHTML(D,true)}</section>`+quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}
   return h}
 function dailyMood(){const started=D.qs.some(q=>q.st!=='play');
   return moodHTML(silKey(),started?'think':'pass',started?'Keep going: '+rightOf(D)+' of 9 so far.':'GeoPass ready.',started?'Tap any shape to jump to it.':'Nine shapes, nine stamps to win, the same for everyone. '+LIVES+' lives for the whole board.')}
@@ -531,7 +531,7 @@ function homeHTML(){const key=todayKey();
   return header('Silhou<span>ette</span>','',true)+`<section class="home">${hello}${Geomingo.account.userHTML()}${daily}${D.over?rankingHTML():''}
     <div class="hrow"><button class="hcard" data-go="train"><span class="ht">Solo</span><span class="hs">Practice on unlimited shapes, at your pace.</span></button>
     <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to ${MAXP} players.</span></button></div></section>
-    ${quickRules(' Full rules in <b>How to play</b>.')}`}
+    ${quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}`}
 function goHome(){if(roomCode){if(!confirm('Leave the room and go to the home screen?'))return;leaveRoom().then(()=>{view='home';render()});return}
   view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
 function render(){

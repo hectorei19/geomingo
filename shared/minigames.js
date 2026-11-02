@@ -76,6 +76,8 @@ const DATA_CREDITS=`<ul style="padding-left:18px">
 function openCredits(){dialog('Credits &amp; data sources',typeof creditsHTML==='function'?creditsHTML():DATA_CREDITS)}
 // the footer's "Credits & data sources", as in every game
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#creditsbtn'))openCredits()});
+// "How to play" in the Quick rules box opens the full rules
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.qhelp'))dialog('How to play',rulesHTML())});
 /* ---- archive: past daily games, one try each, kept on this device ----
    o: {first: the first day, played: day => what you did on its day (or null), saved: day => the archive game (or null),
    num: day => its number, label: 'Puzzle', done: game => [result text, squares HTML]} */

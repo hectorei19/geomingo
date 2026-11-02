@@ -101,7 +101,7 @@ body.kbon .gm-toast{bottom:calc(var(--kbh,0px) + 10px)}
 body.kbon .kbgu{display:flex;flex-direction:column;align-items:center;gap:14px}
 body.kbon .kbgu #src{align-self:center!important}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611011600">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611020020">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -114,7 +114,7 @@ body.kbon .kbgu #src{align-self:center!important}
 <script defer src="firebase-config.js?v=202611010100"></script>
 <script src="../shared/data.js?v=202610192300"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202610260100"></script>
+<script src="../shared/minigames.js?v=202611020020"></script>
 <script>
 /* ---- the rankings ----
    Only numbers Countries already uses (DATA and the country data), with the sources named in its Credits.
@@ -241,7 +241,7 @@ function soloHTML(){const f=load('t10-free',null),open=f&&!f.over&&listById(f.li
     <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Solo</span></div>
     <p class="hint">Practice on unlimited lists, at your pace. A different list each time until you have played them all; Share sends a link to the same list.</p>
     ${open?`<button class="ghost" id="cont">Continue your list (${f.found.length}/10)</button>`:''}
-    <button class="primary" id="start">Start game</button></section>${quickRules(' Full rules in <b>How to play</b>.')}`}
+    <button class="primary" id="start">Start game</button></section>${quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}`}
 // the archive: past daily lists, one try each on this device
 const archDay=k=>{const e=load('t10-hist',{})[k];return e?e.f+'/10':null};
 function openArchive(){view='archive';query='';render();window.scrollTo(0,0)}
@@ -488,7 +488,7 @@ function homeHTML(){const key=todayKey(),num=dayNum(key,T10_FIRST),d=dailySaved(
   return header('Top <span>10</span>','',true)+`<section class="home">${hi}${Geomingo.account.userHTML()}${daily}${d&&d.over?rankingHTML():''}
     <div class="hrow"><button class="hcard" data-go="free"><span class="ht">Solo</span><span class="hs">Practice on unlimited lists, at your pace.</span></button>
     <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to ${MAXP} players.</span></button></div></section>
-    ${quickRules(' Full rules in <b>How to play</b>.')}`}
+    ${quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}`}
 function goHome(){if(roomCode){if(!confirm('Leave the room and go to the home screen?'))return;leaveRoom().then(()=>{view='home';render()});return}
   view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
 function friendsHTML(){
@@ -554,7 +554,7 @@ function render(){
   else h+=`<div id="t10tk" style="display:contents">${tk()}</div>`;
   h+=`<section class="panel t10ask">${askHTML(true)}</section><div id="t10ls" style="display:contents">${listHTML()}</div>`;
   if(!S.over&&KB)h+=`<div class="kbgu">${giveUpHTML()}${srcBtn}</div>`;
-  if(!S.over)h+=quickRules(' Full rules in <b>How to play</b>.')+`<i id="t10game" data-k="${esc(tKey())}" hidden></i>`+(KB?kbDockHTML():'');
+  if(!S.over)h+=quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')+`<i id="t10game" data-k="${esc(tKey())}" hidden></i>`+(KB?kbDockHTML():'');
   app.innerHTML=h;bind();
 }
 // Mingo's verdict, for the result panel
