@@ -109,6 +109,14 @@ svg.mingo{display:block;flex-shrink:0;overflow:visible}
 .tk-tear{border-top:2px dashed color-mix(in srgb,var(--gold) 45%,transparent);margin:6px 14px 0;position:relative}
 .tk-tear::before,.tk-tear::after{content:"";position:absolute;top:-11px;width:20px;height:20px;border-radius:50%;background:var(--bg);border:1.5px solid var(--gold)}
 .tk-tear::before{left:-25px}.tk-tear::after{right:-25px}
+/* the mode strip on top of the ticket: gold for the daily (it counts), blue for practice and the archive */
+.tk-mode{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 14px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden}
+.tk-mode span{overflow:hidden;text-overflow:ellipsis}
+.tk-mode.daily{background:var(--gold);color:#16202F}
+.tk-mode.practice{background:var(--blue);color:#0C1220}
+.ticket.tk-practice{border-color:var(--blue)}
+.ticket.tk-practice .tk-tear{border-top-color:color-mix(in srgb,var(--blue) 50%,transparent)}
+.ticket.tk-practice .tk-tear::before,.ticket.tk-practice .tk-tear::after{border-color:var(--blue)}
 .tk-stub{display:flex;flex-wrap:wrap;gap:6px 4px;padding:8px 6px 10px}
 .tk-c{flex:1 1 auto;min-width:58px;display:flex;flex-direction:column;gap:2px;padding:4px 8px;border-radius:8px;border:1px solid transparent}
 .tk-c.tk-name{flex-grow:1.4;min-width:0;max-width:40%}

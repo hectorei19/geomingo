@@ -20,7 +20,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611011600"></script>
+<script src="../brand/mingo.js?v=202611020330"></script>
 <script src="../brand/account.js?v=202611011600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -75,7 +75,7 @@
 .ready{display:flex}
 @media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611020310">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611020330">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -179,7 +179,7 @@ function trainHTML(){const q=T.q,s=trainStats()[T.diff]||{best:0},done=q.st!=='p
   h+=`<div class="backline"><button class="linkbtn" id="soloback">← Back</button><span class="ht">Solo</span></div>`;
   // the ticket, as in every game: Mingo on top, then who is travelling, the level, the shapes named and the lives left
   h+=Geomingo.ticket(moodHTML(silKey(),'pass','Whose shape is this?','Type its name. Your best game at '+DIFF_NAME[T.diff]+': '+(s.best||0)+' named.'),
-    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Class',DIFF_NAME[T.diff])+tk('Named',T.streak,'tk-pts')+tk('Lives',livesHTML(trainLeft(),LIVES),'tk-gs'));
+    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Class',DIFF_NAME[T.diff])+tk('Named',T.streak,'tk-pts')+tk('Lives',livesHTML(trainLeft(),LIVES),'tk-gs'),{mode:'practice'});
   h+=`<section class="panel play">${silBoxHTML(q,done)}`;
   if(T.over)h+=revealHTML(q)+`<span class="label">Game over</span><p class="big">${T.streak} named</p><p class="hint">${T.streak&&T.streak>=(s.best||0)?'Your best game at '+DIFF_NAME[T.diff]+'.':'Your best at '+DIFF_NAME[T.diff]+': '+(s.best||0)+' named.'}</p><button class="primary" id="tagain">New game</button>`;
   else if(done)h+=revealHTML(q)+`<button class="primary" id="tnext">Next shape</button>`;
@@ -263,7 +263,7 @@ function dailyHTML(){let h=header('Silhou<span>ette</span>',(D.arch?'Archive #':
   h+=`<div class="backline"><button class="linkbtn" id="${D.arch?'archback':'home'}">← Back</button><span class="ht">${D.arch?'Board #'+D.num:"Today's shapes"}</span></div>`;
   if(D.over)h+=dailyResultHTML(D)+`<section class="panel play">${boardHTML(D)}</section>`;
   else{const q=D.qs[D.sel];
-    h+=Geomingo.ticket(dailyMood(),tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Class',DIFF_NAME[DAILY_LV])+tk('Named',rightOf(D),'tk-pts')+tk('Lives',livesHTML(livesLeft(D.qs),LIVES),'tk-gs'))+`<section class="panel">${dailyPlayHTML(D,true)}</section>`+quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}
+    h+=Geomingo.ticket(dailyMood(),tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Class',DIFF_NAME[DAILY_LV])+tk('Named',rightOf(D),'tk-pts')+tk('Lives',livesHTML(livesLeft(D.qs),LIVES),'tk-gs'),{mode:D.arch?'archive':'daily',num:D.num})+`<section class="panel">${dailyPlayHTML(D,true)}</section>`+quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}
   return h}
 function dailyMood(){const started=D.qs.some(q=>q.st!=='play');
   return moodHTML(silKey(),started?'think':'pass',started?'Keep going: '+rightOf(D)+' of 9 so far.':'GeoPass ready.',started?'Tap any shape to jump to it.':'Nine shapes, nine stamps to win, the same for everyone. '+LIVES+' lives for the whole board.')}
