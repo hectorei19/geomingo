@@ -20,8 +20,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611020430"></script>
-<script src="../brand/account.js?v=202611020430"></script>
+<script src="../brand/mingo.js?v=202611020500"></script>
+<script src="../brand/account.js?v=202611020500"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -82,7 +82,7 @@
 .lp.me{border-color:var(--sea)}
 .primary[disabled]{opacity:.5;cursor:default}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611020430">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611020500">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -330,7 +330,7 @@ function lobbyHTML(){const r=room,order=lobbyOrder(r),isHost=r.host===ME;
     <button class="ghost" id="copylink">Copy link</button>
     <span class="label">Players ${order.length}/${MAX_PLAYERS}</span>
     <div class="players">${order.map((pid,i)=>{const p=r.players[pid];return `<div class="lp ${p.on===false?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)}<span class="tag">${[pid===r.host?'host':'',pid===ME?'you':'',p.on===false?'offline':''].filter(Boolean).join(' · ')}</span></div>`}).join('')}</div>
-    <p class="hint">Everyone gets the same 16 countries at the same time. Solving it counts first, then fewer mistakes, then speed.</p>
+    <p class="hint">Everyone gets the same 16 countries at the same time. No lives: play until you find all four groups. Fewer mistakes win, then speed.</p>
     ${isHost?`<button class="primary" id="ostart" ${order.length<2?'disabled':''}>${order.length<2?'Waiting for players…':'Start game'}</button>`:'<p class="hint">Waiting for the host to start the game.</p>'}
   </section>`}
 function friendsHTML(){return header('Connec<span>tions</span>','')+`<section class="panel">
@@ -340,14 +340,15 @@ function friendsHTML(){return header('Connec<span>tions</span>','')+`<section cl
     ${FB_OK?'':'<p class="hint">Online play could not load. Check the connection and reload the page.</p>'}
     <div class="field"><button class="primary" id="create" ${FB_OK?'':'disabled'}>Create room</button></div>
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(joinCode)}" autocomplete="off"><button class="ghost" id="join" ${FB_OK?'':'disabled'}>Join</button></div></div>
-  </section>${rulesPanel()}`}
+  </section>${rulesPanel(true)}`}
 
 /* ---- moves ---- */
 function tap(c){if(!S||S.over||turning)return;const i=sel.indexOf(c);
   if(i>=0)sel.splice(i,1);else if(sel.length<4)sel.push(c);render()}
 // Mingo's key for the game on screen (his bubble and the summary belong to one game)
 const cxKey=()=>S?S.mode+':'+(S.date||S.seed)+':'+(S.code||'')+':'+(S.round||''):'';
-const leftTxt=()=>{const l=MAX_MISTAKES-S.mistakes;return l+' li'+(l===1?'fe':'ves')+' left.'};
+// with friends there are no lives: you play until the four groups are found, and only the mistakes are counted
+const leftTxt=()=>{if(S.mode==='online')return 'Keep going.';const l=MAX_MISTAKES-S.mistakes;return l+' li'+(l===1?'fe':'ves')+' left.'};
 function submit(){if(!S||S.over||turning||sel.length!==4)return;
   const key=sel.slice().sort().join();
   if(S.guesses.some(g=>g.slice().sort().join()===key)){say(cxKey(),'think','Hold on.','You already tried these four. Swap one.');render();return}
@@ -364,7 +365,7 @@ function submit(){if(!S||S.over||turning||sel.length!==4)return;
     say(cxKey(),'happy','Stamped: '+CATS[S.groups[g].k].label+'.',left?left+' group'+(left===1?'':'s')+' to go.':'All four groups found.');
     save();turnOver(picked,S.groups[g].t,()=>{popped=S.groups[g];render();popped=null});return}
   S.mistakes++;
-  if(S.mistakes>=MAX_MISTAKES){S.over=true;S.won=false;sel=[];save();render();return}
+  if(S.mode!=='online'&&S.mistakes>=MAX_MISTAKES){S.over=true;S.won=false;sel=[];save();render();return}
   if(best===3)say(cxKey(),'think','One away.','Three of these four belong together. '+leftTxt());
   else say(cxKey(),'sad','Denied entry.',"That's not a group. "+leftTxt());
   save();render(true)}
@@ -418,7 +419,7 @@ function homeHTML(){const key=todayKey(),num=dayNum(key,CX_FIRST),d=dailySaved()
     <div class="hrow"><button class="hcard" data-go="free"><span class="ht">Solo</span><span class="hs">Practice on unlimited puzzles, at your pace.</span></button>
     <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to ${MAX_PLAYERS} players.</span></button></div></section>
     ${rulesPanel()}`}
-const rulesPanel=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something: a region, a flag, a language, a name… Each country is in exactly one group, and only one split works for all 16. Pick four and tap <b>Submit</b>. A wrong four costs one of your ${MAX_MISTAKES} lives. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const rulesPanel=on=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something: a region, a flag, a language, a name… Each country is in exactly one group, and only one split works for all 16. Pick four and tap <b>Submit</b>. ${on?'With friends there are no lives: play until you find all four groups. Fewer mistakes and speed decide the ranking.':`A wrong four costs one of your ${MAX_MISTAKES} lives.`} Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 // the logo goes home from anywhere; in a room that means leaving it (in the middle of a game, tap twice)
 function goHome(){if(roomRef){if(S&&S.mode==='online'&&!S.over&&!leaveArmed){leaveArmed=true;render();toast('Tap again to leave the room.');return}
     leaveRoom(true);return}
@@ -443,7 +444,7 @@ function render(keepShake){
   else{const cell=Geomingo.tk,left=MAX_MISTAKES-S.mistakes;
     // the ticket, as in every game: Mingo on top, then who is travelling, groups found and mistakes left
     h+=Geomingo.ticket(moodHTML(cxKey(),'pass','4 stamps to win.','Pick four countries that share something, then Submit.'),
-      cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Groups',S.found.length+'/4','tk-pts')+cell('Lives',livesHTML(left,MAX_MISTAKES),'tk-gs'))}
+      cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Groups',S.found.length+'/4','tk-pts')+(on?cell('Mistakes',S.mistakes,'tk-gs'):cell('Lives',livesHTML(left,MAX_MISTAKES),'tk-gs')),{mode:S.mode==='free'?'practice':S.mode==='online'?'':S.mode,num:S.num})}
   h+=`<div class="cx-board">`;
   S.found.forEach(g=>h+=groupHTML(S.groups[g]));
   if(S.over)S.groups.forEach((g,i)=>{if(!S.found.includes(i))h+=groupHTML(g,true)});
@@ -451,7 +452,7 @@ function render(keepShake){
   h+=`</div>`;
   if(!S.over){
     h+=`<div class="cx-actions"><button class="ghost" id="shuf">Shuffle</button><button class="ghost" id="desel" ${sel.length?'':'disabled'}>Deselect all</button><button class="primary" id="submit" ${sel.length===4?'':'disabled'}>Submit</button></div>${on?'':giveUpHTML()}
-    ${catsHTML()}${rulesPanel()}`}
+    ${catsHTML()}${rulesPanel(on)}`}
   app.innerHTML=h;bind();
 }
 // optional help: the names of the four categories, in no particular order (not which country goes where)
@@ -501,7 +502,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Today's puzzle</b>: the same for everyone, new every day at midnight CET. One try. Missed one? Play it in <b>Menu → Archive</b>.</li>
   <li><b>Solo</b>: as many practice puzzles as you like. <b>Share</b> sends a friend a link to the same puzzle.</li>
-  <li><b>With friends</b>: 2 to ${MAX_PLAYERS} players online, each on their own phone. The host creates a room and shares its code or link. Everyone plays the same puzzle at the same time and sees how the others are doing. Solving it counts most, then fewer mistakes, then speed.</li></ul>`}
+  <li><b>With friends</b>: 2 to ${MAX_PLAYERS} players online, each on their own phone. The host creates a room and shares its code or link. Everyone plays the same puzzle at the same time and sees how the others are doing. There are no lives: everyone plays until they find all four groups. Fewer mistakes rank first, then speed.</li></ul>`}
 function copyText(t,okMsg){const manual=()=>{const el=$('linkbox');if(el){const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r)}toast('Copy blocked. Select the link and copy it.')};
   try{navigator.clipboard.writeText(t).then(()=>toast(okMsg,'good'),manual)}catch(e){manual()}}
 function bind(){
