@@ -545,17 +545,20 @@ const rankingHTML=()=>Geomingo.account.rankingHTML('top10',{what:'list',score:r=
 Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&S&&S.mode==='daily'){const d=dailySaved();if(d){S=d;liveKey=''}}
   if(!typing&&!roomCode&&(view==='home'||view==='game'&&S&&S.over))render()});
 function rulesHTML(){return `<h3>The idea</h3><ul>
-  <li>Each round is a ranking of countries made from real figures, for example "The 10 most populous countries" or "The 10 countries with the longest coastline".</li>
-  <li>Name the ten countries in the ranking, in any order. Each one you find appears in its place, with its figure.</li>
-  <li>A country that is not in the top 10 costs one of your <b>${LIVES} lives</b>, and you see where it ranks.</li>
-  <li>The game ends when you find all ten or run out of lives; then the full list is shown.</li>
-  <li>Some lists cover the whole world, others one continent: Europe, Asia, Africa or the Americas. In a continent list, only its countries count.</li>
-  <li>If countries are tied for 10th place, any of them counts: name ten to win.</li>
-  <li>Only independent countries count, never territories. The figures are the same ones Countries uses; "Where the numbers come from" names the source of each list.</li></ul>
+  <li>Each game is a top 10 of countries based on real figures, for example "The 10 most populous countries" or "The 10 countries with the longest coastline".</li>
+  <li>Name the ten countries in the list, in any order. Each one you find appears in its place, with its figure.</li>
+  <li>Some lists cover the whole world, others one continent (Europe, Asia, Africa or the Americas). In a continent list, only its countries count.</li>
+  <li>If several countries tie for 10th place, any of them counts: find ten to win.</li>
+  <li>Only independent countries count, never territories. <b>Where the numbers come from</b> shows the source of each list.</li></ul>
+  <h3>How to play</h3><ul>
+  <li>Tap <b>Type a country…</b>, start typing and tap the country in the list.</li>
+  <li>In the top 10: it appears in its place.</li>
+  <li>Not in the top 10: you lose one of your <b>${LIVES} lives</b>, and you see where it ranks.</li>
+  <li>The game ends when you find all ten or run out of lives. Then the full list is shown. <b>Give up</b> ends it early.</li></ul>
   <h3>Modes</h3><ul>
-  <li><b>Today's list</b>: the same for everyone, new every day at midnight CET. One try, saved on this device. Missed one? Play it in <b>Menu → Archive</b>.</li>
-  <li><b>Solo</b>: unlimited practice lists, a different one each time until you have played them all. Share sends a link to the same list.</li>
-  <li><b>With friends</b>: online, 2 to ${MAXP} players, each on their own phone. The host creates a room and shares its code or link. You take turns naming a country: one in the top 10 scores a point for you, one outside costs one of your ${LIVES} lives. The round ends when the ten are found, everyone is out of lives or everyone passes. Most points wins.</li></ul>`}
+  <li><b>Today's list</b>: the same for everyone, new every day at midnight CET. One try. Missed one? Play it in <b>Menu → Archive</b>.</li>
+  <li><b>Solo</b>: as many practice lists as you like, a new one each time until you have played them all. <b>Share</b> sends a friend a link to the same list.</li>
+  <li><b>With friends</b>: 2 to ${MAXP} players online, each on their own phone. The host creates a room and shares its code or link, and can set a time per turn (Off, 15 s or 30 s). You take turns naming a country: one in the top 10 scores a point, one outside costs you one of your ${LIVES} lives. You can also tap <b>Pass</b>, and running out of time passes too. The game ends when the ten are found, everyone is out of lives or everyone passes. Most points wins.</li></ul>`}
 // tapping a suggestion does not take the focus from the box, so the phone keyboard stays open
 function drawSugg(){const u=$('sugg');if(u){u.innerHTML=suggHTML();u.querySelectorAll('[data-g]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>guess(b.dataset.g)})}}
 function bind(){
