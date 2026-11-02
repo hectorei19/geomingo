@@ -38,6 +38,9 @@
 .ans{display:flex;flex-direction:column;gap:6px}
 .ans input{width:100%;border:1.5px solid var(--ink);border-radius:5px;padding:12px;font-size:1.1rem;background:var(--paper)}
 .ans .sugg{max-height:none}
+/* phones: the answer sheet shows the shape small next to the question, so you still see it with the keyboard open */
+.sheet .q .ssil{width:64px;height:64px;flex:none;color:var(--ink)}
+.sheet .q .ssil .sil{width:100%;height:100%;display:block}
 .tries{display:flex;align-items:center;gap:8px;font-size:.95rem;color:var(--ink-2)}
 .tries i{width:12px;height:12px;border-radius:50%;background:var(--flamingo)}
 .tries i.off{background:transparent;box-shadow:inset 0 0 0 1.5px var(--rule)}
@@ -72,7 +75,7 @@
 .ready{display:flex}
 @media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611020155">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611020300">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -82,7 +85,7 @@
 <script src="countries.js?v=202610230100"></script>
 <script src="silhouette.js?v=202610230100"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202611020020"></script>
+<script src="../shared/minigames.js?v=202611020300"></script>
 <!-- online rooms (With friends): Firebase, loaded after the page so today's board shows at once -->
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -111,17 +114,24 @@ function answer(q,code,left){
 function triesHTML(q,tkt,left){
   return (tkt?(q.rot?`<span class="hint">Turned shape</span>`:''):`<div class="tries" aria-label="${livesWord(left)} left">Lives ${Array.from({length:LIVES},(_,i)=>`<i class="${i<left?'':'off'}"></i>`).join('')}${q.rot?`<span class="cnt">Turned shape</span>`:''}</div>`)+
     (q.tries.length?`<p class="missed">Not ${q.tries.map(c=>esc(byCode[c].n)).join(', not ')}.</p>`:'')}
-function suggHTML(q){if(!query)return '';const res=searchCountries(query,null,6);
+function suggHTML(q){if(!query)return SHEETS?'<li class="hint" style="padding:8px 2px">Start typing, then tap the country.</li>':'';const res=searchCountries(query,null,6);
   if(!res.length)return `<li class="hint" style="padding:8px 2px">No country matches “${esc(query)}”.</li>`;
   return res.map(c=>{const t=q.tries.includes(c.c);return `<li><button data-g="${c.c}" ${t?'disabled':''}>${esc(c.n)}${t?'<span class="tag">not it</span>':''}</button></li>`}).join('')}
 function answerBoxHTML(q,extra){
+  if(SHEETS)return askBtnHTML()+(extra||'');
   return `<div class="ans"><input id="q" placeholder="Type a country…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(query)}" aria-label="Type a country"><ul class="sugg" id="sugg">${suggHTML(q)}</ul></div>${extra||''}`}
 function revealHTML(q,note){const c=byCode[q.c],ok=q.st==='right';
   return `<div class="reveal ${ok?'':'wrong'}"><img class="flag" src="${flagSrc(q.c)}" alt=""><span class="rn"><b>${esc(c.n)}</b><small>${ok?(q.tries.length?'Right, at try '+(q.tries.length+1):'Right, first try'):'The answer'} · ${contName[c.r]||''}</small></span>${note?`<span class="rpts">${note}</span>`:''}</div>`}
 function silBoxHTML(q,big){const cls=q.st==='right'?'right':q.st==='wrong'?'wrong':'';
   return `<div class="silbox ${cls}${big?' pop':''}">${silSVG(q.c,q.rot)}</div>`}
 // the answer box: typing filters the list; a tap or Enter (first match) answers
-function bindAnswer(q,onPick){const box=$('q');if(!box)return;
+function bindAnswer(q,onPick){
+  // phones: the button opens the answer sheet, as in Countries; answering closes it with the keyboard
+  if(SHEETS){bindAsk($('askbtn')?{key:q.c+':'+(q.rot||0)+':'+view,back:'Back to shape',
+    head:`<span class="ssil">${silSVG(q.c,q.rot)}</span><span>Whose shape is this?</span>`,
+    sugg:t=>{query=t;return suggHTML(q)},first:t=>{const m=searchCountries(t,null,6).filter(c=>!q.tries.includes(c.c));return m[0]&&m[0].c},
+    pick:onPick}:null);return}
+  const box=$('q');if(!box)return;
   const draw=()=>{const u=$('sugg');if(u){u.innerHTML=suggHTML(q);u.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>onPick(b.dataset.g))}};
   box.oninput=e=>{query=e.target.value;draw()};
   box.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const m=searchCountries(query,null,6).filter(c=>!q.tries.includes(c.c));if(m[0])onPick(m[0].c)}};
@@ -548,6 +558,7 @@ function render(){
   else app.innerHTML=homeHTML();
   bind()}
 function bind(){
+  if(!$('askbtn'))closeSheet();
   // give up: in Solo the shape on screen shows its name; on a daily board the shapes not named yet count as missed
   if(view==='train')bindGiveUp(trainSkip);
   else bindGiveUp(()=>{if(!D||D.over)return;D.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});D.over=true;query='';typing=false;

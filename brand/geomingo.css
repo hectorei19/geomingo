@@ -283,6 +283,11 @@ a.primary{text-decoration:none;text-align:center}
 .helpbtn:hover{border-color:var(--ink)}
 .code-in,.prow input,.nameinp,.namecard input,.field #fname,.field input,.t10in input,.ans input,.sheet input{min-height:50px;border:1.5px solid var(--ink);border-radius:8px;background:var(--bg);color:var(--ink);padding:10px 14px;font-family:var(--type);font-size:18px;font-weight:400}
 .code-in{letter-spacing:.18em;font-weight:700}
+/* phones: the button that opens the answer sheet looks like the box you type in (see askBtnHTML in shared/minigames.js) */
+.askbtn{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;border:1.5px solid var(--ink);border-radius:8px;background:var(--bg);color:var(--muted);padding:10px 14px;font-family:var(--type);font-size:18px;font-weight:400;text-align:left;cursor:text;touch-action:manipulation}
+.askbtn svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.askbtn:active{border-color:var(--blue)}
+#sheetlayer .sheet .q{gap:8px 10px}
 .backline{min-height:44px}
 .backline .ht,.hcard>.ht,.dtxt .ht{font-family:var(--display);font-weight:800;font-stretch:90%;text-transform:uppercase;letter-spacing:.01em}
 .hcard{background:var(--page);border:1px solid var(--line);border-radius:12px;box-shadow:none;color:var(--ink)}
