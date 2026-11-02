@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-game="top10">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}/* home screen, as in Countries: today's list open and playable, then Solo and With friends, then quick rules */
+.hcard.soon{opacity:.55;box-shadow:none}
+.hcard.play:hover{background:var(--sheet);border-color:var(--sea)}
+.field #fname{width:100%;border:1.5px solid var(--ink);border-radius:5px;padding:12px;font-size:1.05rem;background:var(--paper)}
+.dplay{width:100%;display:flex;flex-direction:column;gap:10px;margin-top:8px}
+/* with friends: a stripe in the colour of the player who named it, on the left of each square and of each wrong answer */
+.t10list li.by{box-shadow:inset 6px 0 0 var(--pc)}
+.t10list li.by .rk{padding-left:4px}
+.wl{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.wl .w{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1.5px solid var(--line);border-left:5px solid var(--pc);border-radius:6px;font-size:.88rem;white-space:nowrap}
+.wl .w img{width:16px;height:16px;border-radius:3px;opacity:.75}
+.wl .w small{opacity:.7;font-size:.8rem}
+.t10list .nm .pin{flex:none}
+</style>
+<title>Top 10 · Geomingo</title>
+<meta name="description" content="Name the 10 countries of a ranking with 5 lives. A new list every day. Daily geography games from Geomingo.">
+<meta name="theme-color" content="#151E30">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Geomingo">
+<meta property="og:title" content="Top 10 · Geomingo">
+<meta property="og:description" content="Name the 10 countries of a ranking. 5 lives. A new list every day.">
+<meta property="og:url" content="https://geomingo.com/top10/">
+<meta property="og:image" content="https://geomingo.com/brand/og.png?v=2">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../brand/icons/favicon.svg?v=202611011030" type="image/svg+xml">
+<link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
+<link rel="manifest" href="../brand/site.webmanifest?v=3">
+<script src="../brand/mingo.js?v=202611020700"></script>
+<script src="../brand/account.js?v=202611020700"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
+<link rel="stylesheet" href="../shared/style.css?v=202610252300">
+<style>
+/* Top 10: a ranked list with ten empty rows that fill in as you name the countries */
+.t10q{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:1.9rem;line-height:1;letter-spacing:.02em;margin:0;text-wrap:balance}
+.t10list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;background:var(--sheet);border:1.5px solid var(--ink);border-radius:6px;box-shadow:var(--shadow);overflow:hidden}
+.t10list li{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 12px;border-top:1px dashed var(--rule)}
+.t10list li:first-child{border-top:0}
+.t10list .rk{font-family:var(--display);font-weight:900;font-size:1.35rem;width:30px;color:var(--sea)}
+.t10list .nm{flex:1;font-weight:700;font-size:1.05rem;min-width:0;display:flex;align-items:center;gap:8px}
+.t10list .val{font-family:var(--mono);font-size:.78rem;color:var(--ink-2);white-space:nowrap}
+.t10list li.on{background:var(--p4-soft)}
+.t10list li.on.new{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}
+.t10list li.miss .nm{color:var(--ink-2);font-weight:500}
+.t10list .mini{width:24px;height:24px}
+.t10in{display:flex;flex-direction:column;gap:6px}
+.t10in input{width:100%;border:1.5px solid var(--ink);border-radius:5px;padding:12px;font-size:1.1rem;background:var(--paper)}
+.t10in .sugg{max-height:none}
+.lives{display:flex;align-items:center;gap:8px;font-size:.95rem;color:var(--ink-2)}
+.lives i{width:12px;height:12px;border-radius:50%;background:var(--bad)}
+.lives i.off{background:transparent;box-shadow:inset 0 0 0 1.5px var(--rule)}
+.lives .cnt{margin-left:auto;font-family:var(--mono);font-size:.8rem}
+.wrongs{margin:0;font-size:.92rem;color:var(--ink-2)}
+.modes{max-width:320px;width:100%;align-self:center}
+/* Geomingo look for the list */
+.t10q{font-family:var(--display);font-weight:600;text-transform:none;letter-spacing:0;font-size:1.6rem;line-height:1.1}
+.t10list{border:2px solid var(--line);border-radius:18px;box-shadow:none}
+.t10list li{border-top:2px dashed var(--line)}
+.t10list .rk{font-family:var(--display);font-weight:700;color:var(--flamingo-text)}
+.t10list li.on{background:var(--lagoon-soft)}
+.t10list .val{font-family:var(--body);font-weight:700}
+.lives i{background:var(--flamingo)}
+.lives .cnt{font-family:var(--body);font-weight:800}
+/* today's list on the home screen: the question and its ten empty places (a preview; tapping opens the list) */
+.hcard .t10q{display:block;margin:6px 0 2px}
+.t10peek{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:100%;margin-top:6px}
+.t10peek i{font-style:normal;font-family:var(--display);font-weight:700;color:var(--flamingo-text);border:2px dashed var(--line);border-radius:10px;padding:8px 0;text-align:center}
+.t10peek i.on{background:var(--lagoon-soft);border-style:solid}
+.t10list li[data-ask]{cursor:pointer}
+/* phones: the ten places in two columns (1-5 and 6-10), each with its flag, name and figure, so they fit above the keyboard */
+body.kbon .t10list{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(var(--rows,5),auto);grid-auto-flow:column}
+body.kbon .t10list li{display:grid;grid-template-columns:26px 1fr;grid-template-rows:auto auto;align-content:center;column-gap:6px;min-height:46px;padding:4px 8px 4px 10px;min-width:0}
+body.kbon .t10list li.c2top{border-top:0}
+body.kbon .t10list li.c2{border-left:2px dashed var(--line)}
+body.kbon .t10list .rk{grid-row:1/3;width:auto;font-size:1.15rem;align-self:center}
+body.kbon .t10list .nm{font-size:.86rem;line-height:1.15;gap:6px;min-width:0;overflow-wrap:anywhere}
+body.kbon .t10list .nm>img{flex:none}
+body.kbon .t10list .val{grid-column:2;font-size:.72rem;line-height:1.1}
+body.kbon .t10list .mini{width:18px;height:18px}
+body.kbon .kbgu{display:flex;flex-direction:column;align-items:center;gap:14px}
+body.kbon .kbgu #src{align-self:center!important}
+</style>
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611020500">
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
+<div id="layer"></div>
+
+<!-- online rooms (With friends): Firebase, loaded after the page so today's list shows at once -->
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script defer src="firebase-config.js?v=202611010100"></script>
+<script src="../shared/data.js?v=202610192300"></script>
+<script src="../shared/games.js?v=202610240100"></script>
+<script src="../shared/minigames.js?v=202611020300"></script>
+<script>
+/* ---- the rankings ----
+   Only numbers Countries already uses (DATA and the country data), with the sources named in its Credits.
+   Independent countries only. A list is used only when the 10th and 11th places are not tied. */
+const T10_FIRST='2026-10-19',LIVES=5;
+const SOVC=C.filter(c=>!c.t);
+const n0=v=>EU(Math.round(v));
+const ppl=v=>(v>=1e9?EU(v/1e9,2)+' billion':v>=1e6?EU(v/1e6,1)+' million':n0(v))+' inhabitants';
+const d1=v=>EU(+v,1);
+const num=v=>typeof v==='number'&&isFinite(v)?v:undefined;
+const D=k=>c=>num(DATA[k][c.c]);
+const AREANOTE='Total area (land and inland water), from the country data used in Countries (mledoze/countries). Vatican City, missing there, is 0,44 km² (Wikipedia, "Vatican City").';
+// area in km²: the country data has none for Vatican City, so its official 0.44 km² is added here
+const AREA=c=>c.c==='VAT'?0.44:c.a>0?c.a:undefined;
+const big=v=>v>=1e12?EU(v/1e12,2)+' trillion':v>=1e9?EU(v/1e9,1)+' billion':EU(v/1e6,0)+' million';
+const GDPNOTE=NOTE('World Bank figures, 2025 column','List of countries by GDP (nominal) per capita');
+const CO2NOTE=NOTE('figures for 2023','List of countries by carbon dioxide emissions per capita');
+const FORESTNOTE=NOTE('forest share of land area','List of countries by forest area');
+const L=(id,title,get,dir,fmt,src)=>({id,title,get,dir,fmt,src});
+// the world lists; each one also comes in a version for Europe, Asia, Africa and the Americas (see REGIONS below)
+const WORLD_LISTS=[
+  L('pop-hi','The 10 most populous countries',D('pop'),-1,ppl,POPNOTE),
+  L('pop-lo','The 10 least populous countries',D('pop'),1,v=>n0(v)+' inhabitants',POPNOTE),
+  L('area-hi','The 10 largest countries by area',AREA,-1,v=>n0(v)+' km²',AREANOTE),
+  L('area-lo','The 10 smallest countries by area',AREA,1,v=>v<1?EU(v)+' km²':n0(v)+' km²',AREANOTE),
+  L('dens-hi','The 10 most densely populated countries',c=>D('pop')(c)&&AREA(c)?D('pop')(c)/AREA(c):undefined,-1,v=>n0(v)+' inhabitants per km²','Population divided by total area. '+POPNOTE+' '+AREANOTE),
+  L('dens-lo','The 10 most sparsely populated countries',c=>D('pop')(c)&&AREA(c)?D('pop')(c)/AREA(c):undefined,1,v=>d1(v)+' inhabitants per km²','Population divided by total area. '+POPNOTE+' '+AREANOTE),
+  L('gdptot-hi','The 10 countries with the biggest economy (total GDP)',c=>D('pop')(c)&&D('gdp')(c)?D('pop')(c)*D('gdp')(c):undefined,-1,v=>'$'+big(v),'GDP per person times population. '+GDPNOTE+' '+POPNOTE),
+  L('gdp-hi','The 10 countries with the highest GDP per person',D('gdp'),-1,v=>'$'+n0(v),GDPNOTE),
+  L('gdp-lo','The 10 countries with the lowest GDP per person',D('gdp'),1,v=>'$'+n0(v),GDPNOTE),
+  L('hdi-hi','The 10 countries with the highest Human Development Index',D('hdi'),-1,v=>EU(+v,3),NOTE('UNDP figures for 2023','List of countries by Human Development Index')),
+  L('hdi-lo','The 10 countries with the lowest Human Development Index',D('hdi'),1,v=>EU(+v,3),NOTE('UNDP figures for 2023','List of countries by Human Development Index')),
+  L('life-hi','The 10 countries with the longest life expectancy',D('life'),-1,v=>d1(v)+' years',NOTE('UN figures for 2023','List of countries by life expectancy')),
+  L('life-lo','The 10 countries with the shortest life expectancy',D('life'),1,v=>d1(v)+' years',NOTE('UN figures for 2023','List of countries by life expectancy')),
+  L('age-hi','The 10 countries with the oldest population (median age)',D('age'),-1,v=>d1(v)+' years',NOTE('CIA World Factbook, 2024 estimates','List of countries by median age')),
+  L('age-lo','The 10 countries with the youngest population (median age)',D('age'),1,v=>d1(v)+' years',NOTE('CIA World Factbook, 2024 estimates','List of countries by median age')),
+  L('cpi-hi','The 10 least corrupt countries (Corruption Perceptions Index)',D('cpi'),-1,v=>n0(v)+' / 100',NOTE('Transparency International, 2025 index','Corruption Perceptions Index')),
+  L('cpi-lo','The 10 most corrupt countries (Corruption Perceptions Index)',D('cpi'),1,v=>n0(v)+' / 100',NOTE('Transparency International, 2025 index','Corruption Perceptions Index')),
+  L('co2-hi','The 10 countries with the most CO₂ emissions per person',D('co2'),-1,v=>d1(v)+' tonnes',CO2NOTE),
+  L('co2tot-hi','The 10 countries with the most CO₂ emissions in total',c=>D('pop')(c)&&D('co2')(c)?D('pop')(c)*D('co2')(c):undefined,-1,v=>(v>=1e9?EU(v/1e9,2)+' billion':EU(v/1e6,1)+' million')+' tonnes','Emissions per person times population. '+CO2NOTE+' '+POPNOTE),
+  L('urban-lo','The 10 countries with the smallest share of urban population',D('urban'),1,v=>d1(v)+'%',NOTE('UN figures for 2023','Urbanization by sovereign state')),
+  L('capshare-hi','The 10 countries where the most people live in the capital (share of population)',c=>{if(DATA.cap_skip.includes(c.c)||!D('pop')(c)||!num(DATA.cappop[c.c]))return;const v=DATA.cappop[c.c]/D('pop')(c)*100;return v<95?v:undefined},-1,v=>d1(v)+'%','Population of the capital within its city limits, divided by the population of the country. City-states (Vatican City, Singapore, Monaco), where the capital is the whole country, are left out. '+CAPNOTE+' '+POPNOTE),
+  L('coast-hi','The 10 countries with the longest coastline',D('coast'),-1,v=>n0(v)+' km',NOTE('CIA World Factbook figures','List of countries by length of coastline')),
+  L('elev-hi','The 10 countries with the highest top point',D('elev'),-1,v=>n0(v)+' m',NOTE('highest points','List of elevation extremes by country')),
+  L('elev-lo','The 10 flattest countries (lowest top point)',D('elev'),1,v=>n0(v)+' m',NOTE('highest points','List of elevation extremes by country')),
+  L('landb-hi','The 10 countries with the longest land borders',D('landb'),-1,v=>n0(v)+' km',NOTE('total land border length','List of countries and territories by land borders')),
+  L('forest-hi','The 10 most forested countries (share of land)',D('forest'),-1,v=>d1(v)+'%',FORESTNOTE),
+  L('forestkm-hi','The 10 countries with the most forest (area)',c=>D('forest')(c)!==undefined&&AREA(c)?D('forest')(c)*AREA(c)/100:undefined,-1,v=>n0(v)+' km²','Forest share of land times total area, so a rough figure. '+FORESTNOTE+' '+AREANOTE),
+  L('olymp-hi','The 10 countries with the most Olympic medals',D('olymp'),-1,v=>n0(v)+' medals','All Summer and Winter Olympics together, up to the 2026 Winter Games. Medals won as part of a former team (Soviet Union, East Germany...) are not added. Source: Wikipedia, "All-time Olympic Games medal table".'),
+  L('cap-hi','The 10 countries with the most populous capital city',c=>DATA.cap_skip.includes(c.c)?undefined:num(DATA.cappop[c.c]),-1,ppl,'Population of the capital within its city limits. '+CAPNOTE),
+  L('cap-lo','The 10 countries with the least populous capital city',c=>DATA.cap_skip.includes(c.c)||!(DATA.cappop[c.c]>0)?undefined:DATA.cappop[c.c],1,v=>n0(v)+' inhabitants','Population of the capital within its city limits. '+CAPNOTE),
+  L('gdptot-lo','The 10 countries with the smallest economy (total GDP)',c=>D('pop')(c)&&D('gdp')(c)?D('pop')(c)*D('gdp')(c):undefined,1,v=>'$'+big(v),'GDP per person times population. '+GDPNOTE+' '+POPNOTE),
+  L('co2-lo','The 10 countries with the least CO₂ emissions per person',D('co2'),1,v=>EU(+v,2)+' tonnes',CO2NOTE),
+  L('urban-hi','The 10 most urban countries (share of urban population)',D('urban'),-1,v=>d1(v)+'%',NOTE('UN figures for 2023','Urbanization by sovereign state')),
+  L('forest-lo','The 10 least forested countries (share of land)',D('forest'),1,v=>d1(v)+'%',FORESTNOTE),
+  L('coast-lo','The 10 countries with the shortest coastline (landlocked ones left out)',c=>D('coast')(c)>0?D('coast')(c):undefined,1,v=>EU(+(+v).toFixed(1))+' km',NOTE('CIA World Factbook figures','List of countries by length of coastline')),
+  L('landb-lo','The 10 countries with the shortest land borders (islands left out)',c=>D('landb')(c)>0?D('landb')(c):undefined,1,v=>EU(+(+v).toFixed(1))+' km',NOTE('total land border length','List of countries and territories by land borders')),
+  L('nb-hi','The 10 countries with the most neighbouring countries',c=>c.b.filter(x=>byCode[x]&&!byCode[x].t).length,-1,v=>v+' neighbours','Independent countries that share a land border with it, from the country data used in Countries (mledoze/countries). Territories are not counted.'),
+  L('lat-hi','The 10 northernmost countries',c=>c.lat,-1,v=>EU(Math.abs(v))+'°'+(v<0?'S':'N'),'Latitude of the centre of the country, from the country data used in Countries (mledoze/countries).'),
+  L('lat-lo','The 10 southernmost countries',c=>c.lat,1,v=>EU(Math.abs(v))+'°'+(v<0?'S':'N'),'Latitude of the centre of the country, from the country data used in Countries (mledoze/countries).'),
+  L('name-hi','The 10 countries with the longest names',c=>c.letters.length,-1,v=>v+' letters','Letters in the country\'s name as Geomingo writes it (spaces and hyphens not counted).'),
+  L('name-lo','The 10 countries with the shortest names',c=>c.letters.length,1,v=>v+' letters','Letters in the country\'s name as Geomingo writes it (spaces and hyphens not counted).'),
+  L('olympc-hi','The 10 countries with the most Olympic medals per person',c=>D('olymp')(c)&&D('pop')(c)?D('olymp')(c)/D('pop')(c)*1e6:undefined,-1,v=>d1(v)+' per million people','All-time Olympic medals divided by population. Medals: Wikipedia, "All-time Olympic Games medal table" (Summer and Winter, up to the 2026 Winter Games). '+POPNOTE),
+];
+// the same rankings within one continent, as the country data groups them (Russia and Cyprus count as Europe; Turkey and the Caucasus as Asia)
+const REGIONS=[
+  {k:'eu',name:'Europe',in:c=>c.r==='EU'},
+  {k:'as',name:'Asia',in:c=>c.r==='AS'},
+  {k:'af',name:'Africa',in:c=>c.r==='AF'},
+  {k:'am',name:'the Americas',in:c=>c.r==='NA'||c.r==='SA'},
+];
+const ALL_LISTS=[...WORLD_LISTS,...REGIONS.flatMap(g=>WORLD_LISTS.map(l=>({...l,id:l.id+'-'+g.k,reg:g,
+  title:l.title.replace(' countries',' countries in '+g.name),
+  src:'Only countries in '+g.name+', as the country data used in Countries groups them. '+l.src})))];
+// full ranking of a list: every independent country with a figure (in its continent, for a continent list), best first
+function ranking(l){return SOVC.filter(c=>!l.reg||l.reg.in(c)).map(c=>({c:c.c,v:l.get(c)})).filter(x=>x.v!==undefined).sort((a,b)=>l.dir*(a.v-b.v)||(a.c<b.c?-1:1))}
+// the countries that count as the top 10: the first ten, plus any tied with the 10th (then any of them counts)
+function topCodes(l){const r=ranking(l),cut=r[9].v;return r.filter(x=>l.dir*(x.v-cut)<=0).map(x=>x.c)}
+// a country's place, shared when tied ("#10" for every country level with the 10th)
+function placeOf(l,code){const r=ranking(l),x=r.find(y=>y.c===code);return x?r.findIndex(y=>y.v===x.v)+1:0}
+// lists used: at least 20 countries with a figure, and at most 12 countries level with the top 10
+const LISTS=ALL_LISTS.filter(l=>{const r=ranking(l);return r.length>=20&&topCodes(l).length<=12});
+const listById=id=>ALL_LISTS.find(l=>l.id===id);
+// the daily list: lists come in a shuffled order that is the same for everyone, so none repeats until all were used.
+// The first round (2026-10-19 to 2026-11-05) keeps the 18 lists the game began with, in the same order as before.
+const FIRST_ROUND=['pop-hi','pop-lo','area-hi','gdp-hi','gdp-lo','hdi-hi','hdi-lo','life-lo','age-hi','co2-hi','urban-lo','coast-hi','elev-hi','elev-lo','landb-hi','forest-hi','olymp-hi','cap-hi'].map(listById);
+function dailyList(key){const n=dayNum(key,T10_FIRST)-1;
+  if(n<FIRST_ROUND.length)return shuffle(FIRST_ROUND,rngFrom(seedOf('top10-cycle-0')))[Math.max(n,0)];
+  const m=n-FIRST_ROUND.length,len=LISTS.length,cycle=Math.floor(m/len);
+  return shuffle(LISTS,rngFrom(seedOf('top10-round-'+cycle)))[m%len]}
+// Solo: a random list you have not played on this device yet; when all were played, they all come back
+function soloList(){const seen=new Set(load('t10-seen',[])),cur=S&&S.list;
+  let o=LISTS.filter(x=>!seen.has(x.id)&&x.id!==cur);
+  if(!o.length){store('t10-seen',[]);o=LISTS.filter(x=>x.id!==cur)}
+  return o[Math.floor(Math.random()*o.length)]}
+function markSeen(id){const s=load('t10-seen',[]);if(!s.includes(id)){s.push(id);store('t10-seen',s)}}
+function newGame(mode,l,day){
+  const S={mode,list:l.id,top:topCodes(l),found:[],wrong:[],lives:LIVES,over:false,won:false};
+  if(mode==='daily'||mode==='archive'){S.date=day||todayKey();S.num=dayNum(S.date,T10_FIRST)}
+  return S}
+
+/* ---- state ----
+   view: 'home' (today's list, then Solo and With friends), 'game' (a list on its own screen), 'solo' (Solo's start screen),
+   'archive' (past daily lists) or 'friends' (online rooms) */
+let S=null,mode='daily',view='home',query='',fresh=null,typing=false;
+const dailySaved=()=>{const d=load('t10-daily',null);return d&&d.date===todayKey()?d.S:null};
+function save(){if(!S||S.mode==='online')return;
+  if(S.mode==='daily'){store('t10-daily',{date:S.date,over:S.over,S});
+    if(S.over){const h=load('t10-hist',{});if(!h[S.date]){h[S.date]={f:S.found.length,l:S.lives};store('t10-hist',h);if(!TESTDAY){Geomingo.clock.stop('top10',S.date,S.found.length/10);Geomingo.account.done('top10')}}}}
+  else if(S.mode==='archive'){const a=load('t10-arch',{});a[S.date]=S;store('t10-arch',a)}
+  else{if(S.over&&!S.logged){S.logged=1;logSolo('t10-solo',{p:S.found.length>=10?1:0,f:S.found.length,best:S.found.length})}
+    store('t10-free',S)}}
+// today's game, saved or new (a new one is saved at the first answer)
+function dailyGame(){const d=dailySaved();return d&&d.date===todayKey()?d:newGame('daily',dailyList(todayKey()))}
+function openDaily(){view='game';mode='daily';S=dailyGame();query='';render();window.scrollTo(0,0)}
+function openFree(id,fresh){view='game';mode='free';const f=load('t10-free',null);
+  if(!id&&!fresh&&f&&!f.over&&listById(f.list))S=f;
+  else{const l=id&&listById(id)||soloList();S=newGame('free',l);markSeen(l.id)}
+  query='';save();render();window.scrollTo(0,0)}
+// Solo: a screen to start from, as in every game (an unfinished practice list can be continued)
+function openSolo(){view='solo';query='';render();window.scrollTo(0,0)}
+function soloHTML(){const f=load('t10-free',null),open=f&&!f.over&&listById(f.list);
+  return header('Top <span>10</span>','Solo')+`<section class="panel">
+    <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Solo</span></div>
+    <p class="hint">Practice on unlimited lists, at your pace. A different list each time until you have played them all; Share sends a link to the same list.</p>
+    ${open?`<button class="ghost" id="cont">Continue your list (${f.found.length}/10)</button>`:''}
+    <button class="primary" id="start">Start game</button></section>${quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}`}
+// the archive: past daily lists, one try each on this device
+const archDay=k=>{const e=load('t10-hist',{})[k];return e?e.f+'/10':null};
+function openArchive(){view='archive';query='';render();window.scrollTo(0,0)}
+function playArchive(k){if(archDay(k)){toast('You played this list on its day.');return}
+  const a=load('t10-arch',{});view='game';mode='archive';
+  S=a[k]&&listById(a[k].list)?a[k]:newGame('archive',dailyList(k),k);query='';save();render();window.scrollTo(0,0)}
+const archiveView=()=>header('Top <span>10</span>','Archive')+archiveHTML({first:T10_FIRST,label:'List',num:k=>dayNum(k,T10_FIRST),
+  played:archDay,saved:k=>load('t10-arch',{})[k]||null,
+  done:g=>[g.found.length+'/10',`<span class="dsq" style="grid-template-columns:repeat(5,1fr)" aria-hidden="true">${tiles(g).map(on=>`<i class="${on?'on':''}"></i>`).join('')}</span>`]});
+
+/* ---- the search box: names only, found by their first letters, like Countries ---- */
+function matches(q){const k=N(q),l=listById(S.list);if(!k)return[];return SOVC.filter(c=>(!l.reg||l.reg.in(c))&&(c.k.startsWith(k)||c.ak.some(a=>a.startsWith(k)))).slice(0,8)}
+function suggHTML(){if(!query)return KB?'<li class="hint">Type the first letters of a country, then tap it here.</li>':'';const res=matches(query);
+  if(!res.length){const l=listById(S.list),k=N(query),out=l.reg&&SOVC.find(c=>c.k.startsWith(k)||c.ak.some(a=>a.startsWith(k)));
+    return `<li class="hint" style="padding:8px 2px">${out?`${esc(out.n)} is not in ${esc(l.reg.name)}: only countries in ${esc(l.reg.name)} count in this list.`:`No country matches “${esc(query)}”.`}</li>`}
+  return res.map(c=>{const f=S.found.includes(c.c),w=S.wrong.includes(c.c);
+    return `<li><button data-g="${c.c}" ${f||w?'disabled':''}>${esc(c.n)}${f?'<span class="tag">found</span>':w?'<span class="tag">not in it</span>':''}</button></li>`}).join('')}
+// Mingo's key for the game on screen (his bubble and the summary belong to one game)
+const tKey=()=>S?S.mode+':'+(S.date||'')+':'+S.list+':'+(roomCode||''):'';
+const livesTxt=()=>S.lives+' li'+(S.lives===1?'fe':'ves')+' left.';
+function guess(code){if(!S||S.over)return;const c=byCode[code];
+  if(S.found.includes(code)||S.wrong.includes(code)){say(tKey(),'think','Hold on.',c.n+' is already in your pages.');render();return}
+  query='';typing=true;
+  if(S.mode==='online'){onlineGuess(code);return}
+  const i=S.top.indexOf(code);
+  if(i>=0){S.found.push(code);fresh=code;Geomingo.stamp('top10',c.n,'#'+placeOf(listById(S.list),code),code);if(S.found.length>=10){S.over=true;S.won=true}}
+  else{S.wrong.push(code);S.lives--;if(S.lives<=0)S.over=true}
+    save();render();if(S.over)window.scrollTo(0,0);
+  if(i>=0){if(!S.over){say(tKey(),'happy','Stamped: '+c.n+', #'+placeOf(listById(S.list),code)+'.',(10-S.found.length)+' to go.');render()}return}
+  const r=placeOf(listById(S.list),code)-1;
+  if(!S.over){say(tKey(),'sad','Denied entry.',`${c.n} is not in the top 10${r>=0?` (it is #${r+1})`:' (no figure for it)'}. `+livesTxt());render()}}
+
+/* ---- share ---- */
+// ten squares for a result: one per place, or, when the 10th place is shared, the countries found first
+const tiles=st=>st.top.length>10?Array.from({length:10},(_,i)=>i<st.found.length):st.top.map(c=>st.found.includes(c));
+function shareText(){const l=listById(S.list);
+  const sq=tiles(S).map(on=>on?'🟩':'⬜').join(''),hearts='❤️'.repeat(S.lives)+'🖤'.repeat(LIVES-S.lives);
+  return `${Geomingo.share('Top 10')+(S.mode==='daily'?' #'+S.num:S.mode==='archive'?' #'+S.num+' (archive)':' (practice)')} — ${S.found.length}/10\n${l.title}\n${sq} ${hearts}`}
+const shareLink=()=>S.mode==='free'?pageLink('?l='+S.list):pageLink();
+const shareMessage=()=>shareText()+'\n\n'+(S.mode==='free'?'Play this list: ':"Play today's Top 10: ")+shareLink();
+
+/* ---- online rooms (With friends), on the same Firebase Realtime Database as Countries ----
+   A room lives at rooms/ABCD, like Countries', marked game:'top10' so the two games never open each other's rooms.
+   Players take turns naming a country: one in the top 10 scores a point for whoever named it,
+   one outside just passes the turn: there are no lives with friends. The game ends when the ten are found or everyone passes in a row. */
+const FB_OK=()=>typeof firebase!=='undefined'&&typeof firebase.database==='function'&&!!(window.FIREBASE_CONFIG&&/^https:\/\//.test(FIREBASE_CONFIG.databaseURL||''));
+const ROOM_V='t10-202611020600',MAXP=6,TIMERS=[0,15,30];
+let db=null,room=null,roomRef=null,roomCode=null,seenEv=null,firstSync=true,joining=false,offset=0,tick=null;
+const now=()=>Date.now()+offset;
+let ME=load('t10-pid','');if(!ME){ME='p'+Math.random().toString(36).slice(2,10);store('t10-pid',ME)}
+// the name the others see: the one typed here before, or the one used in Countries' rooms on this device
+const setup={fname:'',timer:0,join:'',...load('t10-setup',{})};
+if(!setup.fname)try{setup.fname=(JSON.parse(localStorage.getItem('bl-setup')||'{}')||{}).fname||localStorage.getItem('bl-user')||''}catch(e){}
+if(!TIMERS.includes(setup.timer))setup.timer=0;
+function initFB(){if(db)return true;if(!FB_OK())return false;
+  try{if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);db=firebase.database();db.ref('.info/serverTimeOffset').on('value',s=>{offset=s.val()||0})}catch(e){console.error(e);return false}
+  return true}
+const TS=()=>firebase.database.ServerValue.TIMESTAMP;
+const LET='ABCDEFGHJKLMNPQRSTUVWXYZ',randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*LET.length)]).join('');
+const evId=()=>Math.random().toString(36).slice(2,9);
+const pinStyle=i=>`background:var(--p${i%6})`;
+const lobbyOrder=r=>Object.entries(r.players||{}).sort((a,b)=>(a[1].t||0)-(b[1].t||0)).map(x=>x[0]);
+const topOf=id=>topCodes(listById(id));
+const randomList=not=>{const o=LISTS.filter(x=>x.id!==not);return o[Math.floor(Math.random()*o.length)].id};
+function saveSetup(){const el=$('fname');if(el)setup.fname=el.value.trim().slice(0,16);store('t10-setup',{fname:setup.fname,timer:setup.timer})}
+function needName(){saveSetup();if(setup.fname)return false;
+  toast("Type your name so your friends know who's playing.",'bad');const el=$('fname');if(el)el.focus();return true}
+async function createRoom(){
+  if(needName())return;
+  if(!initFB()){toast('Online play is not available right now. Check the connection and reload.','bad');return}
+  try{let code='';
+    for(let i=0;i<8;i++){code=randRoom();const ex=await db.ref('rooms/'+code).get();if(!ex.exists())break}
+    await db.ref('rooms/'+code).set({game:'top10',v:ROOM_V,host:ME,created:TS(),cfg:{timer:setup.timer},status:'lobby',
+      players:{[ME]:{name:setup.fname,t:TS(),on:true}}});
+    listenRoom(code)}catch(e){console.error(e);toast('Could not create the room. Check the connection and try again.','bad')}}
+async function joinRoom(raw){
+  const code=(raw||'').toUpperCase().replace(/[^A-Z]/g,'');
+  if(code.length!==4){toast('Room codes have 4 letters.','bad');return}
+  if(needName())return;
+  if(!initFB()){toast('Online play is not available right now. Check the connection and reload.','bad');return}
+  if(joining)return;joining=true;
+  try{let why='';
+    const res=await db.ref('rooms/'+code).transaction(r=>{
+      if(!r)return r;
+      if(r.game!=='top10'){why='other';return}
+      if(r.v!==ROOM_V){why='version';return}
+      r.players=r.players||{};
+      if(r.players[ME]){r.players[ME].name=setup.fname;r.players[ME].on=true;return r}
+      if(r.status!=='lobby'){why='started';return}
+      if(Object.keys(r.players).length>=MAXP){why='full';return}
+      r.players[ME]={name:setup.fname,t:now(),on:true};return r});
+    const val=res.snapshot.val();
+    if(!val){toast('No room called '+code+'. Check the code.','bad');return}
+    if(!res.committed||!val.players||!val.players[ME]){
+      toast(why==='other'?code+' is a room of another game. Open that game to join it.':why==='version'?'You and the host have different versions of the game. Both of you reload the page, then try again.':why==='full'?'Room '+code+' already has '+MAXP+' players.':why==='started'?'That game has already started. Ask the host for a rematch.':'Could not join '+code+'.','bad');return}
+    listenRoom(code)}catch(e){console.error(e);toast('Could not join. Check the connection and try again.','bad')}
+  finally{joining=false}}
+function listenRoom(code){
+  if(roomRef)roomRef.off();
+  roomCode=code;roomRef=db.ref('rooms/'+code);firstSync=true;seenEv=null;view='friends';setup.join='';
+  try{localStorage.setItem('t10-room',code)}catch(e){}
+  try{const u=new URL(location.href);if(u.searchParams.has('room')){u.searchParams.delete('room');history.replaceState(null,'',u.pathname+u.search)}}catch(e){}
+  const me=roomRef.child('players/'+ME+'/on');me.onDisconnect().set(false);
+  db.ref('.info/connected').on('value',s=>{if(s.val()&&roomCode===code){me.onDisconnect().set(false);roomRef.child('players/'+ME).once('value',p=>{if(p.exists())me.set(true)})}});
+  roomRef.on('value',snap=>{const r=snap.val();
+    if(!r||!r.players||!r.players[ME]){const was=roomCode;dropRoom();
+      if(was)toast(r?'You are no longer in room '+was+'.':'Room '+was+' was closed.','bad');render();return}
+    room=r;syncRoom()})}
+function dropRoom(){
+  if(roomRef){roomRef.off();try{roomRef.child('players/'+ME+'/on').onDisconnect().cancel()}catch(e){}}
+  room=null;roomRef=null;roomCode=null;if(S&&S.mode==='online')S=null;clearInterval(tick);
+  try{localStorage.removeItem('t10-room')}catch(e){}}
+async function leaveRoom(){const ref=roomRef;
+  if(ref&&room&&room.status==='lobby'){
+    try{await ref.transaction(r=>{if(!r)return r;if(r.players)delete r.players[ME];
+      const left=lobbyOrder(r);if(!left.length)return null;if(r.host===ME)r.host=left[0];return r})}catch(e){}}
+  else if(ref){try{await ref.child('players/'+ME+'/on').set(false)}catch(e){}}
+  dropRoom();view='friends';render()}
+// the room as a game state, rebuilt on every change
+function syncRoom(){const r=room;
+  if(r.status==='lobby'||!listById(r.list)){S=null;clearInterval(tick);render();return}
+  const order=r.order||lobbyOrder(r),fd=r.found||{},wr=r.wrong||{},byK=o=>Object.keys(o).sort((a,b)=>o[a].k-o[b].k);
+  const players=order.map((pid,i)=>{const p=r.players[pid]||{};
+    return {pid,name:p.name||'Gone',on:p.on!==false,score:Object.values(fd).filter(x=>x.o===i).length,miss:Object.values(wr).filter(x=>x.o===i).length}});
+  const me=order.indexOf(ME);
+  S={mode:'online',list:r.list,top:topOf(r.list),found:byK(fd),wrong:byK(wr),by:Object.fromEntries([...Object.entries(fd),...Object.entries(wr)].map(([c,x])=>[c,x.o])),
+     players,turn:r.turn||0,timer:r.cfg.timer||0,deadline:r.deadline||0,over:r.status==='over',me,host:r.host===ME};
+  S.won=S.found.length>=10;
+  if(r.ev&&r.ev.id!==seenEv){if(!firstSync){toast(r.ev.text,r.ev.kind);if(r.ev.kind==='good'&&r.ev.c)fresh=r.ev.c}seenEv=r.ev.id}
+  firstSync=false;
+  if(S.over||S.turn!==S.me)query='';
+  clearInterval(tick);if(S.timer&&!S.over)tick=setInterval(onTick,250);
+  render()}
+// next turn: the next player who is online (or simply the next one); the game ends when the ten are found or everyone passed in a row
+function advance(r){const order=r.order,len=order.length;
+  if(Object.keys(r.found||{}).length>=10||(r.passes||0)>=len){r.status='over';r.deadline=0;return}
+  const t=r.turn||0;let next=-1;
+  for(let s=1;s<=len&&next<0;s++){const i=(t+s)%len;if((r.players[order[i]]||{}).on!==false)next=i}
+  if(next<0)next=(t+1)%len;
+  r.turn=next;r.deadline=r.cfg.timer?now()+r.cfg.timer*1000:0}
+async function onlineGuess(code){const c=byCode[code];let note='';
+  try{const res=await roomRef.transaction(r=>{
+      if(!r)return r;
+      if(r.status!=='playing'){note='over';return}
+      if(r.order[r.turn||0]!==ME){note='turn';return}
+      r.found=r.found||{};r.wrong=r.wrong||{};
+      if(r.found[code]||r.wrong[code]){note='tried';return}
+      const nm=(r.players[ME]||{}).name||'Someone',top=topOf(r.list),i=top.indexOf(code);
+      r.k=(r.k||0)+1;r.passes=0;
+      if(i>=0){r.found[code]={o:r.turn||0,k:r.k};r.ev={id:evId(),kind:'good',c:code,text:`${nm}: ${c.n} is #${placeOf(listById(r.list),code)}.`}}
+      else{r.wrong[code]={o:r.turn||0,k:r.k};
+        const k=placeOf(listById(r.list),code)-1;
+        r.ev={id:evId(),kind:'bad',text:`${nm}: ${c.n} is not in the top 10${k>=0?` (#${k+1})`:''}.`}}
+      advance(r);return r});
+    if(!res.committed)toast(note==='turn'?'It is not your turn any more.':note==='tried'?c.n+' was already named.':'The game is over.','bad')}
+  catch(e){console.error(e);toast('That answer did not go through. Check the connection.','bad')}}
+async function onlineAct(kind){
+  try{await roomRef.transaction(r=>{
+    if(!r)return r;
+    const nm=(r.players[ME]||{}).name||'Someone',cur=r.order&&r.order[r.turn||0];
+    if(kind==='pass'){if(r.status!=='playing'||cur!==ME)return;r.passes=(r.passes||0)+1;r.ev={id:evId(),kind:'',text:nm+' passed.'};advance(r);return r}
+    // anyone can move the game on when the player whose turn it is has left
+    if(kind==='skip'){if(r.status!=='playing'||!cur||(r.players[cur]||{}).on!==false)return;
+      r.passes=(r.passes||0)+1;r.ev={id:evId(),kind:'',text:((r.players[cur]||{}).name||'Someone')+' is offline: turn skipped.'};advance(r);return r}
+    if(kind==='end'){if(r.status!=='playing'||r.host!==ME)return;r.status='over';r.deadline=0;r.ev={id:evId(),kind:'',text:nm+' ended the game.'};return r}
+    if(kind==='start'||kind==='rematch'){if(r.host!==ME)return;
+      const order=(kind==='start'?lobbyOrder(r):(r.order||lobbyOrder(r))).filter(pid=>r.players[pid]&&(kind==='start'||r.players[pid].on!==false));
+      if(order.length<2)return;
+      r.order=order;r.list=randomList(r.list);r.v=ROOM_V;r.found=null;r.wrong=null;r.lives=null;r.k=0;r.passes=0;r.turn=0;r.status='playing';
+      r.deadline=r.cfg.timer?now()+r.cfg.timer*1000:0;
+      r.ev={id:evId(),kind:'',text:kind==='start'?'Game on. '+r.players[order[0]].name+' starts.':'Rematch: a new list.'};return r}
+    if(kind==='lobby'){if(r.host!==ME)return;r.status='lobby';r.order=null;r.list=null;r.found=null;r.wrong=null;r.lives=null;r.deadline=0;return r}
+  })}catch(e){console.error(e);toast('That did not go through. Check the connection.','bad')}}
+async function tryTimeout(turn,deadline){
+  if(!roomRef||tryTimeout.busy===deadline)return;tryTimeout.busy=deadline;
+  try{await roomRef.transaction(r=>{
+    if(!r)return r;
+    if(r.status!=='playing'||(r.turn||0)!==turn||r.deadline!==deadline||now()<deadline)return;
+    r.passes=(r.passes||0)+1;r.ev={id:evId(),kind:'bad',text:"Time's up for "+((r.players[r.order[turn]]||{}).name||'someone')+'.'};advance(r);return r})}catch(e){}}
+function onTick(){if(!S||S.mode!=='online'||S.over||!S.timer){clearInterval(tick);return}
+  const left=S.deadline-now(),bar=document.querySelector('.tbar'),sub=$('tleft');
+  if(bar)bar.style.width=Math.max(0,left/(S.timer*1000)*100)+'%';
+  if(sub)sub.textContent=Math.max(0,Math.ceil(left/1000))+'s';
+  if(left<=-400)tryTimeout(S.turn,S.deadline)}
+
+/* ---- render ---- */
+const t10Average=h=>{const days=Object.keys(h);return days.length?EU(days.reduce((x,k)=>x+h[k].f,0)/days.length,1)+'/10':'–'};
+function statsHTML(){const h=load('t10-hist',{});return statTiles(Object.keys(h).length,t10Average(h),streakOf(h))}
+function myStatsHTML(){const h=load('t10-hist',{}),so=load('t10-solo',null)||{n:0},fr=friendsOf('t10-friends');
+  return statsPageHTML({game:'Top 10',hist:h,unit:'list',avg:t10Average(h),lbs:d=>[{path:'lb/top10',dates:d}],num:k=>'List #'+dayNum(k,T10_FIRST),
+    solo:{n:so.n,unit:'list',medal:(so.best||0)+'/10',stats:[[(so.best||0)+'/10','best'],[so.p||0,'perfect'],[so.n?EU(so.f/so.n,1):0,'average']]},
+    friends:Object.assign(fr,{third:[fr.best,'best']})})}
+const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
+const seg=(name,opts,val)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-seg="${name}" data-v="${v}" aria-pressed="${String(v)===String(val)}">${l}</button>`).join('')}</div>`;
+// the list being played: its title, the lives (or whose turn it is), the search box, the ten rows and the wrong answers
+const srcBtn=`<button class="linkbtn" id="src" style="align-self:flex-start;padding:0">Where the numbers come from</button>`;
+function askHTML(tkt){const l=listById(S.list),on=S.mode==='online';
+  let h=`<p class="t10q">${esc(l.title)}</p>${S.top.length>10?`<p class="hint" style="margin:0">${S.top.length} countries share the places down to 10th: any of them counts. Find 10 to win.</p>`:''}${KB&&!S.over?'':srcBtn}`;
+  if(S.over)return h;
+  if(!KB&&(!on||S.turn===S.me))h+=`<div class="t10in"><input id="q" placeholder="Type a country…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(query)}" aria-label="Type a country"><ul class="sugg" id="sugg">${suggHTML()}</ul></div>`;
+  if(on&&S.turn===S.me)h+=`<button class="ghost" id="opass" style="align-self:flex-start">Pass</button>`;
+  if(!on&&!KB)h+=giveUpHTML();
+  return h}
+// phones: a button that opens the answer sheet, as in Countries (shared/minigames.js)
+const KB=SHEETS;
+function listHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries(r.map(x=>[x.c,x.v])),on=S.mode==='online';
+  const who=c=>on&&S.by[c]!=null&&S.players[S.by[c]]?S.players[S.by[c]].name:'',pc=c=>`--pc:var(--p${S.by[c]%6})`;
+  const half=Math.ceil(S.top.length/2),ask=KB&&!S.over&&(!on||S.turn===S.me);
+  let h=`<ol class="t10list" style="--rows:${half}">${S.top.map((c,i)=>{const f=S.found.includes(c),show=f||S.over,co=byCode[c];
+    return `<li class="${f?'on':S.over?'miss':''}${f&&on?' by':''}${fresh===c?' new':''}${i>=half?' c2':''}${i===half?' c2top':''}"${ask&&!f?' data-ask':''}${f&&on?` style="${pc(c)};background:var(--p${S.by[c]%6}-soft)" title="${esc(who(c))}"`:''}><span class="rk">${placeOf(l,c)}</span><span class="nm">${show?`<img class="mini" src="${FLAGS[c]}" alt="">${esc(co.n)}`:''}</span>${show?`<span class="val">${esc(l.fmt(val[c]))}</span>`:''}</li>`}).join('')}</ol>`;
+  fresh=null;
+  if(S.wrong.length)h+=on?`<div class="wrongs">Not in the top 10:<div class="wl">${S.wrong.map(c=>{const p=placeOf(l,c);return `<span class="w" style="${pc(c)}" title="${esc(who(c))}"><img src="${FLAGS[c]}" alt="">${esc(byCode[c].n)}${p?` <small>#${p}</small>`:''}</span>`}).join('')}</div></div>`
+    :`<p class="wrongs">Not in the top 10: ${S.wrong.map(c=>{const p=placeOf(l,c);return esc(byCode[c].n)+(p?` (#${p})`:'')}).join(' · ')}</p>`;
+  return h}
+const quickRules=extra=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name the ten countries of the ranking, in any order. A country outside the top 10 costs one of your ${LIVES} lives. Only independent countries count.${extra||''}</p></section>`;
+function homeHTML(){const key=todayKey(),num=dayNum(key,T10_FIRST),d=dailySaved(),h=load('t10-hist',{}),days=Object.keys(h);
+  let daily;
+  if(d&&d.over)
+    // played: green for the places you found, grey for the rest, like the shared result; tap to see the list
+    daily=`<button class="hcard" id="daily"><span class="hm">Today's list #${num} · done</span><span class="dsum"><span class="dsq" style="grid-template-columns:repeat(5,1fr)" aria-hidden="true">${tiles(d).map(on=>`<i class="${on?'on':''}"></i>`).join('')}</span><span class="dtxt"><span class="ht">${d.found.length} of 10</span><span class="hs">${d.won?`${d.lives} li${d.lives===1?'fe':'ves'} left`:'countries found'}</span></span>${dstatsHTML(streakOf(h),days.length,t10Average(h))}</span><span class="hs">Tap to see the full list and share your result.</span><span class="hm">Next list in ${nextIn()}</span></button>`;
+  else{
+    // not played yet: today's question and its ten empty places; tapping opens the list on its own screen
+    const g=dailyGame(),l=listById(g.list);
+    daily=`<button class="hcard ac" id="daily"><span class="hm">#${num} · ${dateLabel(key)}</span><span class="ht">Today's list</span><span class="hs">${d?`You started it: ${d.found.length} of 10 found. Tap to continue.`:'The same ranking for everyone, one try. Tap to start.'}</span>
+      <span class="t10q">${esc(l.title)}</span><span class="t10peek" aria-hidden="true">${g.top.slice(0,10).map((c,i)=>`<i class="${g.found.includes(c)?'on':''}">${i+1}</i>`).join('')}</span></button>`}
+  const st=Geomingo.streak();
+  const hi=d&&d.over?Geomingo.hello(d.found.length?'happy':'sad',d.found.length?'Stamped for today.'+(st>1?' '+st+'-day streak.':''):'Rough crossing today.',`Today's list is done. Next one in ${nextIn()}.`)
+    :d?Geomingo.hello('think','Your list is waiting.','Tap it to carry on. One try.')
+    :Geomingo.hello('pass','GeoPass ready.','Tap today\'s list to start. Every country in the top 10 is a stamp. One try, the same ranking for everyone.');
+  return header('Top <span>10</span>','',true)+`<section class="home">${hi}${Geomingo.account.userHTML()}${daily}${d&&d.over?rankingHTML():''}
+    <div class="hrow"><button class="hcard" data-go="free"><span class="ht">Solo</span><span class="hs">Practice on unlimited lists, at your pace.</span></button>
+    <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to ${MAXP} players.</span></button></div></section>
+    ${quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}`}
+function goHome(){if(roomCode){if(!confirm('Leave the room and go to the home screen?'))return;leaveRoom().then(()=>{view='home';render()});return}
+  view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
+function friendsHTML(){
+  return header('Top <span>10</span>','')+`<section class="panel">
+    <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">With friends</span></div>
+    <p class="hint">2 to ${MAXP} players, each on their own phone. The host creates a room and shares its link or code.</p>
+    <div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||(Geomingo.traveller()==='Guest'?'':Geomingo.traveller()))}"></div>
+    <div class="field"><span class="label">Time per turn</span>${seg('timer',TIMERS.map(t=>[t,t?t+' s':'Off']),setup.timer)}</div>
+    <div class="field">${FB_OK()?'':'<p class="hint">Online play needs a connection: reload the page when you are online.</p>'}<button class="primary" id="create" ${FB_OK()?'':'disabled style="opacity:.5"'}>Create room</button></div>
+    <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK()?'':'disabled'}>Join</button></div></div>
+  </section>
+  <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Everyone plays the same ranking and takes turns naming one country. A country in the top 10 scores a point for you; one outside just passes the turn. No lives: you play until the ten are found. Most countries found wins.</p></section>`}
+function lobbyHTML(){const r=room,order=lobbyOrder(r),link=pageLink('?room='+roomCode);
+  return header('Top <span>10</span>','room '+roomCode)+`<section class="panel namecard"><span class="label">Room code</span><p class="roomcode">${roomCode}</p>
+    <p class="hint">Friends open Top 10, choose <b>With friends</b>, then type this code under Join. Or send them the link:</p>
+    <pre class="sharebox" id="linkbox">${esc(link)}</pre><button class="ghost" id="copylink">Copy link</button>
+    <span class="label">Players ${order.length}/${MAXP}</span>
+    <div class="players">${order.map((pid,i)=>{const p=r.players[pid];return `<div class="lp ${p.on===false?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)}<span class="tag">${[pid===r.host?'host':'',pid===ME?'you':'',p.on===false?'offline':''].filter(Boolean).join(' · ')}</span></div>`}).join('')}</div>
+    <p class="hint">${r.cfg.timer?r.cfg.timer+' s per turn':'No turn timer'} · a random list for each game</p>
+    ${r.host===ME?`<button class="primary" id="ostart" ${order.length<2?'disabled style="opacity:.5"':''}>${order.length<2?'Waiting for players…':'Start game'}</button>`:'<p class="hint">Waiting for the host to start the game.</p>'}
+    <button class="ghost" id="leave">Leave room</button></section>`}
+function onlineHTML(){const cur=S.players[S.turn]||{};
+  let h=header('Top <span>10</span>','room '+roomCode);
+  if(!S.over){const cell=Geomingo.tk;
+    const say=moodHTML(tKey(),'pass',S.turn===S.me?'Your turn.':'Waiting for '+cur.name+'…',S.found.length+' of 10 found. Name a country in the top 10.');
+    const stub=S.players.map((p,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${!p.on?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)}</i><b>${p.score}</b></div>`).join('')
+      +(S.timer?cell('Time',`<span id="tleft">${Math.max(0,Math.ceil((S.deadline-now())/1000))}s</span>`):'');
+    h+=Geomingo.ticket(say,stub,{timer:S.timer,color:`var(--p${S.turn%6})`})}
+  else h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${!p.on?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${p.score}</b></span>`).join('')}</div>`;
+  if(S.over){const rk=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score||a.miss-b.miss),best=rk[0],tie=rk.length>1&&rk[1].score===best.score&&rk[1].miss===best.miss;
+    const mine=S.players[S.me];if(mine)logFriends('t10-friends',roomCode+':'+S.list+':'+(room&&room.created||''),1+rk.filter(p=>p.score>mine.score||p.score===mine.score&&p.miss<mine.miss).length,mine.score);
+    h+=`<section class="panel"><span class="label">Room ${roomCode}</span><p class="big">${tie?"It's a tie":esc(best.name)+' wins'}</p>
+      <p class="hint">${S.won?'All ten found.':`${S.found.length} of 10 found. The full list is below.`} ${rk.map(p=>`${esc(p.name)} ${p.score}`).join(' · ')}</p>
+      ${S.host?`<div class="row-btns"><button class="primary" id="orematch" style="flex:1">Rematch</button><button class="ghost" id="olobby" style="flex:1">Back to room</button></div>`:'<p class="hint">Waiting for the host to start a rematch.</p>'}</section>`}
+  if(!S.over&&!cur.on&&S.turn!==S.me)h+=`<button class="ghost" id="oskip">${esc(cur.name)} is offline: skip their turn</button>`;
+  h+=`<section class="panel t10ask">${askHTML()}</section>${listHTML()}`;
+  if(KB&&!S.over)h+=`<div class="kbgu">${S.turn===S.me?askBtnHTML():''}${srcBtn}</div>`;
+  h+=`<div class="row-btns">${S.host&&!S.over?'<button class="ghost" id="oend" style="flex:1">End game</button>':''}<button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;
+  return h}
+function render(){
+  // the clock of the visas starts when today's list is first on screen (home or game), unless it is already over
+  if(!TESTDAY&&!roomCode&&(view==='home'||view==='game'&&S&&S.mode==='daily')){const d=dailySaved();if(!(d&&d.over))Geomingo.clock.start('top10',todayKey())}
+  // today's list is played on the home screen too: the summary follows the game, whatever the screen
+  if(S&&S.mode!=='online')watchResult(tKey(),S.over);
+  if(roomCode&&room){app.innerHTML=S&&S.mode==='online'?onlineHTML():lobbyHTML();bind();return}
+  if(view==='home'){app.innerHTML=homeHTML();bind();return}
+  if(view==='friends'){app.innerHTML=friendsHTML();bind();return}
+  if(view==='solo'){app.innerHTML=soloHTML();bind();return}
+  if(view==='archive'){app.innerHTML=archiveView();bind();return}
+  const l=listById(S&&S.list);
+  if(!S||!l){app.innerHTML=header('Top <span>10</span>','')+`<section class="panel"><p class="hint">Could not load the list. Try again later.</p></section>`;bind();return}
+  let h=header('Top <span>10</span>',S.mode==='daily'?'Daily #'+S.num:S.mode==='archive'?'Archive #'+S.num:'Solo');
+  h+=`<div class="backline"><button class="linkbtn" id="${S.mode==='archive'?'archback':S.mode==='free'?'soloback':'home'}">← Back</button><span class="ht">${S.mode==='daily'?"Today's list":S.mode==='archive'?'List #'+S.num:'Solo'}</span></div>`;
+  // the ticket, as in every game: Mingo on top, then who is travelling, countries found and lives left
+  const cell=Geomingo.tk,tk=()=>Geomingo.ticket(moodHTML(tKey(),'pass','10 stamps to win.','In any order. A country outside the top 10 costs a life.'),
+    cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Found',S.found.length+'/10','tk-pts')+cell('Lives',livesHTML(S.lives,LIVES),'tk-gs'),{mode:S.mode==='free'?'practice':S.mode,num:S.num});
+  // a guess while this list is on screen: only the ticket and the list change. The box you type in stays
+  // where it is, so the phone keeps its keyboard open and the page does not jump up and down
+  const g=$('t10game'),q=$('q');
+  if(!S.over&&g&&g.dataset.k===tKey()&&q){const y=q.getBoundingClientRect().top;
+    $('t10tk').innerHTML=tk();$('t10ls').innerHTML=listHTML();if(q.value!==query)q.value=query;drawSugg();
+    const dy=q.getBoundingClientRect().top-y;if(dy)window.scrollBy(0,dy);return}
+  if(S.over)h+=resultHTML();
+  else h+=`<div id="t10tk" style="display:contents">${tk()}</div>`;
+  h+=`<section class="panel t10ask">${askHTML(true)}</section><div id="t10ls" style="display:contents">${listHTML()}</div>`;
+  if(!S.over&&KB)h+=`<div class="kbgu">${askBtnHTML()}${giveUpHTML()}${srcBtn}</div>`;
+  if(!S.over)h+=quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')+`<i id="t10game" data-k="${esc(tKey())}" hidden></i>`;
+  app.innerHTML=h;bind();
+}
+// Mingo's verdict, for the result panel
+function verdict(){const f=S.found.length;
+  return S.won?(S.lives===LIVES?{pose:'happy',t:'Full page. Perfect ten.',s:'Not a single life lost.'}:{pose:'happy',t:'Visited. All ten.',s:livesTxt()})
+    :f>=6?{pose:'think',t:'So close. '+f+' of 10.',s:'No lives left. The full list is below.'}:{pose:'sad',t:'Rough crossing, this one.',s:f+' of 10 found. The full list is below.'}}
+function resultHTML(){const v=verdict();
+  return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Top 10 #'+S.num:S.mode==='archive'?'Archive · Top 10 #'+S.num:'Solo list'}</span><p class="big">${S.found.length} of 10</p>
+    <p class="hint">${S.won?`You named the whole list with ${S.lives} li${S.lives===1?'fe':'ves'} left.`:S.lives?'The full list is below.':'No lives left. The full list is below.'} ${S.mode==='daily'?`Next list in ${nextIn()}.`:S.mode==='archive'?"Archive games don't count for the ranking or your streak.":''}</p>
+    <pre class="sharebox" id="share">${esc(shareText())}</pre>
+    ${S.mode==='daily'?`<div class="row-btns"><button class="ghost" id="copy">Share</button>${nextGameBtn('top10')}</div>
+    <button class="ghost" id="playsolo">Play Solo</button>${allPlayedHTML('top10')}`
+    :S.mode==='archive'?`<div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="primary" id="archback" style="flex:1">Back to archive</button></div>`
+    :`<div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="ghost" id="again" style="flex:1">New list</button></div>`}
+    ${S.mode==='daily'?`<span class="label">Your daily lists</span>${statsHTML()}`:''}</section>${S.mode==='daily'?rankingHTML():''}`}
+// today's ranking (signed-in players, first try of the day): countries found, then fewer misses, then who finished first
+const rankingHTML=()=>Geomingo.account.rankingHTML('top10',{what:'list',score:r=>[r.s+'/10',r.m?r.m+' miss'+(r.m===1?'':'es'):'no misses']});
+// signed in or out, today's result arrived from another device, the ranking moved: show it (not while typing)
+Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&S&&S.mode==='daily'){const d=dailySaved();if(d){S=d;liveKey=''}}
+  if(!typing&&!roomCode&&(view==='home'||view==='game'&&S&&S.over))render()});
+function rulesHTML(){return `<h3>The idea</h3><ul>
+  <li>Each game is a top 10 of countries based on real figures, for example "The 10 most populous countries" or "The 10 countries with the longest coastline".</li>
+  <li>Name the ten countries in the list, in any order. Each one you find appears in its place, with its figure.</li>
+  <li>Some lists cover the whole world, others one continent (Europe, Asia, Africa or the Americas). In a continent list, only its countries count.</li>
+  <li>If several countries tie for 10th place, any of them counts: find ten to win.</li>
+  <li>Only independent countries count, never territories. <b>Where the numbers come from</b> shows the source of each list.</li></ul>
+  <h3>How to play</h3><ul>
+  <li>Tap <b>Type a country…</b>, start typing and tap the country in the list.</li>
+  <li>In the top 10: it appears in its place.</li>
+  <li>Not in the top 10: you lose one of your <b>${LIVES} lives</b>, and you see where it ranks.</li>
+  <li>The game ends when you find all ten or run out of lives. Then the full list is shown. <b>Give up</b> ends it early.</li></ul>
+  <h3>Modes</h3><ul>
+  <li><b>Today's list</b>: the same for everyone, new every day at midnight CET. One try. Missed one? Play it in <b>Menu → Archive</b>.</li>
+  <li><b>Solo</b>: as many practice lists as you like, a new one each time until you have played them all. <b>Share</b> sends a friend a link to the same list.</li>
+  <li><b>With friends</b>: 2 to ${MAXP} players online, each on their own phone. The host creates a room and shares its code or link, and can set a time per turn (Off, 15 s or 30 s). You take turns naming a country: one in the top 10 scores a point, one outside passes the turn. There are no lives. You can also tap <b>Pass</b>, and running out of time passes too. The game ends when the ten are found or everyone passes in a row. Most points wins.</li></ul>`}
+// tapping a suggestion does not take the focus from the box, so the phone keyboard stays open
+function drawSugg(){const u=$('sugg');if(u){u.innerHTML=suggHTML();u.querySelectorAll('[data-g]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>guess(b.dataset.g)})}}
+function bind(){
+  if($('daily'))$('daily').onclick=openDaily;
+  app.querySelectorAll('[data-go="free"]').forEach(b=>b.onclick=openSolo);
+  if($('start'))$('start').onclick=()=>openFree(null,true);
+  if($('cont'))$('cont').onclick=()=>openFree();
+  if($('playsolo'))$('playsolo').onclick=openSolo;
+  if($('soloback'))$('soloback').onclick=openSolo;
+  if($('archback'))$('archback').onclick=openArchive;
+  app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
+  app.querySelectorAll('[data-go="friends"]').forEach(b=>b.onclick=()=>{view='friends';render();window.scrollTo(0,0)});
+  if($('home'))$('home').onclick=goHome;
+  if($('rules'))$('rules').onclick=()=>dialog('How to play',rulesHTML());
+  // give up: the list ends as it stands and the full ranking is shown
+  bindGiveUp(()=>{if(!S||S.over||S.mode==='online')return;S.over=true;query='';typing=false;if(view==='home')view='game';save();render();window.scrollTo(0,0)});
+  if($('src'))$('src').onclick=()=>{const l=listById(S.list);dialog(esc(l.title),`<p>${esc(l.src)}</p><p class="hint">Independent countries only. Places with no figure in the source are left out.</p>`)};
+  // phones: the ten places in two columns while you play; the button (or an empty place) opens the answer sheet
+  document.body.classList.toggle('kbon',!!(KB&&S&&!S.over&&document.querySelector('.t10list')));
+  bindAsk($('askbtn')&&S?{key:tKey()+':'+(S.turn||0),
+    head:`${esc(listById(S.list).title)} <i>${S.found.length} of 10 found</i>`,back:'Back to list',
+    sugg:t=>{query=t;return suggHTML()},first:t=>{query=t;const m=matches(t).filter(c=>!S.found.includes(c.c)&&!S.wrong.includes(c.c));return m[0]&&m[0].c},
+    pick:guess}:null);
+  const q=$('q');
+  if(q){q.oninput=e=>{query=e.target.value;drawSugg()};
+    q.onkeydown=e=>{if(e.key==='Enter'){const m=matches(query).filter(c=>!S.found.includes(c.c)&&!S.wrong.includes(c.c));if(m[0])guess(m[0].c)}};
+    drawSugg();
+    // computers: the box has the focus while you play
+    if(query||typing||view!=='home')setTimeout(()=>{q.focus();q.setSelectionRange(q.value.length,q.value.length)},0)}
+  if($('copy'))$('copy').onclick=()=>share(shareMessage());
+  if($('again'))$('again').onclick=()=>openFree(null,true);
+  // With friends
+  app.querySelectorAll('[data-seg="timer"]').forEach(b=>b.onclick=()=>{saveSetup();setup.timer=+b.dataset.v;saveSetup();render()});
+  if($('fname'))$('fname').onchange=saveSetup;
+  if($('jcode'))$('jcode').oninput=e=>{setup.join=e.target.value};
+  if($('create'))$('create').onclick=createRoom;
+  if($('join'))$('join').onclick=()=>joinRoom($('jcode').value);
+  if($('jcode'))$('jcode').onkeydown=e=>{if(e.key==='Enter')joinRoom(e.target.value)};
+  if($('copylink'))$('copylink').onclick=()=>{const t=pageLink('?room='+roomCode);
+    if(navigator.share&&TOUCH){navigator.share({text:'Play Top 10 with me: '+t}).catch(()=>{});return}
+    try{navigator.clipboard.writeText(t).then(()=>toast('Link copied.','good'),()=>toast('Copy the link above.'))}catch(e){toast('Copy the link above.')}};
+  if($('leave'))$('leave').onclick=()=>{if(S&&S.mode==='online'&&!S.over&&!confirm('Leave the room? The game goes on without you.'))return;leaveRoom()};
+  if($('ostart'))$('ostart').onclick=()=>onlineAct('start');
+  if($('orematch'))$('orematch').onclick=()=>onlineAct('rematch');
+  if($('olobby'))$('olobby').onclick=()=>onlineAct('lobby');
+  if($('oend'))$('oend').onclick=()=>{if(confirm('End the game for everyone?'))onlineAct('end')};
+  if($('opass'))$('opass').onclick=()=>onlineAct('pass');
+  if($('oskip'))$('oskip').onclick=()=>onlineAct('skip');
+}
+
+/* ---- start: today's list on the home screen; ?l=pop-hi opens that list in Solo (a shared link), ?room=ABCD a friend's room, ?friends With friends ---- */
+(()=>{const id=TESTQ.get('l'),rm=(TESTQ.get('room')||'').toUpperCase();
+  if(id&&listById(id)){openFree(id);try{history.replaceState(null,'',location.pathname)}catch(e){}return}
+  if(/^[A-Z]{4}$/.test(rm)){view='friends';setup.join=rm}
+  else if(TESTQ.has('friends')){view='friends';try{history.replaceState(null,'',location.pathname)}catch(e){}}
+  render()})();
+// back in a room after a reload (the online scripts load after the page)
+window.addEventListener('DOMContentLoaded',()=>{let code='';try{code=localStorage.getItem('t10-room')||''}catch(e){}
+  if(view==='friends')render(); // the Create and Join buttons were drawn before Firebase loaded
+  if(!code||!initFB())return;
+  db.ref('rooms/'+code).once('value').then(s=>{const r=s.val();
+    if(r&&r.game==='top10'&&r.players&&r.players[ME]&&!roomCode)listenRoom(code);else try{localStorage.removeItem('t10-room')}catch(e){}}).catch(()=>{})});
+document.addEventListener('visibilitychange',()=>{if(document.hidden||roomCode)return;if(view==='home')render();else if(mode==='daily'&&S&&S.mode==='daily'&&S.date!==todayKey())openDaily()});
+</script>
+</body>
+</html>

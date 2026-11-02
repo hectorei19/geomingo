@@ -1,0 +1,11 @@
+{
+  "name": "silhouette-tools",
+  "private": true,
+  "description": "Only for rebuilding countries.js; the game itself needs no install.",
+  "dependencies": {
+    "d3-geo": "3.1.1",
+    "topojson-client": "3.1.0",
+    "world-atlas": "2.0.2",
+    "world-countries": "5.1.0"
+  }
+}
