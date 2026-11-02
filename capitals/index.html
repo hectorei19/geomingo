@@ -20,8 +20,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611020330"></script>
-<script src="../brand/account.js?v=202611011600"></script>
+<script src="../brand/mingo.js?v=202611020500"></script>
+<script src="../brand/account.js?v=202611020500"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -314,7 +314,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .b5 .cell.flag .gm-stamp.wf .pts{font-size:.6rem;padding:0 3px 1px 4px;border-radius:0 0 0 5px}
 .b5 .cell.flag .gm-stamp.wf .cc{font-size:.6rem;padding:1px 4px 0 3px;border-radius:0 5px 0 0}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611020330">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611020500">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -551,7 +551,7 @@ const otherDevice=e=>!!e&&!!e.d&&e.d!==ME;
 // an account entry saved before devices were recorded (no d) with the same result counts as this device's own
 const legacyMine=(cur,e)=>!!cur&&!cur.d&&cur.s===e.s&&cur.c===e.c;
 let dailyUp='';
-function recordDaily(s){if(TESTDAY)return;const h=loadHist(),e=dailyEntry(s,1),today=s.daily===todayKey();
+function recordDaily(s){if(TESTDAY)return;if(s.daily===todayKey())Geomingo.clock.stop('citygrid',s.daily,(s.players[0].cells||0)/(s.n*s.n));const h=loadHist(),e=dailyEntry(s,1),today=s.daily===todayKey();
   if(USER&&today&&otherDevice(ACCT_TODAY))return; // the account already used today's try elsewhere
   const old=h[s.daily],same=old&&old.s===e.s&&old.c===e.c&&old.f===1&&old.d===ME;
   if(!same){h[s.daily]=e;saveHist(h);publishSoon()}
@@ -576,7 +576,8 @@ function adoptDaily(a){if(!a||a.f!==1||!a.j)return;const loc=loadDaily();
 let LB=null,lbRef=null,lbDate=null,lbSent='';
 function submitLB(date,e){if(!USER||!db||TESTDAY||date!==todayKey()||e.f!==1||e.d!==ME)return;
   if(LB&&LB[USER.uid]||lbSent===USER.uid+date)return;lbSent=USER.uid+date;
-  db.ref('lb/citygrid/'+date+'/'+USER.uid).set({name:(PROFILE||setup.user||'Player').slice(0,16),s:e.s,c:e.c,t:TS()}).catch(()=>{})}
+  const sec=Geomingo.clock.secs('citygrid',date);
+  db.ref('lb/citygrid/'+date+'/'+USER.uid).set(Object.assign({name:(PROFILE||setup.user||'Player').slice(0,16),s:e.s,c:e.c,t:TS()},sec?{sec}:{})).catch(()=>{})}
 // the last rows seen of today's ranking show at once, until the live ones come
 function lbCached(k){try{const c=JSON.parse(localStorage.getItem('cc-lbc')||'null');return c&&c.date===k&&c.rows||null}catch(e){return null}}
 function watchLB(){if(!FB_OK||TESTDAY||!initFB())return;const k=todayKey();if(lbDate===k)return;
@@ -936,7 +937,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/ci
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202611020400';
+const APP_VERSION='202611020500';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
@@ -1146,6 +1147,9 @@ const pinStyle=i=>`background:var(--p${i})`;
 const colRef=j=>'ABCDE'[j], rowRef=i=>String(i+1);
 
 function render(){
+  // the clock of the visas starts when today's grid is first on screen (home or game), unless it is already over
+  if(!TESTDAY&&!roomCode){const k=todayKey(),dd=loadDaily(),hh=loadHist()[k];
+    if(S?S.daily===k&&!S.archive&&S.mode==='solo'&&!S.over:screen==='home'&&!(dd&&dd.S.over)&&!(hh&&hh.f===1))Geomingo.clock.start('citygrid',k)}
   const body=screen==='stats'?statsView():screen==='archive'?archiveView():S?gameView():((editingUser||(USER&&NEEDNAME))?nameView():(roomCode&&room?lobbyView():(askingPlayers?playersView():setupView())));
   watchResult();
   app.innerHTML=Geomingo.header({game:GAME_NAME,coord:S?(S.daily?'Daily #'+S.day:S.code)+(S.mode==='online'?' · room '+roomCode:''):(roomCode?'Room '+roomCode:''),menu:menuBtn()})+(newVersion?`<div class="status" style="border-color:var(--sea)"><span class="who" style="white-space:normal">A new version of the game is available.</span><button class="primary" id="reload" style="padding:8px 12px;font-size:.9rem">Reload</button></div>`:'')+body;

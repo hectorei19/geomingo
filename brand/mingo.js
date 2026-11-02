@@ -134,26 +134,82 @@ function geo(){const L=ledger(),k=dayKey();let km=0,games=0;
 function bestStreak(){const n=k=>Math.round(Date.parse(k+'T12:00Z')/864e5),v=[...new Set(days().map(n))].sort((a,b)=>a-b);let b=0,c=0,prev=null;
   v.forEach(x=>{c=prev!=null&&x===prev+1?c+1:1;b=Math.max(b,c);prev=x});return b}
 
+/* ---------- the clock: how long each daily took ----------
+   gm-times {day: {game: {a: when today's puzzle was first on screen, b: when it ended, f: share right 0..1}}}, kept on this device.
+   Each game starts it when it shows today's unfinished puzzle and stops it when the puzzle ends; the seconds go with the result
+   to the daily ranking (sec), for the Fastest of the day visa. Game ids: borderline, citygrid, connections, top10, silhouette. */
+const clockAll=()=>{const T=json('gm-times');return T&&typeof T==='object'?T:{}};
+function clockStart(g,d){d=d||dayKey();if(d!==dayKey())return;const T=clockAll(),x=T[d]=T[d]||{};if(x[g])return;x[g]={a:Date.now()};
+  const ks=Object.keys(T).sort();while(ks.length>400)delete T[ks.shift()];store.set('gm-times',JSON.stringify(T))}
+function clockStop(g,d,f){const T=clockAll(),x=T[d]&&T[d][g];if(!x||x.b)return;x.b=Date.now();x.f=Math.max(0,Math.min(1,+f||0));store.set('gm-times',JSON.stringify(T))}
+function clockSecs(g,d){const x=(clockAll()[d]||{})[g];return x&&x.b&&x.b>=x.a?Math.max(1,Math.round((x.b-x.a)/1000)):null}
+const clock={start:clockStart,stop:clockStop,secs:clockSecs};
+// 52″, 2′41″, 21′05″
+const secText=s=>s<60?s+'″':Math.floor(s/60)+'′'+String(s%60).padStart(2,'0')+'″';
+
 /* ---------- visas: special entries for special games ----------
-   [ink, mark, name, what it takes, done?, progress 0..1 while not done, progress text] */
+   [ink, mark, name, what it takes, done?, progress 0..1 while not done, progress text, note (shown when done, or a best time), group]
+   groups: 0 Only one a day (the daily rankings), 1 Against the clock (your times), 2 Rare moments, 3 On the road (the first twelve).
+   Group 0 comes from the rankings of the days you played, read by account.js once each day is over (gm-feats, signed in only):
+   {game: {day: [place, players, first to finish, fastest, your finish time]}}. Only results with at least half right count
+   for First, Fastest and the clock visas, and a ranking needs two players or more. */
+const HALF=.5;
 function visas(){const H=k=>json(k)||{},vals=o=>Object.values(o).filter(Boolean),L=ledger(),p=pass(),bs=bestStreak(),cm=countriesMine();
   const grid=vals(H('bl-hist')).concat(vals(H('cc-hist'))).some(e=>e.f!==0&&+e.c>0&&+e.c>=(+e.n||3)*(+e.n||3));
   const sil=vals(H('sil-hist')).some(d=>Object.values(d).some(v=>v===9));
   const fr=['cx-friends','t10-friends','sil-friends'].some(k=>(H(k).w||0)>0);
   const up=(n,of)=>[n>=of,Math.min(1,n/of),fmt(Math.min(n,of))+' / '+fmt(of)];
+  const times=(n,last)=>n?'×'+n+(last?' · last on '+dateText(last,{day:'numeric',month:'short'}):''):'';
+  // the rankings (group 0)
+  const fa=json('gm-feats'),ac=json('gm-acct'),F=fa&&ac&&ac.u&&fa.u===ac.u&&fa.r?fa.r:{};
+  const gold=[],first=[],fast=[],pod=[],byDay={},finish=[];
+  for(const g in F)for(const d in F[g]){const e=F[g][d];if(!Array.isArray(e))continue;const [pl,n,f1,fs,t]=e;
+    if(n>=2&&pl===1){gold.push(d);(byDay[d]=byDay[d]||new Set()).add(g)}
+    if(n>=2&&pl>=1&&pl<=3)pod.push(d);if(f1)first.push(d);if(fs)fast.push(d);if(t)finish.push([d,g,t])}
+  const last=a=>a.slice().sort().pop();
+  const crowns=Object.values(byDay).filter(s=>s.size>=3).length;
+  const dn=k=>Math.round(Date.parse(k+'T12:00Z')/864e5);
+  let defend=0;for(const g in F){const v=Object.keys(F[g]).filter(d=>{const e=F[g][d];return Array.isArray(e)&&e[0]===1&&e[1]>=2}).map(dn).sort((a,b)=>a-b);
+    let run=0,prev=null;v.forEach(x=>{run=prev!=null&&x===prev+1?run+1:1;if(run===3)defend++;prev=x})}
+  // the clock (group 1)
+  const T=clockAll(),tl=[];for(const d in T)for(const g in T[d]){const x=T[d][g];if(x&&x.b&&x.b>=x.a)tl.push({d,g,s:Math.max(1,Math.round((x.b-x.a)/1000)),f:+x.f||0,b:x.b})}
+  const good=tl.filter(x=>x.f>=HALF),best=a=>a.length?Math.min(...a.map(x=>x.s)):null;
+  const bx=best(good),bl=best(tl.filter(x=>x.g==='silhouette'&&x.f>=1));
+  let bt=null;for(const d in T){const day=good.filter(x=>x.d===d);if(new Set(day.map(x=>x.g)).size>=5){const s=day.reduce((a,x)=>a+x.s,0);if(bt==null||s<bt)bt=s}}
+  const tb=s=>s==null?'':'Best: '+secText(s);
+  // rare moments (group 2): when a daily ended, Madrid time (from this device's clock and from your rows in the rankings)
+  const at={};good.forEach(x=>at[x.d+x.g]=x.b);finish.forEach(([d,g,t])=>{const k=d+(g==='leaderboard'?'borderline':g);if(!at[k])at[k]=t});
+  let owl=0,call=0;for(const k in at){const m=madridParts(at[k]),day=k.slice(0,10);if(dayKey(at[k])!==day)continue;
+    if(+m.hour===0&&+m.minute<10)owl++;if(+m.hour===23&&+m.minute>=50)call++}
+  const close=vals(H('cx-hist')).filter(e=>+e.w&&+e.m===3).length;
+  const flaw=Object.values(L).filter(d=>Object.keys(d).length>=5&&Object.values(d).every(v=>v>=120)).length;
+  const pdn=pod.length;
   return [
-    ['#C94A58','7','Week on the road','7 days in a row',...up(bs,7)],
-    ['#A07C1E','5/5','Grand tour','All five dailies in one day',Object.values(L).some(d=>Object.keys(d).length>=5),0,''],
-    ['#2A56B8','0✕','Clean sweep','Connections with no mistakes',vals(H('cx-hist')).some(e=>e.w&&!+e.m),0,''],
-    ['#25744F','10','Full list','All ten in a Top 10',vals(H('t10-hist')).some(e=>+e.f>=10),0,''],
-    ['#C94A58','▦','Perfect grid','Every square of a daily grid',grid,0,''],
-    ['#6B4BA8','9/9','Eagle eye','9 out of 9 in Silhouette',sil,0,''],
-    ['#2A56B8','2+','Good company','Win a game with friends',fr,0,''],
-    ['#A07C1E','1','New homeland','Your first country',...up(cm,1)],
-    ['#25744F','100','Collector','100 stamps',...up(p.n,100)],
-    ['#C94A58','30','Month away','30 days in a row',...up(bs,30)],
-    ['#6B4BA8','50','Citizen of the world','50 countries',...up(cm,50)],
-    ['#1D2B4C','1K','Full passport','1,000 stamps',...up(p.n,1000)]]}
+    ['#A07C1E','1st','Gold medal','1st in a daily ranking',gold.length>0,0,'',times(gold.length,last(gold)),0],
+    ['#C94A58','⏱','First to arrive','First player to finish a daily',first.length>0,0,'',times(first.length,last(first)),0],
+    ['#2A56B8','⚡','Fastest of the day','Quickest time in a daily ranking',fast.length>0,0,'',times(fast.length,last(fast)),0],
+    ['#6B4BA8','3×1','Triple crown','1st in 3 games on the same day',crowns>0,0,'',times(crowns),0],
+    ['#25744F','1·1·1','Defending champion','1st in the same game 3 days running',defend>0,0,'',times(defend),0],
+    ['#A07C1E','▲10','Podium regular','Top 3 in 10 dailies',pdn>=10,Math.min(1,pdn/10),fmt(Math.min(pdn,10))+' / 10',pdn>10?'×'+pdn+' podiums':'',0],
+    ['#C94A58','<1′','Express','A daily done in under 1 minute',bx!=null&&bx<60,0,'',tb(bx),1],
+    ['#6B4BA8','2′','Lightning','9/9 in Silhouette in under 2 minutes',bl!=null&&bl<120,0,'',tb(bl),1],
+    ['#2A56B8','15′','Speed tour','All five dailies in under 15 minutes',bt!=null&&bt<900,0,'',tb(bt),1],
+    ['#1D2B4C','0:00','Night owl','A daily in its first 10 minutes (midnight CET)',owl>0,0,'',times(owl),2],
+    ['#A07C1E','23:59','Last call','A daily in its last 10 minutes',call>0,0,'',times(call),2],
+    ['#C94A58','3✕','Close call','Win Connections with 3 mistakes',close>0,0,'',times(close),2],
+    ['#25744F','5★','Flawless day','All five dailies perfect on one day',flaw>0,0,'',times(flaw),2],
+    ['#C94A58','7','Week on the road','7 days in a row',...up(bs,7),'',3],
+    ['#A07C1E','5/5','Grand tour','All five dailies in one day',Object.values(L).some(d=>Object.keys(d).length>=5),0,'','',3],
+    ['#2A56B8','0✕','Clean sweep','Connections with no mistakes',vals(H('cx-hist')).some(e=>e.w&&!+e.m),0,'','',3],
+    ['#25744F','10','Full list','All ten in a Top 10',vals(H('t10-hist')).some(e=>+e.f>=10),0,'','',3],
+    ['#C94A58','▦','Perfect grid','Every square of a daily grid',grid,0,'','',3],
+    ['#6B4BA8','9/9','Eagle eye','9 out of 9 in Silhouette',sil,0,'','',3],
+    ['#2A56B8','2+','Good company','Win a game with friends',fr,0,'','',3],
+    ['#A07C1E','1','New homeland','Your first country',...up(cm,1),'',3],
+    ['#25744F','100','Collector','100 stamps',...up(p.n,100),'',3],
+    ['#C94A58','30','Month away','30 days in a row',...up(bs,30),'',3],
+    ['#6B4BA8','50','Citizen of the world','50 countries',...up(cm,50),'',3],
+    ['#1D2B4C','1K','Full passport','1,000 stamps',...up(p.n,1000),'',3]]}
 const stamps=()=>pass().n;
 const stampsToday=g=>pass().list.filter(x=>x.d===dayKey()&&(!g||x.g===g)).length;
 // a stamp: name, small line, optional flag picture; a player class (c0…c5) gives the player's ink instead
@@ -310,10 +366,16 @@ function pageCountries(){const a=atlas(),codes=Object.keys(ATLAS),mine=countries
     '<div class="gp-info" id="gp-info" aria-live="polite"></div>'+
     '<div class="gp-chips" role="group" aria-label="Continent">'+CONT.map(([k,n])=>'<button data-gp-cont="'+k+'" aria-pressed="'+(k===gpCont)+'">'+n+'</button>').join('')+'</div>'+
     '<div class="gp-grid">'+list.map(cell).join('')+'</div>'}
+const VGROUPS=[['Only one a day',()=>'The whole daily ranking competes, and one traveller a day wins it. Given the day after, once the ranking closes. First and Fastest need at least half right.'+(json('gm-acct')&&json('gm-acct').u?'':' <b>Sign in to compete.</b>')],
+  ['Against the clock',()=>'Timed from when you first see today\'s puzzle. Your best time is on the visa. Only games with at least half right count.'],
+  ['Rare moments',()=>'Odd hours and close calls.'],
+  ['On the road',()=>'']];
 function pageVisas(){const V=visas(),got=V.filter(v=>v[4]).length;
-  return '<div class="gp-sec"><h4>Visas</h4><span>'+got+' of '+V.length+'</span></div><div class="gp-visas">'+V.map(([ink,mk,n,what,ok,pr,txt])=>
-    '<div class="gp-visa'+(ok?'':' lock')+'" style="--c:'+ink+'"><span class="em">'+esc(mk)+'</span><b>'+esc(n)+'</b><small>'+esc(what)+'</small>'+
-      (!ok&&txt?'<span class="pb"><i style="width:'+Math.round(pr*100)+'%"></i></span><small>'+esc(txt)+'</small>':'')+'</div>').join('')+'</div>'}
+  const card=([ink,mk,n,what,ok,pr,txt,note])=>'<div class="gp-visa'+(ok?'':' lock')+'" style="--c:'+ink+'"><span class="em'+(mk.length>3?' sm':'')+'">'+esc(mk)+'</span><b>'+esc(n)+'</b><small>'+esc(what)+'</small>'+
+      (!ok&&txt?'<span class="pb"><i style="width:'+Math.round(pr*100)+'%"></i></span><small>'+esc(txt)+'</small>':'')+(note?'<small class="nt">'+esc(note)+'</small>':'')+'</div>';
+  return '<div class="gp-sec"><h4>Visas</h4><span>'+got+' of '+V.length+'</span></div>'+VGROUPS.map(([h,sub],k)=>{const g=V.filter(v=>v[8]===k),t=sub();
+    return '<div class="gp-sec gp-vg"><h5>'+h+'</h5><span>'+g.filter(v=>v[4]).length+' of '+g.length+'</span></div>'+(t?'<p class="gp-rule gp-vsub">'+t+'</p>':'')+
+      '<div class="gp-visas">'+g.map(card).join('')+'</div>'}).join('')}
 function countryInfo(c){const d=ATLAS[c],x=country(c);
   if(!x.n)return 'A country you haven\'t visited yet. Get it right in '+GORDER.filter(([g])=>d.m&GBIT[g]).map(g=>g[1]).join(', ')+' to make it yours.';
   return '<b>'+esc(d.n)+'</b>'+(x.mine?' is yours. ':' · ')+GORDER.filter(([g])=>d.m&GBIT[g]).map(([g,n])=>'<span class="'+(x.have&GBIT[g]?'ok':'no')+'">'+(x.have&GBIT[g]?'✓':'·')+' '+n+(g==='citygrid'&&d.k?' ('+esc(d.k)+')':'')+'</span>').join(' ')}
@@ -344,6 +406,6 @@ function openPass(tab){if(typeof tab==='string')gpTab=tab;
 function mini(list,cols){return '<div class="gm-mini" style="grid-template-columns:repeat('+cols+',16px)" aria-hidden="true">'+list.map(x=>'<i class="'+(x?'ok':'')+'"></i>').join('')+'</div>'}
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
-  days,streak,pass,stamp,stamps,stampsToday,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,LEVELS,ALL5,pts,cxPts,ledger,dayTotal,level,geo,visas,howHTML,mingo,hello,tk,ticket,traveller,header,passBtn,themeBtn,toggleTheme,currentTheme,
+  days,streak,pass,stamp,stamps,stampsToday,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,LEVELS,ALL5,pts,cxPts,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,traveller,header,passBtn,themeBtn,toggleTheme,currentTheme,
   resultWindow,openWindow,closeWindow,mini,esc,refreshPass,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();

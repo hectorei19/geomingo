@@ -77,11 +77,11 @@ const uid=()=>user&&user.uid;
 // signing out (here, or from Countries' menu) leaves the device clean, as Countries always did:
 // the stats, today's games, the GeoPass and the name go; the account keeps them for the next sign-in
 const DEVICE_KEYS=['bl-daily','bl-hist','bl-games','bl-arch','bl-user','cc-daily','cc-hist','cc-games','cc-arch','cc-user',
-  'cx-daily','cx-hist','t10-daily','t10-hist','sil-daily','sil-hist','sil-train','gm-pass','gm-days','gm-acct','gm-lbc','gm-ranks','cx-solo','cx-friends','t10-solo','t10-friends','sil-friends'];
+  'cx-daily','cx-hist','t10-daily','t10-hist','sil-daily','sil-hist','sil-train','gm-pass','gm-days','gm-acct','gm-lbc','gm-ranks','cx-solo','cx-friends','t10-solo','t10-friends','sil-friends','gm-feats'];
 function onUser(u){const was=user;user=u||null;
   if(was&&!user){DEVICE_KEYS.forEach(k=>ls.set(k,null));ls.set('gm-acct',null);location.reload();return}
   if(user){if(!(LAST&&LAST.u===user.uid))name='';loadName()}
-  remember();changed()}
+  remember();changed();if(user)setTimeout(scanFeats,2500)}
 function authError(e){const c=(e&&e.code)||'';if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request')return;
   say(c==='auth/unauthorized-domain'||c==='auth/operation-not-allowed'?'Sign-in is not set up yet for this site.':'Could not sign in. Try again.')}
 function say(msg){if(typeof window.toast==='function')window.toast(msg,'bad');else alert(msg)}
@@ -167,7 +167,8 @@ function keepLB(g){const c=json('gm-lbc')||{};for(const k in c)if(!c[k]||c[k].da
   c[g]={date:LB[g].date,rows:LB[g].rows};put('gm-lbc',c)}
 function submit(g,k,r){const id=uid();if(!id||!name||TEST||k!==T())return;const key=id+g+k;
   if(sent[key]||(LB[g]&&LB[g].date===k&&LB[g].rows&&LB[g].rows[id]))return;sent[key]=1;
-  db.ref('lb/'+g+'/'+k+'/'+id).set({name:name.slice(0,16),s:r.s,m:r.m||0,t:TS()}).catch(()=>{})}
+  const sec=G.clock&&G.clock.secs(g.indexOf('sil-')===0?'silhouette':g,k);
+  db.ref('lb/'+g+'/'+k+'/'+id).set(Object.assign({name:name.slice(0,16),s:r.s,m:r.m||0,t:TS()},sec?{sec}:{})).catch(()=>{})}
 function watch(g){if(!ok||TEST)return;const k=T();if(lbRef[g]&&lbRef[g].day===k)return;
   if(lbRef[g])lbRef[g].off();if(!(LB[g]&&LB[g].date===k))LB[g]={date:k,rows:null};lbRef[g]=db.ref('lb/'+g+'/'+k);lbRef[g].day=k;
   lbRef[g].on('value',s=>{LB[g]={date:k,rows:s.val()||{}};keepLB(g);changed()},()=>{LB[g]={date:k,rows:null,off:true};changed()})}
@@ -188,6 +189,31 @@ function rankingHTML(g,o){const u=who();if(TEST||u===undefined)return '';o=o||{}
     :i<0?'<p class="hint">Your result joins the ranking when you finish today\'s '+esc(o.what||'game')+' signed in. Only your first try counts.</p>':'';
   return '<section class="panel lb"><span class="label">'+esc(title)+(rows.length?' · '+rows.length+' player'+(rows.length===1?'':'s'):'')+'</span>'+
     (rows.length?'<ol class="lbl">'+list+'</ol>':'<p class="hint">Nobody in today\'s ranking yet.</p>')+foot+'</section>'}
+
+/* ---- the ranking visas of the GeoPass (Gold medal, First to arrive, Fastest of the day…) ----
+   For every daily you played, once its day is over, that day's whole ranking is read once and what you did in it is kept
+   on this device: gm-feats {u, r: {game: {day: [place, players, first to finish, fastest, your finish time]}}}.
+   First, Fastest and the finish time only count a result with at least half right; Fastest compares the rows that carry
+   the seconds the game took (sec, sent from 2026-11 on). mingo.js visas() reads it. */
+const FEATS=[['borderline','leaderboard','bl-hist',r=>(+r.c||0)>=8,e=>e&&e.f!==0],['citygrid','lb/citygrid','cc-hist',r=>(+r.c||0)>=8,e=>e&&e.f!==0],
+  ['connections','lb/connections','cx-hist',r=>(+r.s||0)>=2,e=>!!e],['top10','lb/top10','t10-hist',r=>(+r.s||0)>=5,e=>!!e],
+  ['silhouette','lb/sil-normal','sil-hist',r=>(+r.s||0)>=5,e=>e&&e.normal!=null]];
+let featBusy=false;
+const featStore=me=>{const c=json('gm-feats');return c&&c.u===me&&c.r?c:{u:me,r:{}}};
+function featsOf(rows,me,half){const L=Object.entries(rows||{}).map(([id,v])=>Object.assign({id},v)),i=L.slice().sort(lbOrder).findIndex(r=>r.id===me);
+  const q=L.filter(half),mine=L.find(r=>r.id===me),ok=!!mine&&half(mine),two=q.length>=2;
+  const first=ok&&two&&q.reduce((a,b)=>(+b.t||Infinity)<(+a.t||Infinity)?b:a).id===me;
+  const tq=q.filter(r=>typeof r.sec==='number'&&r.sec>0);
+  const fast=ok&&two&&tq.length>0&&tq.reduce((a,b)=>b.sec<a.sec?b:a).id===me;
+  return [i<0?0:i+1,L.length,first?1:0,fast?1:0,ok&&+mine.t||0]}
+function scanFeats(){const me=uid();if(!me||!db||TEST||featBusy)return;const c=featStore(me),k=T(),todo=[];
+  FEATS.forEach(([g,path,hk,half,played])=>{const h=json(hk)||{},have=c.r[g]=c.r[g]||{};
+    Object.keys(h).forEach(d=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d)&&d<k&&!have[d]&&played(h[d]))todo.push([g,path,d,half])})});
+  put('gm-feats',c);if(!todo.length)return;featBusy=true;
+  const step=()=>{const x=todo.shift();if(!x||uid()!==me){featBusy=false;return}const [g,path,d,half]=x;
+    db.ref(path+'/'+d).once('value').then(s=>{const c2=featStore(me);(c2.r[g]=c2.r[g]||{})[d]=featsOf(s.val(),me,half);put('gm-feats',c2);step()})
+      .catch(()=>{featBusy=false})};
+  step()}
 
 /* ---- My stats: one card per way to play (statsPage below) ----
    The Daily card's cup is your best place in a daily ranking. The places come from the public rankings of the days you played

@@ -20,8 +20,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611020330"></script>
-<script src="../brand/account.js?v=202611011600"></script>
+<script src="../brand/mingo.js?v=202611020500"></script>
+<script src="../brand/account.js?v=202611020500"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -82,7 +82,7 @@
 .lp.me{border-color:var(--sea)}
 .primary[disabled]{opacity:.5;cursor:default}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611020330">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611020500">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -194,7 +194,7 @@ function save(){if(!S)return;
   if(S.mode==='online'){if(S.over&&S.ms==null)S.ms=Math.max(0,now()-((room&&room.startAt)||now()));
     keep('cx-online',{code:S.code,round:S.round,S});pushProgress();return}
   if(S.mode==='daily'){store('cx-daily',{date:S.date,over:S.over,S});
-    if(S.over){const h=load('cx-hist',{});if(!h[S.date]){h[S.date]={w:S.won?1:0,m:S.mistakes,f:S.found.length};store('cx-hist',h);if(!TESTDAY)Geomingo.account.done('connections')}}}
+    if(S.over){const h=load('cx-hist',{});if(!h[S.date]){h[S.date]={w:S.won?1:0,m:S.mistakes,f:S.found.length};store('cx-hist',h);if(!TESTDAY){Geomingo.clock.stop('connections',S.date,S.found.length/4);Geomingo.account.done('connections')}}}}
   else if(S.mode==='archive'){const a=load('cx-arch',{});a[S.date]=S;store('cx-arch',a)}
   else{if(S.over&&!S.logged){S.logged=1;logSolo('cx-solo',{w:S.won?1:0,p:S.won&&!S.mistakes?1:0,f:S.found.length})}
     store('cx-free',S)}}
@@ -425,6 +425,8 @@ function goHome(){if(roomRef){if(S&&S.mode==='online'&&!S.over&&!leaveArmed){lea
     leaveRoom(true);return}
   view='home';toastMsg=null;drawToast();sel=[];render()}
 function render(keepShake){
+  // the clock of the visas starts when today's puzzle is first on screen (home or game), unless it is already over
+  if(!TESTDAY&&(view==='home'||view==='game'&&S&&S.mode==='daily')){const d=dailySaved();if(!(d&&d.over))Geomingo.clock.start('connections',todayKey())}
   if(view==='home'){app.innerHTML=homeHTML();bind();return}
   if(view==='friends'){app.innerHTML=friendsHTML();bind();return}
   if(view==='solo'){app.innerHTML=soloHTML();bind();return}

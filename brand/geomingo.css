@@ -269,6 +269,11 @@ a.gm-card:hover{border-color:var(--ink)}
 .gp-visa small{font:10px var(--type);color:var(--pmut);line-height:1.25}
 .gp-visa.lock .em{--c:#A99E80;border-style:dashed;border-width:2px}
 .gp-visa.lock b{color:#8A7E60}
+.gp-visa .em.sm{font-size:11px}
+.gp-visa small.nt{font-weight:700;color:var(--c)}.gp-visa.lock small.nt{color:#8A7E60}
+.gp-vg{margin-top:4px;border-top:1px dashed #A99E80;padding-top:10px}
+.gp-vg h5{margin:0;font:900 12px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--pink)}
+.gp-vsub{margin-top:-6px;font-size:12.5px}
 .gp-visa .pb{width:80%;height:5px;border-radius:3px;background:#D3C7A6;overflow:hidden;margin-top:2px}.gp-visa .pb i{display:block;height:100%;background:#8A7E60}
 
 /* ---------- 4. the games' common pieces in the brand's look ---------- */
