@@ -91,29 +91,83 @@ const flagSrc=c=>FLAGS[c]||'';
 const contName={EU:'Europe',AS:'Asia',AF:'Africa',NA:'North or Central America',SA:'South America',OC:'Oceania'};
 const worth=q=>CLUES+1-q.k;
 const ptsOf=q=>q.st==='right'?worth(q):0;
-const newQ=c=>({c,k:1,tries:[],st:'play'});
+// v: which clue of each group this traveller gives (picked once, so a saved game keeps its clues)
+const newQ=(c,rand)=>{rand=rand||Math.random;return {c,k:1,tries:[],st:'play',v:GROUPS.map(()=>Math.floor(rand()*1e6))}};
 let query='',typing=false;
 
-/* the clues: what the traveller says at the desk */
+/* ---- the clues: five groups, from not obvious to obvious ----
+   Each group is a list of possible clues; a traveller gets one at random from each group (only the ones the
+   country has data for), so the same country can come back with other clues. */
 function popText(n){if(n>=1e9)return (n/1e9).toFixed(2).replace(/\.?0+$/,'')+' billion';if(n>=1e6)return (n/1e6).toFixed(n>=1e8?0:1).replace(/\.0$/,'')+' million';
   if(n>=1e4)return Math.round(n/1e3).toLocaleString('en')+',000';return Math.round(n/10)*10+''}
 const areaText=a=>(a>=1e4?Math.round(a/1e3)*1e3:a>=100?Math.round(a/10)*10:a).toLocaleString('en')+' km²';
 const latText=l=>Math.abs(l)<1?'right on the Equator':Math.round(Math.abs(l))+'° '+(l>=0?'north':'south')+' of the Equator';
 const listText=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
-function clue(code,i){const c=cByCode[code];
-  if(i===0)return {ico:'1',lab:'Size',main:'Population '+popText(DATA.pop[code]||0),sub:'Area '+areaText(c.a)};
-  if(i===2){const lg=c.lg.slice(0,3),more=c.lg.length-lg.length;
-    return {ico:'3',lab:'Language and roads',main:(c.lg.length>1?'Languages: ':'Language: ')+listText(lg)+(more>0?' and '+more+' more':''),sub:'Drives on the '+(LEFT.has(code)?'left':'right')}}
-  if(i===1){const nb=c.b.filter(b=>cByCode[b]);
-    return {ico:'2',lab:'On the map',main:contName[c.r]+', '+latText(c.lat),sub:c.ll?'Landlocked: no coast':!nb.length?'An island country with no land borders':'Has a coast and '+nb.length+' land neighbour'+(nb.length===1?'':'s')}}
-  if(i===3){const nb=c.b.filter(b=>cByCode[b]).map(b=>cByCode[b].n).sort();
-    if(nb.length)return {ico:'4',lab:'Neighbours',main:nb.length>6?listText(nb.slice(0,6))+' and '+(nb.length-6)+' more':'Borders '+listText(nb),sub:''};
-    return {ico:'4',lab:'Capital',main:'The capital starts with '+c.cap[0].toUpperCase(),sub:c.cap.replace(/[^ \-]/g,'_').split('').join('')+' ('+c.cap.replace(/[ \-]/g,'').length+' letters)'}}
-  return {ico:'5',lab:'Flag',main:'',sub:'',flag:code}}
+const num=n=>Number(n).toLocaleString('en');
+const isIn=(k,c)=>(EXTRA[k]||DATA[k]||[]).includes(c);
+const nbOf=c=>c.b.filter(b=>cByCode[b]);
+// a language named after the country gives it away (Icelandic, Italian, German…)
+const giveaway=(c,w)=>N(w).slice(0,4)===c.k.slice(0,4);
+const FLAGCOL=[['flag_red','red'],['flag_white','white'],['flag_blue','blue'],['flag_green','green'],['flag_yellow','yellow'],['flag_black','black'],['flag_orange','orange']];
+const FLAGSYM=[['flag_star','a star'],['flag_moon','a crescent moon'],['flag_sun','a sun'],['flag_cross','a cross'],['flag_uj','the Union Jack'],['flag_arms','a coat of arms'],['flag_animal','an animal']];
+const SEAS=[['sea_med','the Mediterranean'],['sea_carib','the Caribbean Sea'],['sea_baltic','the Baltic Sea'],['sea_black','the Black Sea'],['sea_red','the Red Sea'],['sea_gulf','the Persian Gulf'],['sea_caspian','the Caspian Sea'],['sea_north','the North Sea']];
+// facts for group 3: [data key, what it says]
+const FACTS=[['ind_uk','Became independent from the United Kingdom'],['ind_es','Became independent from Spain'],['pol_eu','A member of the European Union'],['pol_nato','A member of NATO'],
+  ['pol_cw','A member of the Commonwealth'],['pol_g20','A member of the G20'],['pol_mon','A monarchy, with a king, queen, emir or similar'],['pol_opec','A member of OPEC, the oil exporters'],
+  ['pol_ussr','Was part of the Soviet Union'],['arab','A member of the Arab League'],['asean','A member of ASEAN, in Southeast Asia'],['nukes','Has nuclear weapons'],['noarmy','Has no army of its own'],
+  ['nuclear','Makes electricity in nuclear power plants'],['sp_summer','Has hosted the Summer Olympics'],['sp_winter','Has hosted the Winter Olympics'],['sp_wchost','Has hosted the men\'s football World Cup'],
+  ['sp_wcwin','Has won the men\'s football World Cup'],['sp_f1','Has a Formula 1 race'],['euro','Takes part in Eurovision'],['metro','Has a metro system'],['wc','Has played at the men\'s football World Cup']];
+const GROUPS=[
+  // 1 Curiosities
+  ['Curiosity',c=>{const d=c.c,o=[],V=k=>DATA[k][d];
+    if(V('life'))o.push(['Life expectancy: '+V('life')+' years','How long people live on average']);
+    if(V('age'))o.push(['Median age: '+V('age')+' years','Half the people are younger than this']);
+    if(V('forest')!=null)o.push(['Forest covers '+Math.round(V('forest'))+'% of the land','']);
+    if(V('elev'))o.push(['Highest point: '+num(V('elev'))+' m above the sea','']);
+    o.push(V('olymp')?['Has won '+num(V('olymp'))+' Olympic medal'+(V('olymp')===1?'':'s'),'Summer and Winter Games, all time']:['Has never won an Olympic medal','Summer and Winter Games, all time']);
+    if(V('urban')!=null)o.push([Math.round(V('urban'))+'% of the people live in towns and cities','']);
+    if(V('co2')!=null)o.push(['CO₂ per person: '+V('co2')+' tonnes a year','']);
+    if(V('cpi')!=null)o.push(['Corruption score: '+V('cpi')+' out of 100','100 is the cleanest (Transparency International)']);
+    if(V('hdi'))o.push(['Human development index: '+V('hdi'),'From 0 to 1: health, schooling and income']);
+    return o}],
+  // 2 Numbers
+  ['Numbers',c=>{const d=c.c,o=[],V=k=>DATA[k][d];
+    o.push(['Population: '+popText(V('pop')||0),'']);
+    o.push(['Area: '+areaText(c.a),'']);
+    if(V('gdp'))o.push(['Wealth per person: $'+num(Math.round(V('gdp')/100)*100)+' a year','GDP per person']);
+    if(V('coast'))o.push(['Coastline: '+num(Math.round(V('coast')))+' km','']);
+    if(V('cappop')&&CAPOK(c))o.push(['The capital has '+popText(V('cappop'))+' people','']);
+    if(V('landb'))o.push(['Land borders: '+num(V('landb'))+' km in all','']);
+    return o}],
+  // 3 History, clubs and the flag described
+  ['History and clubs',c=>{const d=c.c,f=FACTS.filter(([k])=>isIn(k,d)).map(x=>x[1]),o=[];
+    for(let i=0;i+1<f.length;i+=2)o.push([f[i],f[i+1]]);if(f.length%2)o.push([f[f.length-1],'']);
+    const col=FLAGCOL.filter(([k])=>isIn(k,d)).map(x=>x[1]),sym=FLAGSYM.filter(([k])=>isIn(k,d)).map(x=>x[1]);
+    o.push(['Its flag is '+listText(col),sym.length?'With '+listText(sym):'']);
+    if(c.cu.includes('EUR'))o.push(['Pays with the euro','']);
+    return o}],
+  // 4 The map
+  ['On the map',c=>{const d=c.c,nb=nbOf(c),o=[],ct=contName[c.r];
+    o.push([ct+', '+latText(c.lat),'']);
+    o.push([ct+(c.ll?', landlocked: no coast':!nb.length?', an island country':', with a coast'),nb.length?nb.length+' land neighbour'+(nb.length===1?'':'s'):'No land borders']);
+    const sea=SEAS.filter(([k])=>isIn(k,d)).map(x=>x[1]);if(sea.length)o.push([ct+', on '+listText(sea),'']);
+    const lg=c.lg.filter(l=>!giveaway(c,l));
+    if(lg.length===c.lg.length&&lg.length)o.push([ct+'. '+(lg.length>1?'Languages: ':'Language: ')+listText(lg.slice(0,3))+(lg.length>3?' and '+(lg.length-3)+' more':''),'Drives on the '+(LEFT.has(d)?'left':'right')]);
+    return o}],
+  // 5 The obvious
+  ['The obvious',c=>{const nb=nbOf(c).map(b=>cByCode[b].n).sort(),o=[];
+    if(nb.length)o.push([nb.length>6?'Borders '+listText(nb.slice(0,6))+' and '+(nb.length-6)+' more':'Borders '+listText(nb),'']);
+    if(c.cap&&!giveaway(c,c.cap))o.push(['The capital starts with '+c.cap[0].toUpperCase(),c.cap.replace(/[ \-'.]/g,'').length+' letters']);
+    o.push(['','',true]);
+    return o}]];
+function clue(q,i){const c=cByCode[q.c],[lab,f]=GROUPS[i],o=f(c),v=(q.v||[])[i];
+  // old saves without v: always the same pick for the country
+  const x=o[(v!=null?v:seedOf(q.c+i))%o.length];
+  return x[2]?{ico:i+1,lab:'Flag',main:'',sub:'',flag:q.c}:{ico:i+1,lab,main:x[0],sub:x[1]}}
 function cluesHTML(q){const done=q.st!=='play';
   return `<ol class="clues">${Array.from({length:CLUES},(_,i)=>{
     if(i>=q.k&&!done)return `<li class="clue off"><span class="ci">${i+1}</span><span class="ct"><span>Clue ${i+1} · ${CLUES-i} point${CLUES-i===1?'':'s'}</span><b>Locked</b></span></li>`;
-    const x=clue(q.c,i);
+    const x=clue(q,i);
     return `<li class="clue${!done&&i===q.k-1&&i>0?' new':''}${i>=q.k?' off':''}"><span class="ci">${x.ico}</span><span class="ct"><span>${x.lab}</span>${x.main?`<b>${esc(x.main)}</b>`:''}${x.sub?`<small>${esc(x.sub)}</small>`:''}${x.flag?`<img class="fl" src="${flagSrc(x.flag)}" alt="A flag">`:''}</span></li>`}).join('')}</ol>`}
 
 /* answering: the same box as in the other games */
@@ -174,7 +228,7 @@ function dailyQs(key){const n=dayNum(key,FIRST)-1,deal=(pool,per,tag)=>{const co
     const cyc=Math.floor(n/days),i=((n%days)+days)%days;return shuffle(codes,rngFrom(seedOf('customs-'+tag+'-'+cyc))).slice(i*per,(i+1)*per)};
   const big=SOV.filter(c=>(DATA.pop[c.c]||0)>=1e7),rest=SOV.filter(c=>(DATA.pop[c.c]||0)<1e7);
   const a=deal(big,3,'big'),b=deal(rest,2,'rest');
-  return shuffle([a[0],a[1],b[0],a[2],b[1]],rngFrom(seedOf('customs-order-'+key))).map(newQ)}
+  return shuffle([a[0],a[1],b[0],a[2],b[1]],rngFrom(seedOf('customs-order-'+key))).map(c=>newQ(c,rngFrom(seedOf('customs-clues-'+key+'-'+c))))}
 let D=null;
 const dailySaved=()=>{const d=load('cu-daily',null);return d&&d.date===todayKey()?d:null};
 function dailyGame(){const d=dailySaved();if(d&&d.S)return d.S;
@@ -242,10 +296,13 @@ let T=null;
 function openSolo(){view='solo';query='';typing=false;render();window.scrollTo(0,0)}
 function soloHTML(){return header('Customs','Solo')+`<section class="panel">
   <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Solo</span></div>
-  <p class="hint">Five travellers from any of the 197 countries, a new set every game. Up to ${MAX} points.</p>
+  <p class="hint">Five travellers, a new set every game. Up to ${MAX} points.</p>
+  <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['hard','Hard']],soloDiff())}<p class="hint">${soloDiff()==='easy'?'Well-known countries, with 10 million people or more':'Any of the 197 countries'}.</p></div>
   <button class="primary" id="start">Start game</button></section>${quickRules()}`}
-function openTrain(){const codes=shuffle(SOV.map(c=>c.c),Math.random).slice(0,PER);
-  T={mode:'solo',qs:codes.map(newQ),sel:0,over:false};mood=null;view='train';query='';typing=false;render();window.scrollTo(0,0)}
+const soloDiff=()=>load('cu-diff','easy')==='hard'?'hard':'easy';
+const seg=(name,opts,val)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-seg="${name}" data-v="${v}" aria-pressed="${v===val}">${l}</button>`).join('')}</div>`;
+function openTrain(){const pool=soloDiff()==='easy'?SOV.filter(c=>(DATA.pop[c.c]||0)>=1e7):SOV,codes=shuffle(pool.map(c=>c.c),Math.random).slice(0,PER);
+  T={mode:'solo',qs:codes.map(c=>newQ(c)),sel:0,over:false};mood=null;view='train';query='';typing=false;render();window.scrollTo(0,0)}
 function trainEnd(){if(T.logged)return;T.logged=1;logSolo('cu-solo',{p:pointsOf(T),best:pointsOf(T),r:rightOf(T)})}
 function trainPick(code){const q=T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;
   const res=answer(q,code);query='';typing=res==='wrong';feedback(q,res,code,custKey());advance(T);if(T.over)trainEnd();render();if(T.over)window.scrollTo(0,0)}
@@ -263,12 +320,18 @@ function myStatsHTML(){const h=load('cu-hist',{}),so=load('cu-solo',null)||{n:0}
   return statsPageHTML({game:'Customs',hist:h,unit:'day',avg:cuAverage(),lbs:d=>[{path:'lb/customs',dates:d}],num:k=>'Customs #'+dayNum(k,FIRST),
     solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?(so.p/so.n).toFixed(1):0,'average'],[so.r||0,'named']]},
     friends:{n:0,w:0,place:0,best:0,third:[0,'best']}})}
-const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Five travellers, five clues each, from vague to obvious. Name the country with 1 clue for 5 points, with 2 for 4, down to 1 point with all five. A wrong answer opens the next clue. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Five travellers, five clues each, from not obvious to obvious. Name the country with 1 clue for 5 points, with 2 for 4, down to 1 point with all five. A wrong answer opens the next clue. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Five travellers come to the customs desk, one at a time. Work out which country each one comes from.</li>
   <li>Only the 197 independent countries, never territories.</li></ul>
   <h3>The clues</h3><ul>
-  <li>Each traveller has five clues, from vague to obvious: <b>1 Size</b> (population and area), <b>2 On the map</b> (continent, how far from the Equator, coast or not), <b>3 Language and roads</b> (official languages, which side they drive on), <b>4 Neighbours</b> (or the capital's first letter for islands), <b>5 Flag</b>.</li>
+  <li>Each traveller has five clues, from not obvious to obvious, one from each group:</li>
+  <li><b>1 Curiosity</b>: life expectancy, median age, forest, highest point, Olympic medals, city life, CO₂, corruption or development score.</li>
+  <li><b>2 Numbers</b>: population, area, wealth per person, coastline, the capital's size or the length of its borders.</li>
+  <li><b>3 History and clubs</b>: independence, the EU, NATO, the Commonwealth, the Arab League, World Cups and Olympics hosted, nuclear power… or its flag described in words.</li>
+  <li><b>4 On the map</b>: continent with how far from the Equator, the coast, its seas, or its languages and driving side.</li>
+  <li><b>5 The obvious</b>: its neighbours, the capital's first letter or the flag.</li>
+  <li>Which clue of each group you get is random, so a country can come back with other clues.</li>
   <li>You start with clue 1. Tap <b>Next clue</b> to open another one.</li></ul>
   <h3>Points</h3><ul>
   <li>Name the country with 1 clue open: <b>5 points</b>. With 2: 4. With 3: 3. With 4: 2. With all 5: 1.</li>
@@ -279,7 +342,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Names are in English. Accents, capitals and spaces don't matter, and common other names work too (Holland, Burma, UK…).</li></ul>
   <h3>Modes</h3><ul>
   <li><b>Today's travellers</b>: five countries, the same for everyone, new every day at midnight CET. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>
-  <li><b>Solo</b>: five random travellers from anywhere, as many games as you like.</li>
+  <li><b>Solo</b>: five random travellers, as many games as you like. <b>Easy</b>: well-known countries (10 million people or more). <b>Hard</b>: any country.</li>
   <li><b>With friends</b>: coming soon.</li></ul>`}
 function creditsHTML(){return DATA_CREDITS}
 
@@ -326,6 +389,7 @@ function bind(){
   const G=view==='train'?T:view==='daily'?D:null;
   app.querySelectorAll('[data-tv]').forEach(b=>b.onclick=()=>{const q=G&&G.qs[+b.dataset.tv];if(q&&q.st!=='play')toast(cByCode[q.c].n+(q.st==='right'?' · +'+worth(q):''))});
   if($('nextclue'))$('nextclue').onclick=view==='train'?trainNextClue:dailyNextClue;
+  app.querySelectorAll('[data-seg="diff"]').forEach(b=>b.onclick=()=>{store('cu-diff',b.dataset.v);render()});
   if(view==='train'&&T&&!T.over)bindAnswer(T.qs[T.sel],trainPick);
   else if(view==='daily'&&D&&!D.over)bindAnswer(D.qs[D.sel],dailyPick)}
 render();
