@@ -946,7 +946,7 @@ function startGame(){
   clearGridParam();
   const players=setup.mode==='solo'?[{name:setup.user||'You',score:0}]:setup.names.map((nm,i)=>({name:nm.trim()||('Player '+(i+1)),score:0}));
   S={mode:setup.mode,n,seed,diff,code:makeCode(n,seed,diff),rows:g.rows,cols:g.cols,answers:g.answers,
-     cells:g.answers.map(()=>({o:-1,c:null})),used:[],players,turn:Math.floor(Math.random()*players.length),
+     cells:g.answers.map(()=>({o:-1,c:null})),used:[],players,turn:0,
      guesses:setup.mode==='solo'?n*n+n:null,timer:setup.timer,deadline:0,passes:0,over:false,wrong:0,
      gid:'s-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7)};
   ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};
