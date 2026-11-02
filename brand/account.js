@@ -258,7 +258,7 @@ function ringSVG(pct,size){const L=2*Math.PI*40,on=pct!=null;
   return '<svg class="gm-ring" width="'+size+'" height="'+size+'" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="40" fill="none" stroke="var(--line)" stroke-width="10"/>'+
     (on&&pct>0?'<circle cx="50" cy="50" r="40" fill="none" stroke="var(--green)" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+(L*pct/100).toFixed(1)+' '+L.toFixed(1)+'" transform="rotate(-90 50 50)"/>':'')+
     '<text x="50" y="58" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="900" font-size="22" fill="'+(on?'var(--ink)':'var(--muted)')+'">'+(on?pct+'%':'–')+'</text></svg>'}
-const nums=a=>'<div class="gm-mnums">'+a.map(([v,l])=>'<span><b>'+esc(String(v))+'</b>'+esc(l)+'</span>').join('')+'</div>';
+const nums=a=>'<div class="gm-mnums">'+a.map(([v,l])=>'<span><b>'+esc(typeof v==='number'?EU(v):String(v))+'</b>'+esc(l)+'</span>').join('')+'</div>';
 const modeCard=(icon,title,count,body,cls)=>'<div class="gm-mode'+(cls?' '+cls:'')+'"><span class="gm-mico">'+icon+'</span><div class="gm-mtxt"><div class="gm-mhd"><b>'+title+'</b><small>'+esc(count)+'</small></div>'+body+'</div></div>';
 // the Daily card: the cup with your best place in the daily rankings (it fills in as the rankings are read)
 function dailyCard(o){const u=who(),d=o.daily,P=u?places(o.lbs)||[]:[],got=P.filter(x=>x.p[0]>0);
@@ -276,10 +276,10 @@ const CARDS={};let cardN=0;
 function statsPage(o){const id='c'+(++cardN);CARDS[id]=o;const s=o.solo,f=o.friends,u=who();
   const all=o.daily.n+s.n+f.n,first=o.dates.slice().sort()[0],nm=(u&&name)||G.traveller();
   const me='<div class="gm-me"><span class="gm-av">'+esc((nm.trim()[0]||'·').toUpperCase())+'</span><div class="gm-mett"><b>'+esc(nm)+'</b><small>'+esc(o.game)+' · '+all+' game'+(all===1?'':'s')+(first?'<br>since '+shortDate(first):'')+'</small></div>'+
-    '<div class="gm-mest"><b>'+((G.pass&&G.pass().n)||0)+'</b><small>stamps</small></div></div>';
+    '<div class="gm-mest"><b>'+EU((G.pass&&G.pass().n)||0)+'</b><small>stamps</small></div></div>';
   const solo=modeCard(medalSVG(s.n?s.medal:null,64),'Solo',s.n+' '+s.unit+(s.n===1?'':'s'),s.n?nums(s.stats):'<span class="gm-mfoot">Practice at your pace: your best and your accuracy show here.</span>');
   const fr=modeCard(ringSVG(f.n?Math.round(f.w/f.n*100):null,64),'With friends',f.n+' game'+(f.n===1?'':'s'),
-    f.n?nums([[f.w,f.w===1?'win':'wins'],[(f.place/f.n).toFixed(1),'avg place'],f.third]):'<span class="gm-mfoot">Play online with 2 to 6 friends: your wins show here.</span>');
+    f.n?nums([[f.w,f.w===1?'win':'wins'],[EU(f.place/f.n,1),'avg place'],f.third]):'<span class="gm-mfoot">Play online with 2 to 6 friends: your wins show here.</span>');
   return '<div class="gm-stats">'+me+'<div data-gm-card="'+id+'">'+dailyCard(o)+'</div>'+solo+fr+(o.extra||'')+'</div>'}
 function drawTrophies(){document.querySelectorAll('[data-gm-card]').forEach(el=>{const o=CARDS[el.dataset.gmCard];if(!o)return;
   const h=dailyCard(o);if(el.innerHTML!==h)el.innerHTML=h})}

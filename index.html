@@ -24,8 +24,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
 <link rel="stylesheet" href="brand/geomingo.css?v=202611020500">
-<script src="brand/mingo.js?v=202611020500"></script>
-<script src="brand/account.js?v=202611020500"></script>
+<script src="brand/mingo.js?v=202611020700"></script>
+<script src="brand/account.js?v=202611020700"></script>
 <style>
 /* Home page: Sign in and Menu on top, today's games as colour tiles, Travel with friends, then the GeoPass
    (km, level, today's stamps) and this week's ranking by km */
@@ -156,7 +156,7 @@ footer{display:flex;flex-direction:column;gap:4px;align-items:center;padding-top
 
 <script>
 const G=Geomingo,esc=G.esc,A=()=>G.account;
-const fmt=n=>Number(n||0).toLocaleString('en');
+const fmt=n=>EU(Math.round(Number(n||0)));
 const json=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};
 // each game's colour and little picture on its tile
 const LOOK={

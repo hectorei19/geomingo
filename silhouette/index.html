@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611020500"></script>
-<script src="../brand/account.js?v=202611020500"></script>
+<script src="../brand/mingo.js?v=202611020700"></script>
+<script src="../brand/account.js?v=202611020700"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -274,7 +274,7 @@ function dailyMood(){const started=D.qs.some(q=>q.st!=='play');
 // each day counts its best board (days from before the single daily board may hold an Easy or Hard one too)
 function silAverage(h){const days=Object.keys(h);
   const best=days.map(k=>Math.max(0,...Object.values(h[k]).filter(x=>typeof x==='number'))),tot=best.reduce((x,v)=>x+v,0);
-  return days.length?(tot/days.length).toFixed(1)+'/9':'–'}
+  return days.length?EU(tot/days.length,1)+'/9':'–'}
 function myStatsHTML(){const h=load('sil-hist',{}),days=Object.keys(h),tr=load('sil-train',{}),fr=friendsOf('sil-friends');
   const lv=['easy','normal','hard'].map(v=>tr[v]||{n:0,ok:0,best:0}),n=lv.reduce((a,s)=>a+s.n,0),ok=lv.reduce((a,s)=>a+s.ok,0),run=Math.max(0,...lv.map(s=>s.best||0));
   return statsPageHTML({game:'Silhouette',hist:h,unit:'board',avg:silAverage(h),num:k=>'Board #'+dayNum(k,DAILY_FIRST),
