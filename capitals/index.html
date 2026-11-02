@@ -302,10 +302,10 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .gm-hello+.board-wrap{margin-top:-4px}
 .respanel .gm-hello{margin:-4px 0 -6px}
 .corner .mingo{width:auto;height:88%}
-/* a right answer: the country's flag, darkened, behind the city's name in the centre (the stamp border keeps the player's colour);
+/* a right answer: the country's flag, darkened and blurred, behind the city's name in the centre (the stamp border keeps the player's colour);
    points in a tab in the top right corner and the country's code in the bottom left, as in Countries */
 .cell.flag .gm-stamp.wf{background:#0b1220;padding:clamp(14px,4.6vw,19px) 2px}
-.gm-stamp.wf .wm{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.5}
+.gm-stamp.wf .wm{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.45;filter:blur(2.5px)}
 .gm-stamp.wf .sn{position:relative;color:#fff;text-shadow:0 1px 3px #000,0 0 6px #000}
 .cell.flag .gm-stamp.wf .pts,.cell.flag .gm-stamp.wf .cc{position:absolute;z-index:1;background:#0F1626;color:#fff;font-family:var(--display);font-weight:800;font-stretch:75%;font-size:clamp(.66rem,2.8vw,.85rem);letter-spacing:0;line-height:1.15;white-space:nowrap}
 .cell.flag .gm-stamp.wf .pts{top:0;right:0;padding:1px 4px 2px 5px;border-radius:0 0 0 7px}
