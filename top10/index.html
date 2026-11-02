@@ -399,9 +399,9 @@ async function onlineAct(kind){
     if(kind==='start'||kind==='rematch'){if(r.host!==ME)return;
       const order=(kind==='start'?lobbyOrder(r):(r.order||lobbyOrder(r))).filter(pid=>r.players[pid]&&(kind==='start'||r.players[pid].on!==false));
       if(order.length<2)return;
-      r.order=order;r.list=randomList(r.list);r.v=ROOM_V;r.found=null;r.wrong=null;r.lives=null;r.k=0;r.passes=0;r.turn=0;r.status='playing';
+      r.order=order;r.list=randomList(r.list);r.v=ROOM_V;r.found=null;r.wrong=null;r.lives=null;r.k=0;r.passes=0;r.turn=Math.floor(Math.random()*order.length);r.status='playing';
       r.deadline=r.cfg.timer?now()+r.cfg.timer*1000:0;
-      r.ev={id:evId(),kind:'',text:kind==='start'?'Game on. '+r.players[order[0]].name+' starts.':'Rematch: a new list.'};return r}
+      r.ev={id:evId(),kind:'',text:(kind==='start'?'Game on. ':'Rematch: a new list. ')+r.players[order[r.turn]].name+' starts.'};return r}
     if(kind==='lobby'){if(r.host!==ME)return;r.status='lobby';r.order=null;r.list=null;r.found=null;r.wrong=null;r.lives=null;r.deadline=0;return r}
   })}catch(e){console.error(e);toast('That did not go through. Check the connection.','bad')}}
 async function tryTimeout(turn,deadline){
