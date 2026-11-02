@@ -20,7 +20,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611011600"></script>
+<script src="../brand/mingo.js?v=202611020330"></script>
 <script src="../brand/account.js?v=202611011600"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -314,7 +314,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .b5 .cell.flag .gm-stamp.wf .pts{font-size:.6rem;padding:0 3px 1px 4px;border-radius:0 0 0 5px}
 .b5 .cell.flag .gm-stamp.wf .cc{font-size:.6rem;padding:1px 4px 0 3px;border-radius:0 5px 0 0}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611020310">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611020330">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -1384,7 +1384,7 @@ function gameView(){
     const stub=S.mode==='solo'
       ?cell('Traveller',esc(S.players[0].name),'tk-name')+cell('Class',DLABEL[S.diff||'normal'])+cell('Points',liveScore(0),'tk-pts')+cell('Guesses',S.guesses,'tk-gs')+time
       :S.players.map((q,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${q.on===false?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(q.name)}</i><b>${liveScore(i)}</b></div>`).join('')+time;
-    h+=Geomingo.ticket(say,stub,{timer:S.timer,color:S.mode==='solo'?'':`var(--p${S.turn})`});
+    h+=Geomingo.ticket(say,stub,{timer:S.timer,color:S.mode==='solo'?'':`var(--p${S.turn})`,mode:S.daily?(S.archive?'archive':'daily'):S.mode==='solo'?'practice':'',num:S.day});
   }
   h+=`<div class="board-wrap"><div class="board b${n}" lang="en" style="grid-template-columns:repeat(${n+1},minmax(0,1fr))">`;
   h+=cornerHTML(S.daily?S.day:0);
