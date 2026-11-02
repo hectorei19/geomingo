@@ -15,7 +15,7 @@
   --type:"Courier Prime","Courier New",ui-monospace,monospace;
   --shadow:0 1px 0 rgba(22,32,47,.05),0 16px 36px -20px rgba(22,32,47,.45);
   --scrim:rgba(8,12,22,.55);
-  color-scheme:light;
+  color-scheme:dark;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0C1220; --page:#151E30; --guil:#1D2840; --ink:#E8ECEF; --muted:#9AA6B6; --line:#2A3650;
