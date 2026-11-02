@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611020700"></script>
-<script src="../brand/account.js?v=202611020500"></script>
+<script src="../brand/mingo.js?v=202611020800"></script>
+<script src="../brand/account.js?v=202611020700"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -392,16 +392,16 @@ const shareMessage=()=>shareText()+'\n\n'+(S.mode==='daily'?"Play today's puzzle
 // the group just found pops in once; later renders (every tap) leave the found groups still
 let popped=null;
 const groupHTML=(g,miss)=>{const k=CATS[g.k];
-  return `<div class="grp g${g.t}${miss?' miss':''}${g===popped?' new':''}"><span class="gl">${esc(k.label)}<button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></span>
+  return `<div class="grp g${g.t}${miss?' miss':''}${g===popped?' new':''}"><span class="gl">${esc(EUT(k.label))}<button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></span>
     <span class="gm">${g.m.map(c=>`<span style="white-space:nowrap"><img class="mini" src="${FLAGS[c]}" alt="">${esc(byCode[c].n)}</span>`).join(' · ')}</span></div>`};
 const tileHTML=(c,attr)=>{const n=byCode[c].n,on=attr==='data-c'&&sel.includes(c);
   return `<button class="tile${on?' on':''}${n.length>12||n.split(' ').some(w=>w.length>10)?' long':''}" ${attr}="${c}" aria-pressed="${on}" lang="en">${esc(n)}</button>`};
 // the average of groups found (days before the count was kept: solved = 4, otherwise not counted)
-function cxAverage(h){const known=Object.values(h).map(e=>e.w?4:e.f).filter(f=>f!=null);return known.length?(known.reduce((a,b)=>a+b,0)/known.length).toFixed(1)+'/4':'–'}
+function cxAverage(h){const known=Object.values(h).map(e=>e.w?4:e.f).filter(f=>f!=null);return known.length?EU(known.reduce((a,b)=>a+b,0)/known.length,1)+'/4':'–'}
 function statsHTML(){const h=load('cx-hist',{});return statTiles(Object.keys(h).length,cxAverage(h),streakOf(h))}
 function myStatsHTML(){const h=load('cx-hist',{}),so=load('cx-solo',null)||{n:0},fr=friendsOf('cx-friends');
   return statsPageHTML({game:'Connections',hist:h,unit:'puzzle',avg:cxAverage(h),lbs:d=>[{path:'lb/connections',dates:d}],num:k=>'Puzzle #'+dayNum(k,CX_FIRST),
-    solo:{n:so.n,unit:'puzzle',medal:so.n?Math.round(so.w/so.n*100)+'%':0,stats:[[so.w,'solved'],[so.p,'perfect'],[so.n?(so.f/so.n).toFixed(1):0,'groups']]},
+    solo:{n:so.n,unit:'puzzle',medal:so.n?Math.round(so.w/so.n*100)+'%':0,stats:[[so.w,'solved'],[so.p,'perfect'],[so.n?EU(so.f/so.n,1):0,'groups']]},
     friends:Object.assign(fr,{third:[fr.fast?fmtTime(fr.fast):'–','fastest']})})}
 const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
 // today's puzzle open on the home screen, as Countries' grid: tapping a country starts (or continues) it with that country picked
@@ -459,7 +459,7 @@ function render(keepShake){
 // optional help: the names of the four categories, in no particular order (not which country goes where)
 function catsHTML(){if(!S.hint)return `<button class="linkbtn cx-hintbtn" id="hint">Stuck? Show the 4 categories</button>`;
   const ks=S.groups.map(g=>CATS[g.k]).sort((a,b)=>a.label.localeCompare(b.label));
-  return `<section class="panel cx-cats"><span class="label">The 4 categories</span><ul>${ks.map(k=>`<li>${esc(k.label)} <button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></li>`).join('')}</ul></section>`}
+  return `<section class="panel cx-cats"><span class="label">The 4 categories</span><ul>${ks.map(k=>`<li>${esc(EUT(k.label))} <button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></li>`).join('')}</ul></section>`}
 // Mingo's verdict, for the result panel
 function verdict(){const n=S.mistakes;
   return S.won?(n?{pose:'happy',t:'Visited. All four groups.',s:'All four groups, '+n+' mistake'+(n===1?'':'s')+'.'}:{pose:'happy',t:'Full page. Not a single mistake.',s:'All four groups found.'})
@@ -519,7 +519,7 @@ function bind(){
   app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
   app.querySelectorAll('[data-go="friends"]').forEach(b=>b.onclick=()=>{view='friends';render()});
   if($('home'))$('home').onclick=goHome;
-  app.querySelectorAll('[data-info]').forEach(b=>b.onclick=()=>{const k=CATS[+b.dataset.info];dialog(esc(k.label),`<p>${esc(k.desc)}</p>`)});
+  app.querySelectorAll('[data-info]').forEach(b=>b.onclick=()=>{const k=CATS[+b.dataset.info];dialog(esc(EUT(k.label)),`<p>${esc(EUT(k.desc))}</p>`)});
   if($('rules'))$('rules').onclick=()=>dialog('How to play',rulesHTML());
   if($('shuf'))$('shuf').onclick=()=>{S.left=shuffle(S.left,Math.random);save();render()};
   if($('desel'))$('desel').onclick=()=>{sel=[];render()};
