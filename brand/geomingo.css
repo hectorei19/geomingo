@@ -467,3 +467,18 @@ button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
 .gm-lv i{height:20px;border-radius:5px;background:var(--line);overflow:hidden;display:block}
 .gm-lv i b{display:block;height:100%;border-radius:5px}
 .gm-lv small{font-size:12.5px;min-width:64px;text-align:right}
+/* one traveller (not a room): the whole stub stays on one line, even on narrow phones; the boxes shrink instead */
+.tk-stub:not(:has(.pl)){flex-wrap:nowrap;gap:2px}
+.tk-stub:not(:has(.pl)) .tk-c{min-width:0;padding:4px 6px}
+@media (max-width:400px){
+  .tk-stub:not(:has(.pl)) .tk-c{padding:4px 3px}
+  .tk-stub:not(:has(.pl)) .tk-c i{letter-spacing:.06em}
+  .tk-stub:not(:has(.pl)) .tk-c b{font-size:17px}
+  .tk-stub:not(:has(.pl)) .tk-dots{gap:3px}
+  .tk-stub:not(:has(.pl)) .tk-dots i{width:10px;height:10px}
+}
+@media (max-width:340px){
+  .tk-stub:not(:has(.pl)) .tk-c{padding:4px 2px}
+  .tk-stub:not(:has(.pl)) .tk-c i{letter-spacing:0;font-size:9px}
+  .tk-stub:not(:has(.pl)) .tk-c b{font-size:15px}
+}
