@@ -12,10 +12,12 @@
 /* with friends: a stripe in the colour of the player who named it, on the left of each square and of each wrong answer */
 .t10list li.by{box-shadow:inset 6px 0 0 var(--pc)}
 .t10list li.by .rk{padding-left:4px}
-.wl{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.wl .w{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1.5px solid var(--line);border-left:5px solid var(--pc);border-radius:6px;font-size:.88rem;white-space:nowrap}
-.wl .w img{width:16px;height:16px;border-radius:3px;opacity:.75}
-.wl .w small{opacity:.7;font-size:.8rem}
+.wl{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:5px;margin-top:6px}
+.wl .w{display:grid;grid-template-columns:auto 16px 1fr;column-gap:6px;align-items:center;padding:3px 8px;border:1.5px solid var(--line);border-left:5px solid var(--pc,var(--line));border-radius:6px;font-size:.84rem;line-height:1.25;min-width:0}
+.wl .w img{grid-row:span 2;width:16px;height:16px;border-radius:3px;opacity:.75}
+.wl .w .wn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wl .w small{grid-column:3;opacity:.7;font-size:.74rem;white-space:nowrap}
+.wl .w .wr{grid-row:span 2;font-weight:800;color:var(--ink);min-width:2.1em}
 .t10list .nm .pin{flex:none}
 </style>
 <title>Top 10 · Geomingo</title>
@@ -442,8 +444,9 @@ function listHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries
   let h=`<ol class="t10list" style="--rows:${half}">${S.top.map((c,i)=>{const f=S.found.includes(c),show=f||S.over,co=byCode[c];
     return `<li class="${f?'on':S.over?'miss':''}${f&&on?' by':''}${fresh===c?' new':''}${i>=half?' c2':''}${i===half?' c2top':''}"${ask&&!f?' data-ask':''}${f&&on?` style="${pc(c)};background:var(--p${S.by[c]%6}-soft)" title="${esc(who(c))}"`:''}><span class="rk">${placeOf(l,c)}</span><span class="nm">${show?`<img class="mini" src="${FLAGS[c]}" alt="">${esc(co.n)}`:''}</span>${show?`<span class="val">${esc(l.fmt(val[c]))}</span>`:''}</li>`}).join('')}</ol>`;
   fresh=null;
-  if(S.wrong.length)h+=on?`<div class="wrongs">Not in the top 10:<div class="wl">${S.wrong.map(c=>{const p=placeOf(l,c);return `<span class="w" style="${pc(c)}" title="${esc(who(c))}"><img src="${FLAGS[c]}" alt="">${esc(byCode[c].n)}${p?` <small>#${p}</small>`:''}</span>`}).join('')}</div></div>`
-    :`<p class="wrongs">Not in the top 10: ${S.wrong.map(c=>{const p=placeOf(l,c);return esc(byCode[c].n)+(p?` (#${p})`:'')}).join(' · ')}</p>`;
+  // wrong answers: sorted by their real place, each showing its place first and its figure, like the rows above
+  if(S.wrong.length){const ws=S.wrong.map(c=>({c,p:placeOf(l,c)})).sort((a,b)=>(a.p||1e9)-(b.p||1e9));
+    h+=`<div class="wrongs">Not in the top 10:<div class="wl">${ws.map(({c,p})=>`<span class="w"${on?` style="${pc(c)}" title="${esc(who(c))}"`:''}><b class="wr">${p?'#'+p:'–'}</b><img src="${FLAGS[c]}" alt=""><span class="wn">${esc(byCode[c].n)}</span><small>${p?esc(l.fmt(val[c])):'no figure'}</small></span>`).join('')}</div></div>`}
   return h}
 const quickRules=extra=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name the ten countries of the ranking, in any order. A country outside the top 10 costs one of your ${LIVES} lives. Only independent countries count.${extra||''}</p></section>`;
 function homeHTML(){const key=todayKey(),num=dayNum(key,T10_FIRST),d=dailySaved(),h=load('t10-hist',{}),days=Object.keys(h);
