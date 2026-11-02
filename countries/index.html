@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611020800"></script>
+<script src="../brand/mingo.js?v=202611021700"></script>
 <script src="../brand/account.js?v=202611020700"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,10 +52,7 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .seg button{flex:1;background:transparent;border:0;border-right:1px solid var(--rule);padding:10px 6px;font-weight:600;font-size:1rem}
 .seg button:last-child{border-right:0}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
-.players{display:flex;flex-direction:column;gap:8px}
-.prow{display:flex;gap:8px;align-items:center}
 .pin{width:14px;height:14px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);flex:none}
-.prow input{flex:1;min-width:0;border:1px solid var(--rule);background:var(--paper);border-radius:4px;padding:9px 10px}
 .row-btns{display:flex;gap:8px}
 .ghost{background:transparent;border:1px solid var(--rule);border-radius:4px;padding:8px 12px;font-weight:600}
 .ghost:disabled{opacity:.4;cursor:default}
@@ -175,11 +172,6 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .credits dt{font-weight:700}
 .credits dd{margin:2px 0 0;color:var(--ink-2);font-size:.92rem}
 .credits a{color:var(--sea)}
-.handoff{position:fixed;inset:0;z-index:35;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px 16px calc(24px + env(safe-area-inset-bottom,0px));text-align:center}
-.handoff h2{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:2.6rem;line-height:1;margin:0;text-wrap:balance}
-.handoff p{margin:0;color:var(--ink-2);max-width:32ch}
-.handoff .scores{justify-content:center}
-.handoff .primary{min-width:220px}
 .pin.big{width:34px;height:34px}
 .toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:40;background:var(--ink);color:var(--sheet);padding:10px 16px;border-radius:5px;font-weight:600;box-shadow:var(--shadow);max-width:calc(100% - 32px);text-align:center}
 .toast.bad{background:var(--bad);color:#fff}
@@ -684,18 +676,15 @@ const randSeed=()=>Math.floor(Math.random()*7962624);
 
 /* ---- state ---- */
 let S = null;
-let setup = {mode:'solo',n:4,timer:0,diff:'normal',names:['Player 1','Player 2'],code:'',user:''};
-try{const s=JSON.parse(localStorage.getItem('bl-setup')||'null');if(s&&Array.isArray(s.names))setup={...setup,...s,code:''}}catch(e){}
+let setup = {mode:'solo',n:4,timer:0,diff:'normal',code:'',user:''};
+try{const s=JSON.parse(localStorage.getItem('bl-setup')||'null');if(s&&typeof s==='object'){setup={...setup,...s,code:''};delete setup.names;if(setup.mode!=='online')setup.mode='solo'}}catch(e){}
 // 3 × 3 grids were dropped: an old saved choice of 3 becomes 4 × 4
 if(setup.n!==5)setup.n=4;
 try{setup.user=localStorage.getItem('bl-user')||setup.user||''}catch(e){}
 let editingUser=!setup.user;
-let askingPlayers=false;
-setup.names=setup.names.map(x=>/^Player \d$/.test(x)?'':x);
 function saveUser(v){
   const name=v.trim().slice(0,16);if(!name){toast('Type a name to continue.','bad');return}
   const old=setup.user;setup.user=name;editingUser=false;
-  if(!setup.names[0]||/^Player 1$/.test(setup.names[0])||setup.names[0]===old)setup.names[0]=name;
   try{localStorage.setItem('bl-user',name);localStorage.setItem('cc-user',name)}catch(e){}
   render();
 }
@@ -944,7 +933,7 @@ function startGame(){
   if(!g){toast('Could not build a grid from that code. Try another.','bad');return}
   try{localStorage.setItem('bl-setup',JSON.stringify({...setup,code:''}))}catch(e){}
   clearGridParam();
-  const players=setup.mode==='solo'?[{name:setup.user||'You',score:0}]:setup.names.map((nm,i)=>({name:nm.trim()||('Player '+(i+1)),score:0}));
+  const players=[{name:setup.user||'You',score:0}];
   S={mode:setup.mode,n,seed,diff,code:makeCode(n,seed,diff),rows:g.rows,cols:g.cols,answers:g.answers,
      cells:g.answers.map(()=>({o:-1,c:null})),used:[],players,turn:0,
      guesses:setup.mode==='solo'?n*n+n:null,timer:setup.timer,deadline:0,passes:0,over:false,wrong:0,
@@ -953,17 +942,9 @@ function startGame(){
   startTurn(true);
   render();
 }
-function playerReady(){
-  if(!S||S.over||!S.waiting)return;
-  S.waiting=false;S.turnStart=now();S.deadline=S.timer?now()+S.timer*1000:0;
-  clearInterval(tick);if(S.timer)tick=setInterval(onTick,250);
-  render();
-}
 function startTurn(first){
   if(!S||S.over)return;
   if(S.mode==='online'){ensureTick();return}
-  // pass & play: hide the grid and wait until the next player taps "I'm ready"; their clock starts then
-  if(S.mode==='versus'){S.waiting=true;clearInterval(tick);return}
   S.turnStart=now();
   S.deadline=S.timer?now()+S.timer*1000:0;
   clearInterval(tick);
@@ -1044,7 +1025,7 @@ function guess(ci,cid){
     S.cells[ci]={o:S.turn,c:cid,p:pts,sb};S.used.push(cid);S.passes=0;ui.fresh=ci;
     const nl=lineCounts()[S.turn]-before;
     const left=S.mode==='solo'?S.guesses-1:0;
-    if(S.mode!=='versus')Geomingo.stamp('borderline',c.n,'',c.c);
+    Geomingo.stamp('borderline',c.n,'',c.c);
     say('happy','Stamped: '+c.n+'.','+'+pts+' pts'+(sb?' · +'+sb+' speed':'')+(nl?' · +'+nl*LINE_BONUS+' for the line':'')+(S.mode==='solo'?(left>0?' · '+left+' guess'+(left===1?'':'es')+' left':''):' for '+p.name+'.'));
   }else{
     S.wrong++;
@@ -1076,7 +1057,7 @@ const TS=()=>firebase.database.ServerValue.TIMESTAMP;
 let USER=null,ACCT_TODAY=null,acctRef=null,PROFILE=null,NEEDNAME=false;
 // the account's name: chosen once (users/<uid>/profile), then fixed; it is also the name shown in the ranking
 function applyProfile(name){PROFILE=name;NEEDNAME=false;const old=setup.user;setup.user=name;editingUser=false;
-  if(!setup.names[0]||setup.names[0]===old)setup.names[0]=name;try{localStorage.setItem('bl-user',name)}catch(e){}publishSoon();carryDaily();render()}
+  try{localStorage.setItem('bl-user',name)}catch(e){}publishSoon();carryDaily();render()}
 // signed in after finishing today's grid as a guest: the result joins the account and today's ranking
 // (only the first game of the day on this device, and only if the account hasn't played today: recordDaily checks that)
 const carryable=d=>!!d&&d.S.over&&d.S.guest&&d.S.first;
@@ -1111,7 +1092,7 @@ function signIn(){if(!AUTH_OK||!initFB()){toast('Sign-in is not available here.'
 // (they stay in the account and come back when you sign in again) and you go on as Guest
 function signOut(){if(!AUTH_OK)return;firebase.auth().signOut().then(()=>{
   for(const k of ['bl-daily','bl-hist','bl-games','bl-arch','bl-user'])try{localStorage.removeItem(k)}catch(e){}
-  if(setup.names[0]===setup.user)setup.names[0]='';setup.user='Guest';try{localStorage.setItem('bl-setup',JSON.stringify({...setup,code:''}))}catch(e){}
+  setup.user='Guest';try{localStorage.setItem('bl-setup',JSON.stringify({...setup,code:''}))}catch(e){}
   S=null;screen='home';ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};editingUser=false;render();window.scrollTo(0,0)}).catch(()=>{})}
 // merge the stats saved in your account with the ones on this device and save both ways;
 // a day already in the account always wins (one try per account), days only on this device are uploaded
@@ -1206,7 +1187,7 @@ function dropRoom(){
 function goHome(){if(USER&&NEEDNAME)return;
   if(roomCode){if(confirm('Leave the room and go to the home screen?'))leaveRoom().then(()=>{screen='home';render();window.scrollTo(0,0)});return}
   if(S&&!S.over&&!S.daily&&!confirm('Leave this game and go to the home screen? This game will be lost.'))return;
-  clearInterval(tick);S=null;askingPlayers=false;setup.code='';clearGridParam();if(setup.user)editingUser=false;
+  clearInterval(tick);S=null;setup.code='';clearGridParam();if(setup.user)editingUser=false;
   ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};screen='home';render();window.scrollTo(0,0)}
 async function leaveRoom(){
   const ref=roomRef;
@@ -1281,10 +1262,10 @@ async function onlineAct(kind){
       if(r.host!==ME)return;
       const order=kind==='start'?lobbyOrder(r):(r.order||lobbyOrder(r)).filter(pid=>r.players[pid]);
       if(order.length<2)return;
-      r.order=order;r.seed=freshSeed(r.cfg.n,r.cfg.diff);{const gg=gridFor(r.cfg.n,r.seed,r.cfg.diff);r.rows=gg.rows;r.cols=gg.cols}r.v=APP_VERSION;r.cells=null;r.passes=0;r.wrong=0;r.turn=0;r.status='playing';
+      r.order=order;r.seed=freshSeed(r.cfg.n,r.cfg.diff);{const gg=gridFor(r.cfg.n,r.seed,r.cfg.diff);r.rows=gg.rows;r.cols=gg.cols}r.v=APP_VERSION;r.cells=null;r.passes=0;r.wrong=0;r.turn=Math.floor(Math.random()*order.length);r.status='playing';
       r.started=Date.now()+offset;
       r.deadline=r.cfg.timer?Date.now()+offset+r.cfg.timer*1000:0;
-      r.ev={id:evId(),kind:'',text:kind==='start'?'Game on. '+(r.players[order[0]].name)+' starts.':'Rematch. New grid.'};return r}
+      r.ev={id:evId(),kind:'',text:(kind==='start'?'Game on. ':'Rematch. New grid. ')+(r.players[order[r.turn]].name)+' starts.'};return r}
     if(kind==='lobby'){if(r.host!==ME)return;r.status='lobby';r.cells=null;r.order=null;r.seed=null;r.deadline=0;return r}
   })}catch(e){console.error(e);toast('That did not go through. Check the connection.','bad')}
 }
@@ -1338,7 +1319,7 @@ function render(){
   // the clock of the visas starts when today's grid is first on screen (home or game), unless it is already over
   if(!TESTDAY&&!roomCode){const k=todayKey(),dd=loadDaily(),hh=loadHist()[k];
     if(S?S.daily===k&&!S.archive&&S.mode==='solo'&&!S.over:screen==='home'&&!(dd&&dd.S.over)&&!(hh&&hh.f===1))Geomingo.clock.start('borderline',k)}
-  const body=screen==='stats'?statsView():screen==='archive'?archiveView():S?gameView():((editingUser||(USER&&NEEDNAME))?nameView():(roomCode&&room?lobbyView():(askingPlayers?playersView():setupView())));
+  const body=screen==='stats'?statsView():screen==='archive'?archiveView():S?gameView():((editingUser||(USER&&NEEDNAME))?nameView():(roomCode&&room?lobbyView():setupView()));
   watchResult();
   app.innerHTML=Geomingo.header({game:GAME_NAME,coord:S?(S.daily?'Daily #'+S.day:S.code)+(S.mode==='online'?' · room '+roomCode:''):(roomCode?'Room '+roomCode:''),menu:menuBtn()})+(newVersion?`<div class="status" style="border-color:var(--sea)"><span class="who" style="white-space:normal">A new version of the game is available.</span><button class="primary" id="reload" style="padding:8px 12px;font-size:.9rem">Reload</button></div>`:'')+body;
   bind();drawLayer();fitHeaders();saveDaily();recordGame();
@@ -1446,21 +1427,6 @@ function nameView(){
     <p class="hint">Shown on the grid, the scoreboard and the result you share. It stays on this device.</p>
     <button class="primary" id="savename">${setup.user?'Save name':'Continue'}</button></section>`;
 }
-function playersView(){
-  return `<section class="panel namecard"><p class="big">Who's playing?</p>
-    <p class="hint">Enter a name for each of the ${setup.names.length} players. You play in this order, passing the phone round.</p>
-    <div class="players">${setup.names.map((nm,i)=>`<div class="prow"><span class="pin" style="${pinStyle(i)}"></span><input id="pname${i}" data-pn="${i}" value="${esc(nm)}" maxlength="16" placeholder="Player ${i+1}'s name" aria-label="Player ${i+1} name" autocomplete="off"></div>`).join('')}</div>
-    <div class="row-btns"><button class="ghost" id="backsetup">Back</button><button class="primary" id="goplay" style="flex:1">Start game</button></div></section>`;
-}
-function confirmPlayers(){
-  const names=setup.names.map(x=>x.trim());
-  const empty=names.findIndex(x=>!x);
-  if(empty>=0){toast('Enter a name for player '+(empty+1)+'.','bad');const el=document.getElementById('pname'+empty);if(el)el.focus();return}
-  const low=names.map(x=>x.toLowerCase());
-  const dup=low.findIndex((x,i)=>low.indexOf(x)!==i);
-  if(dup>=0){toast('Two players are called '+names[dup]+'. Use different names.','bad');return}
-  setup.names=names;askingPlayers=false;buildThenStart();
-}
 // home: three ways to play. 'solo' and 'friends' are the settings screens behind two of them
 let screen='home';
 const screenFor=s=>!s?'home':s.archive?'archive':s.daily?'home':s.mode==='solo'?'solo':'friends';
@@ -1533,24 +1499,23 @@ function setupView(){
   const fr=screen==='friends';
   setup.mode=fr?'online':'solo';
   if(![0,15,30].includes(setup.timer))setup.timer=0;
-  const vs=setup.mode==='versus',on=setup.mode==='online',pc=parseCode(setup.code),fg=pc&&{...pc,code:setup.code.trim().toUpperCase()};
+  const on=setup.mode==='online',pc=parseCode(setup.code),fg=pc&&{...pc,code:setup.code.trim().toUpperCase()};
   return `<section class="panel">
     <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">${fr?'With friends':'Solo'}</span></div>
     ${fr?`<p class="hint">${MHINT.online} The host creates a room and shares its link or code.</p>`:''}
     ${on&&!USER&&!MAYBE_IN()?`<div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||(setup.user==='Guest'?'':setup.user))}"></div>`:''}
-    ${vs?`<div class="field"><span class="label">Players</span>${seg('np',[[2,'2'],[3,'3'],[4,'4']],setup.names.length)}</div>`:''}
     ${fg&&!on?`<div class="field"><span class="label">Friend's grid</span><p class="hint" style="color:var(--ink);font-size:1rem"><b>${esc(fg.code)}</b> · ${fg.n} × ${fg.n} · ${fg.diff[0].toUpperCase()+fg.diff.slice(1)}. You play exactly the squares your friend played.</p><button class="ghost" id="nofg">Play a random grid instead</button></div>`:`
     <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['normal','Normal'],['hard','Hard']],setup.diff||'normal')}<p class="hint">${DHINT[setup.diff||'normal']}</p></div>
     <div class="field"><span class="label">Grid size</span>${seg('n',[[4,'4 × 4'],[5,'5 × 5']],setup.n)}</div>`}
     <div class="field"><span class="label">Time per turn</span>${seg('timer',[[0,'Off'],[15,'15 s'],[30,'30 s']],setup.timer)}</div>
     ${on?`<div class="field">${FB_OK?'':'<p class="hint">Online play only works on the published site with Firebase connected.</p>'}<button class="primary" id="create" ${FB_OK?'':'disabled style="opacity:.5"'}>Create room</button></div>
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK?'':'disabled'}>Join</button></div></div>`:`
-    <button class="primary" id="start">${vs?'Next: player names':'Start game'}</button>`}
+    <button class="primary" id="start">Start game</button>`}
   </section>
   <section class="panel"><span class="label">Quick rules</span><ul class="rules">
     <li>Fill each square with a country that matches its row and its column.</li>
     <li>Each country once per grid. Tap <span class="ib">i</span> to see what a category means.</li>
-    ${on?'<li>Everyone on their own phone: the host creates a room and shares the code.</li>':vs?'<li>Take turns on one phone. A wrong answer or time-out passes the turn.</li>':'<li>You have a few more guesses than squares.</li>'}
+    ${on?'<li>Everyone on their own phone: the host creates a room and shares the code.</li>':'<li>You have a few more guesses than squares.</li>'}
     <li>Harder squares, quick answers and full lines score more.</li>
     <li>Full rules in <button type="button" class="qhelp">How to play</button>.</li>
   </ul></section>`;
@@ -1558,7 +1523,7 @@ function setupView(){
 function gameView(){
   const n=S.n;let h='';
   // ← Back and the title, as in every game (in a room it leaves the room)
-  const title=S.daily?(S.archive?'Grid #'+S.day:"Today's grid"):S.mode==='online'?'With friends':S.mode==='versus'?'Pass the phone':'Solo';
+  const title=S.daily?(S.archive?'Grid #'+S.day:"Today's grid"):S.mode==='online'?'With friends':'Solo';
   h+=`<div class="backline"><button class="linkbtn" id="gback">← ${S.mode==='online'?'Leave':'Back'}</button><span class="ht">${title}</span></div>`;
   if(S.over){
     if(S.mode!=='solo')h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${p.on===false?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${EU(p.score)}</b></span>`).join('')}</div>`;
@@ -1568,7 +1533,6 @@ function gameView(){
     const m=mood&&mood.g===gameKey()?mood:null,p=S.players[S.turn];
     const say=m?Geomingo.hello(m.pose,m.t,m.s)
       :S.mode==='online'?Geomingo.hello('pass',S.turn===S.me?'Your turn.':'Waiting for '+p.name+'…','Name a country that fits its row and its column.')
-      :S.mode==='versus'?Geomingo.hello('pass',p.name+', your turn.','Name a country that fits its row and its column.')
       :Geomingo.hello('pass',S.n*S.n+' stamps to win.','Each country must match its row and its column.');
     const cell=Geomingo.tk;
     const time=S.timer?cell('Time',`<span id="tleft">${S.timer}s</span>`):'';
@@ -1709,13 +1673,6 @@ function drawLayer(){
       <ul class="sugg" id="sugg">${sugg(res)}</ul>
       <div class="bar"><button class="ghost" id="cancel">Back to grid</button></div></div>`;
   }
-  if(S&&S.mode==='versus'&&S.waiting&&!S.over){const p=S.players[S.turn];
-    h+=`<div class="handoff" role="dialog" aria-modal="true" aria-labelledby="hot">
-      <span class="pin big" style="${pinStyle(S.turn)}"></span>
-      <h2 id="hot">${esc(p.name)}'s turn</h2>
-      <p>Pass the phone to ${esc(p.name)}.${S.timer?` The ${S.timer}-second clock starts when you tap.`:''}</p>
-      <div class="scores">${S.players.map((q,i)=>`<span class="chip ${i===S.turn?'on':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(q.name)} <b>${liveScore(i)}</b></span>`).join('')}</div>
-      <button class="primary" id="ready">I'm ready</button></div>`}
   if(ui.sharing&&S&&S.over)h+=shareView();
   if(ui.credits){
     h+=`<div class="infoscrim" id="credscrim"></div><div class="infobox helpbox credits" role="dialog" aria-modal="true" aria-labelledby="credt">
@@ -1787,7 +1744,6 @@ function drawLayer(){
   if(ui.toast)h+=`<div class="toast ${ui.toast.kind||''}" role="status">${esc(ui.toast.msg)}</div>`;
   const had=document.getElementById('gq');const caret=had?had.selectionStart:null;
   layer.innerHTML=h;
-  const rd=document.getElementById('ready');if(rd){rd.onclick=playerReady;rd.focus()}
   const sc=document.getElementById('shareclose');
   if(sc){const close=()=>{ui.sharing=false;drawLayer()};sc.onclick=close;document.getElementById('sharescrim').onclick=close;
     layer.querySelectorAll('.sharebtns a').forEach(a=>a.addEventListener('click',close));
@@ -1806,7 +1762,7 @@ function drawLayer(){
   if(ok){const close=()=>{ui.info=null;drawLayer()};ok.onclick=close;document.getElementById('infoscrim').onclick=close;ok.focus()}
   layer.querySelectorAll('[data-info]').forEach(b=>b.onclick=e=>{e.preventDefault();ui.info=+b.dataset.info;drawLayer()});
   const gq=document.getElementById('gq');
-  if(gq){if(ui.info==null){gq.focus();if(caret!=null)gq.setSelectionRange(caret,caret)}
+  if(gq){if(ui.info==null){gq.focus({preventScroll:true});if(caret!=null)gq.setSelectionRange(caret,caret)}
     gq.oninput=e=>{ui.query=e.target.value;document.getElementById('sugg').innerHTML=sugg(matches(ui.query));bindSugg()};
     gq.onkeydown=e=>{if(e.key==='Enter'){const r=matches(ui.query).filter(c=>!S.used.includes(c.c));if(r[0])guess(ui.sel,r[0].c)}if(e.key==='Escape'){ui.sel=-1;render()}};
     bindSugg();
@@ -1820,17 +1776,10 @@ function bindSugg(){layer.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>
 /* ---- bindings ---- */
 function bind(){
   app.querySelectorAll('[data-seg]').forEach(b=>b.onclick=()=>{const k=b.dataset.seg,v=b.dataset.v;
-    if(k==='np'){const n=+v;while(setup.names.length<n)setup.names.push('');setup.names.length=n}
-    else setup[k]=(k==='mode'||k==='diff')?v:+v;render()});
-  app.querySelectorAll('[data-pn]').forEach(inp=>inp.oninput=e=>{setup.names[+inp.dataset.pn]=e.target.value});
+    setup[k]=(k==='mode'||k==='diff')?v:+v;render()});
   const $=id=>document.getElementById(id);
   if($('nofg'))$('nofg').onclick=()=>{setup.code='';clearGridParam();render()};
-  if($('addp'))$('addp').onclick=()=>{if(setup.names.length<4){setup.names.push('Player '+(setup.names.length+1));render()}};
-  if($('remp'))$('remp').onclick=()=>{if(setup.names.length>2){setup.names.pop();render()}};
-  if($('start'))$('start').onclick=()=>{if(setup.mode==='versus'){if(!setup.names[0])setup.names[0]=setup.user;askingPlayers=true;render();setTimeout(()=>{const e=setup.names.findIndex(x=>!x.trim());const el=document.getElementById('pname'+(e<0?0:e));if(el)el.focus()},30)}else buildThenStart()};
-  if($('goplay'))$('goplay').onclick=confirmPlayers;
-  if($('backsetup'))$('backsetup').onclick=()=>{askingPlayers=false;render()};
-  app.querySelectorAll('[data-pn]').forEach(inp=>inp.onkeydown=e=>{if(e.key==='Enter'){const nx=document.getElementById('pname'+(+inp.dataset.pn+1));if(nx)nx.focus();else confirmPlayers()}});
+  if($('start'))$('start').onclick=buildThenStart;
   if($('uname')){const u=$('uname');setTimeout(()=>u.focus(),30);u.onkeydown=e=>{if(e.key==='Enter')saveUser(u.value)};$('savename').onclick=()=>saveUser(u.value)}
   if($('bsignin'))$('bsignin').onclick=signIn;
   if($('bclose'))$('bclose').onclick=()=>{try{localStorage.setItem('bl-nobanner','1')}catch(e){}render()};
@@ -1858,8 +1807,8 @@ function bind(){
   if($('pass'))$('pass').onclick=pass;
   if($('giveup'))$('giveup').onclick=()=>{const b=$('giveup');if(b.dataset.armed){endGame()}else{b.dataset.armed='1';b.textContent='Tap again to '+(S&&S.mode==='solo'?'give up':'end the game')}};
   if($('gback')&&S&&S.mode==='online')$('gback').onclick=leaveRoom;
-  else if($('gback'))$('gback').onclick=()=>{screen=screenFor(S);clearInterval(tick);S=null;askingPlayers=false;setup.code='';render();window.scrollTo(0,0)};
-  if($('playsolo'))$('playsolo').onclick=()=>{screen='solo';clearInterval(tick);S=null;askingPlayers=false;setup.code='';render();window.scrollTo(0,0)};
+  else if($('gback'))$('gback').onclick=()=>{screen=screenFor(S);clearInterval(tick);S=null;setup.code='';render();window.scrollTo(0,0)};
+  if($('playsolo'))$('playsolo').onclick=()=>{screen='solo';clearInterval(tick);S=null;setup.code='';render();window.scrollTo(0,0)};
   if($('create'))$('create').onclick=createRoom;
   if($('menu'))$('menu').onclick=()=>{ui.menu=!ui.menu;drawLayer()};
   if($('reload'))$('reload').onclick=()=>{location.replace(location.pathname+'?v='+Date.now()+(roomCode?'&room='+roomCode:''))};
@@ -1870,7 +1819,7 @@ function bind(){
   if($('leave'))$('leave').onclick=leaveRoom;
   if($('copylink'))$('copylink').onclick=()=>{const t=document.getElementById('linkbox').textContent;try{navigator.clipboard.writeText(t).then(()=>toast('Link copied.','good'),()=>toast('Copy blocked. Select the link and copy it.'))}catch(e){}};
   if($('newg')&&S&&S.mode==='online')$('newg').onclick=leaveRoom;
-  else if($('newg'))$('newg').onclick=()=>{screen=screenFor(S);clearInterval(tick);S=null;askingPlayers=false;setup.code='';render()};
+  else if($('newg'))$('newg').onclick=()=>{screen=screenFor(S);clearInterval(tick);S=null;setup.code='';render()};
   if($('again'))$('again').onclick=()=>{if(S.mode==='online'){onlineAct('rematch');return}setup.code='';buildThenStart()};
   if($('copy'))$('copy').onclick=shareResult;
   if($('daily'))$('daily').onclick=()=>{const d=loadDaily();if(USER&&otherDevice(ACCT_TODAY)&&!(d&&d.S.over)){toast('Played on another device with this account. Open it there to see the full grid.');return}playDaily()};
