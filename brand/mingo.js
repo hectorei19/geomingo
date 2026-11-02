@@ -1,6 +1,11 @@
 /* Geomingo: Mingo, the GeoPass, the shared header, the result card and the list of games.
    Every page loads it in its <head> (before its own scripts) from ../brand/mingo.js, so the saved
    light/dark choice is applied before anything is drawn. Everything lives in window.Geomingo. */
+/* European number format everywhere (Héctor, 2026-11-02): a dot for thousands and a comma for decimals,
+   4.964 km, 83,7 years. EU(n) keeps up to 3 decimals, EU(n,1) always 1. EUT(text) turns '10,000' and '0.9' in a
+   written label into '10.000' and '0,9' (only for showing it: the labels stay the same inside the games). */
+window.EU=(n,d)=>Number(n||0).toLocaleString('de-DE',d==null?{maximumFractionDigits:3}:{minimumFractionDigits:d,maximumFractionDigits:d});
+window.EUT=s=>String(s).replace(/(\d),(?=\d{3}(?!\d))/g,'$1\u0001').replace(/(\d)\.(?=\d)/g,'$1,').replace(/\u0001/g,'.');
 (function(){
 'use strict';
 const SRC=document.currentScript&&document.currentScript.src||location.href;
@@ -36,7 +41,7 @@ function msToMidnight(){const p=madridParts(Date.now());return (24*3600-(+p.hour
 // '24 Oct 2026', 'Sat 24 Oct', 'Sat'
 const dateText=(k,o)=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',Object.assign({timeZone:'UTC'},o||{day:'numeric',month:'short',year:'numeric'})).replace(',','');
 const json=k=>{try{return JSON.parse(store.get(k)||'null')}catch(e){return null}};
-const fmt=n=>Number(n||0).toLocaleString('en');
+const fmt=n=>EU(Math.round(Number(n||0)));
 
 /* today's result of each game, read from the game's own save on this device (the keys never change):
    {done:true, label:'1,240'} once today's daily is over */

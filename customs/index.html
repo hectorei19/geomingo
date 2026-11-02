@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611020500"></script>
-<script src="../brand/account.js?v=202611020500"></script>
+<script src="../brand/mingo.js?v=202611020700"></script>
+<script src="../brand/account.js?v=202611020700"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -99,12 +99,13 @@ let query='',typing=false;
 /* ---- the clues: five groups, from not obvious to obvious ----
    Each group is a list of possible clues; a traveller gets one at random from each group (only the ones the
    country has data for), so the same country can come back with other clues. */
-function popText(n){if(n>=1e9)return (n/1e9).toFixed(2).replace(/\.?0+$/,'')+' billion';if(n>=1e6)return (n/1e6).toFixed(n>=1e8?0:1).replace(/\.0$/,'')+' million';
-  if(n>=1e4)return Math.round(n/1e3).toLocaleString('en')+',000';return Math.round(n/10)*10+''}
-const areaText=a=>(a>=1e4?Math.round(a/1e3)*1e3:a>=100?Math.round(a/10)*10:a).toLocaleString('en')+' km²';
+// European number format: dot for thousands, comma for decimals (4.964 km, 83,7 years)
+const num=(n,d)=>Number(n).toLocaleString('de-DE',d==null?{maximumFractionDigits:3}:{minimumFractionDigits:d,maximumFractionDigits:d});
+function popText(n){if(n>=1e9)return num(+(n/1e9).toFixed(2))+' billion';if(n>=1e6)return num(+(n/1e6).toFixed(n>=1e8?0:1))+' million';
+  if(n>=1e4)return num(Math.round(n/1e3)*1e3);return num(Math.round(n/10)*10)}
+const areaText=a=>num(a>=1e4?Math.round(a/1e3)*1e3:a>=100?Math.round(a/10)*10:a)+' km²';
 const latText=l=>Math.abs(l)<1?'right on the Equator':Math.round(Math.abs(l))+'° '+(l>=0?'north':'south')+' of the Equator';
 const listText=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
-const num=n=>Number(n).toLocaleString('en');
 const isIn=(k,c)=>(EXTRA[k]||DATA[k]||[]).includes(c);
 const nbOf=c=>c.b.filter(b=>cByCode[b]);
 // a language named after the country gives it away (Icelandic, Italian, German…)
@@ -121,23 +122,23 @@ const FACTS=[['ind_uk','Became independent from the United Kingdom'],['ind_es','
 const GROUPS=[
   // 1 Curiosities
   ['Curiosity',c=>{const d=c.c,o=[],V=k=>DATA[k][d];
-    if(V('life'))o.push(['Life expectancy: '+V('life')+' years','How long people live on average']);
-    if(V('age'))o.push(['Median age: '+V('age')+' years','Half the people are younger than this']);
+    if(V('life'))o.push(['Life expectancy: '+num(V('life'))+' years','How long people live on average']);
+    if(V('age'))o.push(['Median age: '+num(V('age'))+' years','Half the people are younger than this']);
     if(V('forest')!=null)o.push(['Forest covers '+Math.round(V('forest'))+'% of the land','']);
     if(V('elev'))o.push(['Highest point: '+num(V('elev'))+' m above the sea','']);
     o.push(V('olymp')?['Has won '+num(V('olymp'))+' Olympic medal'+(V('olymp')===1?'':'s'),'Summer and Winter Games, all time']:['Has never won an Olympic medal','Summer and Winter Games, all time']);
     if(V('urban')!=null)o.push([Math.round(V('urban'))+'% of the people live in towns and cities','']);
-    if(V('co2')!=null)o.push(['CO₂ per person: '+V('co2')+' tonnes a year','']);
+    if(V('co2')!=null)o.push(['CO₂ per person: '+num(V('co2'))+' tonnes a year','']);
     if(V('cpi')!=null)o.push(['Corruption score: '+V('cpi')+' out of 100','100 is the cleanest (Transparency International)']);
-    if(V('hdi'))o.push(['Human development index: '+V('hdi'),'From 0 to 1: health, schooling and income']);
+    if(V('hdi'))o.push(['Human development index: '+num(V('hdi')),'From 0 to 1: health, schooling and income']);
     return o}],
   // 2 Numbers
   ['Numbers',c=>{const d=c.c,o=[],V=k=>DATA[k][d];
-    o.push(['Population: '+popText(V('pop')||0),'']);
+    o.push(['Population: '+popText(V('pop')||0)+' inhabitants','']);
     o.push(['Area: '+areaText(c.a),'']);
-    if(V('gdp'))o.push(['Wealth per person: $'+num(Math.round(V('gdp')/100)*100)+' a year','GDP per person']);
+    if(V('gdp'))o.push(['Wealth per person: '+num(Math.round(V('gdp')/100)*100)+' US dollars a year','GDP per person']);
     if(V('coast'))o.push(['Coastline: '+num(Math.round(V('coast')))+' km','']);
-    if(V('cappop')&&CAPOK(c))o.push(['The capital has '+popText(V('cappop'))+' people','']);
+    if(V('cappop')&&CAPOK(c))o.push(['The capital has '+popText(V('cappop'))+' inhabitants','']);
     if(V('landb'))o.push(['Land borders: '+num(V('landb'))+' km in all','']);
     return o}],
   // 3 History, clubs and the flag described
@@ -281,7 +282,7 @@ function dailyHTML(){const arch=D.mode==='archive';let h=header('Customs',(arch?
   h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's travellers"}</span></div>`;
   if(D.over)return h+resultHTML(D)+summaryHTML(D);
   return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel">${playHTML(D)}</section>`+quickRules()}
-const cuAverage=()=>{const h=load('cu-hist',{}),v=Object.values(h);return v.length?(v.reduce((a,e)=>a+(+e.p||0),0)/v.length).toFixed(1):'–'};
+const cuAverage=()=>{const h=load('cu-hist',{}),v=Object.values(h);return v.length?EU(v.reduce((a,e)=>a+(+e.p||0),0)/v.length,1):'–'};
 
 /* ---- the archive: past days, one try each on this device ---- */
 const archDay=k=>{const e=load('cu-hist',{})[k];return e?e.p+' pts':null};
@@ -319,7 +320,7 @@ function trainHTML(){let h=header('Customs','Solo')+`<div class="backline"><butt
 /* ---- stats, rules, credits ---- */
 function myStatsHTML(){const h=load('cu-hist',{}),so=load('cu-solo',null)||{n:0};
   return statsPageHTML({game:'Customs',hist:h,unit:'day',avg:cuAverage(),lbs:d=>[{path:'lb/customs',dates:d}],num:k=>'Customs #'+dayNum(k,FIRST),
-    solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?(so.p/so.n).toFixed(1):0,'average'],[so.r||0,'named']]},
+    solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'named']]},
     friends:{n:0,w:0,place:0,best:0,third:[0,'best']}})}
 const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Five travellers, five clues each, from not obvious to obvious. Name the country with 1 clue for 5 points, with 2 for 4, down to 1 point with all five. A wrong answer opens the next clue. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>

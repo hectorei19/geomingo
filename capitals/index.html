@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611020500"></script>
-<script src="../brand/account.js?v=202611020500"></script>
+<script src="../brand/mingo.js?v=202611020700"></script>
+<script src="../brand/account.js?v=202611020700"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -401,7 +401,7 @@ const SHORT={'In North or Central America':'In N. & Central America','Over 1,000
   'Over 1 million people':'Over 1M people','Under 100,000 people':'Under 100K people','Megacity (10 million+)':'Mega­city (10M+)','Not its country\'s biggest city':'Not its country\'s biggest city',
   'Hosted the Summer Olympics':'Summer Olympics host','Hosted a men\'s World Cup final':'World Cup final host','On the Mediterranean':'Medi­terranean',
   'Name has 5 letters or fewer':'5 letters or fewer','Name has 10+ letters':'10+ letters','Name of 2+ words':'2+ words','Same first letter as its country':'Same letter as country'};
-CATS.forEach(k=>{k.desc=describe(k);k.short=SHORT[k.label]||k.label});
+CATS.forEach(k=>{k.desc=EUT(describe(k));k.short=EUT(SHORT[k.label]||k.label)});
 const POOL = CATS.filter(k=>k.count>=4);
 
 /* ---- seeded rng + generator ---- */
@@ -593,10 +593,10 @@ function pastLB(date){if(LBD[date]===undefined&&initFB()){LBD[date]=null;db.ref(
 function lbView(date){if(!FB_OK||TESTDAY)return '';
   if(date){const src=pastLB(date);if(!src)return `<section class="panel lb"><span class="label">Ranking of grid #${dayNumber(date)}</span><p class="hint">Loading…</p></section>`;
     const rows=lbRows(src),me=USER&&USER.uid,i=rows.findIndex(r=>r.uid===me);
-    const row=(r,k)=>`<li class="${r.uid===me?'me':''}" data-stats="${esc(r.uid)}" role="button" tabindex="0"><span class="rk">${k+1}</span><span class="nm">${esc(r.name||'Player')}</span><span class="sq">${r.c}/${DAILY_N*DAILY_N}</span><span class="pt">${r.s}</span></li>`;
+    const row=(r,k)=>`<li class="${r.uid===me?'me':''}" data-stats="${esc(r.uid)}" role="button" tabindex="0"><span class="rk">${k+1}</span><span class="nm">${esc(r.name||'Player')}</span><span class="sq">${r.c}/${DAILY_N*DAILY_N}</span><span class="pt">${EU(r.s)}</span></li>`;
     return `<section class="panel lb"><span class="label">Ranking of grid #${dayNumber(date)}${rows.length?` · ${rows.length} player${rows.length===1?'':'s'}`:''}</span>${rows.length?`<ol class="lbl">${rows.slice(0,10).map(row).join('')+(i>=10?`<li class="gap">…</li>`+row(rows[i],i):'')}</ol>`:'<p class="hint">Nobody played this grid on its day.</p>'}<p class="hint">How the players did on the day. Archive games are not added.</p></section>`}
   const rows=lbRows(),me=USER&&USER.uid,i=rows.findIndex(r=>r.uid===me);
-  const row=(r,k)=>`<li class="${r.uid===me?'me':''}" data-stats="${esc(r.uid)}" role="button" tabindex="0"><span class="rk">${k+1}</span><span class="nm">${esc(r.name||'Player')}</span><span class="sq">${r.c}/${DAILY_N*DAILY_N}</span><span class="pt">${r.s}</span></li>`;
+  const row=(r,k)=>`<li class="${r.uid===me?'me':''}" data-stats="${esc(r.uid)}" role="button" tabindex="0"><span class="rk">${k+1}</span><span class="nm">${esc(r.name||'Player')}</span><span class="sq">${r.c}/${DAILY_N*DAILY_N}</span><span class="pt">${EU(r.s)}</span></li>`;
   const list=rows.slice(0,10).map(row).join('')+(i>=10?`<li class="gap">…</li>`+row(rows[i],i):'');
   const foot=!USER&&!MAYBE_IN()?(AUTH_OK?`<button class="ghost" id="signin2">Sign in to join today's ranking</button>${carryable(loadDaily())?'<p class="hint">Your result is added when you sign in.</p>':''}`:''):i<0?`<p class="hint">Your result joins the ranking when you finish today's grid signed in.</p>`:'';
   return `<section class="panel lb"><span class="label">Today's ranking${rows.length?` · ${rows.length} player${rows.length===1?'':'s'}`:''}</span>${rows.length?`<ol class="lbl">${list}</ol>`:`<p class="hint">Nobody in today's ranking yet.</p>`}${foot}</section>`}
@@ -713,9 +713,9 @@ function archiveView(){const a=loadArch(),rem=ARCH_REMOTE||{};
   const items=archDates().map(k=>{const g=a[k],r=rem[k],n=dayNumber(k),
       date=new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
     let st,sq='';
-    if(g&&g.over){st=`<span class="as done">${g.players[0].score} pts</span>`;
+    if(g&&g.over){st=`<span class="as done">${EU(g.players[0].score)} pts</span>`;
       sq=`<span class="dsq" style="grid-template-columns:repeat(${g.n},1fr)" aria-hidden="true">${g.cells.map(c=>`<i class="${c.o>=0?'on':''}"></i>`).join('')}</span>`}
-    else if(onDay(k)){const e=onDay(k);st=`<span class="as done">${e.f===0?'Started on its day':e.s+' pts'}</span>`;
+    else if(onDay(k)){const e=onDay(k);st=`<span class="as done">${e.f===0?'Started on its day':EU(e.s)+' pts'}</span>`;
       if(e.g&&e.f!==0)sq=`<span class="dsq" style="grid-template-columns:repeat(${e.n},1fr)" aria-hidden="true">${[...e.g].map(x=>`<i class="${x==='1'?'on':''}"></i>`).join('')}</span>`}
     else if(USER&&r&&otherDevice(r))st=`<span class="as">${r.f===1?'Played on another device':'Started on another device'}</span>`;
     else st=`<span class="as">${g?'In progress':'Play'}</span>`;
@@ -740,7 +740,7 @@ function playArchive(k){const a=loadArch(),r=(ARCH_REMOTE||{})[k];
       if(!x.committed&&otherDevice(x.snapshot.val())&&S===mine){S=null;const b=loadArch();delete b[k];try{localStorage.setItem('cc-arch',JSON.stringify(b))}catch(e){}
         toast('You already played this grid with this account on another device.','bad');screen='archive';render()}}).catch(()=>{})}}
 // a grid you played on its day: show that game (kept on this device for yesterday, or in the account), never replay it
-function showOnDay(k){const e=onDay(k),open=g=>{if(!g||g.daily!==k){toast(e.f===0?'You started this grid on its day. One try per grid.':`You played this grid on its day: ${e.s} points.`);return}
+function showOnDay(k){const e=onDay(k),open=g=>{if(!g||g.daily!==k){toast(e.f===0?'You started this grid on its day. One try per grid.':`You played this grid on its day: ${EU(e.s)} points.`);return}
     ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};screen='home';S={...g,archive:true,dayof:true,over:true};render();window.scrollTo(0,0)};
   try{const d=JSON.parse(localStorage.getItem('cc-daily')||'null');if(d&&d.date===k&&d.S){open(d.S);return}}catch(x){}
   if(USER&&db)db.ref('users/'+USER.uid+'/cities/daily/'+k+'/j').once('value').then(v=>{let g=null;try{g=JSON.parse(v.val())}catch(x){}open(g)}).catch(()=>open(null));
@@ -1295,9 +1295,9 @@ function dailyBoard(saved){
   const dg=saved?null:dailyGrid();if(!saved&&!dg)return '';
   const rows=saved?saved.rows:dg.g.rows,cols=saved?saved.cols:dg.g.cols,n=cols.length;
   let h=`<div class="board-wrap dboard"><div class="board b${n}" lang="en" style="grid-template-columns:repeat(${n+1},minmax(0,1fr))">${cornerHTML(dayNumber(todayKey()))}`;
-  cols.forEach((k,j)=>h+=`<div class="hd col" data-info="${k}" role="button" tabindex="0" aria-label="${esc(CATS[k].label)}: explain"><span class="ref">${colRef(j)}</span><span class="ht">${titleWithInfo(CATS[k].short)}</span></div>`);
+  cols.forEach((k,j)=>h+=`<div class="hd col" data-info="${k}" role="button" tabindex="0" aria-label="${esc(EUT(CATS[k].label))}: explain"><span class="ref">${colRef(j)}</span><span class="ht">${titleWithInfo(CATS[k].short)}</span></div>`);
   rows.forEach((rk,i)=>{
-    h+=`<div class="hd rowh" data-info="${rk}" role="button" tabindex="0" aria-label="${esc(CATS[rk].label)}: explain"><span class="ref">${rowRef(i)}</span><span class="ht">${titleWithInfo(CATS[rk].short)}</span></div>`;
+    h+=`<div class="hd rowh" data-info="${rk}" role="button" tabindex="0" aria-label="${esc(EUT(CATS[rk].label))}: explain"><span class="ref">${rowRef(i)}</span><span class="ht">${titleWithInfo(CATS[rk].short)}</span></div>`;
     for(let j=0;j<n;j++){const ci=i*n+j,cell=saved&&saved.cells[ci];
       if(cell&&cell.o>=0){const c=byCode[cell.c];h+=`<div class="cell taken flag">${stampCell(c,cell,'c0')}</div>`}
       else h+=`<button class="cell" data-dcell="${ci}" aria-label="Square ${colRef(j)+rowRef(i)}: start today's grid"><span class="plus"></span></button>`}
@@ -1318,12 +1318,12 @@ function homeView(){
   // signed in and today's try was used on another device of the account: show that result instead of the grid
   const other=!done&&USER&&otherDevice(ACCT_TODAY)?ACCT_TODAY:null;
   // played: green squares for the answers you got, grey for the rest (like the shared result); tap to see the full grid
-  const doneCard=(status,n,got,score,cells,hint)=>`<button class="hcard" id="daily"><span class="hm">Today's grid #${dayNumber(key)} · ${status}</span><span class="dsum"><span class="dsq" style="grid-template-columns:repeat(${n},1fr)" aria-hidden="true">${got.map(x=>`<i class="${x?'on':''}"></i>`).join('')}</span><span class="dtxt"><span class="ht">${score} points</span><span class="hs">${cells} of ${n*n} squares</span></span>${(st=>`<span class="dstats"><span><b>${st.streak}</b>streak</span><span><b>${st.played}</b>played</span><span><b>${st.avg}</b>average</span></span>`)(dailyStats())}</span>${rankLine}<span class="hs">${hint}</span><span class="hm">Next grid in ${next}</span></button>`;
+  const doneCard=(status,n,got,score,cells,hint)=>`<button class="hcard" id="daily"><span class="hm">Today's grid #${dayNumber(key)} · ${status}</span><span class="dsum"><span class="dsq" style="grid-template-columns:repeat(${n},1fr)" aria-hidden="true">${got.map(x=>`<i class="${x?'on':''}"></i>`).join('')}</span><span class="dtxt"><span class="ht">${EU(score)} points</span><span class="hs">${cells} of ${n*n} squares</span></span>${(st=>`<span class="dstats"><span><b>${st.streak}</b>streak</span><span><b>${st.played}</b>played</span><span><b>${st.avg}</b>average</span></span>`)(dailyStats())}</span>${rankLine}<span class="hs">${hint}</span><span class="hm">Next grid in ${next}</span></button>`;
   const daily=done?doneCard('done',d.S.n,d.S.cells.map(c=>c.o>=0),p.score,p.cells,'Tap to see your grid, the ranking and share it.')
     :other?doneCard(other.f===0?'started on another device':'played on another device',other.n||DAILY_N,[...(other.g||'').padEnd((other.n||DAILY_N)**2,'0')].map(x=>x==='1'),other.s||0,other.c||0,other.f===0?'You started it on another device with this account. One try per account.':'You played it on another device with this account.')
     :`<div class="hcard ac"><span class="hm">#${dayNumber(key)} · ${date}</span><span class="ht">Today's grid</span><span class="hs">${d?'You started it: tap a square to continue.':'Compete with everyone: the same grid, one try. Tap a square to start.'}</span>${dailyBoard(d&&d.S)}</div>`;
   const st=Geomingo.streak();
-  const hi=done?(p.score>0?Geomingo.hello('happy','Stamped for today.'+(st>1?' '+st+'-day streak.':''),`Today's grid: ${p.score} points. Next grid in ${next}.`):Geomingo.hello('sad','Rough crossing today.',`Today's grid: 0 points. Next grid in ${next}.`))
+  const hi=done?(p.score>0?Geomingo.hello('happy','Stamped for today.'+(st>1?' '+st+'-day streak.':''),`Today's grid: ${EU(p.score)} points. Next grid in ${next}.`):Geomingo.hello('sad','Rough crossing today.',`Today's grid: 0 points. Next grid in ${next}.`))
     :other?Geomingo.hello('think','Played on another device.',`Next grid in ${next}.`)
     :d?Geomingo.hello('think','Your grid is waiting.','Tap a square to carry on. One try.')
     :Geomingo.hello('pass','GeoPass ready.','Tap a square to start. Every right answer is a stamp. One try, the same grid for everyone.');
@@ -1375,7 +1375,7 @@ function gameView(){
   const title=S.daily?(S.archive?'Grid #'+S.day:"Today's grid"):S.mode==='online'?'With friends':S.mode==='versus'?'Pass the phone':'Solo';
   h+=`<div class="backline"><button class="linkbtn" id="gback">← ${S.mode==='online'?'Leave':'Back'}</button><span class="ht">${title}</span></div>`;
   if(S.over){
-    if(S.mode!=='solo')h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${p.on===false?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${p.score}</b></span>`).join('')}</div>`;
+    if(S.mode!=='solo')h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${p.on===false?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${EU(p.score)}</b></span>`).join('')}</div>`;
     h+=resultsView();
   }else{
     // one ticket, as in Countries: Mingo's message on top, the game's numbers on the stub below the tear line
@@ -1393,9 +1393,9 @@ function gameView(){
   }
   h+=`<div class="board-wrap"><div class="board b${n}" lang="en" style="grid-template-columns:repeat(${n+1},minmax(0,1fr))">`;
   h+=cornerHTML(S.daily?S.day:0);
-  S.cols.forEach((k,j)=>h+=`<div class="hd col" data-info="${k}" role="button" tabindex="0" aria-label="${esc(CATS[k].label)}: explain"><span class="ref">${colRef(j)}</span><span class="ht">${titleWithInfo(CATS[k].short)}</span></div>`);
+  S.cols.forEach((k,j)=>h+=`<div class="hd col" data-info="${k}" role="button" tabindex="0" aria-label="${esc(EUT(CATS[k].label))}: explain"><span class="ref">${colRef(j)}</span><span class="ht">${titleWithInfo(CATS[k].short)}</span></div>`);
   S.rows.forEach((rk,i)=>{
-    h+=`<div class="hd rowh" data-info="${rk}" role="button" tabindex="0" aria-label="${esc(CATS[rk].label)}: explain"><span class="ref">${rowRef(i)}</span><span class="ht">${titleWithInfo(CATS[rk].short)}</span></div>`;
+    h+=`<div class="hd rowh" data-info="${rk}" role="button" tabindex="0" aria-label="${esc(EUT(CATS[rk].label))}: explain"><span class="ref">${rowRef(i)}</span><span class="ht">${titleWithInfo(CATS[rk].short)}</span></div>`;
     for(let j=0;j<n;j++){
       const ci=i*n+j,cell=S.cells[ci];
       const ref=colRef(j)+rowRef(i);
@@ -1415,7 +1415,7 @@ function gameView(){
 function shareText(){
   const n=S.n;let g='';
   for(let i=0;i<n;i++){for(let j=0;j<n;j++){const o=S.cells[i*n+j].o;g+=o<0?'⬜':(S.mode==='solo'?'🟩':['🟥','🟦','🟨','🟪','🟩','🟫'][o])}g+='\n'}
-  const head=S.daily?`${Geomingo.share(GAME_NAME)} #${S.day} — ${S.players[0].score} pts (${S.players[0].cells}/${n*n})`:S.mode==='solo'?`${Geomingo.share(GAME_NAME)} ${S.code} — ${S.players[0].score} pts (${S.players[0].cells}/${n*n})`:`${Geomingo.share(GAME_NAME)} ${S.code} — `+S.players.map(p=>p.name+' '+p.score).join(', ');
+  const head=S.daily?`${Geomingo.share(GAME_NAME)} #${S.day} — ${EU(S.players[0].score)} pts (${S.players[0].cells}/${n*n})`:S.mode==='solo'?`${Geomingo.share(GAME_NAME)} ${S.code} — ${EU(S.players[0].score)} pts (${S.players[0].cells}/${n*n})`:`${Geomingo.share(GAME_NAME)} ${S.code} — `+S.players.map(p=>p.name+' '+p.score).join(', ');
   return head+'\n'+g.trim();
 }
 // link that opens this exact grid (?grid=4E-KQPMT), sent together with the result
@@ -1469,13 +1469,13 @@ function watchResult(){if(!S){liveKey='';return}const k=gameKey();
   setTimeout(()=>window.scrollTo({top:0,behavior:'smooth'}),50)}
 function resultsView(){
   if(S.daily){const p=S.players[0],n=S.n,ms=msToNextDay(),next=S.archive?null:Geomingo.nextGame('citygrid');
-    return `<section class="panel respanel">${verdictHTML()}<span class="label">${S.dayof?'':S.archive?'Archive · ':''}Daily grid #${S.day}${S.dayof?' · played on its day':''}</span><p class="big">${p.score} points</p>${breakdown(p)}<p class="hint">${p.cells} of ${n*n} squares. ${S.wrong} wrong guess${S.wrong===1?'':'es'}. ${S.dayof?'You played this grid on its day, so it can\'t be played again.':S.archive?'Archive games don\'t count for the ranking or your streak.':`Share it: friends play today's grid with their own one try. Next grid in ${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min.`}</p><pre class="sharebox" id="share">${esc(shareText())}</pre><div class="row-btns"><button class="ghost" id="copy">Share</button>${S.archive?`<button class="primary" id="newg" style="flex:1">Back to archive</button>`:nextGameBtn(next)}</div>${S.archive?'':afterNextHTML(next)+`<span class="label">Your daily grids</span>${statTiles(dailyStatsFrom({...loadHist(),[S.daily]:loadHist()[S.daily]||{s:p.score}}))}`}</section>${lbView(S.archive?S.daily:null)}`}
+    return `<section class="panel respanel">${verdictHTML()}<span class="label">${S.dayof?'':S.archive?'Archive · ':''}Daily grid #${S.day}${S.dayof?' · played on its day':''}</span><p class="big">${EU(p.score)} points</p>${breakdown(p)}<p class="hint">${p.cells} of ${n*n} squares. ${S.wrong} wrong guess${S.wrong===1?'':'es'}. ${S.dayof?'You played this grid on its day, so it can\'t be played again.':S.archive?'Archive games don\'t count for the ranking or your streak.':`Share it: friends play today's grid with their own one try. Next grid in ${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min.`}</p><pre class="sharebox" id="share">${esc(shareText())}</pre><div class="row-btns"><button class="ghost" id="copy">Share</button>${S.archive?`<button class="primary" id="newg" style="flex:1">Back to archive</button>`:nextGameBtn(next)}</div>${S.archive?'':afterNextHTML(next)+`<span class="label">Your daily grids</span>${statTiles(dailyStatsFrom({...loadHist(),[S.daily]:loadHist()[S.daily]||{s:p.score}}))}`}</section>${lbView(S.archive?S.daily:null)}`}
   if(S.mode==='solo'){const p=S.players[0];const n=S.n;
-    return `<section class="panel respanel">${verdictHTML()}<p class="big">${p.score} points</p>${breakdown(p)}<p class="hint">${p.cells} of ${n*n} squares. ${S.wrong} wrong guess${S.wrong===1?'':'es'}. Share sends your result with a link: friends who open it play this same grid.</p><pre class="sharebox" id="share">${esc(shareText())}</pre><div class="row-btns"><button class="ghost" id="copy">Share</button><button class="primary" id="again" style="flex:1">New grid</button></div><button class="ghost" id="newg">Change settings</button></section>`}
+    return `<section class="panel respanel">${verdictHTML()}<p class="big">${EU(p.score)} points</p>${breakdown(p)}<p class="hint">${p.cells} of ${n*n} squares. ${S.wrong} wrong guess${S.wrong===1?'':'es'}. Share sends your result with a link: friends who open it play this same grid.</p><pre class="sharebox" id="share">${esc(shareText())}</pre><div class="row-btns"><button class="ghost" id="copy">Share</button><button class="primary" id="again" style="flex:1">New grid</button></div><button class="ghost" id="newg">Change settings</button></section>`}
   const ranked=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score||b.cells-a.cells);
   const top=ranked[0].score,winners=ranked.filter(p=>p.score===top);
   return `<section class="panel respanel">${verdictHTML()}<p class="big">${winners.length>1?'Draw at '+top+' points':esc(winners[0].name)+' wins'}</p>
-   <div class="podium">${ranked.map((p,r)=>`<div class="place ${p.score===top?'win':''}" ${p.uid?`data-stats="${esc(p.uid)}" role="button" tabindex="0"`:''}><span class="rk">${r+1}</span><span class="pin" style="${pinStyle(p.i)}"></span><span class="nm">${esc(p.name)}</span><span class="pt">${p.score}</span></div><div class="bd">${breakdown(p)}</div>`).join('')}</div>
+   <div class="podium">${ranked.map((p,r)=>`<div class="place ${p.score===top?'win':''}" ${p.uid?`data-stats="${esc(p.uid)}" role="button" tabindex="0"`:''}><span class="rk">${r+1}</span><span class="pin" style="${pinStyle(p.i)}"></span><span class="nm">${esc(p.name)}</span><span class="pt">${EU(p.score)}</span></div><div class="bd">${breakdown(p)}</div>`).join('')}</div>
    <pre class="sharebox" id="share">${esc(shareText())}</pre>
    <div class="row-btns"><button class="ghost" id="copy">Share</button>${S.mode==='online'&&!S.host?'':'<button class="primary" id="again" style="flex:1">Rematch, new grid</button>'}</div>
    ${S.mode==='online'?(S.host?'':'<p class="hint">The host can start a rematch.</p>')+'<button class="ghost" id="newg">Leave room</button>':'<button class="ghost" id="newg">Change settings</button>'}</section>`;
@@ -1484,7 +1484,7 @@ function answersView(){
   if(ui.reveal<0)return `<p class="hint">Tap any square to see every capital that fits it.</p>`;
   const ci=ui.reveal,n=S.n,i=Math.floor(ci/n),j=ci%n;
   const list=S.answers[ci].map(x=>C[x]);
-  return `<section class="panel answers"><p class="hdr"><span>${colRef(j)}${rowRef(i)} · ${esc(CATS[S.rows[i]].label)} × ${esc(CATS[S.cols[j]].label)}</span><span class="nsol">${list.length} answer${list.length===1?'':'s'}</span></p><p>${list.map(c=>`${esc(c.n)}`).join(' · ')}</p></section>`;
+  return `<section class="panel answers"><p class="hdr"><span>${colRef(j)}${rowRef(i)} · ${esc(EUT(CATS[S.rows[i]].label))} × ${esc(EUT(CATS[S.cols[j]].label))}</span><span class="nsol">${list.length} answer${list.length===1?'':'s'}</span></p><p>${list.map(c=>`${esc(c.n)}`).join(' · ')}</p></section>`;
 }
 
 /* ---- guess sheet ---- */
@@ -1518,7 +1518,7 @@ function drawLayer(){
     const n=S.n,i=Math.floor(ui.sel/n),j=ui.sel%n;
     const res=matches(ui.query);
     h+=`<div class="scrim" id="scrim"></div><div class="sheet" role="dialog" aria-label="Name a capital">
-      <div class="q"><i>${colRef(j)}${rowRef(i)}</i><button class="qcat" data-info="${S.rows[i]}">${esc(CATS[S.rows[i]].label)}<span class="ib">i</span></button> <i>×</i> <button class="qcat" data-info="${S.cols[j]}">${esc(CATS[S.cols[j]].label)}<span class="ib">i</span></button></div>
+      <div class="q"><i>${colRef(j)}${rowRef(i)}</i><button class="qcat" data-info="${S.rows[i]}">${esc(EUT(CATS[S.rows[i]].label))}<span class="ib">i</span></button> <i>×</i> <button class="qcat" data-info="${S.cols[j]}">${esc(EUT(CATS[S.cols[j]].label))}<span class="ib">i</span></button></div>
       <input id="gq" placeholder="Type a capital…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(ui.query)}">
       <ul class="sugg" id="sugg">${sugg(res)}</ul>
       <div class="bar"><button class="ghost" id="cancel">Back to grid</button></div></div>`;
@@ -1591,7 +1591,7 @@ function drawLayer(){
       <p class="hint">Where the data comes from: <b>Credits &amp; data sources</b>, at the bottom of the page.</p>
       <button class="primary" id="helpok">Got it</button></div>`}
   if(ui.info!=null&&CATS[ui.info]){const k=CATS[ui.info];
-    h+=`<div class="infoscrim" id="infoscrim"></div><div class="infobox" role="dialog" aria-modal="true" aria-labelledby="infot"><span class="label">Category</span><h2 id="infot">${esc(k.label)}</h2><p>${esc(k.desc)}</p><span class="meta">${k.count} capitals in the game match this on its own.</span><button class="primary" id="infook">Got it</button></div>`}
+    h+=`<div class="infoscrim" id="infoscrim"></div><div class="infobox" role="dialog" aria-modal="true" aria-labelledby="infot"><span class="label">Category</span><h2 id="infot">${esc(EUT(k.label))}</h2><p>${esc(k.desc)}</p><span class="meta">${k.count} capitals in the game match this on its own.</span><button class="primary" id="infook">Got it</button></div>`}
   if(ui.toast)h+=`<div class="toast ${ui.toast.kind||''}" role="status">${esc(ui.toast.msg)}</div>`;
   const had=document.getElementById('gq');const caret=had?had.selectionStart:null;
   layer.innerHTML=h;
