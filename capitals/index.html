@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611020700"></script>
+<script src="../brand/mingo.js?v=202611021300"></script>
 <script src="../brand/account.js?v=202611020700"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -1570,7 +1570,7 @@ function drawLayer(){
   if(ok){const close=()=>{ui.info=null;drawLayer()};ok.onclick=close;document.getElementById('infoscrim').onclick=close;ok.focus()}
   layer.querySelectorAll('[data-info]').forEach(b=>b.onclick=e=>{e.preventDefault();ui.info=+b.dataset.info;drawLayer()});
   const gq=document.getElementById('gq');
-  if(gq){if(ui.info==null){gq.focus();if(caret!=null)gq.setSelectionRange(caret,caret)}
+  if(gq){if(ui.info==null){gq.focus({preventScroll:true});if(caret!=null)gq.setSelectionRange(caret,caret)}
     gq.oninput=e=>{ui.query=e.target.value;document.getElementById('sugg').innerHTML=sugg(matches(ui.query));bindSugg()};
     gq.onkeydown=e=>{if(e.key==='Enter'){const r=matches(ui.query).filter(c=>!S.used.includes(c.c));if(r[0])guess(ui.sel,r[0].c)}if(e.key==='Escape'){ui.sel=-1;render()}};
     bindSugg();
