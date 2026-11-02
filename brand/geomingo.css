@@ -101,12 +101,13 @@ svg.mingo{display:block;flex-shrink:0;overflow:visible}
 .gm-bubble.good b{color:var(--green)} .gm-bubble.bad b{color:var(--red)}
 .gm-bubble.pop{animation:gm-pop .3s ease}
 /* the in-game ticket (Geomingo.ticket): Mingo's message on top, a tear line, then the stub with the game's numbers */
-.ticket{background:var(--page);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+/* a lighter navy than the page with a gold edge, so it stands out like a real ticket (dark only) */
+.ticket{background:#1F2B45;border:1.5px solid var(--gold);border-radius:14px;box-shadow:var(--shadow);position:relative;overflow:hidden}
 .ticket .gm-hello{padding:12px 14px 4px;align-items:center;gap:8px}
 .ticket .gm-bubble{margin:0;padding:0;border:0;border-radius:0;background:none}
 .ticket .gm-bubble b{font-size:19px}
-.tk-tear{border-top:2px dashed var(--line);margin:6px 14px 0;position:relative}
-.tk-tear::before,.tk-tear::after{content:"";position:absolute;top:-11px;width:20px;height:20px;border-radius:50%;background:var(--bg);border:1px solid var(--line)}
+.tk-tear{border-top:2px dashed color-mix(in srgb,var(--gold) 45%,transparent);margin:6px 14px 0;position:relative}
+.tk-tear::before,.tk-tear::after{content:"";position:absolute;top:-11px;width:20px;height:20px;border-radius:50%;background:var(--bg);border:1.5px solid var(--gold)}
 .tk-tear::before{left:-25px}.tk-tear::after{right:-25px}
 .tk-stub{display:flex;flex-wrap:wrap;gap:6px 4px;padding:8px 6px 10px}
 .tk-c{flex:1 1 auto;min-width:58px;display:flex;flex-direction:column;gap:2px;padding:4px 8px;border-radius:8px;border:1px solid transparent}
