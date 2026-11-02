@@ -18,16 +18,16 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="../../brand/icons/favicon.svg?v=202611011030" type="image/svg+xml">
-<link rel="icon" href="../../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="../../brand/icons/apple-touch-icon.png?v=202611011030">
-<link rel="manifest" href="../../brand/site.webmanifest?v=3">
-<script src="../../brand/mingo.js?v=202611020700"></script>
-<script src="../../brand/account.js?v=202611020700"></script>
+<link rel="icon" href="../brand/icons/favicon.svg?v=202611011030" type="image/svg+xml">
+<link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
+<link rel="manifest" href="../brand/site.webmanifest?v=3">
+<script src="../brand/mingo.js?v=202611020700"></script>
+<script src="../brand/account.js?v=202611020700"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&family=Special+Elite&display=swap">
-<link rel="stylesheet" href="../../shared/style.css?v=202610252300">
+<link rel="stylesheet" href="../shared/style.css?v=202610252300">
 <style>
 /* Customs: one traveller at a time at the desk, five clues opened one by one, the answer box under them */
 .play{display:flex;flex-direction:column;gap:12px;width:100%}
@@ -71,22 +71,19 @@
 .cpre i{flex:1;aspect-ratio:3/4;border-radius:8px;border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--mono);font-size:.8rem;color:var(--ink-2)}
 
 /* ---- Passport look (proposal): the play area is a cream card, navy ink, dotted border, rubber stamps ---- */
-.panel,.hcard,.gm-rank{--sheet:#F1E9D6;--paper:#F1E9D6;--page:#F1E9D6;--bg:#F1E9D6;--ink:#1D2B4C;--ink-2:#5B6173;--muted:#5B6173;--rule:#B8AC8E;--line:#B8AC8E;
-  --gold:#8E5F0E;--good:#2F6B47;--bad:#B23A47;--red:#B23A47;--green:#2F6B47;--blue:#2A56B8;--coral:#E8616F;--flamingo:#C94A58;--flamingo-text:#B23A47;--coral-text:#B23A47;
-  --sea-soft:#E4D9BF;--p4-soft:#DDE2C8;--p0-soft:#EED6CC;--stamp:#2A3A68;--hl:rgba(240,196,70,.38);
+.panel.pp{--ink-2:#686F71;--rule:#D3C5B4;
+  --good:#3F6A4A;--bad:#8B263E;
+  --sea-soft:#E9E1D3;--p4-soft:#E1E4D6;--p0-soft:#EFDCDD;--stamp:#8B263E;--hl:rgba(240,196,70,.38);
   position:relative;color:var(--ink);border:0;border-radius:20px;padding:20px 18px 18px;overflow:hidden;
-  background:#F1E9D6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .33 0 0 0 0 .18 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  box-shadow:inset 0 0 60px rgba(150,120,70,.28),0 18px 40px -18px rgba(0,0,0,.9)}
-.hcard{position:relative;padding:20px 20px 18px}
-.hcard.soon{opacity:.8}
-.panel::before,.hcard::before{content:"";position:absolute;inset:9px;border:2.5px dotted rgba(29,43,76,.6);border-radius:13px;pointer-events:none}
+  background:#F4F0EA url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .33 0 0 0 0 .18 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  box-shadow:inset 0 0 50px rgba(150,120,70,.16),var(--shadow)}
 .pp .label{color:var(--ink-2)}
 .pp .ink{filter:url(#ppink)}
 .pp .play{position:relative;z-index:1}
 /* the desk: five little ID stubs */
-.pp .desk button{background:rgba(255,255,255,.35);border:1.5px dashed rgba(29,43,76,.45);border-radius:8px;font-family:var(--type);color:var(--ink-2);position:relative}
+.pp .desk button{background:rgba(255,255,255,.35);border:1.5px dashed rgba(44,53,57,.45);border-radius:8px;font-family:var(--type);color:var(--ink-2);position:relative}
 .pp .desk button b{font-family:"Special Elite",var(--type);font-size:1.05rem}
-.pp .desk button.sel{border:2px solid var(--ink);background:#FBF6EA;box-shadow:0 2px 0 rgba(29,43,76,.25)}
+.pp .desk button.sel{border:2px solid var(--ink);background:#FBF6EA;box-shadow:0 2px 0 rgba(44,53,57,.25)}
 .pp .desk button.right{border:2px solid var(--good);background:transparent;color:var(--good)}
 .pp .desk button.wrong{border:2px solid var(--bad);background:transparent;color:var(--bad)}
 .pp .desk button.right b,.pp .desk button.wrong b{color:inherit}
@@ -101,17 +98,17 @@
 .ppworth b{display:block;font-size:1.35rem;font-weight:400}
 .pptv{text-align:center;font-family:var(--type);font-size:.78rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-2);margin:-2px 0 0}
 /* the clues: typed lines on the card */
-.pp .clues{gap:0;border-top:1.5px dotted rgba(29,43,76,.45)}
-.pp .clue{background:transparent;border:0;border-bottom:1.5px dotted rgba(29,43,76,.45);border-radius:0;padding:10px 2px;gap:10px}
+.pp .clues{gap:0;border-top:1.5px dotted rgba(44,53,57,.45)}
+.pp .clue{background:transparent;border:0;border-bottom:1.5px dotted rgba(44,53,57,.45);border-radius:0;padding:10px 2px;gap:10px}
 .pp .clue .ci{width:26px;height:26px;background:transparent;border:1.8px solid var(--ink);font-size:.8rem;font-family:"Special Elite",var(--type);margin-top:1px}
 .pp .clue .ct span{font-family:var(--type);font-weight:700;letter-spacing:.12em;font-size:.7rem}
 .pp .clue .ct b{font-family:var(--type);font-weight:700;font-size:.98rem;letter-spacing:-.02em;line-height:1.3}
 .pp .clue .ct small{font-family:var(--type);font-size:.86rem;color:var(--ink-2)}
 .pp .clue.new .ct b{background:linear-gradient(transparent 12%,var(--hl) 12%,var(--hl) 88%,transparent 88%);box-decoration-break:clone;-webkit-box-decoration-break:clone;padding:0 2px;margin-left:-2px}
-.pp .clue.new{border-color:rgba(29,43,76,.45)}
+.pp .clue.new{border-color:rgba(44,53,57,.45)}
 .pp .clue.off{opacity:.55;border-style:dotted}
 .pp .clue.off .ci{border-style:dashed;box-shadow:none}
-.pp .clue.off .ct b{font-weight:400;color:transparent;border-bottom:1.5px solid rgba(29,43,76,.35);width:70%;height:1.1em;margin-top:2px}
+.pp .clue.off .ct b{font-weight:400;color:transparent;border-bottom:1.5px solid rgba(44,53,57,.35);width:70%;height:1.1em;margin-top:2px}
 .pp .worth{font-family:var(--type);font-size:.9rem}
 .pp .worth b{color:var(--bad)}
 .pp .missed{font-family:var(--type);color:var(--bad);text-decoration:line-through;text-decoration-thickness:1.5px}
@@ -121,41 +118,41 @@
 .pp .giveup{color:var(--bad);border-color:var(--bad);background:transparent}
 .ppfoot{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-top:-4px}
 .ppfoot .mingo{flex:none;margin:-6px -4px -8px 0}
-.ppwm{position:absolute;z-index:0;right:-8px;top:46%;transform:rotate(-14deg);border:4px double rgba(29,43,76,.11);color:rgba(29,43,76,.11);border-radius:10px;padding:4px 14px;font-family:"Special Elite",var(--type);font-size:2.6rem;letter-spacing:.12em;pointer-events:none}
+.ppwm{position:absolute;z-index:0;right:-8px;top:46%;transform:rotate(-14deg);border:4px double rgba(44,53,57,.11);color:rgba(44,53,57,.11);border-radius:10px;padding:4px 14px;font-family:"Special Elite",var(--type);font-size:2.6rem;letter-spacing:.12em;pointer-events:none}
 /* the back of the card: the answer, stamped */
-.ppback{position:relative;border-radius:14px;padding:12px 12px 14px;background:rgba(255,255,255,.28);border:1.5px solid rgba(29,43,76,.25);display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.ppback{position:relative;border-radius:14px;padding:12px 12px 14px;background:rgba(255,255,255,.28);border:1.5px solid rgba(44,53,57,.25);display:flex;flex-direction:column;gap:8px;overflow:hidden}
 .ppbtop{position:relative;height:96px}
-.ppseal{position:absolute;left:4px;top:2px;width:88px;height:88px;border:3px solid var(--stamp);border-radius:50%;display:flex;align-items:center;justify-content:center;transform:rotate(-8deg);box-shadow:inset 0 0 0 4px #F1E9D6,inset 0 0 0 5.5px var(--stamp)}
+.ppseal{position:absolute;left:4px;top:2px;width:88px;height:88px;border:3px solid var(--stamp);border-radius:50%;display:flex;align-items:center;justify-content:center;transform:rotate(-8deg);box-shadow:inset 0 0 0 4px #F4F0EA,inset 0 0 0 5.5px var(--stamp)}
 .ppseal .mingo{width:60px;height:60px}
 .ppring{position:absolute;right:0;top:-6px;width:128px;height:128px;transform:rotate(12deg);color:var(--stamp);opacity:.8}
 .ppname{position:relative;margin-top:-12px;font-family:"Special Elite",var(--type);font-weight:400;font-size:2.5rem;line-height:1;text-transform:uppercase;letter-spacing:.02em;color:var(--ink);overflow-wrap:anywhere}
 .ppname.long{font-size:1.8rem}
 .ppmid{display:flex;align-items:center;gap:12px;min-height:110px}
 .ppsil{width:120px;height:110px;flex:none}
-.ppsil path{fill:#3A4256}
+.ppsil path{fill:#2C3539}
 .ppverdict{margin-left:auto;transform:rotate(-9deg);border:3px solid currentColor;border-radius:8px;padding:6px 10px;text-align:center;font-family:"Special Elite",var(--type);text-transform:uppercase;line-height:1.05;color:var(--good)}
 .ppverdict b{display:block;font-size:1.25rem;font-weight:400;letter-spacing:.06em}
 .ppverdict small{display:block;font-size:.8rem;letter-spacing:.1em}
 .ppback.no .ppverdict{color:var(--bad)}
 .pptags{display:flex;flex-wrap:wrap;gap:6px}
-.pptags span{position:relative;background:#E3D6B8;color:var(--ink);font-family:var(--type);font-weight:700;font-size:.88rem;padding:4px 10px 4px 16px;clip-path:polygon(8px 0,100% 0,100% 100%,8px 100%,0 50%)}
-.pptags span::before{content:"";position:absolute;left:7px;top:50%;width:4px;height:4px;margin-top:-2px;border-radius:50%;background:#F1E9D6}
-.pp .reveal{background:transparent;border:0;border-bottom:1.5px dotted rgba(29,43,76,.45);border-radius:0;padding:10px 2px}
+.pptags span{position:relative;background:#D3C5B4;color:var(--ink);font-family:var(--type);font-weight:700;font-size:.88rem;padding:4px 10px 4px 16px;clip-path:polygon(8px 0,100% 0,100% 100%,8px 100%,0 50%)}
+.pptags span::before{content:"";position:absolute;left:7px;top:50%;width:4px;height:4px;margin-top:-2px;border-radius:50%;background:#F4F0EA}
+.pp .reveal{background:transparent;border:0;border-bottom:1.5px dotted rgba(44,53,57,.45);border-radius:0;padding:10px 2px}
 .pp .reveal .rn b{font-family:"Special Elite",var(--type);font-weight:400;text-transform:uppercase}
 .pp .reveal .rn small{font-family:var(--type);font-size:.82rem}
 .pp .reveal .rpts{font-family:"Special Elite",var(--type);font-size:1.1rem;color:var(--good);border:2px solid currentColor;border-radius:5px;padding:1px 6px;transform:rotate(-6deg)}
 .pp .reveal.wrong .rpts{color:var(--bad)}
 </style>
-<link rel="stylesheet" href="../../brand/geomingo.css?v=202611020500">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611020500">
 </head>
 <body>
 <div class="wrap" id="app"></div>
 <footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
-<script src="../../shared/data.js?v=202610192300"></script>
-<script src="../../shared/games.js?v=202610240100"></script>
-<script src="../../shared/minigames.js?v=202611020300"></script>
+<script src="../shared/data.js?v=202610192300"></script>
+<script src="../shared/games.js?v=202610240100"></script>
+<script src="../shared/minigames.js?v=202611020300"></script>
 <script>
 /* ---- Customs: a traveller at the desk, and you work out where they come from ----
    Each traveller hands over five clues, one at a time, from vague to obvious: size, where on the map, language and
@@ -486,7 +483,7 @@ render();
 // a new day while the page was in the background: today's new travellers
 document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(view==='home'||view==='daily'&&D&&D.mode==='daily'&&D.date!==todayKey()){D=null;if(view==='daily')openDaily();else render()}});
 // passport look: the country outlines for the back of the card come from Silhouette's file
-if(typeof COUNTRIES==='undefined'){const sc=document.createElement('script');sc.src='../../silhouette/countries.js?v=202610230100';sc.onload=()=>{if(view!=='home')render()};document.head.appendChild(sc)}
+if(typeof COUNTRIES==='undefined'){const sc=document.createElement('script');sc.src='../silhouette/countries.js?v=202610230100';sc.onload=()=>{if(view!=='home')render()};document.head.appendChild(sc)}
 </script>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="ppink"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.6 1.55" result="m"/><feComposite in="SourceGraphic" in2="m" operator="in"/></filter></svg>
 </body>

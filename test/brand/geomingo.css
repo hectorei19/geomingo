@@ -1,0 +1,574 @@
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;500;600;700;800&display=swap');
+/* Geomingo: the brand shared by every game (geomingo.com/<game>/ loads ../brand/geomingo.css).
+   The look is travel paperwork: Mingo travels with a GeoPass and every right answer is a stamp in it.
+   1. tokens (light and dark, data-theme)  2. names the games' own styles already use, pointed at the tokens
+   3. brand components (gm-*)  4. the games' common pieces (panel, buttons, grid, sheet, menu…) in the brand's look.
+   Load it after the game's own styles. Change it here and every game follows. */
+
+/* ---------- 1. tokens ---------- */
+:root{
+  --bg:#E4EAE8; --page:#F6F8F5; --guil:#D7E2DE; --ink:#16202F; --muted:#556170; --line:#C9D4D0;
+  --cover:#1D2B4C; --cover-ink:#E9E3CF; --gold:#B8912E;
+  --coral:#E8616F; --coral-deep:#C94A58; --coral-text:#B23A47; --on-coral:#16202F;
+  --red:#C2313B; --blue:#2A56B8; --green:#25744F; --violet:#6B4BA8; --clay:#8A5A3B;
+  --display:"Archivo","Arial Narrow",Impact,sans-serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --type:"Courier Prime","Courier New",ui-monospace,monospace;
+  --shadow:0 1px 0 rgba(22,32,47,.05),0 16px 36px -20px rgba(22,32,47,.45);
+  --scrim:rgba(8,12,22,.55);
+  color-scheme:dark;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0C1220; --page:#151E30; --guil:#1D2840; --ink:#E8ECEF; --muted:#9AA6B6; --line:#2A3650;
+  --cover:#0A1328; --cover-ink:#E9E3CF; --gold:#D4AD4B;
+  --coral:#F07884; --coral-deep:#D85C69; --coral-text:#F5939C;
+  --red:#F06A72; --blue:#7FA2F0; --green:#5FC28F; --violet:#A98BE0; --clay:#C99B78;
+  --shadow:0 1px 0 rgba(0,0,0,.3),0 16px 36px -20px rgba(0,0,0,.85); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C1220; --page:#151E30; --guil:#1D2840; --ink:#E8ECEF; --muted:#9AA6B6; --line:#2A3650;
+  --cover:#0A1328; --cover-ink:#E9E3CF; --gold:#D4AD4B;
+  --coral:#F07884; --coral-deep:#D85C69; --coral-text:#F5939C;
+  --red:#F06A72; --blue:#7FA2F0; --green:#5FC28F; --violet:#A98BE0; --clay:#C99B78;
+  --shadow:0 1px 0 rgba(0,0,0,.3),0 16px 36px -20px rgba(0,0,0,.85); color-scheme:dark}
+
+/* ---------- 2. the names the games' styles use ---------- */
+:root,:root[data-theme]{
+  --surface:var(--page); --paper:var(--page); --sheet:var(--page); --ink-2:var(--muted); --rule:var(--line);
+  --sea:var(--blue); --sea-soft:color-mix(in srgb,var(--blue) 13%,var(--page)); --good:var(--green); --bad:var(--red);
+  --bad-soft:color-mix(in srgb,var(--red) 13%,var(--page));
+  --ui:var(--body); --mono:var(--type);
+  /* earlier brand names, still used by a few page styles */
+  --flamingo:var(--coral); --flamingo-deep:var(--coral-deep); --flamingo-text:var(--coral-text); --on-flamingo:var(--on-coral);
+  --pink-soft:color-mix(in srgb,var(--coral) 15%,var(--page)); --lagoon:var(--blue); --lagoon-soft:var(--sea-soft); --on-lagoon:var(--page);
+  --leaf:var(--green); --leaf-text:var(--green); --sun:var(--gold); --sky:var(--blue); --sand:var(--page);
+  /* player and group colours: stamp inks */
+  --p0:var(--coral-deep); --p1:var(--blue); --p2:var(--gold); --p3:var(--violet); --p4:var(--green); --p5:var(--clay);
+  --p0-soft:color-mix(in srgb,var(--p0) 18%,var(--page)); --p1-soft:color-mix(in srgb,var(--p1) 18%,var(--page));
+  --p2-soft:color-mix(in srgb,var(--p2) 24%,var(--page)); --p3-soft:color-mix(in srgb,var(--p3) 18%,var(--page));
+  --p4-soft:color-mix(in srgb,var(--p4) 18%,var(--page)); --p5-soft:color-mix(in srgb,var(--p5) 18%,var(--page));
+}
+
+/* ---------- base: a passport page, fine guilloche lines in the corner ---------- */
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{margin:0;background-color:var(--page);background-image:repeating-radial-gradient(circle at 115% -12%,transparent 0 14px,var(--guil) 14px 15px);background-attachment:fixed;background-size:100% 100vh;background-repeat:no-repeat;
+  color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
+body::before{display:none!important}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--blue)}
+:focus-visible{outline:2.5px solid var(--blue);outline-offset:2px}
+[hidden]{display:none!important}
+.wrap{max-width:520px;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:12px 40px;gap:14px}
+.gm-lab{font-family:var(--type);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+
+/* Mingo (brand/mingo.js draws him; these colour his parts and follow the theme) */
+.mg-body{fill:var(--coral)} .mg-deep{fill:var(--coral-deep)} .mg-neck{stroke:var(--coral);fill:none}
+.mg-leg{stroke:var(--coral-deep);fill:none} .mg-beak{fill:#F6F1E4} .mg-tip{fill:#16202F} .mg-eye{fill:#16202F} .mg-eyel{stroke:#16202F;fill:none}
+.mg-pass{fill:var(--cover)} .mg-gold{fill:none;stroke:var(--gold)}
+:root[data-theme="dark"] .mg-pass{fill:#24365F}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .mg-pass{fill:#24365F}}
+svg.mingo{display:block;flex-shrink:0;overflow:visible}
+
+/* ---------- 3. brand components ---------- */
+/* header: "‹ geomingo" back to all the games, the GeoPass, light/dark; then the game's own bar (name, trip, Menu) */
+.gm-top{display:flex;align-items:center;gap:8px;min-height:44px}
+.gm-spacer{flex:1}
+.gm-home{display:inline-flex;align-items:center;gap:2px;min-height:44px;padding:0 6px 0 2px;margin-left:-4px;border-radius:10px;color:var(--ink);text-decoration:none}
+.gm-home svg{stroke:var(--ink);flex:none}
+.gm-logo{font-family:var(--display);font-weight:900;font-size:26px;letter-spacing:-.01em;margin:0;line-height:1;color:var(--ink);white-space:nowrap}
+.gm-logo span{color:var(--coral-text)}
+.gm-home .gm-logo{font-size:22px}
+.gm-pass{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:6px 12px 6px 8px;border-radius:10px;border:0;background:var(--cover);color:var(--cover-ink);cursor:pointer;
+  font-family:var(--display);font-weight:800;font-stretch:110%;font-size:13px;letter-spacing:.1em;white-space:nowrap}
+.gm-pass i{width:18px;height:24px;border-radius:3px;border:1.5px solid var(--gold);display:grid;place-items:center;font-style:normal;color:var(--gold);font-size:9px;letter-spacing:0}
+.gm-pass b{font-family:var(--type);font-weight:700;letter-spacing:0;color:var(--gold);font-size:13px}
+.gm-icon{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--page);display:grid;place-items:center;cursor:pointer;flex-shrink:0;padding:0;color:var(--ink)}
+.gm-icon svg{stroke:var(--ink);fill:none}
+.gm-icon:hover{border-color:var(--ink)}
+.gm-theme .sun{display:none}
+:root[data-theme="dark"] .gm-theme .sun{display:block}:root[data-theme="dark"] .gm-theme .moon{display:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .gm-theme .sun{display:block}:root:not([data-theme="light"]) .gm-theme .moon{display:none}}
+@media (max-width:350px){.gm-pass .gm-pw{display:none}}
+.gm-bar{display:flex;align-items:center;gap:10px;min-height:44px}
+.gm-title{margin:0;font-family:var(--display);font-weight:900;font-stretch:90%;font-size:28px;line-height:1;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;gap:3px;min-width:0}
+.gm-title small{font-family:var(--type);font-weight:400;font-size:12px;color:var(--muted);text-transform:none;letter-spacing:0;font-stretch:100%}
+
+/* Mingo says something: he appears when something happens */
+.gm-hello{display:flex;align-items:flex-end;gap:6px}
+.gm-bubble{flex:1;min-width:0;margin-bottom:14px;padding:10px 12px;border-radius:12px 12px 12px 3px;background:var(--page);border:1px solid var(--ink);display:flex;flex-direction:column;gap:1px}
+.gm-bubble b{font-family:var(--display);font-weight:800;font-stretch:92%;font-size:17px;text-transform:uppercase;letter-spacing:.02em;line-height:1.15}
+.gm-bubble span{font-size:14px;color:var(--muted)}
+.gm-bubble.good b{color:var(--green)} .gm-bubble.bad b{color:var(--red)}
+.gm-bubble.pop{animation:gm-pop .3s ease}
+/* the in-game ticket (Geomingo.ticket): Mingo's message on top, a tear line, then the stub with the game's numbers */
+/* a lighter navy than the page with a gold edge, so it stands out like a real ticket (dark only) */
+.ticket{background:#1F2B45;border:1.5px solid var(--gold);border-radius:14px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.ticket .gm-hello{padding:12px 14px 4px;align-items:center;gap:8px}
+.ticket .gm-bubble{margin:0;padding:0;border:0;border-radius:0;background:none}
+.ticket .gm-bubble b{font-size:19px}
+.tk-tear{border-top:2px dashed color-mix(in srgb,var(--gold) 45%,transparent);margin:6px 14px 0;position:relative}
+.tk-tear::before,.tk-tear::after{content:"";position:absolute;top:-11px;width:20px;height:20px;border-radius:50%;background:var(--bg);border:1.5px solid var(--gold)}
+.tk-tear::before{left:-25px}.tk-tear::after{right:-25px}
+/* the mode strip on top of the ticket: gold for the daily (it counts), blue for practice and the archive */
+.tk-mode{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 14px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden}
+.tk-mode span{overflow:hidden;text-overflow:ellipsis}
+.tk-mode.daily{background:var(--gold);color:#16202F}
+.tk-mode.practice{background:var(--blue);color:#0C1220}
+.ticket.tk-practice{border-color:var(--blue)}
+.ticket.tk-practice .tk-tear{border-top-color:color-mix(in srgb,var(--blue) 50%,transparent)}
+.ticket.tk-practice .tk-tear::before,.ticket.tk-practice .tk-tear::after{border-color:var(--blue)}
+.tk-stub{display:flex;flex-wrap:wrap;gap:6px 4px;padding:8px 6px 10px}
+.tk-c{flex:1 1 auto;min-width:58px;display:flex;flex-direction:column;gap:2px;padding:4px 8px;border-radius:8px;border:1px solid transparent}
+.tk-c.tk-name{flex-grow:1.4;min-width:0;max-width:40%}
+.tk-c i{font-style:normal;font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--ink-2);text-transform:uppercase;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tk-c b{font-family:var(--display);font-weight:800;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tk-c.tk-pts b{color:var(--gold)} .tk-c.tk-gs b{color:var(--coral)}
+.tk-c.pl{min-width:72px}
+.tk-c.pl i{text-transform:none;letter-spacing:.02em;font-size:12px}
+.tk-c.pl .pin{width:10px;height:10px}
+.tk-c.pl.on{border-color:var(--ink)} .tk-c.pl.off{opacity:.45}
+@keyframes gm-pop{0%{transform:translateY(4px);opacity:.4}100%{transform:none;opacity:1}}
+
+/* the games list (home page): one line per game, with its trip number */
+.gm-head{display:flex;flex-direction:column;gap:2px}
+.gm-head h2{margin:0;font-family:var(--display);font-weight:800;font-stretch:85%;font-size:30px;line-height:1;text-transform:uppercase}
+.gm-games{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.gm-card{width:100%;display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px;background:var(--page);border:1px solid var(--line);border-radius:12px;cursor:pointer;text-align:left;color:var(--ink);text-decoration:none;transition:border-color .15s ease}
+a.gm-card:hover{border-color:var(--ink)}
+.gm-card.soon{cursor:default;opacity:.7}
+.gm-gate{font-family:var(--type);font-size:11px;color:var(--muted);display:flex;flex-direction:column;line-height:1.2}
+.gm-gate b{font-family:var(--display);font-weight:900;font-stretch:90%;font-size:24px;color:var(--ink)}
+.gm-ctext{display:flex;flex-direction:column;min-width:0}
+.gm-ctext b{font-family:var(--display);font-weight:800;font-stretch:90%;font-size:20px;text-transform:uppercase;display:flex;align-items:center;gap:8px;line-height:1.1}
+.gm-ctext span{font-size:13px;color:var(--muted)}
+.gm-new{font-family:var(--type);font-weight:700;font-size:10px;padding:1px 5px;border:1.5px solid var(--coral-text);color:var(--coral-text);border-radius:3px;transform:rotate(-4deg);letter-spacing:0;font-stretch:100%}
+.gm-state{font-family:var(--type);font-size:12px;font-weight:700;text-transform:uppercase;white-space:nowrap;color:var(--blue);letter-spacing:.02em}
+.gm-state.done{min-height:0;background:none;color:var(--green);border:2px solid var(--green);padding:2px 6px;border-radius:4px;transform:rotate(-6deg);font-family:var(--type);font-weight:700;font-size:12px;letter-spacing:0;font-stretch:100%}
+.gm-state.soon{color:var(--muted)}
+
+/* buttons: navy (main), coral (action), outline */
+.gm-big{display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:8px 16px;border-radius:10px;border:0;background:var(--cover);color:var(--cover-ink);
+  font-family:var(--display);font-weight:800;font-stretch:95%;font-size:17px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;width:100%;text-decoration:none;text-align:center}
+.gm-big.pink,.gm-big.coral{background:var(--coral);color:var(--on-coral)}
+.gm-big.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.gm-big[disabled]{opacity:.45;cursor:default}
+.gm-dots{display:flex}.gm-dots i{width:12px;height:12px;border-radius:50%;border:1.5px solid currentColor}.gm-dots i+i{margin-left:-4px}
+.gm-note{text-align:center;font-size:12px;color:var(--muted);margin:0}
+.gm-text{background:none;border:0;color:var(--muted);font-weight:600;font-size:14px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:10px;min-height:44px;align-self:center}
+
+/* stamps: a right answer, inked on the page */
+.gm-stamp{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:6px 4px;border:2.5px solid currentColor;border-radius:7px;text-align:center;line-height:1.02;opacity:.9;transform:rotate(var(--r,0deg));min-width:0}
+.gm-stamp b{font-family:var(--display);font-weight:900;font-stretch:80%;font-size:14px;text-transform:uppercase;overflow-wrap:normal;word-break:normal;hyphens:manual}
+.gm-stamp small{font-family:var(--type);font-size:10px}
+.gm-stamp.today{animation:gm-thud .3s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes gm-thud{from{transform:scale(1.6) rotate(var(--r,0deg));opacity:0}to{transform:scale(1) rotate(var(--r,0deg));opacity:.9}}
+
+/* dialogs: bottom sheet, result card, the GeoPass booklet */
+.gm-scrim{position:fixed;inset:0;background:var(--scrim);z-index:45;display:flex;align-items:flex-end;justify-content:center}
+.gm-scrim.center{align-items:center;padding:16px}
+.gm-sheet{width:100%;max-width:520px;background:var(--page);border-radius:18px 18px 0 0;padding:18px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px;animation:gm-up .18s ease}
+@keyframes gm-up{from{transform:translateY(12px);opacity:.5}to{transform:none;opacity:1}}
+.gm-sheet h3{margin:0;font-family:var(--display);font-weight:900;font-stretch:90%;font-size:22px;text-transform:uppercase}
+.gm-res{width:100%;max-width:400px;background:var(--page);border-radius:16px;overflow:hidden;animation:gm-up .2s ease;max-height:100%;overflow-y:auto;box-shadow:var(--shadow)}
+.gm-band{background:var(--cover);color:var(--cover-ink);padding:12px 16px;display:flex;align-items:center;gap:10px}
+.gm-band b{font-family:var(--display);font-weight:800;font-stretch:115%;letter-spacing:.12em;text-transform:uppercase;font-size:14px;color:var(--gold)}
+.gm-rbody{padding:18px;display:flex;flex-direction:column;gap:12px}
+.gm-rtop{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px}
+.gm-rtop>div{flex:1 1 auto;min-width:min-content}
+.gm-num{display:block;font-family:var(--display);font-weight:900;font-stretch:85%;font-size:56px;line-height:.9;font-variant-numeric:tabular-nums}
+.gm-line{font-family:var(--type);font-size:14px;margin:0}
+.gm-rsep{border:0;border-top:1px dashed var(--line);margin:2px -18px 0}
+.gm-say{font-family:var(--display);font-weight:800;font-stretch:92%;font-size:18px;text-transform:uppercase;letter-spacing:.02em;margin:0;line-height:1.15}
+.gm-mini{display:grid;gap:3px;justify-content:center;align-self:flex-end}
+.gm-mini i{width:16px;height:16px;border-radius:3px;border:1px dashed var(--muted)}
+.gm-mini i.ok{background:var(--green);border:0}
+.gm-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--cover);color:var(--cover-ink);padding:10px 16px;border-radius:8px;font-family:var(--type);font-size:14px;max-width:calc(100% - 32px);text-align:center}
+
+/* the GeoPass: a passport. Navy cover, a paper data page, then paper pages (Passport, Countries, Visas) */
+.gp{--paper:#E8DEC3;--paper-2:#DCD0B0;--pink:#1D2B4C;--pmut:#6E6247;width:100%;max-width:520px;max-height:100%;overflow:auto;border-radius:18px;padding:10px 10px 12px;animation:gm-up .2s ease;
+  background:linear-gradient(160deg,#1B2A50,#0E1834 75%);box-shadow:inset 0 0 0 1.5px #3B4C78,inset 0 0 0 5px #142144,inset 0 0 0 6px rgba(212,173,75,.35)}
+.gp-bar{display:flex;align-items:center;gap:9px;padding:6px 8px 12px}
+.gp-emb{width:24px;height:24px;fill:none;stroke:var(--gold);stroke-width:1.4}
+.gp-bar b{font-family:var(--display);font-weight:900;font-stretch:118%;letter-spacing:.2em;color:var(--gold);font-size:15px}
+.gp-bar button{margin-left:auto;background:none;border:1.5px solid var(--gold);color:#F3D98B;border-radius:9px;min-height:40px;padding:0 14px;cursor:pointer;font:700 13px var(--type)}
+.gp-data,.gp-page{background-color:var(--paper);color:var(--pink);border-radius:10px;position:relative;
+  background-image:repeating-radial-gradient(circle at 110% -10%,transparent 0 11px,rgba(29,43,76,.06) 11px 12px),repeating-linear-gradient(135deg,rgba(120,100,60,.05) 0 2px,transparent 2px 9px)}
+.gp-data{padding:12px 14px 10px}
+.gp-dh{display:flex;justify-content:space-between;font:700 10px var(--type);letter-spacing:.14em;text-transform:uppercase;color:var(--pmut)}
+.gp-id{display:flex;gap:12px;margin-top:8px;position:relative}
+.gp-photo{width:76px;height:94px;border-radius:5px;background:#C9D3DF;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;flex:none;box-shadow:inset 0 0 0 1px rgba(29,43,76,.25)}
+.gp-f{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;flex:1;min-width:0}
+.gp-f .w{grid-column:span 2}
+.gp-f span{display:block;font:10px var(--type);letter-spacing:.1em;text-transform:uppercase;color:var(--pmut)}
+.gp-f b{display:block;font:700 15px var(--type);color:var(--pink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gp-lvl{position:absolute;left:-3px;top:64px;transform:rotate(-9deg);font:900 9.5px var(--display);letter-spacing:.08em;text-transform:uppercase;color:#A3312F;border:2.5px double #A3312F;border-radius:6px;padding:2px 7px;background:rgba(232,222,195,.75);opacity:.9}
+.gp-mrz{font:12px var(--type);letter-spacing:.08em;line-height:1.35;color:#4D5670;margin-top:10px;overflow:hidden;white-space:nowrap}
+.gp-tabs{display:flex;gap:6px;padding:12px 2px 0}
+.gp-tabs button{flex:1;min-height:42px;border:0;border-radius:10px 10px 0 0;background:#22345F;color:#B9C3DA;font:800 12px var(--display);letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.gp-tabs button[aria-selected="true"]{background:var(--paper);color:var(--pink)}
+.gp-page{border-radius:0 0 10px 10px;padding:14px 14px 30px;display:flex;flex-direction:column;gap:12px;min-height:300px}
+.gp-pn{position:absolute;right:12px;bottom:8px;font:11px var(--type);color:var(--pmut)}
+.gp-sec{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.gp-sec h4{margin:0;font:900 14px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--pink)}
+.gp-sec span{font:700 11px var(--type);letter-spacing:.06em;text-transform:uppercase;color:var(--pmut);text-align:right}
+.gp-route{position:relative;height:62px;margin:30px 0 4px}
+.gp-route .ln{position:absolute;left:8%;right:8%;top:9px;border-top:3px dashed #9C9378}
+.gp-route .lnd{position:absolute;left:8%;top:9px;border-top:3px solid var(--pink)}
+.gp-route .p{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:3px}
+.gp-route .p i{width:20px;height:20px;border-radius:50%;background:var(--paper);border:3px solid #9C9378;box-sizing:border-box}
+.gp-route .p.ok i{background:var(--pink);border-color:var(--pink)}
+.gp-route .p small{font:700 8.5px var(--type);text-transform:uppercase;color:var(--pmut);white-space:nowrap}
+.gp-route .p.ok small{color:var(--pink)}
+.gp-route .p em{font:normal 8.5px var(--type);color:var(--pmut)}
+.gp-route .me{position:absolute;top:-32px;transform:translateX(-50%)}
+.gp-day{font:700 11px var(--type);letter-spacing:.12em;text-transform:uppercase;color:var(--pmut);margin-top:2px}
+.gp-sts{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
+.gp-st{border:2.5px solid var(--c);color:var(--c);border-radius:8px;padding:5px 8px;display:flex;flex-direction:column;align-items:center;transform:rotate(var(--r));opacity:.9;max-width:150px}
+.gp-st.round{border-radius:50%;width:70px;height:70px;justify-content:center;padding:0 4px;border-style:double;border-width:4px;box-sizing:border-box;text-align:center}
+.gp-st b{font:900 14px var(--display);letter-spacing:.03em;text-transform:uppercase;line-height:1;text-align:center}
+.gp-st small{font:700 8.5px var(--type);letter-spacing:.04em;margin-top:3px;text-transform:uppercase;text-align:center}
+.gp-st.round b{font-size:12px}
+.gp-more{font:700 11px var(--type);color:var(--pmut)}
+.gp-empty{margin:0;font-size:14px;color:var(--pmut)}
+.gp-det{border-top:1px dashed #A99E80;padding-top:10px}
+.gp-det summary{font:900 13px var(--display);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;min-height:32px;display:flex;align-items:center}
+.gp-how{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.4;color:#3A3020}
+.gp-atl{display:flex;align-items:center;gap:14px}
+.gp-ring{width:112px;height:112px;flex:none;position:relative}
+.gp-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.gp-ring circle{fill:none;stroke-width:11}
+.gp-ring .t{stroke:#D3C7A6}.gp-ring .w{stroke:#B5A57A}.gp-ring .m{stroke:var(--pink)}
+.gp-ring div{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gp-ring b{font:900 32px var(--display);line-height:1;color:var(--pink)}
+.gp-ring small{font:11px var(--type);color:var(--pmut)}
+.gp-cont{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.gp-cont div{display:grid;grid-template-columns:64px 1fr 40px;align-items:center;gap:6px;font-size:12.5px;color:#3A3020}
+.gp-cont i{display:block;height:7px;border-radius:4px;background:#D3C7A6;overflow:hidden}.gp-cont i b{display:block;height:100%;background:var(--pink)}
+.gp-cont small{font:11px var(--type);color:var(--pmut);text-align:right}
+.gp-rule{margin:0;font-size:13px;line-height:1.4;color:#4A4030}
+.gp-info{display:none;font-size:13px;line-height:1.5;color:#3A3020;background:rgba(29,43,76,.07);border-radius:8px;padding:8px 10px}
+.gp-info.on{display:block}
+.gp-info span{white-space:nowrap;margin-right:8px}.gp-info .ok{color:#25744F;font-weight:700}.gp-info .no{color:var(--pmut)}
+.gp-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -2px}
+.gp-chips button{flex:none;font:700 12px var(--body);padding:0 12px;min-height:34px;border-radius:20px;border:1px solid #BCAF8B;background:none;color:#4A4030;cursor:pointer}
+.gp-chips button[aria-pressed="true"]{background:var(--pink);border-color:var(--pink);color:#F3D98B}
+.gp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.gp-c{aspect-ratio:1/1.1;border-radius:9px;border:1px solid #CDBF9C;background:rgba(255,255,255,.22);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:5px 3px;cursor:pointer;min-width:0;color:var(--pink)}
+.gp-c svg{width:66%;flex:1;min-height:0}
+.gp-c path{fill:none;stroke:#B3A782;stroke-width:1.2;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.gp-c.half path{fill:rgba(29,43,76,.22);stroke:#6E7897;stroke-dasharray:none;stroke-width:1}
+.gp-c.mine{background:rgba(29,43,76,.08);border-color:#9AA2B8}
+.gp-c.mine path{fill:var(--pink);stroke:var(--pink);stroke-dasharray:none;stroke-width:1}
+.gp-c small{font:700 8.5px var(--type);text-transform:uppercase;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.gp-c.off small{color:#A99E80}
+.gp-c .dots{display:flex;gap:3px}.gp-c .dots i{width:6px;height:6px;border-radius:50%;background:#CDBF9C}
+.gp-visas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.gp-visa{border-radius:10px;border:1px solid #CDBF9C;background:rgba(255,255,255,.2);display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 5px;text-align:center}
+.gp-visa .em{width:50px;height:50px;border-radius:50%;border:3.5px double var(--c);color:var(--c);display:flex;align-items:center;justify-content:center;font:900 14px var(--display);transform:rotate(-8deg);margin-bottom:2px}
+.gp-visa b{font:800 11px var(--display);letter-spacing:.04em;text-transform:uppercase;line-height:1.15;color:var(--pink)}
+.gp-visa small{font:10px var(--type);color:var(--pmut);line-height:1.25}
+.gp-visa.lock .em{--c:#A99E80;border-style:dashed;border-width:2px}
+.gp-visa.lock b{color:#8A7E60}
+.gp-visa .em.sm{font-size:11px}
+.gp-visa small.nt{font-weight:700;color:var(--c)}.gp-visa.lock small.nt{color:#8A7E60}
+.gp-vg{margin-top:4px;border-top:1px dashed #A99E80;padding-top:10px}
+.gp-vg h5{margin:0;font:900 12px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--pink)}
+.gp-vsub{margin-top:-6px;font-size:12.5px}
+.gp-visa .pb{width:80%;height:5px;border-radius:3px;background:#D3C7A6;overflow:hidden;margin-top:2px}.gp-visa .pb i{display:block;height:100%;background:#8A7E60}
+
+/* ---------- 4. the games' common pieces in the brand's look ---------- */
+.panel{background:var(--page);border:1px solid var(--line);border-radius:14px;box-shadow:none;padding:16px;gap:14px}
+.label{font-family:var(--type);font-size:12px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.hint{color:var(--muted);font-size:15px}
+.big{font-family:var(--display);font-weight:900;font-stretch:85%;font-size:40px;line-height:1;text-transform:uppercase;letter-spacing:0}
+.seg{border:1px solid var(--ink);border-radius:10px;overflow:hidden;background:var(--page)}
+.seg button{min-height:44px;border-right:1px solid var(--ink);font-weight:600}
+/* the chosen option: coral outline and text on a soft coral tint */
+.seg button[aria-pressed="true"]{background:color-mix(in srgb,var(--coral) 18%,transparent);color:var(--coral);box-shadow:inset 0 0 0 2px var(--coral);font-weight:800}
+.primary{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;background:var(--coral);color:var(--on-coral);border:0;border-radius:10px;padding:12px 16px;
+  font-family:var(--display);font-weight:800;font-stretch:95%;font-size:17px;letter-spacing:.06em;text-transform:uppercase}
+a.primary{text-decoration:none;text-align:center}
+.primary:disabled,.primary[disabled]{opacity:.45;cursor:default}
+.primary.nextgame{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.ghost{min-height:44px;background:var(--page);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-weight:600;color:var(--ink)}
+.ghost:hover:not(:disabled){border-color:var(--ink)}
+.linkbtn{min-height:44px;color:var(--muted);font-weight:600;font-size:14px;padding:8px 4px}
+.helpbtn{min-height:44px;background:var(--page);border:1px solid var(--line);border-radius:10px;padding:6px 14px;font-weight:600;font-size:15px;color:var(--ink)}
+.helpbtn:hover{border-color:var(--ink)}
+.code-in,.prow input,.nameinp,.namecard input,.field #fname,.field input,.t10in input,.ans input,.sheet input{min-height:50px;border:1.5px solid var(--ink);border-radius:8px;background:var(--bg);color:var(--ink);padding:10px 14px;font-family:var(--type);font-size:18px;font-weight:400}
+.code-in{letter-spacing:.18em;font-weight:700}
+/* phones: the button that opens the answer sheet looks like the box you type in (see askBtnHTML in shared/minigames.js) */
+.askbtn{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;border:1.5px solid var(--ink);border-radius:8px;background:var(--bg);color:var(--muted);padding:10px 14px;font-family:var(--type);font-size:18px;font-weight:400;text-align:left;cursor:text;touch-action:manipulation}
+.askbtn svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.askbtn:active{border-color:var(--blue)}
+#sheetlayer .sheet .q{gap:8px 10px}
+.backline{min-height:44px}
+.backline .ht,.hcard>.ht,.dtxt .ht{font-family:var(--display);font-weight:800;font-stretch:90%;text-transform:uppercase;letter-spacing:.01em}
+.hcard{background:var(--page);border:1px solid var(--line);border-radius:12px;box-shadow:none;color:var(--ink)}
+.hcard.ac{border:1px solid var(--ink);padding:16px}
+button.hcard:hover,button.hcard:active{border-color:var(--ink);background:var(--page)}
+.hcard>.hm{font-family:var(--type);font-size:12px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:var(--coral-text)}
+.hcard>.hs{font-size:15px;color:var(--muted)}
+.hrow .hcard>.ht{font-size:22px}
+.hcard.soon{opacity:.6}
+.status{background:var(--page);border:1px solid var(--line);border-radius:10px;box-shadow:none}
+.status .sub,.coord{font-family:var(--type);font-weight:400}
+.tbar{background:var(--coral)}
+.chip{border:1px solid var(--line);background:var(--page);font-weight:600}
+.chip.on{border-color:var(--ink);box-shadow:none}
+.chip b{font-family:var(--type);font-weight:700}
+.pin{border-radius:50%;transform:none}
+.roomcode{font-family:var(--type);font-weight:700;font-size:34px;letter-spacing:.18em;color:var(--ink);background:none;border:2px solid var(--ink);border-radius:8px;text-align:center;padding:8px}
+.lp{border:0;border-bottom:1px dashed var(--line);border-radius:0;background:none;font-weight:600}
+.lp .tag{font-family:var(--type);font-weight:400}
+.st{border:1px solid var(--line);border-radius:10px;background:var(--page)}
+.st b{font-family:var(--display);font-weight:900;font-stretch:90%;font-size:28px}
+.st span{font-family:var(--type)}
+.sttab td{font-family:var(--type);font-variant-numeric:tabular-nums}
+.sharebox{font-family:var(--type);font-weight:400;font-size:14px;background:var(--bg);border:1px dashed var(--muted);border-radius:8px}
+.place{border:0;border-bottom:1px dashed var(--line);border-radius:0;background:none}
+.place.win{border-bottom:1px dashed var(--line);box-shadow:none}
+.place .rk,.lbl .rk{font-family:var(--type);font-weight:700}
+.place .pt,.lbl .pt,.lbl .sq{font-family:var(--type);font-weight:700}
+.lbl li.me{background:var(--pink-soft);border-radius:6px}
+.arch button{background:var(--page);border:1px solid var(--line);border-radius:10px;min-height:56px}
+.arch button:hover{border-color:var(--ink)}
+.arch .an{font-family:var(--display);font-weight:900;font-stretch:90%;color:var(--coral-text)}
+.gbanner{background:var(--sea-soft);border:1px solid var(--blue);border-radius:10px}
+.dsq i{border-radius:3px;background:none;border:1px dashed var(--muted)}
+.dsq i.on{background:var(--green);border:0}
+.dsq i.mid{background:var(--gold);border:0}
+.dsq i.bad{background:var(--red);border:0;opacity:.8}
+.dstats b,.hrank b{font-family:var(--display);font-weight:900;font-stretch:90%}
+/* daily "done" card: on phones the three stats (streak, played, average) move under the result as a row of
+   three columns, number on top and word below, so nothing can stick out of the card */
+.dsum>.dtxt{min-width:0}
+@media (max-width:560px){
+.dsum{flex-wrap:wrap;row-gap:12px}
+.dsum .dtxt .ht{font-size:1.5rem}
+.dstats{flex-basis:100%;margin-left:0;flex-direction:row;padding:10px 0 0;border-left:0;border-top:1px solid var(--line);gap:8px}
+.dstats>span{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;text-align:center;font-size:.85rem;line-height:1.2}
+.dstats b{margin-right:0;font-size:1.25rem;line-height:1.1}
+}
+.hrank b{color:var(--coral-text)}
+.testbar{border-radius:8px}
+
+/* the grid (Countries, Capitals): dashed squares; a right answer is a stamp with its flag */
+.board{gap:6px;background:transparent;border:0;border-radius:0;box-shadow:none}
+.board.b5{gap:4px}
+.hd{border:0!important;border-radius:8px;background:none}
+.hd .ref{font-family:var(--type);font-weight:700;color:var(--coral-text);font-size:.7rem}
+.hd .ht{font-family:var(--display);font-weight:800;font-stretch:85%;text-transform:uppercase;letter-spacing:.01em}
+.hd[data-info]:hover{background:var(--guil)}
+/* info icon: drawn (circle + calligraphic i) so the i sits exactly in the centre on every phone; the letter stays for screen readers */
+.ib,.hd .ht .ib{display:inline-block;vertical-align:-.2em;padding:0;border:0;border-radius:50%;color:transparent;overflow:hidden;text-indent:-9em;font-style:normal;text-transform:none;line-height:1;background-color:var(--blue);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10.9' fill='none' stroke='%23000' stroke-width='1.7'/%3E%3Ccircle cx='13.35' cy='7.15' r='1.35'/%3E%3Cpath d='M10.6 11.1 Q11.6 10.2 12.5 10.4 L11.2 15.4 Q10.9 16.8 12.1 16.4 Q12.9 16.1 13.6 15.2' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10.9' fill='none' stroke='%23000' stroke-width='1.7'/%3E%3Ccircle cx='13.35' cy='7.15' r='1.35'/%3E%3Cpath d='M10.6 11.1 Q11.6 10.2 12.5 10.4 L11.2 15.4 Q10.9 16.8 12.1 16.4 Q12.9 16.1 13.6 15.2' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/100% 100% no-repeat}
+.ib{font-size:1em;width:1.15em;height:1.15em}
+.hd .ht .ib{width:11px;height:11px;vertical-align:-1px}
+/* "How to play" in the Quick rules box: a real link that opens the full rules */
+.qhelp{background:none;border:0;padding:0;margin:0;font:inherit;font-weight:700;color:var(--blue);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.corner{border:0!important;border-radius:8px;background:none;font-family:var(--type);color:var(--muted)}
+.corner.dnum .dl{font-family:var(--type);font-weight:400;letter-spacing:.08em}
+.corner.dnum .dn{font-family:var(--display);font-weight:900;font-stretch:90%;color:var(--coral-text)}
+.corner .mingo{width:auto;height:70%}
+.cbrand{font-family:var(--display);font-weight:900;text-transform:none;letter-spacing:-.01em;line-height:1}
+.cbrand span{color:var(--coral-text)}
+.cell{border:1px dashed var(--muted);border-radius:8px;background:transparent;transition:background .15s ease}
+.b5 .cell{border-radius:6px}
+.cell .plus{width:auto;max-width:none;aspect-ratio:auto;opacity:1}
+.cell .plus::after{display:none}
+.cell .plus::before{content:"+";position:static;transform:none;background:none;width:auto;height:auto;font-family:var(--type);font-size:13px;color:var(--muted)}
+button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
+.cell.sel{background:var(--guil);border:1.5px solid var(--coral-text);box-shadow:none}
+.cell.miss{border-style:solid;border-color:var(--line);background:none;opacity:.6}
+.cell.flag{border:0;padding:0;background:none;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:default}
+/* a right answer on the grid: a straight passport stamp that is the whole square, in an ink colour (in rooms the owner's colour).
+   Countries: the flag fills the stamp and the name, code and points sit on a dark band at the bottom. Capitals: the name, centred. */
+.cell.flag .gm-stamp{position:absolute;inset:0;width:auto;--r:0deg;transform:none;opacity:1;border-radius:8px;padding:3px 2px;gap:2px;justify-content:safe center;overflow:hidden}
+.cell.flag .gm-stamp b{line-height:1}
+.cell.flag .gm-stamp small{font-size:11px;white-space:nowrap;letter-spacing:-.02em}
+.cell.flag .gm-stamp .sn{display:block;max-width:100%;overflow-wrap:normal}
+.gm-stamp .sf{display:block;height:15px;width:auto;max-width:70%;border-radius:2px;box-shadow:0 0 0 1px color-mix(in srgb,currentColor 35%,transparent);margin-bottom:1px}
+.cell.flag .gm-stamp:has(.sf){justify-content:flex-end;padding:0;gap:0}
+.cell.flag .gm-stamp .sf{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:cover;border-radius:0;box-shadow:none;margin:0}
+.cell.flag .gm-stamp:has(.sf) .sn,.cell.flag .gm-stamp:has(.sf) small{position:relative;width:100%;background:color-mix(in srgb,var(--bg) 84%,transparent);padding:2px 2px 0}
+.cell.flag .gm-stamp:has(.sf) small{padding:1px 2px 3px}
+.b3 .cell.flag .gm-stamp small{font-size:13px}
+.b5 .cell.flag .gm-stamp{border-width:2px;border-radius:6px}.b5 .cell.flag .gm-stamp small{font-size:8px}
+.gm-stamp.c0{color:var(--p0)}.gm-stamp.c1{color:var(--p1)}.gm-stamp.c2{color:var(--p2)}.gm-stamp.c3{color:var(--p3)}.gm-stamp.c4{color:var(--p4)}.gm-stamp.c5{color:var(--p5)}
+.cell.new .gm-stamp{animation:gm-thud-flat .3s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes gm-thud-flat{from{transform:scale(1.4);opacity:0}to{transform:none;opacity:.9}}
+.pts{position:absolute;top:2px;right:3px;z-index:1;background:var(--page);line-height:1.1;color:var(--muted);font-family:var(--type);font-weight:700;border-radius:0;padding:0}
+.cell .cnt,.cell .val{font-family:var(--type);font-weight:700}
+.actions .ghost{min-height:44px}
+
+/* the answer sheet, dialogs, the Menu and toasts */
+.scrim,.infoscrim{background:var(--scrim)}
+.sheet{background:var(--page);border:0;border-radius:18px 18px 0 0;max-width:520px;box-shadow:var(--shadow);padding-top:18px;gap:12px}
+.sheet .q{font-family:var(--display);font-weight:900;font-stretch:90%;text-transform:uppercase}
+.sheet .q i{font-family:var(--type);font-weight:400;font-style:normal;color:var(--coral-text);font-size:13px;text-transform:none}
+.qcat{font-family:var(--type);font-weight:400;font-size:12px;background:none;border:1px solid var(--ink);border-radius:4px;padding:3px 8px;min-height:0}
+.sugg{gap:0}
+.sugg button{min-height:48px;border:0;border-bottom:1px dashed var(--line);border-radius:0;background:none;padding:8px 4px;font-weight:600}
+.sugg button:hover:not(:disabled){color:var(--blue)}
+.sugg .tag{font-family:var(--type);font-weight:400}
+.infobox{background:var(--page);border:0;border-radius:16px;padding:22px;box-shadow:var(--shadow)}
+.infobox h2{font-family:var(--display);font-weight:900;font-stretch:90%;text-transform:uppercase;font-size:24px}
+.infobox .meta{font-family:var(--type);font-weight:400}
+.helpbox h3{font-family:var(--display);font-weight:800;font-stretch:90%;font-size:17px;letter-spacing:.02em;text-transform:uppercase;color:var(--ink)}
+.ptable{font-family:var(--body)}
+.handoff{background:var(--page)}
+.handoff h2{font-family:var(--display);font-weight:900;text-transform:uppercase}
+.menubox .mitem{min-height:48px;background:var(--page);border:1px solid var(--line);border-top-width:0;font-weight:600}
+.menubox .mitem:first-child{border-top-width:1px;border-radius:12px 12px 0 0}
+.menubox .mitem:last-child{border-radius:0 0 12px 12px}
+.menubox .mitem:hover{background:var(--guil)}
+.menubox .mitem .ico{color:var(--coral-text)}
+.menubox .mitem.out{border-top:1px solid var(--line)}
+.toast{background:var(--cover);color:var(--cover-ink);border-radius:8px;font-family:var(--type);font-weight:400;font-size:14px;top:auto;bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.toast.bad{background:var(--red);color:var(--page)}
+.toast.good{background:var(--green);color:var(--page)}
+.foot .linkbtn,.foot a{color:var(--muted)}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+/* in the dark, navy pieces get a thin edge so they stand out from the page */
+:root[data-theme="dark"] .gm-big:not(.coral):not(.pink):not(.ghost),:root[data-theme="dark"] .gm-pass{box-shadow:inset 0 0 0 1px var(--line)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .gm-big:not(.coral):not(.pink):not(.ghost),:root:not([data-theme="light"]) .gm-pass{box-shadow:inset 0 0 0 1px var(--line)}}
+
+/* ---------- the account (brand/account.js): header button, its menu, the name window ---------- */
+.gm-acctslot{display:contents}
+.gm-acct{min-height:44px;min-width:44px;padding:0 12px;border-radius:10px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;
+  font-family:var(--display);font-weight:800;font-stretch:105%;font-size:13px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;flex:none}
+.gm-acct.me{padding:0;width:44px;border-radius:50%;border:0;background:var(--coral);color:var(--on-coral);font-size:19px;letter-spacing:0}
+.gm-acct:hover{border-color:var(--coral-text)}
+.gm-ascrim{position:fixed;inset:0;z-index:48}
+.gm-amenu{position:fixed;z-index:49;width:min(290px,calc(100vw - 16px));background:var(--page);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.gm-amenu b{font-family:var(--display);font-weight:800;font-stretch:92%;font-size:20px;text-transform:uppercase;line-height:1.1}
+.gm-amenu small{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis}
+.gm-amenu p{margin:8px 0 10px;font-size:14px;color:var(--muted)}
+.gm-amenu .gm-big{min-height:44px;font-size:15px}
+.gm-input{min-height:50px;border:1.5px solid var(--ink);border-radius:8px;background:var(--bg);color:var(--ink);padding:10px 14px;font-size:17px;width:100%}
+.gm-namebox .gm-rbody{gap:10px}
+.lb .ghost[data-gm-signin]{align-self:flex-start;margin-top:8px}
+/* Give up: a coral pill with a flag, centred under the game; the second tap confirms */
+.linkbtn.giveup{align-self:center;min-height:44px;padding:10px 26px;border:1.5px solid var(--coral-text);border-radius:999px;text-decoration:none;color:var(--coral-text);font-weight:700;font-size:1rem}
+.linkbtn.giveup::before{content:"⚑\00a0\00a0"}
+.linkbtn.giveup[data-armed]{background:var(--coral-text);color:var(--bg)}
+
+/* My stats (brand/account.js statsPage), the same in every game: you, then a card per way to play */
+.gm-stats{display:flex;flex-direction:column;gap:12px;text-align:left}
+.gm-me{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:14px}
+.gm-av{width:48px;height:48px;flex:none;border-radius:50%;background:var(--coral);color:#16202F;display:grid;place-items:center;font-family:var(--display);font-weight:900;font-size:22px}
+.gm-mett{flex:1;min-width:0;display:flex;flex-direction:column}
+.gm-mett b{font-family:var(--display);font-weight:900;font-stretch:90%;text-transform:uppercase;font-size:22px;line-height:1.05;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gm-mett small,.gm-mest small,.gm-mhd small{font-family:var(--type);font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.gm-mest{display:flex;flex-direction:column;align-items:flex-end}
+.gm-mest b{font-family:var(--display);font-weight:900;font-size:24px;line-height:1;color:var(--gold)}
+.gm-mode{display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:14px;padding:14px}
+.gm-mico{flex:none;width:64px;display:grid;place-items:center}
+.gm-mico svg{display:block}
+.gm-mtxt{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.gm-mhd{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.gm-mhd b{font-family:var(--display);font-weight:900;font-stretch:90%;text-transform:uppercase;font-size:19px;line-height:1}
+.gm-mnums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.gm-mnums span{display:flex;flex-direction:column;font-family:var(--type);font-size:11px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);line-height:1.2}
+.gm-mnums b{font-family:var(--display);font-weight:800;font-size:20px;line-height:1.1;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.gm-mfoot{font-size:13px;color:var(--muted);line-height:1.35}
+.gm-msign{align-self:flex-start;font-size:13px;padding:0}
+.gm-levels{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:14px;padding:14px}
+.gm-lv{display:grid;grid-template-columns:60px 1fr auto;align-items:center;gap:10px;font-family:var(--type);font-size:13px}
+.gm-lv span{color:var(--muted)}
+.gm-lv i{height:20px;border-radius:5px;background:var(--line);overflow:hidden;display:block}
+.gm-lv i b{display:block;height:100%;border-radius:5px}
+.gm-lv small{font-size:12.5px;min-width:64px;text-align:right}
+/* one traveller (not a room): the whole stub stays on one line, even on narrow phones; the boxes shrink instead */
+.tk-stub:not(:has(.pl)){flex-wrap:nowrap;gap:2px}
+.tk-stub:not(:has(.pl)) .tk-c{min-width:0;padding:4px 6px}
+@media (max-width:400px){
+  .tk-stub:not(:has(.pl)) .tk-c{padding:4px 3px}
+  .tk-stub:not(:has(.pl)) .tk-c i{letter-spacing:.06em}
+  .tk-stub:not(:has(.pl)) .tk-c b{font-size:17px}
+  .tk-stub:not(:has(.pl)) .tk-dots{gap:3px}
+  .tk-stub:not(:has(.pl)) .tk-dots i{width:10px;height:10px}
+}
+@media (max-width:340px){
+  .tk-stub:not(:has(.pl)) .tk-c{padding:4px 2px}
+  .tk-stub:not(:has(.pl)) .tk-c i{letter-spacing:0;font-size:9px}
+  .tk-stub:not(:has(.pl)) .tk-c b{font-size:15px}
+}
+
+
+/* =====================================================================
+   TEST: "Libro de estilo" look (geomingo.com/test/ only)
+   Travel journal and passport: aged paper #F4F0EA, charcoal ink #2C3539,
+   passport red #8B263E for stamps and highlights, parchment #D3C5B4 for soft lines.
+   Typewriter for titles and country names, a clean sans-serif (Inter) for data and UI.
+   Cards and containers: rounded corners and a 2px dashed charcoal border.
+   ===================================================================== */
+html:root,html:root[data-theme],html:root[data-theme="dark"]{
+  --bg:#EAE3D7; --page:#F4F0EA; --guil:#E7DFD1; --ink:#2C3539; --muted:#686F71; --line:#D3C5B4;
+  --cover:#2C3539; --cover-ink:#F4F0EA; --gold:#8B263E;
+  --coral:#8B263E; --coral-deep:#6E1D31; --coral-text:#8B263E; --on-coral:#F4F0EA;
+  --red:#8B263E; --blue:#3C5A73; --green:#3F6A4A; --violet:#5D4C78; --clay:#8A5A3B;
+  --display:"Special Elite","Courier Prime","Courier New",monospace;
+  --body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --type:"Courier Prime","Courier New",ui-monospace,monospace;
+  --shadow:0 1px 0 rgba(44,53,57,.04),0 10px 24px -18px rgba(44,53,57,.45);
+  --scrim:rgba(44,53,57,.45);
+  --dash:2px dashed #2C3539;
+  color-scheme:light}
+html{font-synthesis:none}
+body{background-color:var(--page);background-image:repeating-radial-gradient(circle at 115% -12%,transparent 0 14px,var(--guil) 14px 15px)}
+/* watermark: a tilted customs stamp, very faint */
+body::after{content:"PASSPORT · GEOMINGO";position:fixed;z-index:-1;left:50%;top:58%;transform:translate(-50%,-50%) rotate(-18deg);
+  border:6px double #2C3539;border-radius:18px;padding:14px 28px;font-family:"Special Elite",monospace;font-size:46px;letter-spacing:.12em;white-space:nowrap;color:#2C3539;opacity:.07;pointer-events:none}
+/* Mingo keeps his pink: he is the only colour on the page */
+.mg-body,.mg-neck{fill:#EE7A86}.mg-neck{fill:none;stroke:#EE7A86}
+.mg-deep{fill:#D85C69}.mg-leg{stroke:#C94A58}
+.mg-tip,.mg-eye{fill:#2C3539}.mg-eyel{stroke:#2C3539}.mg-beak{fill:#F4F0EA}
+.mg-pass{fill:#8B263E}.mg-gold{stroke:#E9D9B0}
+/* titles: typewriter, stamped; no fake bold */
+.gm-logo,.gm-title,.gm-head h2,.gm-bubble b,.ht,.big,h1,h2,h3{font-family:var(--display)!important;font-weight:400!important;font-stretch:100%!important;letter-spacing:.01em}
+.gm-logo span{color:#8B263E}
+/* cards and containers: rounded, dashed charcoal border, paper */
+.panel,.hcard,.gm-card,.ticket,.status,.box,.card,.sheet,.room{border:var(--dash)!important;border-radius:14px!important;background-color:var(--page);box-shadow:var(--shadow)}
+.hcard.ac,.hcard#daily{border-color:#8B263E!important;border-style:dashed!important}
+.hcard.soon,.gm-card.soon{opacity:.6}
+.gm-bubble{background:var(--page);border:1.5px solid #2C3539}
+.gm-bubble.good b{color:var(--green)}.gm-bubble.bad b{color:#8B263E}
+/* GeoPass button: a little red passport */
+.gm-pass{background:#8B263E;color:#F4F0EA}
+.gm-pass i{border-color:#E9D9B0;color:#E9D9B0}.gm-pass b{color:#E9D9B0}
+.gm-icon{background:var(--page);border:1.5px solid #2C3539}
+/* the in-game ticket: paper with a dashed border, the mode strip in passport red */
+.ticket{background:var(--page)!important}
+.tk-mode.daily{background:#8B263E;color:#F4F0EA}
+.tk-mode.practice{background:#3C5A73;color:#F4F0EA}
+.ticket,.ticket.tk-practice{border-color:#2C3539!important}
+.tk-tear{border-top:2px dashed #D3C5B4}
+.tk-tear::before,.tk-tear::after{background:var(--bg);border:2px dashed #2C3539}
+.tk-c b{font-family:var(--display);font-weight:400}
+.tk-c.tk-pts b,.tk-c.tk-gs b{color:#8B263E}
+/* buttons: red ink for the main action, outlined charcoal for the rest */
+.primary,button.primary{background:#8B263E!important;color:#F4F0EA!important;border-radius:10px}
+.ghost{background:transparent;border:1.5px solid #2C3539;color:#2C3539}
+/* big numbers and data: clean sans-serif */
+.big{color:#2C3539}
+/* home page: game tiles on paper, no loud colours */
+.tile{background:var(--page)!important;color:#2C3539!important;border:var(--dash)!important;box-shadow:none!important}
+.tile .tt{color:#8B263E}
+.tile b{font-family:var(--display)!important;font-weight:400!important;font-stretch:100%!important;font-size:11.5cqw!important;letter-spacing:-.02em}
+.tile.soon{border-color:#D3C5B4!important;color:var(--muted)!important}
+.pass{background:var(--page)!important;border:var(--dash)!important;box-shadow:var(--shadow)!important}
+.pass .lab,.pass .mi,.pass .note b{color:#8B263E!important}
+.pass .note{color:var(--muted)!important}
+.pass hr{background:#D3C5B4!important}
+.friends{background:#8B263E!important;color:#F4F0EA!important;border:0!important}
+.friends svg{stroke:#F4F0EA!important}
+/* the GeoPass booklet: a red passport cover, aged paper pages */
+.gp{--paper:#F4F0EA;--paper-2:#E9E1D3;--pink:#2C3539;--pmut:#686F71;background:#8B263E!important;border-color:#6E1D31!important}
+.gp-tabs button{background:#6E1D31;color:#EBC9CF}
+.gp-tabs button[aria-selected="true"]{background:var(--paper);color:#8B263E}
+.gp{box-shadow:inset 0 0 0 1.5px #A84058,inset 0 0 0 5px #7A2036,inset 0 0 0 6px rgba(233,217,176,.45)!important}
+.gp-bar,.gp-bar b,.gp-bar h2,.gp-bar span{color:#F4F0EA!important}.gp-emb{stroke:#E9D9B0}
+.gp-bar button{background:transparent!important;border:1.5px solid #F4F0EA!important;color:#F4F0EA!important}
