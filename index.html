@@ -37,30 +37,27 @@ main{display:flex;flex-direction:column;gap:18px}
 .menubtn svg{stroke:currentColor}
 /* today's games: one colour per game */
 .tiles{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;--ic:44px;--nm:19px}
-.tiles.c3{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;--ic:26px;--nm:14px}
-.c3 .tile{aspect-ratio:1}
-.c3 .tile b{font-stretch:66%;font-size:14px;letter-spacing:-.01em}
 .tiles li{display:flex;min-width:0}
 .tile{flex:1;min-width:0;aspect-ratio:1;box-sizing:border-box;border-radius:16px;background:var(--c);color:#16202F;text-decoration:none;padding:12px;display:flex;flex-direction:column;gap:6px;overflow:hidden;box-shadow:0 12px 26px -14px var(--c);transition:transform .12s ease}
-.c3 .tile{padding:10px 9px;border-radius:14px;gap:4px}
 .tile:active{transform:scale(.98)}
 .tile:focus-visible{outline:3px solid #F6F8F5;outline-offset:3px}
 .tile .tt{display:flex;justify-content:space-between;gap:6px;font-family:var(--type);font-weight:700;font-size:12px;letter-spacing:.02em;white-space:nowrap}
-.c3 .tile .tt{font-size:11px}
 .tile svg{display:block;flex:1 1 0;min-height:0;width:100%;height:100%;margin:2px 0}
 .tile b{font-family:var(--display);font-weight:900;font-stretch:85%;font-size:var(--nm);line-height:1.05;text-transform:uppercase;margin-top:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tile small{font-size:13px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .tile .s3{display:none;font-family:var(--type);font-weight:700;font-size:11px;white-space:nowrap}
-.c3 .tile .s2,.c3 .tile small{display:none}
-.c3 .tile .s3{display:block}
 .tile.ctr b,.tile.ctr small,.tile.ctr .s3{text-align:center}
 .tile.ctr{gap:3px;padding-bottom:10px}
 .tile.ctr small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:clamp(10px,3.1vw,12.5px);letter-spacing:-.01em}
 .tile.ctr svg{margin:0 -4px 4px}
-/* 3 per row: no subtitle (no room on phones), a bigger picture instead */
-.c3 .tile.ctr small{display:none}
-.c3 .tile.ctr svg{margin:4px 0 2px}
-.c3 .tile b{word-spacing:.12em}
+/* 3 per row: the same box as before, everything scaled to the box width (cqw) so it fits any phone */
+.tiles.c3{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.c3 li{container-type:inline-size}
+.c3 .tile{padding:8cqw 7cqw;border-radius:14px;gap:2.5cqw}
+.c3 .tile .tt{font-size:8.4cqw;letter-spacing:0;gap:2cqw}
+.c3 .tile.ctr svg{margin:1cqw 0 1.5cqw}
+.c3 .tile b{font-size:14cqw;font-stretch:72%}
+.c3 .tile.ctr small{font-size:8.6cqw;line-height:1.2;white-space:normal;letter-spacing:0;-webkit-line-clamp:2}
 .tile.soon{background:transparent;border:2px dashed #4A5570;color:var(--muted);box-shadow:none}
 .tile.soon svg{stroke:currentColor}
 /* the GeoPass card */
