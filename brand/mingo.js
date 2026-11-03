@@ -173,6 +173,7 @@ const secText=s=>s<60?s+'″':Math.floor(s/60)+'′'+String(s%60).padStart(2,'0'
 
 /* ---------- visas: special entries for special games ----------
    [ink, mark, name, what it takes, done?, progress 0..1 while not done, progress text, note (shown when done, or a best time), group]
+   Each group holds a multiple of 3 visas, so every row of the Visas tab is full (Héctor, 2026-11-03).
    groups: 0 Only one a day (the daily rankings), 1 Against the clock (your times), 2 Rare moments, 3 On the road (the first twelve).
    Group 0 comes from the rankings of the days you played, read by account.js once each day is over (gm-feats, signed in only):
    {game: {day: [place, players, first to finish, fastest, your finish time]}}. Only results with at least half right count
@@ -208,6 +209,12 @@ function visas(){const H=k=>json(k)||{},vals=o=>Object.values(o).filter(Boolean)
   const close=vals(H('cx-hist')).filter(e=>+e.w&&+e.m===3).length;
   const flaw=Object.values(L).filter(d=>Object.keys(d).length>=ALLN&&Object.values(d).every(v=>v>=120)).length;
   const pdn=pod.length;
+  const breath=vals(H('t10-hist')).filter(e=>+e.f>=10&&+e.l===1).length;
+  // Weekend away: every daily on a Saturday and on the Sunday right after it
+  const full=d=>L[d]&&Object.keys(L[d]).length>=ALLN;
+  const wknd=Object.keys(L).filter(d=>new Date(d+'T12:00Z').getUTCDay()===6&&full(d)&&full(new Date(Date.parse(d+'T12:00Z')+864e5).toISOString().slice(0,10))).length;
+  // Six continents: a country of your own in each of them
+  const conts=new Set(Object.keys(ATLAS).filter(c=>country(c).mine).map(c=>ATLAS[c].r)).size;
   return [
     ['#A07C1E','1st','Gold medal','1st in a daily ranking',gold.length>0,0,'',times(gold.length,last(gold)),0],
     ['#C94A58','⏱','First to arrive','First player to finish a daily',first.length>0,0,'',times(first.length,last(first)),0],
@@ -222,6 +229,8 @@ function visas(){const H=k=>json(k)||{},vals=o=>Object.values(o).filter(Boolean)
     ['#A07C1E','23:59','Last call','A daily in its last 10 minutes',call>0,0,'',times(call),2],
     ['#C94A58','3✕','Close call','Win Connections with 3 mistakes',close>0,0,'',times(close),2],
     ['#25744F',ALLN+'★','Flawless day','All '+ALLW+' dailies perfect on one day',flaw>0,0,'',times(flaw),2],
+    ['#6B4BA8','1♥','Last breath','All ten in a Top 10 with one life left',breath>0,0,'',times(breath),2],
+    ['#2A56B8','SA·SU','Weekend away','All '+ALLW+' dailies on a Saturday and the Sunday after',wknd>0,0,'',times(wknd),2],
     ['#C94A58','7','Week on the road','7 days in a row',...up(bs,7),'',3],
     ['#A07C1E',ALLN+'/'+ALLN,'Grand tour','All '+ALLW+' dailies in one day',Object.values(L).some(d=>Object.keys(d).length>=ALLN),0,'','',3],
     ['#2A56B8','0✕','Clean sweep','Connections with no mistakes',vals(H('cx-hist')).some(e=>e.w&&!+e.m),0,'','',3],
@@ -232,8 +241,10 @@ function visas(){const H=k=>json(k)||{},vals=o=>Object.values(o).filter(Boolean)
     ['#2A56B8','2+','Good company','Win a game with friends',fr,0,'','',3],
     ['#A07C1E','1','New homeland','Your first country',...up(cm,1),'',3],
     ['#25744F','100','Collector','100 stamps',...up(p.n,100),'',3],
+    ['#B5632A','500','Seasoned traveller','500 stamps',...up(p.n,500),'',3],
     ['#C94A58','30','Month away','30 days in a row',...up(bs,30),'',3],
     ['#6B4BA8','50','Citizen of the world','50 countries',...up(cm,50),'',3],
+    ['#2A56B8','6','Six continents','A country of your own on every continent',...up(conts,6),'',3],
     ['#1D2B4C','1K','Full passport','1,000 stamps',...up(p.n,1000),'',3]]}
 const stamps=()=>pass().n;
 const stampsToday=g=>pass().list.filter(x=>x.d===dayKey()&&(!g||x.g===g)).length;
