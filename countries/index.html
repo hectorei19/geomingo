@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611030900"></script>
-<script src="../brand/account.js?v=202611021800"></script>
+<script src="../brand/mingo.js?v=202611031030"></script>
+<script src="../brand/account.js?v=202611031030"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -313,7 +313,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .b3 .cell.flag .gm-stamp .sn{font-size:14px!important}
 .b5 .cell.flag .gm-stamp .sn{font-size:10px!important}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611021800">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611031030">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -1106,7 +1106,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/da
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202611020500';
+const APP_VERSION='202611031030';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
