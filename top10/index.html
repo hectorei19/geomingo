@@ -16,7 +16,7 @@
 .wl .w{display:grid;grid-template-columns:auto 16px minmax(0,1fr);column-gap:6px;align-items:center;padding:3px 8px;border:1.5px solid var(--line);border-left:5px solid var(--pc,var(--line));border-radius:6px;font-size:.84rem;line-height:1.25;min-width:0;overflow:hidden}
 .wl .w img{grid-row:span 2;width:16px;height:16px;border-radius:3px;opacity:.75}
 .wl .w .wn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wl .w small{grid-column:3;opacity:.7;font-size:.74rem;min-width:0;overflow-wrap:anywhere}
+.wl .w small{grid-column:3;opacity:.7;font-size:.74rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wl .w .wr{grid-row:span 2;font-weight:800;color:var(--ink);min-width:2.1em}
 .t10list .nm .pin{flex:none}
 </style>
@@ -445,11 +445,16 @@ function listHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries
     return `<li class="${f?'on':S.over?'miss':''}${f&&on?' by':''}${fresh===c?' new':''}${i>=half?' c2':''}${i===half?' c2top':''}"${ask&&!f?' data-ask':''}${f&&on?` style="${pc(c)};background:var(--p${S.by[c]%6}-soft)" title="${esc(who(c))}"`:''}><span class="rk">${placeOf(l,c)}</span><span class="nm">${show?`<img class="mini" src="${FLAGS[c]}" alt="">${esc(co.n)}`:''}</span>${show?`<span class="val">${esc(l.fmt(val[c]))}</span>`:''}</li>`}).join('')}</ol>`;
   fresh=null;
   return h}
+// the figure of a wrong answer, short enough to fit its box on one line: big numbers in M / bn, short units
+function shortFig(t){return t.replace(/\d{1,3}(?:\.\d{3}){2,}(?:,\d+)?/g,m=>{const v=+m.replace(/\./g,'').replace(',','.');return v>=1e9?EU(v/1e9,2)+' bn':EU(v/1e6,v>=1e8?0:1)+' M'})
+  .replace(/^(\d{3})\.\d{3} inhabitants$/,'$1k inhabitants')
+  .replace(/ per million people/g,' per M').replace(/ trillion/g,' tn').replace(/ billion/g,' bn').replace(/ million/g,' M')
+  .replace(/ inhabitants per km²/g,'/km²').replace(/ inhabitants/g,' inhab.').replace(/ tonnes/g,' t').replace(/ neighbours/g,' nbrs')}
 function wrongsHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries(r.map(x=>[x.c,x.v])),on=S.mode==='online';
   const who=c=>on&&S.by[c]!=null&&S.players[S.by[c]]?S.players[S.by[c]].name:'',pc=c=>`--pc:var(--p${S.by[c]%6})`;let h='';
   // wrong answers: sorted by their real place, each showing its place first and its figure, like the rows above
   if(S.wrong.length){const ws=S.wrong.map(c=>({c,p:placeOf(l,c)})).sort((a,b)=>(a.p||1e9)-(b.p||1e9));
-    h+=`<div class="wrongs">Not in the top 10:<div class="wl">${ws.map(({c,p})=>`<span class="w"${on?` style="${pc(c)}" title="${esc(who(c))}"`:''}><b class="wr">${p?'#'+p:'–'}</b><img src="${FLAGS[c]}" alt=""><span class="wn">${esc(byCode[c].n)}</span><small>${p?esc(l.fmt(val[c])):'no figure'}</small></span>`).join('')}</div></div>`}
+    h+=`<div class="wrongs">Not in the top 10:<div class="wl">${ws.map(({c,p})=>`<span class="w"${on?` style="${pc(c)}" title="${esc(who(c))}"`:''}><b class="wr">${p?'#'+p:'–'}</b><img src="${FLAGS[c]}" alt=""><span class="wn">${esc(byCode[c].n)}</span><small>${p?esc(shortFig(l.fmt(val[c]))):'no figure'}</small></span>`).join('')}</div></div>`}
   return h}
 const quickRules=extra=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name the ten countries of the ranking, in any order. A country outside the top 10 costs one of your ${LIVES} lives. Only independent countries count.${extra||''}</p></section>`;
 function homeHTML(){const key=todayKey(),num=dayNum(key,T10_FIRST),d=dailySaved(),h=load('t10-hist',{}),days=Object.keys(h);
