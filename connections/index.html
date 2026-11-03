@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611021845"></script>
+<script src="../brand/mingo.js?v=202611030900"></script>
 <script src="../brand/account.js?v=202611021800"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -280,16 +280,19 @@ async function joinRoom(raw){
 // resume: reopening the page goes back to the room you were in; if it is gone, quietly to the home screen
 function listenRoom(code,resume){
   if(roomRef)roomRef.off();
-  roomCode=code;roomRef=db.ref('rooms/'+code);keep('cx-room',code);view='room';leaveArmed=false;
+  roomCode=code;roomRef=db.ref('rooms/'+code);keep('cx-room',code);Geomingo.room.seen('cx-room');view='room';leaveArmed=false;
   const ref=roomRef;let first=true;
   ref.child('players/'+ME+'/on').onDisconnect().set(false);
   ref.on('value',snap=>{if(ref!==roomRef)return;const r=snap.val();
     if(!r||!r.players||!r.players[ME]||!r.players[ME].name){const was=roomCode;dropRoom();
       if(resume&&first){view='home'}else{view='friends';toast(r?'You are no longer in room '+was+'.':'Room '+was+' was closed.','bad')}
       render();return}
-    first=false;room=r;syncRoom()})}
+    if(resume&&first&&!Geomingo.room.resume('cx-room',cxDone(r))){dropRoom();view='home';render();return}
+    first=false;room=r;Geomingo.room.seen('cx-room');syncRoom()})}
+// my game in the room is over (I found all four groups or gave up)
+const cxDone=r=>{const p=r&&r.players&&r.players[ME];return !!(r&&r.status==='play'&&p&&p.r===r.round&&p.done)};
 function dropRoom(){if(roomRef){roomRef.off();try{roomRef.child('players/'+ME+'/on').onDisconnect().cancel()}catch(e){}}
-  room=null;roomRef=null;roomCode=null;if(S&&S.mode==='online')S=null;keep('cx-room',null)}
+  room=null;roomRef=null;roomCode=null;if(S&&S.mode==='online')S=null;Geomingo.room.forget('cx-room')}
 async function leaveRoom(home){const ref=roomRef;
   if(ref){try{await ref.transaction(x=>{if(!x||!x.players)return x;
     // in the lobby you leave the list; during a game your result stays, marked offline. Nobody left: the room is deleted
@@ -543,16 +546,15 @@ function bind(){
 }
 
 /* ---- start: ?p=123 opens that practice puzzle, ?room=ABCD joins that room (shared links), ?friends opens With friends ---- */
-(()=>{const p=TESTQ.get('p'),q=TESTQ.get('room');
+(()=>{const p=TESTQ.get('p'),q=TESTQ.get('room'),back=Geomingo.room.saved('cx-room'); // an old room, or another room than the invite link, is forgotten
   const clean=()=>{try{history.replaceState(null,'',location.pathname)}catch(e){}};
   if(p&&/^\d{1,10}$/.test(p)){openFree(+p);clean();return}
   if(q&&/^[A-Za-z]{4}$/.test(q)){clean();joinCode=q.toUpperCase();view='friends';render();if(myName)joinRoom(joinCode);return}
-  const back=load('cx-room','');
   if(back&&initFB()){listenRoom(back,true);render();return}
   if(TESTQ.has('friends')){clean();view='friends'}
   render()})();
 // a new day while the page is open: show the new puzzle when you come back
-document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(view==='home')render();else if(view==='game'&&mode==='daily'&&S&&S.date!==todayKey())openDaily()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(roomCode&&room&&Geomingo.room.stale(cxDone(room))){leaveRoom(true);return}if(view==='home')render();else if(view==='game'&&mode==='daily'&&S&&S.date!==todayKey())openDaily()});
 </script>
 </body>
 </html>

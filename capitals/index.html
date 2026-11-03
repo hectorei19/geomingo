@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611021845"></script>
+<script src="../brand/mingo.js?v=202611030900"></script>
 <script src="../brand/account.js?v=202611021800"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -979,7 +979,7 @@ async function joinRoom(raw){
 function listenRoom(code){
   if(roomRef)roomRef.off();
   roomCode=code;roomRef=db.ref('rooms/'+code);firstSync=true;seenEv=null;
-  try{localStorage.setItem('cc-room',code)}catch(e){}
+  try{localStorage.setItem('cc-room',code)}catch(e){}Geomingo.room.seen('cc-room');
   const me=roomRef.child('players/'+ME+'/on');
   me.onDisconnect().set(false);
   db.ref('.info/connected').on('value',s=>{if(s.val()&&roomCode===code){me.onDisconnect().set(false);roomRef.child('players/'+ME).once('value',p=>{if(p.exists())me.set(true)})}});
@@ -989,13 +989,13 @@ function listenRoom(code){
       const was=roomCode;dropRoom();
       if(was)toast(r?'You are no longer in room '+was+'.':'Room '+was+' was closed.','bad');
       render();return}
-    room=r;syncRoom();
+    room=r;Geomingo.room.seen('cc-room');syncRoom();
   });
 }
 function dropRoom(){
   if(roomRef){roomRef.off();try{roomRef.child('players/'+ME+'/on').onDisconnect().cancel()}catch(e){}}
   room=null;roomRef=null;roomCode=null;S=null;clearInterval(tick);
-  try{localStorage.removeItem('cc-room')}catch(e){}
+  Geomingo.room.forget('cc-room');
 }
 // tapping the logo goes to the home screen from anywhere; a game that would be lost (Solo, a room) asks first
 function goHome(){if(USER&&NEEDNAME)return;
@@ -1656,8 +1656,13 @@ function start(data){
   // a shared result link (?grid=4E-KQPMT) opens the setup screen ready to play that same grid
   try{const g=new URLSearchParams(location.search).get('grid');if(g&&parseCode(g)){setup.code=g.trim().toUpperCase();if(setup.mode==='online')setup.mode='solo';screen='solo';if(S&&S.mode!=='online')S=null}}catch(e){}
   initAuth();watchLB();
-  if(FB_OK&&!S){let saved='';try{saved=localStorage.getItem('cc-room')||''}catch(e){}
-    if(saved&&initFB()){listenRoom(saved)}}
+  // back in the room after a reload, unless it is an old or finished one (or an invite link to another room was opened)
+  if(FB_OK&&!S){const saved=Geomingo.room.saved('cc-room');
+    if(saved&&initFB())db.ref('rooms/'+saved).once('value').then(s=>{const r=s.val();
+      if(r&&r.players&&r.players[ME]&&!roomCode&&!S&&Geomingo.room.resume('cc-room',r.status==='over'))listenRoom(saved);else if(!roomCode)Geomingo.room.forget('cc-room')}).catch(()=>{})}
+  // back from another app after a while with a finished room still open: go to the home screen
+  document.addEventListener('visibilitychange',()=>{if(document.hidden||!roomCode||!room)return;
+    if(Geomingo.room.stale(room.status==='over'))leaveRoom().then(()=>{screen='home';render()})});
   render();
 }
 document.getElementById('creditsbtn').onclick=()=>{ui.credits=true;drawLayer()};

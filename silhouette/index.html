@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611021845"></script>
+<script src="../brand/mingo.js?v=202611030900"></script>
 <script src="../brand/account.js?v=202611021800"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -377,18 +377,18 @@ async function joinRoom(raw){
 function listenRoom(code){
   if(roomRef)roomRef.off();
   roomCode=code;roomRef=db.ref('rooms/'+code);view='friends';setup.join='';
-  try{localStorage.setItem('sil-room',code)}catch(e){}
+  try{localStorage.setItem('sil-room',code)}catch(e){}Geomingo.room.seen('sil-room');
   try{const u=new URL(location.href);if(u.searchParams.has('room')){u.searchParams.delete('room');history.replaceState(null,'',u.pathname+u.search)}}catch(e){}
   const me=roomRef.child('players/'+ME+'/on');me.onDisconnect().set(false);
   db.ref('.info/connected').on('value',s=>{if(s.val()&&roomCode===code){me.onDisconnect().set(false);roomRef.child('players/'+ME).once('value',p=>{if(p.exists())me.set(true)})}});
   roomRef.on('value',snap=>{const r=snap.val();
     if(!r||!r.players||!r.players[ME]){const was=roomCode;dropRoom();
       if(was)toast(r?'You are no longer in room '+was+'.':'Room '+was+' was closed.','bad');render();return}
-    room=r;syncRoom()})}
+    room=r;Geomingo.room.seen('sil-room');syncRoom()})}
 function dropRoom(){
   if(roomRef){roomRef.off();try{roomRef.child('players/'+ME+'/on').onDisconnect().cancel()}catch(e){}}
   room=null;roomRef=null;roomCode=null;O=null;clearInterval(tick);
-  try{localStorage.removeItem('sil-room')}catch(e){}}
+  Geomingo.room.forget('sil-room')}
 async function leaveRoom(){const ref=roomRef;
   if(ref&&room&&room.status==='lobby'){
     try{await ref.transaction(r=>{if(!r)return r;if(r.players)delete r.players[ME];
@@ -598,13 +598,14 @@ window.addEventListener('load',()=>{if(document.querySelector('.reveal .flag'))r
   else if(TESTQ.has('friends')){view='friends';try{history.replaceState(null,'',location.pathname)}catch(e){}}
   render()})();
 // back in a room after a reload (the online scripts load after the page)
-window.addEventListener('DOMContentLoaded',()=>{let code='';try{code=localStorage.getItem('sil-room')||''}catch(e){}
+window.addEventListener('DOMContentLoaded',()=>{const code=Geomingo.room.saved('sil-room'); // an old or finished room is not reopened
   if(view==='friends')render(); // the Create and Join buttons were drawn before Firebase loaded
   if(!code||!initFB())return;
   db.ref('rooms/'+code).once('value').then(s=>{const r=s.val();
-    if(r&&r.game==='silhouette'&&r.players&&r.players[ME]&&!roomCode)listenRoom(code);else try{localStorage.removeItem('sil-room')}catch(e){}}).catch(()=>{})});
+    if(r&&r.game==='silhouette'&&r.players&&r.players[ME]&&!roomCode&&Geomingo.room.resume('sil-room',r.status==='over'))listenRoom(code);else if(!roomCode)Geomingo.room.forget('sil-room')}).catch(()=>{})});
 // a new day while the page was in the background: today's new board
-document.addEventListener('visibilitychange',()=>{if(document.hidden||roomCode)return;if(view==='home'||view==='daily'&&D&&!D.arch&&D.date!==todayKey()){D=null;if(view==='daily')openDaily();else render()}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&roomCode&&room&&Geomingo.room.stale(room.status==='over')){leaveRoom().then(()=>{view='home';render()});return}
+  if(document.hidden||roomCode)return;if(view==='home'||view==='daily'&&D&&!D.arch&&D.date!==todayKey()){D=null;if(view==='daily')openDaily();else render()}});
 </script>
 </body>
 </html>

@@ -459,7 +459,32 @@ function openPass(tab){if(typeof tab==='string')gpTab=tab;
 /* a little grid of squares for the result card (true = got it) */
 function mini(list,cols){return '<div class="gm-mini" style="grid-template-columns:repeat('+cols+',16px)" aria-hidden="true">'+list.map(x=>'<i class="'+(x?'ok':'')+'"></i>').join('')+'</div>'}
 
+
+/* With friends: a room only comes back on its own while it is still being played.
+   Each game keeps its room code in localStorage (key) and here the last time this phone had that room open (key+'-seen').
+   Reopening the game: an invite link to another room always wins; a room not seen for 30 minutes is forgotten;
+   a finished game comes back only within 10 minutes (an accidental reload), never the next day. */
+const ROOM_LIVE=30*60e3,ROOM_DONE=10*60e3;
+let roomKey='',hiddenAt=0,awayMs=0;
+function roomSeen(key){roomKey=key;try{localStorage.setItem(key+'-seen',String(Date.now()))}catch(e){}}
+function roomForget(key){if(roomKey===key)roomKey='';try{localStorage.removeItem(key);localStorage.removeItem(key+'-seen')}catch(e){}}
+function roomAge(key){let t=0;try{t=+localStorage.getItem(key+'-seen')||0}catch(e){}return t?Date.now()-t:Infinity}
+function roomSaved(key){let code='';try{code=localStorage.getItem(key)||''}catch(e){}
+  try{const j=JSON.parse(code);if(typeof j==='string')code=j}catch(e){}
+  code=String(code||'').toUpperCase();if(!/^[A-Z]{4}$/.test(code)){roomForget(key);return ''}
+  let link='';try{link=(new URLSearchParams(location.search).get('room')||'').toUpperCase()}catch(e){}
+  if(link&&link!==code||roomAge(key)>ROOM_LIVE){roomForget(key);return ''}
+  return code}
+// after reading the saved room: may it come back? (finished = the game in it is over for me)
+function roomResume(key,finished){if(finished&&roomAge(key)>ROOM_DONE){roomForget(key);return false}return true}
+// back from another app with the room still on screen: leave it if it is over and the phone was away a while
+function roomStale(finished){return awayMs>(finished?ROOM_DONE:ROOM_LIVE)}
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){hiddenAt=Date.now();if(roomKey)roomSeen(roomKey)}
+  else{awayMs=hiddenAt?Date.now()-hiddenAt:0;hiddenAt=0}});
+const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,stale:roomStale};
+
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
   days,streak,pass,stamp,stamps,stampsToday,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,traveller,header,passBtn,themeBtn,toggleTheme,currentTheme,
-  resultWindow,openWindow,closeWindow,mini,esc,refreshPass,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
+  resultWindow,openWindow,closeWindow,mini,esc,refreshPass,room,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();
