@@ -104,12 +104,13 @@ body.kbon .kbgu #src{align-self:center!important}
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script defer src="firebase-config.js?v=202611010100"></script>
 <script src="../shared/data.js?v=202610192300"></script>
+<script src="extra-data.js?v=202611031200"></script>
 <script src="../shared/games.js?v=202610240100"></script>
 <script src="../shared/minigames.js?v=202611021845"></script>
 <script>
 /* ---- the rankings ----
-   Only numbers Countries already uses (DATA and the country data), with the sources named in its Credits.
-   Independent countries only. A list is used only when the 10th and 11th places are not tied. */
+   Numbers Countries already uses (DATA and the country data), plus a few figures only Top 10 uses (XDATA,
+   in extra-data.js), each with its source named in the list and in Credits. Independent countries only. A list is used only when the 10th and 11th places are not tied. */
 const T10_FIRST='2026-10-19',LIVES=5;
 const SOVC=C.filter(c=>!c.t);
 const n0=v=>EU(Math.round(v));
@@ -125,6 +126,13 @@ const GDPNOTE=NOTE('World Bank figures, 2025 column','List of countries by GDP (
 const CO2NOTE=NOTE('figures for 2023','List of countries by carbon dioxide emissions per capita');
 const FORESTNOTE=NOTE('forest share of land area','List of countries by forest area');
 const L=(id,title,get,dir,fmt,src)=>({id,title,get,dir,fmt,src});
+// figures only Top 10 uses (top10/extra-data.js)
+const X=k=>c=>num(XDATA[k][c.c]);
+// Credits: the countries' data, plus the sources of the figures only Top 10 uses
+function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Top 10's other figures, downloaded in November 2026 and each checked against a second source: beer (Kirin Holdings), McDonald's restaurants (McDonald's), wine (OIV), coffee (FAO via Our World in Data), and Wikipedia lists (CC BY-SA 4.0) for tourists (UN Tourism, with HelloSafe), World Cups (FIFA), temperature (World Bank), Nobel Prizes and gold (World Gold Council).</li></ul>`)}
+const BEERNOTE='Litres of beer per person in 2022. Source: Kirin Holdings, "Global Beer Consumption by Country in 2022", which gives the top 35 countries and a few others; the rest have no figure.';
+const MCDNOTE='Restaurants open on 31 December 2025. Source: McDonald\'s, "Restaurants by Market 2025" (the same numbers as Wikipedia, "List of countries with McDonald\'s restaurants"). Small markets it does not list separately have no figure.';
+const TEMPNOTE=NOTE('World Bank Climate Change Knowledge Portal, average for 1991–2020','List of countries by average yearly temperature');
 // the world lists; each one also comes in a version for Europe, Asia, Africa and the Americas (see REGIONS below)
 const WORLD_LISTS=[
   L('pop-hi','The 10 most populous countries',D('pop'),-1,ppl,POPNOTE),
@@ -169,6 +177,17 @@ const WORLD_LISTS=[
   L('name-hi','The 10 countries with the longest names',c=>c.letters.length,-1,v=>v+' letters','Letters in the country\'s name as Geomingo writes it (spaces and hyphens not counted).'),
   L('name-lo','The 10 countries with the shortest names',c=>c.letters.length,1,v=>v+' letters','Letters in the country\'s name as Geomingo writes it (spaces and hyphens not counted).'),
   L('olympc-hi','The 10 countries with the most Olympic medals per person',c=>D('olymp')(c)&&D('pop')(c)?D('olymp')(c)/D('pop')(c)*1e6:undefined,-1,v=>d1(v)+' per million people','All-time Olympic medals divided by population. Medals: Wikipedia, "All-time Olympic Games medal table" (Summer and Winter, up to the 2026 Winter Games). '+POPNOTE),
+  // extra lists with their own figures (top10/extra-data.js)
+  L('beer-hi','The 10 countries that drink the most beer (per person)',X('beer'),-1,v=>d1(v)+' litres',BEERNOTE),
+  L('tour-hi','The 10 most visited countries (tourists from abroad)',X('tour'),-1,v=>d1(v)+' million','International tourist arrivals in 2024. The top 10: UN Tourism, as listed in Wikipedia, "World Tourism rankings". The other places: HelloSafe\'s 2026 table of UN Tourism figures (national figures where UN Tourism has none), which gives the same top 10. Countries outside its top 40 have no figure.'),
+  L('wc-hi','The 10 countries that have played the most FIFA World Cups',X('wc'),-1,v=>v+' World Cups','Men\'s World Cups played, up to and including 2026, as counted by FIFA (Wikipedia, "National team appearances in the FIFA World Cup"): West Germany counts for Germany, the Soviet Union for Russia, Yugoslavia for Serbia and Czechoslovakia for Czechia. England counts for the United Kingdom; Scotland, Wales and Northern Ireland play separately and are not added.'),
+  L('mcd-hi','The 10 countries with the most McDonald\'s restaurants',X('mcd'),-1,v=>n0(v)+' outlets',MCDNOTE),
+  L('mcdpc-hi','The 10 countries with the most McDonald\'s per person',c=>X('mcd')(c)&&D('pop')(c)?X('mcd')(c)/D('pop')(c)*1e6:undefined,-1,v=>d1(v)+' per M','Restaurants per million (M) people: restaurants divided by population. '+MCDNOTE+' '+POPNOTE),
+  L('temp-lo','The 10 coldest countries (average yearly temperature)',X('temp'),1,v=>d1(v)+' °C',TEMPNOTE),
+  L('nobel-hi','The 10 countries with the most Nobel Prize winners',X('nobel'),-1,v=>n0(v)+' winners','Nobel Prize winners up to October 2026. Source: Wikipedia, "List of Nobel laureates by country" (the top 15 updated with the 2026 prizes, as in Business Today, 19 October 2026). A winner linked to two countries counts for both; the Soviet Union counts for Russia.'),
+  L('gold-hi','The 10 countries with the biggest gold reserves',X('gold'),-1,v=>n0(v)+' tonnes',NOTE('World Gold Council (IMF figures), August 2026, top 50 countries','Gold reserve')+' The World Gold Council\'s May 2026 table gives the same top 10.'),
+  L('wine-hi','The 10 countries that make the most wine',X('wine'),-1,v=>v>=10?EU(v/10,2)+' bn litres':n0(v*100)+' M litres','Wine made in 2023. Source: International Organisation of Vine and Wine (OIV), "2024 World Wine Production Outlook", which lists 29 countries; the others have no figure.'),
+  L('coffee-hi','The 10 countries that grow the most coffee',X('coffee'),-1,v=>v>=1e6?EU(v/1e6,2)+' M t':n0(v)+' t','Green coffee grown in 2023. Source: FAO (FAOSTAT), as published by Our World in Data, "Coffee bean production"; Wikipedia, "List of countries by coffee production", gives the same top 10.'),
 ];
 // the same rankings within one continent, as the country data groups them (Russia and Cyprus count as Europe; Turkey and the Caucasus as Asia)
 const REGIONS=[
@@ -177,7 +196,9 @@ const REGIONS=[
   {k:'af',name:'Africa',in:c=>c.r==='AF'},
   {k:'am',name:'the Americas',in:c=>c.r==='NA'||c.r==='SA'},
 ];
-const ALL_LISTS=[...WORLD_LISTS,...REGIONS.flatMap(g=>WORLD_LISTS.map(l=>({...l,id:l.id+'-'+g.k,reg:g,
+// the lists with Top 10's own figures come in a world version only: their second sources were checked for the world top 10
+const WORLD_ONLY=['beer-hi','tour-hi','wc-hi','mcd-hi','mcdpc-hi','temp-lo','nobel-hi','gold-hi','wine-hi','coffee-hi'];
+const ALL_LISTS=[...WORLD_LISTS,...REGIONS.flatMap(g=>WORLD_LISTS.filter(l=>!WORLD_ONLY.includes(l.id)).map(l=>({...l,id:l.id+'-'+g.k,reg:g,
   title:l.title.replace(' countries',' countries in '+g.name),
   src:'Only countries in '+g.name+', as the country data used in Countries groups them. '+l.src})))];
 // full ranking of a list: every independent country with a figure (in its continent, for a continent list), best first
