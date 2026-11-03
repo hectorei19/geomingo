@@ -135,7 +135,7 @@ svg.mingo{display:block;flex-shrink:0;overflow:visible}
 .ticket.tk-turn:has(.tbar)::after{content:"";position:absolute;left:0;right:0;bottom:0;height:12px;background:rgba(255,255,255,.08)}
 .ticket.tk-turn .tbar{height:12px;z-index:1;background:var(--pc)}
 .ticket.tk-turn .tbar.low{animation:tk-low .5s ease-in-out infinite alternate}
-@keyframes tk-low{to{opacity:.35}}
+@keyframes tk-low{to{box-shadow:0 0 12px 3px var(--pc)}}
 .ticket.tk-turn #tleft{color:var(--pc)}
 .ticket.tk-turn .tk-c.pl.on{border:2px solid var(--pc);background:color-mix(in srgb,var(--pc) 22%,transparent)}
 .ticket.tk-turn .tk-c.pl.on i{color:var(--pc);font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.01em}
