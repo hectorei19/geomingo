@@ -129,7 +129,7 @@ const L=(id,title,get,dir,fmt,src)=>({id,title,get,dir,fmt,src});
 // figures only Top 10 uses (top10/extra-data.js)
 const X=k=>c=>num(XDATA[k][c.c]);
 // Credits: the countries' data, plus the sources of the figures only Top 10 uses
-function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Top 10's other figures, downloaded in November 2026 and each checked against a second source: beer (Kirin Holdings), McDonald's restaurants (McDonald's), wine (OIV), coffee (FAO via Our World in Data), and Wikipedia lists (CC BY-SA 4.0) for tourists (UN Tourism, with HelloSafe), World Cups (FIFA), temperature (World Bank), Nobel Prizes and gold (World Gold Council).</li></ul>`)}
+function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Top 10's other figures, downloaded in November 2026 and each checked against a second source: beer (Kirin Holdings), McDonald's restaurants (McDonald's), wine (OIV), coffee (FAO via Our World in Data), and Wikipedia lists (CC BY-SA 4.0) for tourists (UN Tourism, with HelloSafe), World Cups (FIFA), temperature (World Bank), Nobel Prizes and gold (World Gold Council). Rice and oil: FAO and the Energy Institute via Our World in Data; natural gas: OPEC; steel: World Steel Association; cars: OICA; nuclear reactors: World Nuclear Association; military spending: SIPRI; Olympic golds: Wikipedia and Olympedia; tallest buildings: Wikipedia and CTBUH.</li></ul>`)}
 const BEERNOTE='Litres of beer per person in 2022. Source: Kirin Holdings, "Global Beer Consumption by Country in 2022", which gives the top 35 countries and a few others; the rest have no figure.';
 const MCDNOTE='Restaurants open on 31 December 2025. Source: McDonald\'s, "Restaurants by Market 2025" (the same numbers as Wikipedia, "List of countries with McDonald\'s restaurants"). Small markets it does not list separately have no figure.';
 const TEMPNOTE=NOTE('World Bank Climate Change Knowledge Portal, average for 1991–2020','List of countries by average yearly temperature');
@@ -188,6 +188,16 @@ const WORLD_LISTS=[
   L('gold-hi','The 10 countries with the biggest gold reserves',X('gold'),-1,v=>n0(v)+' tonnes',NOTE('World Gold Council (IMF figures), August 2026, top 50 countries','Gold reserve')+' The World Gold Council\'s May 2026 table gives the same top 10.'),
   L('wine-hi','The 10 countries that make the most wine',X('wine'),-1,v=>v>=10?EU(v/10,2)+' bn litres':n0(v*100)+' M litres','Wine made in 2023. Source: International Organisation of Vine and Wine (OIV), "2024 World Wine Production Outlook", which lists 29 countries; the others have no figure.'),
   L('coffee-hi','The 10 countries that grow the most coffee',X('coffee'),-1,v=>v>=1e6?EU(v/1e6,2)+' M t':n0(v)+' t','Green coffee grown in 2023. Source: FAO (FAOSTAT), as published by Our World in Data, "Coffee bean production"; Wikipedia, "List of countries by coffee production", gives the same top 10.'),
+  // more lists: each top 10 checked against a second source
+  L('rice-hi','The 10 countries that grow the most rice',X('rice'),-1,v=>v>=1e6?d1(v/1e6)+' M t':n0(v)+' t','Rice (paddy) grown in 2023. Source: FAO (FAOSTAT), as published by Our World in Data, "Rice production", which lists the top 40 here; Wikipedia, "List of countries by rice production" (FAO, 2022), gives the same top 10.'),
+  L('oil-hi','The 10 countries that produce the most oil',X('oil'),-1,v=>n0(v)+' TWh','Oil produced in 2024, as energy (terawatt-hours). Source: Energy Institute, Statistical Review of World Energy, as published by Our World in Data, "Oil production"; the US EIA\'s 2023 ranking gives the same top 10.'),
+  L('gas-hi','The 10 countries that produce the most natural gas',X('gas'),-1,v=>d1(v/1000)+' bn m³','Natural gas produced in 2025. Source: OPEC Annual Statistical Bulletin 2026, as listed in Wikipedia, "List of countries by natural gas production"; the Energy Institute\'s 2024 figures (Our World in Data) give the same top 10.'),
+  L('steel-hi','The 10 countries that make the most steel',X('steel'),-1,v=>d1(v)+' M t','Crude steel made in 2025. Source: World Steel Association, as listed in Wikipedia, "List of countries by steel production", and as reported by GMK Center (same top 10).'),
+  L('cars-hi','The 10 countries that build the most cars and lorries',X('cars'),-1,v=>v>=1e6?EU(v/1e6,2)+' M vehicles':n0(v/1000)+'k vehicles','Motor vehicles (cars, vans, lorries and buses; M = million, k = thousand) built in 2025. Source: OICA, 2025 production statistics, as listed in Wikipedia, "List of countries by motor vehicle production", and in the OICA table published by AFIA (same figures).'),
+  L('nuke-hi','The 10 countries with the most nuclear reactors',X('nuke'),-1,v=>v+' reactors','Reactors able to run, connected to the grid, in October 2026. Source: World Nuclear Association, "World Nuclear Power Reactors"; Wikipedia, "Nuclear power by country", gives the same top 10.'),
+  L('mil-hi','The 10 countries that spend the most on their armed forces',X('mil'),-1,v=>'$'+d1(v)+' bn','Military spending in 2025, in US dollars. Source: SIPRI, "Trends in World Military Expenditure, 2025" (April 2026), the same as Wikipedia, "List of countries with highest military expenditures".'),
+  L('ogold-hi','The 10 countries with the most Olympic gold medals',X('ogold'),-1,v=>n0(v)+' golds','Gold medals at all Summer and Winter Olympics together, up to the 2026 Winter Games. Source: Wikipedia, "All-time Olympic Games medal table"; Olympedia gives the same top 10. Medals won as part of a former team (Soviet Union, East Germany...) are not added.'),
+  L('tower-hi','The 10 countries with the tallest building',X('tower'),-1,v=>n0(v)+' m','Height of the tallest finished building in each country. Source: Wikipedia, "List of tallest buildings by country", checked against the Council on Tall Buildings and Urban Habitat (CTBUH), which gives the same top 10. Buildings only planned or being built do not count.'),
 ];
 // the same rankings within one continent, as the country data groups them (Russia and Cyprus count as Europe; Turkey and the Caucasus as Asia)
 const REGIONS=[
@@ -197,7 +207,10 @@ const REGIONS=[
   {k:'am',name:'the Americas',in:c=>c.r==='NA'||c.r==='SA'},
 ];
 // the lists with Top 10's own figures come in a world version only: their second sources were checked for the world top 10
-const WORLD_ONLY=['beer-hi','tour-hi','wc-hi','mcd-hi','mcdpc-hi','temp-lo','nobel-hi','gold-hi','wine-hi','coffee-hi'];
+// lists that come up in Solo and With friends but never as the daily list. Empty for now: every list is also a daily one.
+// Lists added once a daily round has begun can go here, so they don't change the order of that round's daily lists.
+const SOLO_ONLY=[];
+const WORLD_ONLY=['beer-hi','tour-hi','wc-hi','mcd-hi','mcdpc-hi','temp-lo','nobel-hi','gold-hi','wine-hi','coffee-hi','rice-hi','oil-hi','gas-hi','steel-hi','cars-hi','nuke-hi','mil-hi','ogold-hi','tower-hi'];
 const ALL_LISTS=[...WORLD_LISTS,...REGIONS.flatMap(g=>WORLD_LISTS.filter(l=>!WORLD_ONLY.includes(l.id)).map(l=>({...l,id:l.id+'-'+g.k,reg:g,
   title:l.title.replace(' countries',' countries in '+g.name),
   src:'Only countries in '+g.name+', as the country data used in Countries groups them. '+l.src})))];
@@ -210,13 +223,14 @@ function placeOf(l,code){const r=ranking(l),x=r.find(y=>y.c===code);return x?r.f
 // lists used: at least 20 countries with a figure, and at most 12 countries level with the top 10
 const LISTS=ALL_LISTS.filter(l=>{const r=ranking(l);return r.length>=20&&topCodes(l).length<=12});
 const listById=id=>ALL_LISTS.find(l=>l.id===id);
+const DAILY_LISTS=LISTS.filter(l=>!SOLO_ONLY.includes(l.id));
 // the daily list: lists come in a shuffled order that is the same for everyone, so none repeats until all were used.
 // The first round (2026-10-19 to 2026-11-05) keeps the 18 lists the game began with, in the same order as before.
 const FIRST_ROUND=['pop-hi','pop-lo','area-hi','gdp-hi','gdp-lo','hdi-hi','hdi-lo','life-lo','age-hi','co2-hi','urban-lo','coast-hi','elev-hi','elev-lo','landb-hi','forest-hi','olymp-hi','cap-hi'].map(listById);
 function dailyList(key){const n=dayNum(key,T10_FIRST)-1;
   if(n<FIRST_ROUND.length)return shuffle(FIRST_ROUND,rngFrom(seedOf('top10-cycle-0')))[Math.max(n,0)];
-  const m=n-FIRST_ROUND.length,len=LISTS.length,cycle=Math.floor(m/len);
-  return shuffle(LISTS,rngFrom(seedOf('top10-round-'+cycle)))[m%len]}
+  const m=n-FIRST_ROUND.length,len=DAILY_LISTS.length,cycle=Math.floor(m/len);
+  return shuffle(DAILY_LISTS,rngFrom(seedOf('top10-round-'+cycle)))[m%len]}
 // Solo: a random list you have not played on this device yet; when all were played, they all come back
 function soloList(){const seen=new Set(load('t10-seen',[])),cur=S&&S.list;
   let o=LISTS.filter(x=>!seen.has(x.id)&&x.id!==cur);
