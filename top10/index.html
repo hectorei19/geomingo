@@ -429,13 +429,13 @@ const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'sh
 const seg=(name,opts,val)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-seg="${name}" data-v="${v}" aria-pressed="${String(v)===String(val)}">${l}</button>`).join('')}</div>`;
 // the list being played: its title, the lives (or whose turn it is), the search box, the ten rows and the wrong answers
 const srcBtn=`<button class="linkbtn" id="src" style="align-self:flex-start;padding:0">Where the numbers come from</button>`;
-function askHTML(tkt){const l=listById(S.list),on=S.mode==='online';
-  let h=`<p class="t10q">${esc(l.title)}</p>${S.top.length>10?`<p class="hint" style="margin:0">${S.top.length} countries share the places down to 10th: any of them counts. Find 10 to win.</p>`:''}${KB&&!S.over?'':srcBtn}`;
-  if(S.over)return h;
-  if(!KB&&(!on||S.turn===S.me))h+=`<div class="t10in"><input id="q" placeholder="Type a country…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(query)}" aria-label="Type a country"><ul class="sugg" id="sugg">${suggHTML()}</ul></div>`;
-  if(on&&S.turn===S.me)h+=`<button class="ghost" id="opass" style="align-self:flex-start">Pass</button>`;
-  if(!on&&!KB)h+=giveUpHTML();
-  return h}
+function askHTML(tkt){const l=listById(S.list);
+  return `<p class="t10q">${esc(l.title)}</p>${S.top.length>10?`<p class="hint" style="margin:0">${S.top.length} countries share the places down to 10th: any of them counts. Find 10 to win.</p>`:''}${KB&&!S.over?'':srcBtn}`}
+// the answer box (and Pass / Give up): right under the ten rows, before the wrong answers
+function controlsHTML(){if(S.over)return '';const on=S.mode==='online',mine=!on||S.turn===S.me;
+  if(KB)return `<div class="kbgu">${mine?askBtnHTML():''}${on?(mine?'<button class="ghost" id="opass">Pass</button>':''):giveUpHTML()}${srcBtn}</div>`;
+  if(!mine)return '';
+  return `<section class="panel t10ask"><div class="t10in"><input id="q" placeholder="Type a country…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(query)}" aria-label="Type a country"><ul class="sugg" id="sugg">${suggHTML()}</ul></div>${on?'<button class="ghost" id="opass" style="align-self:flex-start">Pass</button>':giveUpHTML()}</section>`}
 // phones: a button that opens the answer sheet, as in Countries (shared/minigames.js)
 const KB=SHEETS;
 function listHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries(r.map(x=>[x.c,x.v])),on=S.mode==='online';
@@ -444,6 +444,9 @@ function listHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries
   let h=`<ol class="t10list" style="--rows:${half}">${S.top.map((c,i)=>{const f=S.found.includes(c),show=f||S.over,co=byCode[c];
     return `<li class="${f?'on':S.over?'miss':''}${f&&on?' by':''}${fresh===c?' new':''}${i>=half?' c2':''}${i===half?' c2top':''}"${ask&&!f?' data-ask':''}${f&&on?` style="${pc(c)};background:var(--p${S.by[c]%6}-soft)" title="${esc(who(c))}"`:''}><span class="rk">${placeOf(l,c)}</span><span class="nm">${show?`<img class="mini" src="${FLAGS[c]}" alt="">${esc(co.n)}`:''}</span>${show?`<span class="val">${esc(l.fmt(val[c]))}</span>`:''}</li>`}).join('')}</ol>`;
   fresh=null;
+  return h}
+function wrongsHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries(r.map(x=>[x.c,x.v])),on=S.mode==='online';
+  const who=c=>on&&S.by[c]!=null&&S.players[S.by[c]]?S.players[S.by[c]].name:'',pc=c=>`--pc:var(--p${S.by[c]%6})`;let h='';
   // wrong answers: sorted by their real place, each showing its place first and its figure, like the rows above
   if(S.wrong.length){const ws=S.wrong.map(c=>({c,p:placeOf(l,c)})).sort((a,b)=>(a.p||1e9)-(b.p||1e9));
     h+=`<div class="wrongs">Not in the top 10:<div class="wl">${ws.map(({c,p})=>`<span class="w"${on?` style="${pc(c)}" title="${esc(who(c))}"`:''}><b class="wr">${p?'#'+p:'–'}</b><img src="${FLAGS[c]}" alt=""><span class="wn">${esc(byCode[c].n)}</span><small>${p?esc(l.fmt(val[c])):'no figure'}</small></span>`).join('')}</div></div>`}
@@ -478,7 +481,7 @@ function friendsHTML(){
     <div class="field">${FB_OK()?'':'<p class="hint">Online play needs a connection: reload the page when you are online.</p>'}<button class="primary" id="create" ${FB_OK()?'':'disabled style="opacity:.5"'}>Create room</button></div>
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK()?'':'disabled'}>Join</button></div></div>
   </section>
-  <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Everyone plays the same ranking and takes turns naming one country. A country in the top 10 scores a point for you; one outside just passes the turn. No lives: you play until the ten are found. Most countries found wins.</p></section>`}
+  <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Everyone plays the same ranking and takes turns naming one country. A country in the top 10 scores a point for you; one outside just passes the turn. No lives: you play until the ten are found. Most countries found wins; if level, fewer wrong answers, then the higher places found.</p></section>`}
 function lobbyHTML(){const r=room,order=lobbyOrder(r),link=pageLink('?room='+roomCode);
   return header('Top <span>10</span>','room '+roomCode)+`<section class="panel namecard"><span class="label">Room code</span><p class="roomcode">${roomCode}</p>
     <p class="hint">Friends open Top 10, choose <b>With friends</b>, then type this code under Join. Or send them the link:</p>
@@ -496,14 +499,19 @@ function onlineHTML(){const cur=S.players[S.turn]||{};
       +(S.timer?cell('Time',`<span id="tleft">${Math.max(0,Math.ceil((S.deadline-now())/1000))}s</span>`):'');
     h+=Geomingo.ticket(say,stub,{timer:S.timer,color:`var(--p${S.turn%6})`})}
   else h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${!p.on?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${p.score}</b></span>`).join('')}</div>`;
-  if(S.over){const rk=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score||a.miss-b.miss),best=rk[0],tie=rk.length>1&&rk[1].score===best.score&&rk[1].miss===best.miss;
-    const mine=S.players[S.me];if(mine)logFriends('t10-friends',roomCode+':'+S.list+':'+(room&&room.created||''),1+rk.filter(p=>p.score>mine.score||p.score===mine.score&&p.miss<mine.miss).length,mine.score);
+  if(S.over){const l=listById(S.list),mineOf=i=>S.found.filter(c=>S.by[c]===i);
+    // who wins: most countries found; if level, fewer wrong answers; then higher places found (lower sum of places); then who found a country first
+    const rk=S.players.map((p,i)=>{const f=mineOf(i),fi=S.found.findIndex(c=>S.by[c]===i);return {...p,i,pl:f.reduce((t,c)=>t+placeOf(l,c),0),first:fi<0?1e9:fi}})
+      .sort((a,b)=>b.score-a.score||a.miss-b.miss||a.pl-b.pl||a.first-b.first),best=rk[0],nx=rk[1];
+    const why=!nx||nx.score!==best.score?'':nx.miss!==best.miss?`Level on ${best.score}, so fewer wrong answers wins: ${best.miss} against ${nx.miss}.`
+      :nx.pl!==best.pl?`Level on ${best.score} found and ${best.miss} wrong, so the higher places win: ${esc(best.name)}'s countries add up to ${best.pl} (places ${mineOf(best.i).map(c=>'#'+placeOf(l,c)).join(', ')}), ${esc(nx.name)}'s to ${nx.pl}.`
+      :nx.first!==best.first?`Level on everything else, so the first to find a country wins.`:'',tie=!!nx&&nx.score===best.score&&!why;
+    const mine=S.players[S.me];if(mine)logFriends('t10-friends',roomCode+':'+S.list+':'+(room&&room.created||''),1+rk.findIndex(p=>p.i===S.me),mine.score);
     h+=`<section class="panel"><span class="label">Room ${roomCode}</span><p class="big">${tie?"It's a tie":esc(best.name)+' wins'}</p>
-      <p class="hint">${S.won?'All ten found.':`${S.found.length} of 10 found. The full list is below.`} ${rk.map(p=>`${esc(p.name)} ${p.score}`).join(' · ')}</p>
+      <p class="hint">${S.won?'All ten found.':`${S.found.length} of 10 found. The full list is below.`} ${rk.map(p=>`${esc(p.name)} ${p.score}`).join(' · ')}</p>${why?`<p class="hint" style="margin-top:0">${why}</p>`:''}
       ${S.host?`<div class="row-btns"><button class="primary" id="orematch" style="flex:1">Rematch</button><button class="ghost" id="olobby" style="flex:1">Back to room</button></div>`:'<p class="hint">Waiting for the host to start a rematch.</p>'}</section>`}
   if(!S.over&&!cur.on&&S.turn!==S.me)h+=`<button class="ghost" id="oskip">${esc(cur.name)} is offline: skip their turn</button>`;
-  h+=`<section class="panel t10ask">${askHTML()}</section>${listHTML()}`;
-  if(KB&&!S.over)h+=`<div class="kbgu">${S.turn===S.me?askBtnHTML():''}${srcBtn}</div>`;
+  h+=`<section class="panel t10ask">${askHTML()}</section>${listHTML()}${controlsHTML()}${wrongsHTML()}`;
   h+=`<div class="row-btns">${S.host&&!S.over?'<button class="ghost" id="oend" style="flex:1">End game</button>':''}<button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;
   return h}
 function render(){
@@ -527,12 +535,11 @@ function render(){
   // where it is, so the phone keeps its keyboard open and the page does not jump up and down
   const g=$('t10game'),q=$('q');
   if(!S.over&&g&&g.dataset.k===tKey()&&q){const y=q.getBoundingClientRect().top;
-    $('t10tk').innerHTML=tk();$('t10ls').innerHTML=listHTML();if(q.value!==query)q.value=query;drawSugg();
+    $('t10tk').innerHTML=tk();$('t10ls').innerHTML=listHTML();$('t10wr').innerHTML=wrongsHTML();if(q.value!==query)q.value=query;drawSugg();
     const dy=q.getBoundingClientRect().top-y;if(dy)window.scrollBy(0,dy);return}
   if(S.over)h+=resultHTML();
   else h+=`<div id="t10tk" style="display:contents">${tk()}</div>`;
-  h+=`<section class="panel t10ask">${askHTML(true)}</section><div id="t10ls" style="display:contents">${listHTML()}</div>`;
-  if(!S.over&&KB)h+=`<div class="kbgu">${askBtnHTML()}${giveUpHTML()}${srcBtn}</div>`;
+  h+=`<section class="panel t10ask">${askHTML(true)}</section><div id="t10ls" style="display:contents">${listHTML()}</div>${controlsHTML()}<div id="t10wr" style="display:contents">${wrongsHTML()}</div>`;
   if(!S.over)h+=quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')+`<i id="t10game" data-k="${esc(tKey())}" hidden></i>`;
   app.innerHTML=h;bind();
 }
@@ -568,7 +575,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Today's list</b>: the same for everyone, new every day at midnight CET. One try. Missed one? Play it in <b>Menu → Archive</b>.</li>
   <li><b>Solo</b>: as many practice lists as you like, a new one each time until you have played them all. <b>Share</b> sends a friend a link to the same list.</li>
-  <li><b>With friends</b>: 2 to ${MAXP} players online, each on their own phone. The host creates a room and shares its code or link, and can set a time per turn (Off, 15 s or 30 s). You take turns naming a country: one in the top 10 scores a point, one outside passes the turn. There are no lives. You can also tap <b>Pass</b>, and running out of time passes too. The game ends when the ten are found or everyone passes in a row. Most points wins.</li></ul>`}
+  <li><b>With friends</b>: 2 to ${MAXP} players online, each on their own phone. The host creates a room and shares its code or link, and can set a time per turn (Off, 15 s or 30 s). You take turns naming a country: one in the top 10 scores a point, one outside passes the turn. There are no lives. You can also tap <b>Pass</b>, and running out of time passes too. The game ends when the ten are found or everyone passes in a row. Most points wins. If level: fewer wrong answers wins, then the higher places found (the lower your places add up), then whoever found a country first.</li></ul>`}
 // tapping a suggestion does not take the focus from the box, so the phone keyboard stays open
 function drawSugg(){const u=$('sugg');if(u){u.innerHTML=suggHTML();u.querySelectorAll('[data-g]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>guess(b.dataset.g)})}}
 function bind(){
