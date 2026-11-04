@@ -51,7 +51,20 @@
 .worth{display:flex;align-items:center;gap:8px;font-size:.92rem;color:var(--ink-2)}
 .worth b{font-family:var(--mono);color:var(--gold)}
 .worth .linkbtn{margin-left:auto}
-.missed{margin:0;font-size:.92rem;color:var(--ink-2)}
+.missed{display:flex;flex-direction:column;gap:2px;margin:0;border:2px solid var(--bad);background:var(--bad-soft);border-radius:12px;padding:9px 12px}
+.missed b{color:var(--bad)}
+.missed span{font-size:.9rem;color:var(--ink-2)}
+.locked{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px dashed var(--line);border-radius:12px;color:var(--ink-2);font-size:.92rem}
+.locked .linkbtn{margin-left:auto}
+/* a traveller who has just left the desk: the answer in big, then Next traveller */
+.left{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;border:2px solid var(--good);border-radius:16px;padding:16px 14px;background:var(--p4-soft)}
+.left.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.left img{width:120px;height:80px;object-fit:cover;border-radius:5px;box-shadow:0 0 0 1px var(--rule);background:var(--rule)}
+.left .ln{font-family:var(--display);font-weight:700;font-size:1.8rem;line-height:1.1;overflow-wrap:anywhere}
+.left .lst{font-family:var(--type,var(--mono));letter-spacing:.15em;font-weight:700;color:var(--good);border:2px solid currentColor;padding:2px 10px;border-radius:4px;transform:rotate(-4deg)}
+.left.wrong .lst{color:var(--bad)}
+.left .ls{color:var(--ink-2);font-size:.92rem}
+.left .primary{width:100%;margin-top:6px}
 .reveal{display:flex;align-items:center;gap:12px;background:var(--sheet);border:2px solid var(--good);border-radius:16px;padding:10px 12px}
 .reveal.wrong{border-color:var(--bad)}
 .reveal .flag{width:48px;height:36px;object-fit:cover;border-radius:3px;box-shadow:0 0 0 1px var(--rule);flex:none;background:var(--rule)}
@@ -168,7 +181,7 @@ function clue(q,i){const c=cByCode[q.c],[lab,f]=GROUPS[i],o=f(c),v=(q.v||[])[i];
   return x[2]?{ico:i+1,lab:'Flag',main:'',sub:'',flag:q.c}:{ico:i+1,lab,main:x[0],sub:x[1]}}
 function cluesHTML(q){const done=q.st!=='play';
   return `<ol class="clues">${Array.from({length:CLUES},(_,i)=>{
-    if(i>=q.k&&!done)return `<li class="clue off"><span class="ci">${i+1}</span><span class="ct"><span>Clue ${i+1} · ${CLUES-i} point${CLUES-i===1?'':'s'}</span><b>Locked</b></span></li>`;
+    if(i>=q.k&&!done)return '';
     const x=clue(q,i);
     return `<li class="clue${!done&&i===q.k-1&&i>0?' new':''}${i>=q.k?' off':''}"><span class="ci">${x.ico}</span><span class="ct"><span>${x.lab}</span>${x.main?`<b>${esc(x.main)}</b>`:''}${x.sub?`<small>${esc(x.sub)}</small>`:''}${x.flag?`<img class="fl" src="${flagSrc(x.flag)}" alt="A flag">`:''}</span></li>`}).join('')}</ol>`}
 
@@ -197,10 +210,8 @@ function answer(q,code){if(code===q.c){q.st='right';return 'right'}
 // ask for the next clue without answering; with all five open, "I don't know" lets the traveller go
 function nextClue(q){if(q.st!=='play')return;if(q.k<CLUES)q.k++;else q.st='wrong'}
 const tk=Geomingo.tk;
-function feedback(q,res,code,key){const n=cByCode[q.c].n;
-  if(res==='right'){Geomingo.stamp('customs',n,'+'+worth(q),q.c);say(key,'happy','Stamped: '+n+'.','+'+worth(q)+' point'+(worth(q)===1?'':'s')+(q.k===1?'. One clue was enough.':' with '+q.k+' clues.'))}
-  else if(res==='wrong')say(key,'sad','Not '+cByCode[code].n+'.','Clue '+q.k+' is open. Now worth '+worth(q)+'.');
-  else say(key,'sad','It was '+n+'.',code?'Not '+cByCode[code].n+'. No clues left.':'All five clues used.')}
+// what happened is shown on the card itself (the red box, or the traveller who just left), not in the ticket
+function feedback(q,res){if(res==='right')Geomingo.stamp('customs',cByCode[q.c].n,'+'+worth(q),q.c)}
 function revealHTML(q){const c=cByCode[q.c],ok=q.st==='right';
   return `<div class="reveal ${ok?'':'wrong'}"><img class="flag" src="${flagSrc(q.c)}" alt=""><span class="rn"><b>${esc(c.n)}</b><small>${ok?'Right with '+q.k+' clue'+(q.k===1?'':'s'):'The answer'} · capital ${esc(c.cap)}</small></span><span class="rpts">${ok?'+'+worth(q):'0'}</span></div>`}
 const deskHTML=G=>`<div class="desk" role="group" aria-label="The five travellers">${G.qs.map((q,i)=>{const cls=[i===G.sel&&!G.over?'sel':'',q.st==='right'?'right':q.st==='wrong'?'wrong':''].join(' ');
@@ -209,16 +220,28 @@ const pointsOf=G=>G.qs.reduce((n,q)=>n+ptsOf(q),0);
 const rightOf=G=>G.qs.filter(q=>q.st==='right').length;
 const wrongOf=G=>G.qs.reduce((n,q)=>n+q.tries.length,0);
 // the game's play area: the five at the desk, the clues of the one at the desk, the answer box
-function playHTML(G){const q=G.qs[G.sel],last=G.justDone!=null?G.qs[G.justDone]:null;G.justDone=null;
-  let h=deskHTML(G);
-  if(last&&last.st!=='play'&&last!==q)h+=revealHTML(last);
+// the traveller who just left the desk, in big, until you tap Next traveller (or See your result after the last one)
+function leftHTML(G,i){const q=G.qs[i],c=cByCode[q.c],ok=q.st==='right';
+  return `<div class="left${ok?'':' wrong'}"><span class="label">Traveller ${i+1} of ${PER}</span><img src="${flagSrc(q.c)}" alt=""><b class="ln">${esc(c.n)}</b><span class="lst">${ok?'ADMITTED':'DENIED'}</span>
+    <span class="ls">${ok?'+'+worth(q)+' point'+(worth(q)===1?'':'s')+' · right with '+q.k+' clue'+(q.k===1?'':'s'):'0 points'+(q.tries.length?' · you said '+q.tries.map(x=>esc(cByCode[x].n)).join(', '):'')}</span>
+    <span class="ls">Capital ${esc(c.cap)}</span>
+    <button class="primary" id="nexttv">${G.over?'See your result':'Next traveller →'}</button></div>`}
+// the game's play area: the five at the desk, then one card: the open clues, what's still locked, a wrong answer, the answer box
+function playHTML(G){let h=deskHTML(G);
+  if(G.left!=null)return `<div class="play">${h}${leftHTML(G,G.left)}</div>`;
   if(G.over)return `<div class="play">${h}</div>`;
-  h+=`<span class="label">Traveller ${G.sel+1} of ${PER}</span>`+cluesHTML(q)+
-    `<div class="worth">Worth <b>${worth(q)} point${worth(q)===1?'':'s'}</b> now<button class="linkbtn" id="nextclue">${q.k<CLUES?'Next clue':'I don\'t know'}</button></div>`+
-    (q.tries.length?`<p class="missed">Not ${q.tries.map(c=>esc(cByCode[c].n)).join(', not ')}.</p>`:'')+answerBoxHTML(q)+giveUpHTML();
+  const q=G.qs[G.sel],more=CLUES-q.k;
+  h+=`<span class="label">Traveller ${G.sel+1} of ${PER} · worth ${worth(q)} point${worth(q)===1?'':'s'}</span>`+cluesHTML(q)+
+    `<div class="locked">${more?'🔒 '+more+' more clue'+(more===1?'':'s')+' locked':'All five clues are open'}<button class="linkbtn" id="nextclue">${more?'Next clue':'I don\'t know'}</button></div>`+
+    (q.tries.length?`<p class="missed"><b>✗ Not ${q.tries.map(c=>esc(cByCode[c].n)).join(', not ')}.</b><span>Clue ${q.k} is open. Now worth ${worth(q)}.</span></p>`:'')+answerBoxHTML(q)+giveUpHTML();
   return `<div class="play">${h}</div>`}
-// after a traveller leaves the desk: the next one still waiting, or the game is over
-function advance(G){if(G.qs[G.sel].st==='play')return;G.justDone=G.sel;const n=G.qs.findIndex(q=>q.st==='play');if(n<0)G.over=true;else G.sel=n}
+// after a traveller leaves the desk: show who it was, then the next one still waiting, or the game is over
+function advance(G){if(G.qs[G.sel].st==='play')return;G.left=G.sel;const n=G.qs.findIndex(q=>q.st==='play');if(n<0)G.over=true;else G.sel=n}
+// Next traveller: back to the top of the card
+function nextTraveller(G,save){const end=G.over;G.left=null;if(save)save();render();
+  if(end){window.scrollTo(0,0);return}const d=document.querySelector('.desk');if(d)window.scrollTo(0,Math.max(0,d.getBoundingClientRect().top+window.scrollY-90))}
+// a traveller just left: bring the card into view (the answer box was lower down)
+function showLeft(){const d=document.querySelector('.desk');if(d&&d.getBoundingClientRect().top<0)window.scrollTo(0,Math.max(0,d.getBoundingClientRect().top+window.scrollY-90))}
 const sq=q=>q.st==='right'?(q.k===1?'🟩':q.k<=3?'🟨':'🟧'):'🟥';
 const sqClass=q=>q.st==='right'?(q.k<=2?'on':'mid'):q.st==='wrong'?'bad':'';
 const squaresHTML=G=>`<span class="dsq" aria-hidden="true">${G.qs.map(q=>`<i class="${sqClass(q)}"></i>`).join('')}</span>`;
@@ -245,10 +268,9 @@ function logHist(G){if(G.mode!=='daily')return false;const h=load('cu-hist',{});
 const custKey=()=>view==='train'&&T?'train':D?'cu:'+D.date+':'+D.mode:'';
 function dailyPick(code){const q=D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;
   const res=answer(q,code);query='';typing=res==='wrong';
-  feedback(q,res,code,custKey());advance(D);dailySave();render();if(D.over)window.scrollTo(0,0)}
+  feedback(q,res);advance(D);dailySave();render();if(res!=='wrong')showLeft()}
 function dailyNextClue(){const q=D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;nextClue(q);
-  if(q.st==='wrong')feedback(q,'out','',custKey());else say(custKey(),'think','Clue '+q.k+' is open.','Now worth '+worth(q)+'.');
-  advance(D);dailySave();render();if(D.over)window.scrollTo(0,0)}
+  advance(D);dailySave();render();if(q.st!=='play')showLeft()}
 function dailyShareText(G){return `${Geomingo.share('Customs')} #${G.num}${G.mode==='archive'?' (archive)':''} — ${pointsOf(G)}/${MAX}\n${G.qs.map(sq).join('')}`}
 const dailyShare=G=>dailyShareText(G)+"\n\nPlay today's Customs: "+pageLink();
 function verdict(G){const p=pointsOf(G),r=rightOf(G);
@@ -275,12 +297,14 @@ const rankingHTML=()=>Geomingo.account.rankingHTML('customs',{what:'game',score:
 Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&D.mode==='daily'&&D.date===todayKey()){D=dailyGame();liveKey=''}
   if(!typing&&(view==='home'||view==='daily'&&D&&D.over))render()});
 function openDaily(){D=dailyGame();query='';view='daily';render();window.scrollTo(0,0)}
-function ticketHTML(G,mode){const q=G.qs[G.sel];
-  return Geomingo.ticket(moodHTML(custKey(),G.qs.some(x=>x.st!=='play')||q.k>1?'think':'pass','A traveller at the desk.','Read the clue and name the country. Every new clue lowers the points.'),
-    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Desk',(G.sel+1)+'/'+PER)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth','+'+worth(q),'tk-gs'),{mode,num:G.num})}
+function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
+  const m=lf?(q.st==='right'?['happy','Stamped.','Tap Next traveller when you are ready.']:['sad','Not this time.','Tap Next traveller when you are ready.'])
+    :[G.qs.some(x=>x.st!=='play')||q.k>1?'think':'pass','A traveller at the desk.','Read the clues and name the country. Every new clue lowers the points.'];
+  return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
+    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Desk',(i+1)+'/'+PER)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Customs',(arch?'Archive #':'Daily #')+D.num);
   h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's travellers"}</span></div>`;
-  if(D.over)return h+resultHTML(D)+summaryHTML(D);
+  if(D.over&&D.left==null)return h+resultHTML(D)+summaryHTML(D);
   return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel">${playHTML(D)}</section>`+quickRules()}
 const cuAverage=()=>{const h=load('cu-hist',{}),v=Object.values(h);return v.length?EU(v.reduce((a,e)=>a+(+e.p||0),0)/v.length,1):'–'};
 
@@ -307,12 +331,11 @@ function openTrain(){const pool=soloDiff()==='easy'?SOV.filter(c=>(DATA.pop[c.c]
   T={mode:'solo',qs:codes.map(c=>newQ(c)),sel:0,over:false};mood=null;view='train';query='';typing=false;render();window.scrollTo(0,0)}
 function trainEnd(){if(T.logged)return;T.logged=1;logSolo('cu-solo',{p:pointsOf(T),best:pointsOf(T),r:rightOf(T)})}
 function trainPick(code){const q=T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;
-  const res=answer(q,code);query='';typing=res==='wrong';feedback(q,res,code,custKey());advance(T);if(T.over)trainEnd();render();if(T.over)window.scrollTo(0,0)}
+  const res=answer(q,code);query='';typing=res==='wrong';feedback(q,res);advance(T);if(T.over)trainEnd();render();if(res!=='wrong')showLeft()}
 function trainNextClue(){const q=T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;nextClue(q);
-  if(q.st==='wrong')feedback(q,'out','',custKey());else say(custKey(),'think','Clue '+q.k+' is open.','Now worth '+worth(q)+'.');
-  advance(T);if(T.over)trainEnd();render();if(T.over)window.scrollTo(0,0)}
+  advance(T);if(T.over)trainEnd();render();if(q.st!=='play')showLeft()}
 function trainHTML(){let h=header('Customs','Solo')+`<div class="backline"><button class="linkbtn" id="soloback">← Back</button><span class="ht">Solo</span></div>`;
-  if(T.over){const p=pointsOf(T),s=load('cu-solo',null)||{};
+  if(T.over&&T.left==null){const p=pointsOf(T),s=load('cu-solo',null)||{};
     return h+`<section class="panel">${Geomingo.hello(p>=15?'happy':'think',p+' points.',rightOf(T)+' of 5 named. Your best Solo game: '+(s.best||p)+'.',{key:'res'})}<span class="label">Solo</span><p class="big">${p} points</p>
       <button class="primary" id="tagain">New game</button></section>`+summaryHTML(T)}
   return h+ticketHTML(T,'practice')+`<section class="panel">${playHTML(T)}</section>`+quickRules()}
@@ -367,7 +390,7 @@ function homeHTML(){const key=todayKey();
 function goHome(){view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
 function render(){
   if(!TESTDAY&&(view==='home'||view==='daily'&&D&&D.mode==='daily')){const g=dailyGame();if(!g.over)Geomingo.clock.start('customs',todayKey())}
-  if(D&&D.mode==='daily')watchResult('cu:'+D.date,D.over);
+  if(D&&D.mode==='daily')watchResult('cu:'+D.date,D.over&&D.left==null);
   if(view==='train')app.innerHTML=trainHTML();
   else if(view==='solo')app.innerHTML=soloHTML();
   else if(view==='archive')app.innerHTML=archiveView();
@@ -376,8 +399,8 @@ function render(){
   bind()}
 function bind(){
   if(!$('askbtn'))closeSheet();
-  if(view==='train')bindGiveUp(()=>{if(T.over)return;T.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});T.over=true;trainEnd();render();window.scrollTo(0,0)});
-  else bindGiveUp(()=>{if(!D||D.over)return;D.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});D.over=true;query='';typing=false;dailySave();render();window.scrollTo(0,0)});
+  if(view==='train')bindGiveUp(()=>{if(T.over)return;T.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});T.over=true;T.left=null;trainEnd();render();window.scrollTo(0,0)});
+  else bindGiveUp(()=>{if(!D||D.over)return;D.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});D.over=true;D.left=null;query='';typing=false;dailySave();render();window.scrollTo(0,0)});
   if($('home'))$('home').onclick=goHome;
   app.querySelectorAll('[data-go="train"]').forEach(b=>b.onclick=openSolo);
   if($('playsolo'))$('playsolo').onclick=openSolo;
@@ -391,6 +414,7 @@ function bind(){
   const G=view==='train'?T:view==='daily'?D:null;
   app.querySelectorAll('[data-tv]').forEach(b=>b.onclick=()=>{const q=G&&G.qs[+b.dataset.tv];if(q&&q.st!=='play')toast(cByCode[q.c].n+(q.st==='right'?' · +'+worth(q):''))});
   if($('nextclue'))$('nextclue').onclick=view==='train'?trainNextClue:dailyNextClue;
+  if($('nexttv'))$('nexttv').onclick=()=>view==='train'?nextTraveller(T):nextTraveller(D,dailySave);
   app.querySelectorAll('[data-seg="diff"]').forEach(b=>b.onclick=()=>{store('cu-diff',b.dataset.v);render()});
   if(view==='train'&&T&&!T.over)bindAnswer(T.qs[T.sel],trainPick);
   else if(view==='daily'&&D&&!D.over)bindAnswer(D.qs[D.sel],dailyPick)}
