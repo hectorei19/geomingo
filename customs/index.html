@@ -33,7 +33,11 @@
 .desk{display:flex;gap:6px;width:100%}
 .desk button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px 6px;background:var(--sheet);border:2px dashed var(--line);border-radius:10px;color:var(--ink-2);font:inherit;font-size:.7rem;cursor:default}
 .desk button b{font-family:var(--mono);font-size:.95rem;color:var(--ink)}
-.desk button.sel{border:2px solid var(--flamingo);color:var(--ink)}
+.desk button img{width:34px;height:23px;object-fit:cover;border-radius:2px;box-shadow:0 0 0 1px var(--rule);background:var(--rule)}
+.desk button.right,.desk button.wrong{padding:6px 2px}
+/* the traveller at the desk now: the same size, filled in flamingo */
+.desk button.sel{border:2px solid var(--flamingo);background:var(--flamingo);color:var(--on-flamingo);font-weight:700;letter-spacing:.06em}
+.desk button.sel b{font-size:1.1rem;color:var(--on-flamingo)}
 .desk button.right{border-style:solid;border-color:var(--good);background:var(--p4-soft)}
 .desk button.wrong{border-style:solid;border-color:var(--bad);background:var(--p0-soft)}
 .desk button.right,.desk button.wrong{cursor:pointer}
@@ -214,8 +218,9 @@ const tk=Geomingo.tk;
 function feedback(q,res){if(res==='right')Geomingo.stamp('customs',cByCode[q.c].n,'+'+worth(q),q.c)}
 function revealHTML(q){const c=cByCode[q.c],ok=q.st==='right';
   return `<div class="reveal ${ok?'':'wrong'}"><img class="flag" src="${flagSrc(q.c)}" alt=""><span class="rn"><b>${esc(c.n)}</b><small>${ok?'Right with '+q.k+' clue'+(q.k===1?'':'s'):'The answer'} · capital ${esc(c.cap)}</small></span><span class="rpts">${ok?'+'+worth(q):'0'}</span></div>`}
-const deskHTML=G=>`<div class="desk" role="group" aria-label="The five travellers">${G.qs.map((q,i)=>{const cls=[i===G.sel&&!G.over?'sel':'',q.st==='right'?'right':q.st==='wrong'?'wrong':''].join(' ');
-  return `<button data-tv="${i}" class="${cls}" aria-label="Traveller ${i+1}${q.st==='play'?'':': '+esc(cByCode[q.c].n)}">#${i+1}<b>${q.st==='right'?'+'+worth(q):q.st==='wrong'?'0':i===G.sel&&!G.over?'?':'–'}</b></button>`}).join('')}</div>`;
+// the five at the desk: the ones gone show their flag and points, the one at the desk now is filled in
+const deskHTML=G=>`<div class="desk" role="group" aria-label="The five travellers">${G.qs.map((q,i)=>{const now=i===G.sel&&!G.over&&G.left==null,cls=[now?'sel':'',q.st==='right'?'right':q.st==='wrong'?'wrong':''].join(' ');
+  return `<button data-tv="${i}" class="${cls}" aria-label="Traveller ${i+1}${q.st==='play'?'':': '+esc(cByCode[q.c].n)}"${now?' aria-current="step"':''}>${q.st!=='play'?`<img src="${flagSrc(q.c)}" alt=""><b>${q.st==='right'?'+'+worth(q):'0'}</b>`:now?`NOW<b>${i+1}</b>`:`#${i+1}<b>–</b>`}</button>`}).join('')}</div>`;
 const pointsOf=G=>G.qs.reduce((n,q)=>n+ptsOf(q),0);
 const rightOf=G=>G.qs.filter(q=>q.st==='right').length;
 const wrongOf=G=>G.qs.reduce((n,q)=>n+q.tries.length,0);
