@@ -29,7 +29,8 @@ const GAMES=[
   {id:'connections',name:'Connections',path:'connections/',gate:'3',hint:'Find 4 hidden groups'},
   {id:'top10',name:'Top 10',path:'top10/',gate:'4',hint:'Name the top 10 countries'},
   {id:'silhouette',name:'Silhouette',path:'silhouette/',gate:'5',hint:'Guess the hidden country'},
-  {id:'customs',name:'Customs',path:'customs/',gate:'6',hint:'Guess the country from clues',nofriends:1}];
+  {id:'customs',name:'Customs',path:'customs/',gate:'6',hint:'Guess the country from clues',nofriends:1},
+  {id:'flagpie',name:'Flag Pie',path:'flagpie/',gate:'7',hint:'Guess the flag from its colours',nofriends:1}];
 GAMES.forEach(g=>g.href=ROOT+g.path);
 const live=()=>GAMES.filter(g=>!g.soon);
 const game=id=>GAMES.find(g=>g.id===id);
@@ -59,6 +60,8 @@ function result(id,k){k=k||dayKey();
     return {done:true,label:v.length?Math.max(...v)+'/9':'Done'}}
   if(id==='customs'){const d=json('cu-daily');if(!(d&&d.date===k&&d.over&&d.S))return {done:false};
     return {done:true,label:(d.S.qs||[]).reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0)+'/25'}}
+  if(id==='flagpie'){const d=json('fp-daily');if(!(d&&d.date===k&&d.over&&d.S))return {done:false};
+    return {done:true,label:(d.S.st==='right'?6-d.S.k:0)+'/5'}}
   return {done:false}}
 const playedToday=id=>result(id).done;
 // the next game of the day not played yet, in list order after this one (null when all are done)
@@ -70,7 +73,7 @@ function nextGame(cur){const L=live(),i=L.findIndex(g=>g.id===cur);
 function days(){let d=json('gm-days');
   if(!Array.isArray(d)){const s=new Set();
     ['bl-hist','cc-hist'].forEach(k=>{const h=json(k)||{};Object.keys(h).forEach(x=>{if(h[x]&&h[x].f!==0)s.add(x)})});
-    ['cx-hist','t10-hist','sil-hist','cu-hist'].forEach(k=>Object.keys(json(k)||{}).forEach(x=>s.add(x)));
+    ['cx-hist','t10-hist','sil-hist','cu-hist','fp-hist'].forEach(k=>Object.keys(json(k)||{}).forEach(x=>s.add(x)));
     d=[...s].filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x)).sort()}
   const k=dayKey();
   if(!d.includes(k)&&GAMES.some(g=>playedToday(g.id)))d.push(k);
@@ -87,6 +90,7 @@ function seedCount(){let n=0,first=null;const see=k=>{if(/^\d{4}-\d{2}-\d{2}$/.t
   const t=json('t10-hist')||{};Object.keys(t).forEach(x=>{n+=+(t[x]&&t[x].f)||0;see(x)});
   const s=json('sil-hist')||{};Object.keys(s).forEach(x=>{Object.values(s[x]||{}).forEach(v=>{if(typeof v==='number')n+=v});see(x)});
   const u=json('cu-hist')||{};Object.keys(u).forEach(x=>{n+=+(u[x]&&u[x].r)||0;see(x)});
+  const f=json('fp-hist')||{};Object.keys(f).forEach(x=>{n+=+(f[x]&&f[x].r)||0;see(x)});
   return {n,first}}
 function pass(){let p=json('gm-pass');
   if(!p||typeof p.n!=='number'){const s=seedCount();p={n:s.n,since:s.first||dayKey(),list:[]};store.set('gm-pass',JSON.stringify(p))}
@@ -148,6 +152,7 @@ function ledger(){const L={},add=(d,id,mi)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))(L
   const t=json('t10-hist')||{};for(const d in t)if(t[d])add(d,'top10',pts((+t[d].f||0)/10));
   const s=json('sil-hist')||{};for(const d in s){const v=Object.values(s[d]||{}).filter(x=>typeof x==='number');if(v.length)add(d,'silhouette',pts(Math.max(...v)/9))}
   const u=json('cu-hist')||{};for(const d in u)if(u[d])add(d,'customs',pts((+u[d].p||0)/25));
+  const f=json('fp-hist')||{};for(const d in f)if(f[d])add(d,'flagpie',pts((+f[d].p||0)/5));
   return L}
 const dayTotal=day=>{const v=Object.values(day||{});return v.reduce((a,b)=>a+b,0)+(v.length>=ALLN?ALL5:0)};
 function level(km){let i=0;LEVELS.forEach((l,k)=>{if(km>=l[1])i=k});const next=LEVELS[i+1];
@@ -161,7 +166,7 @@ function bestStreak(){const n=k=>Math.round(Date.parse(k+'T12:00Z')/864e5),v=[..
 /* ---------- the clock: how long each daily took ----------
    gm-times {day: {game: {a: when today's puzzle was first on screen, b: when it ended, f: share right 0..1}}}, kept on this device.
    Each game starts it when it shows today's unfinished puzzle and stops it when the puzzle ends; the seconds go with the result
-   to the daily ranking (sec), for the Fastest of the day visa. Game ids: borderline, citygrid, connections, top10, silhouette, customs. */
+   to the daily ranking (sec), for the Fastest of the day visa. Game ids: borderline, citygrid, connections, top10, silhouette, customs, flagpie. */
 const clockAll=()=>{const T=json('gm-times');return T&&typeof T==='object'?T:{}};
 function clockStart(g,d){d=d||dayKey();if(d!==dayKey())return;const T=clockAll(),x=T[d]=T[d]||{};if(x[g])return;x[g]={a:Date.now()};
   const ks=Object.keys(T).sort();while(ks.length>400)delete T[ks.shift()];store.set('gm-times',JSON.stringify(T))}
@@ -350,7 +355,7 @@ function resultWindow(o){const g=game(o.game)||{name:o.gameName||''},nx=o.next||
 /* ---------- the GeoPass: one passport, the same from the home page and from every game ----------
    The data page on top (Mingo, name, level, km, streak, stamps, countries), then three pages:
    Passport (the route, today's entry stamp, the countries almost yours, the latest milestones, how it works), Countries (the atlas) and Visas. */
-const PINK={borderline:'#C94A58',citygrid:'#A07C1E',connections:'#2A56B8',top10:'#25744F',silhouette:'#6B4BA8',customs:'#B5632A'};
+const PINK={borderline:'#C94A58',citygrid:'#A07C1E',connections:'#2A56B8',top10:'#25744F',silhouette:'#6B4BA8',customs:'#B5632A',flagpie:'#2E8C8C'};
 const GORDER=[['borderline','Countries'],['citygrid','Capitals'],['silhouette','Silhouette'],['top10','Top 10'],['customs','Customs']];
 const CONT=[['all','All'],['EU','Europe'],['AS','Asia'],['AF','Africa'],['AM','Americas'],['OC','Oceania']];
 const inCont=(c,k)=>k==='all'||(k==='AM'?c.r==='NA'||c.r==='SA':c.r===k);
@@ -373,7 +378,7 @@ function howHTML(){return '<ul class="gp-how">'+
   '<li><b>Countries.</b> A country is yours when you get it right in every game it comes up in: Countries, Capitals, Silhouette, Top 10 and Customs. The dots show which ones you have.</li>'+
   '<li><b>Visas.</b> Special entries for special games, like a week in a row or a perfect grid.</li></ul>'}
 // Passport page (Héctor's option D, 2026-11-02): the route, today's entry stamp, the countries closest to being yours, the latest big moments
-const SHORT={borderline:'Countr.',citygrid:'Capit.',connections:'Conn.',top10:'Top 10',silhouette:'Silh.',customs:'Cust.'};
+const SHORT={borderline:'Countr.',citygrid:'Capit.',connections:'Conn.',top10:'Top 10',silhouette:'Silh.',customs:'Cust.',flagpie:'Pie'};
 function todayHTML(P){const k=dayKey(),L=live(),done=L.filter(g=>result(g.id).done).length;
   const cells=L.map(g=>{const r=result(g.id),c=PINK[g.id]||'#1D2B4C';
     if(!r.done)return '<a class="no" href="'+esc(g.href)+'" aria-label="'+esc(g.name)+': not played yet">'+esc(SHORT[g.id]||g.name)+'<b>–</b></a>';
