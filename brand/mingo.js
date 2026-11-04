@@ -61,7 +61,8 @@ function result(id,k){k=k||dayKey();
   if(id==='customs'){const d=json('cu-daily');if(!(d&&d.date===k&&d.over&&d.S))return {done:false};
     return {done:true,label:(d.S.qs||[]).reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0)+'/25'}}
   if(id==='flagpie'){const d=json('fp-daily');if(!(d&&d.date===k&&d.over&&d.S))return {done:false};
-    return {done:true,label:(d.S.st==='right'?6-d.S.k:0)+'/5'}}
+    if(!Array.isArray(d.S.qs))return {done:true,label:(d.S.st==='right'?6-d.S.k:0)+'/5'};
+    return {done:true,label:d.S.qs.reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0)+'/25'}}
   return {done:false}}
 const playedToday=id=>result(id).done;
 // the next game of the day not played yet, in list order after this one (null when all are done)
@@ -152,7 +153,7 @@ function ledger(){const L={},add=(d,id,mi)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))(L
   const t=json('t10-hist')||{};for(const d in t)if(t[d])add(d,'top10',pts((+t[d].f||0)/10));
   const s=json('sil-hist')||{};for(const d in s){const v=Object.values(s[d]||{}).filter(x=>typeof x==='number');if(v.length)add(d,'silhouette',pts(Math.max(...v)/9))}
   const u=json('cu-hist')||{};for(const d in u)if(u[d])add(d,'customs',pts((+u[d].p||0)/25));
-  const f=json('fp-hist')||{};for(const d in f)if(f[d])add(d,'flagpie',pts((+f[d].p||0)/5));
+  const f=json('fp-hist')||{};for(const d in f)if(f[d])add(d,'flagpie',pts((+f[d].p||0)/((+f[d].n||1)*5)));
   return L}
 const dayTotal=day=>{const v=Object.values(day||{});return v.reduce((a,b)=>a+b,0)+(v.length>=ALLN?ALL5:0)};
 function level(km){let i=0;LEVELS.forEach((l,k)=>{if(km>=l[1])i=k});const next=LEVELS[i+1];
@@ -219,7 +220,7 @@ function visas(){const H=k=>json(k)||{},vals=o=>Object.values(o).filter(Boolean)
   const full=d=>L[d]&&Object.keys(L[d]).length>=ALLN;
   const wknd=Object.keys(L).filter(d=>new Date(d+'T12:00Z').getUTCDay()===6&&full(d)&&full(new Date(Date.parse(d+'T12:00Z')+864e5).toISOString().slice(0,10))).length;
   // Six continents: a country of your own in each of them
-  const fpn=vals(H('fp-hist')).filter(e=>+e.r>0).length;
+  const fpn=vals(H('fp-hist')).reduce((a,e)=>a+(+e.r||0),0);
   const conts=new Set(Object.keys(ATLAS).filter(c=>country(c).mine).map(c=>ATLAS[c].r)).size;
   return [
     ['#A07C1E','1st','Gold medal','1st in a daily ranking',gold.length>0,0,'',times(gold.length,last(gold)),0],
@@ -244,9 +245,9 @@ function visas(){const H=k=>json(k)||{},vals=o=>Object.values(o).filter(Boolean)
     ['#C94A58','▦','Perfect grid','Every square of a daily grid',grid,0,'','',3],
     ['#6B4BA8','9/9','Eagle eye','9 out of 9 in Silhouette',sil,0,'','',3],
     ['#B5632A','5/5','Nothing to declare','All five travellers right in Customs',vals(H('cu-hist')).some(e=>+e.r>=5),0,'','',3],
-    ['#2E8C8C','◔','Pie master','Today\'s Flag Pie from the pie alone',vals(H('fp-hist')).some(e=>+e.p>=5),0,'','',3],
-    ['#2E8C8C','10◔','Flag spotter','10 daily flags named in Flag Pie',...up(fpn,10),'',3],
-    ['#2E8C8C','30◔','Colour wheel','30 daily flags named in Flag Pie',...up(fpn,30),'',3],
+    ['#2E8C8C','5◔','Pie master','All five flags of a Flag Pie from the pie alone',vals(H('fp-hist')).some(e=>+e.n===5&&+e.a>=5),0,'','',3],
+    ['#2E8C8C','25◔','Flag spotter','25 daily flags named in Flag Pie',...up(fpn,25),'',3],
+    ['#2E8C8C','100◔','Colour wheel','100 daily flags named in Flag Pie',...up(fpn,100),'',3],
     ['#2A56B8','2+','Good company','Win a game with friends',fr,0,'','',3],
     ['#A07C1E','1','New homeland','Your first country',...up(cm,1),'',3],
     ['#25744F','100','Collector','100 stamps',...up(p.n,100),'',3],
