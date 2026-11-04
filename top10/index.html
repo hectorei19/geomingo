@@ -463,14 +463,15 @@ function myStatsHTML(){const h=load('t10-hist',{}),so=load('t10-solo',null)||{n:
 const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
 const seg=(name,opts,val)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-seg="${name}" data-v="${v}" aria-pressed="${String(v)===String(val)}">${l}</button>`).join('')}</div>`;
 // the list being played: its title, the lives (or whose turn it is), the search box, the ten rows and the wrong answers
-const srcBtn=`<button class="linkbtn" id="src" style="align-self:flex-start;padding:0">Where the numbers come from</button>`;
+// "Where the numbers come from": after the wrong answers, before the quick rules
+const srcHTML=`<p class="t10src" style="margin:0;text-align:center"><button class="linkbtn" id="src" style="padding:0">Where the numbers come from</button></p>`;
 function askHTML(tkt){const l=listById(S.list);
-  return `<p class="t10q">${esc(l.title)}</p>${S.top.length>10?`<p class="hint" style="margin:0">${S.top.length} countries share the places down to 10th: any of them counts. Find 10 to win.</p>`:''}${KB&&!S.over?'':srcBtn}`}
+  return `<p class="t10q">${esc(l.title)}</p>${S.top.length>10?`<p class="hint" style="margin:0">${S.top.length} countries share the places down to 10th: any of them counts. Find 10 to win.</p>`:''}`}
 // the answer box (and Pass / Give up): right under the ten rows, before the wrong answers
 function controlsHTML(){if(S.over)return '';const on=S.mode==='online',mine=!on||S.turn===S.me;
-  if(KB)return `<div class="kbgu">${mine?askBtnHTML():''}${on?(mine?'<button class="ghost" id="opass">Pass</button>':''):giveUpHTML()}${srcBtn}</div>`;
+  if(KB)return `<div class="kbgu">${mine?askBtnHTML():''}${on&&mine?'<button class="ghost" id="opass">Pass</button>':''}</div>`;
   if(!mine)return '';
-  return `<section class="panel t10ask"><div class="t10in"><input id="q" placeholder="Type a country…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(query)}" aria-label="Type a country"><ul class="sugg" id="sugg">${suggHTML()}</ul></div>${on?'<button class="ghost" id="opass" style="align-self:flex-start">Pass</button>':giveUpHTML()}</section>`}
+  return `<section class="panel t10ask"><div class="t10in"><input id="q" placeholder="Type a country…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(query)}" aria-label="Type a country"><ul class="sugg" id="sugg">${suggHTML()}</ul></div>${on?'<button class="ghost" id="opass" style="align-self:flex-start">Pass</button>':''}</section>`}
 // phones: a button that opens the answer sheet, as in Countries (shared/minigames.js)
 const KB=SHEETS;
 function listHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries(r.map(x=>[x.c,x.v])),on=S.mode==='online';
@@ -484,7 +485,7 @@ function listHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries
 function shortFig(t){return t.replace(/\d{1,3}(?:\.\d{3}){2,}(?:,\d+)?/g,m=>{const v=+m.replace(/\./g,'').replace(',','.');return v>=1e9?EU(v/1e9,2)+' bn':EU(v/1e6,v>=1e8?0:1)+' M'})
   .replace(/^(\d{3})\.\d{3} inhabitants$/,'$1k inhabitants')
   .replace(/ per million people/g,' per M').replace(/ trillion/g,' tn').replace(/ billion/g,' bn').replace(/ million/g,' M')
-  .replace(/ inhabitants per km²/g,'/km²').replace(/ inhabitants/g,' inhab.').replace(/ tonnes/g,' t').replace(/ neighbours/g,' nbrs')}
+  .replace(/ inhabitants per km²/g,'/km²').replace(/ inhabitants/g,' inhab.').replace(/ tonnes/g,' t').replace(/ neighbours/g,' nbrs').replace(/ vehicles/g,' cars')}
 function wrongsHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries(r.map(x=>[x.c,x.v])),on=S.mode==='online';
   const who=c=>on&&S.by[c]!=null&&S.players[S.by[c]]?S.players[S.by[c]].name:'',pc=c=>`--pc:var(--p${S.by[c]%6})`;let h='';
   // wrong answers: sorted by their real place, each showing its place first and its figure, like the rows above
@@ -551,7 +552,7 @@ function onlineHTML(){const cur=S.players[S.turn]||{};
       <p class="hint">${S.won?'All ten found.':`${S.found.length} of 10 found. The full list is below.`} ${rk.map(p=>`${esc(p.name)} ${p.score}`).join(' · ')}</p>${why?`<p class="hint" style="margin-top:0">${why}</p>`:''}
       ${S.host?`<div class="row-btns"><button class="primary" id="orematch" style="flex:1">Rematch</button><button class="ghost" id="olobby" style="flex:1">Back to room</button></div>`:'<p class="hint">Waiting for the host to start a rematch.</p>'}</section>`}
   if(!S.over&&!cur.on&&S.turn!==S.me)h+=`<button class="ghost" id="oskip">${esc(cur.name)} is offline: skip their turn</button>`;
-  h+=`<section class="panel t10ask">${askHTML()}</section>${listHTML()}${controlsHTML()}${wrongsHTML()}`;
+  h+=`<section class="panel t10ask">${askHTML()}</section>${listHTML()}${controlsHTML()}${wrongsHTML()}${srcHTML}`;
   h+=`<div class="row-btns">${S.host&&!S.over?'<button class="ghost" id="oend" style="flex:1">End game</button>':''}<button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;
   return h}
 function render(){
@@ -579,7 +580,7 @@ function render(){
     const dy=q.getBoundingClientRect().top-y;if(dy)window.scrollBy(0,dy);return}
   if(S.over)h+=resultHTML();
   else h+=`<div id="t10tk" style="display:contents">${tk()}</div>`;
-  h+=`<section class="panel t10ask">${askHTML(true)}</section><div id="t10ls" style="display:contents">${listHTML()}</div>${controlsHTML()}<div id="t10wr" style="display:contents">${wrongsHTML()}</div>`;
+  h+=`<section class="panel t10ask">${askHTML(true)}</section><div id="t10ls" style="display:contents">${listHTML()}</div>${controlsHTML()}<div id="t10wr" style="display:contents">${wrongsHTML()}</div>${S.over?'':'<div class="t10gu" style="display:flex;justify-content:center">'+giveUpHTML()+'</div>'}${srcHTML}`;
   if(!S.over)h+=quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')+`<i id="t10game" data-k="${esc(tKey())}" hidden></i>`;
   app.innerHTML=h;bind();
 }
