@@ -469,9 +469,9 @@ function askHTML(tkt){const l=listById(S.list);
   return `<p class="t10q">${esc(l.title)}</p>${S.top.length>10?`<p class="hint" style="margin:0">${S.top.length} countries share the places down to 10th: any of them counts. Find 10 to win.</p>`:''}`}
 // the answer box (and Pass / Give up): right under the ten rows, before the wrong answers
 function controlsHTML(){if(S.over)return '';const on=S.mode==='online',mine=!on||S.turn===S.me;
-  if(KB)return `<div class="kbgu">${mine?askBtnHTML():''}${on?(mine?'<button class="ghost" id="opass">Pass</button>':''):giveUpHTML()}</div>`;
+  if(KB)return `<div class="kbgu">${mine?askBtnHTML():''}${on&&mine?'<button class="ghost" id="opass">Pass</button>':''}</div>`;
   if(!mine)return '';
-  return `<section class="panel t10ask"><div class="t10in"><input id="q" placeholder="Type a country…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(query)}" aria-label="Type a country"><ul class="sugg" id="sugg">${suggHTML()}</ul></div>${on?'<button class="ghost" id="opass" style="align-self:flex-start">Pass</button>':giveUpHTML()}</section>`}
+  return `<section class="panel t10ask"><div class="t10in"><input id="q" placeholder="Type a country…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(query)}" aria-label="Type a country"><ul class="sugg" id="sugg">${suggHTML()}</ul></div>${on?'<button class="ghost" id="opass" style="align-self:flex-start">Pass</button>':''}</section>`}
 // phones: a button that opens the answer sheet, as in Countries (shared/minigames.js)
 const KB=SHEETS;
 function listHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries(r.map(x=>[x.c,x.v])),on=S.mode==='online';
@@ -580,7 +580,7 @@ function render(){
     const dy=q.getBoundingClientRect().top-y;if(dy)window.scrollBy(0,dy);return}
   if(S.over)h+=resultHTML();
   else h+=`<div id="t10tk" style="display:contents">${tk()}</div>`;
-  h+=`<section class="panel t10ask">${askHTML(true)}</section><div id="t10ls" style="display:contents">${listHTML()}</div>${controlsHTML()}<div id="t10wr" style="display:contents">${wrongsHTML()}</div>${srcHTML}`;
+  h+=`<section class="panel t10ask">${askHTML(true)}</section><div id="t10ls" style="display:contents">${listHTML()}</div>${controlsHTML()}<div id="t10wr" style="display:contents">${wrongsHTML()}</div>${S.over?'':'<div class="t10gu" style="display:flex;justify-content:center">'+giveUpHTML()+'</div>'}${srcHTML}`;
   if(!S.over)h+=quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')+`<i id="t10game" data-k="${esc(tKey())}" hidden></i>`;
   app.innerHTML=h;bind();
 }
