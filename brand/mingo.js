@@ -29,7 +29,8 @@ const GAMES=[
   {id:'connections',name:'Connections',path:'connections/',gate:'3',hint:'Find 4 hidden groups'},
   {id:'top10',name:'Top 10',path:'top10/',gate:'4',hint:'Name the top 10 countries'},
   {id:'silhouette',name:'Silhouette',path:'silhouette/',gate:'5',hint:'Guess the hidden country'},
-  {id:'customs',name:'Customs',path:'customs/',gate:'6',hint:'Guess the country from clues',nofriends:1}];
+  {id:'customs',name:'Customs',path:'customs/',gate:'6',hint:'Guess the country from clues',nofriends:1},
+  {id:'flagpie',name:'Flag Pie',path:'flagpie/',gate:'7',hint:'Guess the flag from its colours',nofriends:1}];
 GAMES.forEach(g=>g.href=ROOT+g.path);
 const live=()=>GAMES.filter(g=>!g.soon);
 const game=id=>GAMES.find(g=>g.id===id);
@@ -59,6 +60,8 @@ function result(id,k){k=k||dayKey();
     return {done:true,label:v.length?Math.max(...v)+'/9':'Done'}}
   if(id==='customs'){const d=json('cu-daily');if(!(d&&d.date===k&&d.over&&d.S))return {done:false};
     return {done:true,label:(d.S.qs||[]).reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0)+'/25'}}
+  if(id==='flagpie'){const d=json('fp-daily');if(!(d&&d.date===k&&d.over&&d.S))return {done:false};
+    return {done:true,label:(d.S.st==='right'?6-d.S.k:0)+'/5'}}
   return {done:false}}
 const playedToday=id=>result(id).done;
 // the next game of the day not played yet, in list order after this one (null when all are done)
@@ -70,7 +73,7 @@ function nextGame(cur){const L=live(),i=L.findIndex(g=>g.id===cur);
 function days(){let d=json('gm-days');
   if(!Array.isArray(d)){const s=new Set();
     ['bl-hist','cc-hist'].forEach(k=>{const h=json(k)||{};Object.keys(h).forEach(x=>{if(h[x]&&h[x].f!==0)s.add(x)})});
-    ['cx-hist','t10-hist','sil-hist','cu-hist'].forEach(k=>Object.keys(json(k)||{}).forEach(x=>s.add(x)));
+    ['cx-hist','t10-hist','sil-hist','cu-hist','fp-hist'].forEach(k=>Object.keys(json(k)||{}).forEach(x=>s.add(x)));
     d=[...s].filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x)).sort()}
   const k=dayKey();
   if(!d.includes(k)&&GAMES.some(g=>playedToday(g.id)))d.push(k);
@@ -87,6 +90,7 @@ function seedCount(){let n=0,first=null;const see=k=>{if(/^\d{4}-\d{2}-\d{2}$/.t
   const t=json('t10-hist')||{};Object.keys(t).forEach(x=>{n+=+(t[x]&&t[x].f)||0;see(x)});
   const s=json('sil-hist')||{};Object.keys(s).forEach(x=>{Object.values(s[x]||{}).forEach(v=>{if(typeof v==='number')n+=v});see(x)});
   const u=json('cu-hist')||{};Object.keys(u).forEach(x=>{n+=+(u[x]&&u[x].r)||0;see(x)});
+  const f=json('fp-hist')||{};Object.keys(f).forEach(x=>{n+=+(f[x]&&f[x].r)||0;see(x)});
   return {n,first}}
 function pass(){let p=json('gm-pass');
   if(!p||typeof p.n!=='number'){const s=seedCount();p={n:s.n,since:s.first||dayKey(),list:[]};store.set('gm-pass',JSON.stringify(p))}
@@ -115,20 +119,20 @@ function visaMoments(V){const m=moments(),now=V.filter(v=>v[4]).map(v=>v[2]);
   m.v=now;m.e=m.e.slice(-60);store.set('gm-ms',JSON.stringify(m))}
 /* ---------- the atlas: the 196 countries and which games have stamped each one (gm-pass .atlas) ----------
    A country is yours once you get it right in every game it can come up in: Countries, Capitals (its capital),
-   Silhouette, Top 10 (Héctor, 2026-11-01) and Customs (2026-11-02: every country can come up there, so it counts for all). Israel and Palestine have no capital in Capitals and Vanuatu is in
+   Silhouette, Top 10 (Héctor, 2026-11-01), Customs (2026-11-02: every country can come up there, so it counts for all) and Flag Pie (2026-11-04, the same). Israel and Palestine have no capital in Capitals and Vanuatu is in
    no Top 10 list, so those games don't count for them. ATLAS[code] = {n: name, r: continent, m: the games it can
    come up in (bits, GBIT), k: capital}. Made from Silhouette's, Countries' and Capitals' data and Top 10's lists. */
-const GBIT={borderline:1,citygrid:2,silhouette:4,top10:8,customs:16};
-const ATLAS={};"AFG|Afghanistan|AS|15|Kabul;ALB|Albania|EU|15|Tirana;DZA|Algeria|AF|15|Algiers;AND|Andorra|EU|15|Andorra la Vella;AGO|Angola|AF|15|Luanda;ATG|Antigua and Barbuda|NA|15|St. John's;ARG|Argentina|SA|15|Buenos Aires;ARM|Armenia|AS|15|Yerevan;AUS|Australia|OC|15|Canberra;AUT|Austria|EU|15|Vienna;AZE|Azerbaijan|AS|15|Baku;BHS|Bahamas|NA|15|Nassau;BHR|Bahrain|AS|15|Manama;BGD|Bangladesh|AS|15|Dhaka;BRB|Barbados|NA|15|Bridgetown;BLR|Belarus|EU|15|Minsk;BEL|Belgium|EU|15|Brussels;BLZ|Belize|NA|15|Belmopan;BEN|Benin|AF|15|Porto-Novo;BTN|Bhutan|AS|15|Thimphu;BOL|Bolivia|SA|15|La Paz;BIH|Bosnia and Herzegovina|EU|15|Sarajevo;BWA|Botswana|AF|15|Gaborone;BRA|Brazil|SA|15|Brasília;BRN|Brunei|AS|15|Bandar Seri Begawan;BGR|Bulgaria|EU|15|Sofia;BFA|Burkina Faso|AF|15|Ouagadougou;BDI|Burundi|AF|15|Gitega;KHM|Cambodia|AS|15|Phnom Penh;CMR|Cameroon|AF|15|Yaoundé;CAN|Canada|NA|15|Ottawa;CPV|Cape Verde|AF|15|Praia;CAF|Central African Republic|AF|15|Bangui;TCD|Chad|AF|15|N'Djamena;CHL|Chile|SA|15|Santiago;CHN|China|AS|15|Beijing;COL|Colombia|SA|15|Bogotá;COM|Comoros|AF|15|Moroni;CRI|Costa Rica|NA|15|San José;HRV|Croatia|EU|15|Zagreb;CUB|Cuba|NA|15|Havana;CYP|Cyprus|EU|15|Nicosia;CZE|Czechia|EU|15|Prague;DNK|Denmark|EU|15|Copenhagen;DJI|Djibouti|AF|15|Djibouti;DMA|Dominica|NA|15|Roseau;DOM|Dominican Republic|NA|15|Santo Domingo;COD|DR Congo|AF|15|Kinshasa;ECU|Ecuador|SA|15|Quito;EGY|Egypt|AF|15|Cairo;SLV|El Salvador|NA|15|San Salvador;GNQ|Equatorial Guinea|AF|15|Malabo;ERI|Eritrea|AF|15|Asmara;EST|Estonia|EU|15|Tallinn;SWZ|Eswatini|AF|15|Mbabane;ETH|Ethiopia|AF|15|Addis Ababa;FJI|Fiji|OC|15|Suva;FIN|Finland|EU|15|Helsinki;FRA|France|EU|15|Paris;GAB|Gabon|AF|15|Libreville;GMB|Gambia|AF|15|Banjul;GEO|Georgia|AS|15|Tbilisi;DEU|Germany|EU|15|Berlin;GHA|Ghana|AF|15|Accra;GRC|Greece|EU|15|Athens;GRD|Grenada|NA|15|St. George's;GTM|Guatemala|NA|15|Guatemala City;GIN|Guinea|AF|15|Conakry;GNB|Guinea-Bissau|AF|15|Bissau;GUY|Guyana|SA|15|Georgetown;HTI|Haiti|NA|15|Port-au-Prince;HND|Honduras|NA|15|Tegucigalpa;HUN|Hungary|EU|15|Budapest;ISL|Iceland|EU|15|Reykjavík;IND|India|AS|15|Delhi;IDN|Indonesia|AS|15|Jakarta;IRN|Iran|AS|15|Tehran;IRQ|Iraq|AS|15|Baghdad;IRL|Ireland|EU|15|Dublin;ISR|Israel|AS|13|;ITA|Italy|EU|15|Rome;CIV|Ivory Coast|AF|15|Yamoussoukro;JAM|Jamaica|NA|15|Kingston;JPN|Japan|AS|15|Tokyo;JOR|Jordan|AS|15|Amman;KAZ|Kazakhstan|AS|15|Astana;KEN|Kenya|AF|15|Nairobi;KIR|Kiribati|OC|15|Tarawa;UNK|Kosovo|EU|15|Pristina;KWT|Kuwait|AS|15|Kuwait City;KGZ|Kyrgyzstan|AS|15|Bishkek;LAO|Laos|AS|15|Vientiane;LVA|Latvia|EU|15|Riga;LBN|Lebanon|AS|15|Beirut;LSO|Lesotho|AF|15|Maseru;LBR|Liberia|AF|15|Monrovia;LBY|Libya|AF|15|Tripoli;LIE|Liechtenstein|EU|15|Vaduz;LTU|Lithuania|EU|15|Vilnius;LUX|Luxembourg|EU|15|Luxembourg;MDG|Madagascar|AF|15|Antananarivo;MWI|Malawi|AF|15|Lilongwe;MYS|Malaysia|AS|15|Kuala Lumpur;MDV|Maldives|AS|15|Malé;MLI|Mali|AF|15|Bamako;MLT|Malta|EU|15|Valletta;MHL|Marshall Islands|OC|15|Majuro;MRT|Mauritania|AF|15|Nouakchott;MUS|Mauritius|AF|15|Port Louis;MEX|Mexico|NA|15|Mexico City;FSM|Micronesia|OC|15|Palikir;MDA|Moldova|EU|15|Chișinău;MCO|Monaco|EU|15|Monaco;MNG|Mongolia|AS|15|Ulaanbaatar;MNE|Montenegro|EU|15|Podgorica;MAR|Morocco|AF|15|Rabat;MOZ|Mozambique|AF|15|Maputo;MMR|Myanmar|AS|15|Naypyidaw;NAM|Namibia|AF|15|Windhoek;NRU|Nauru|OC|15|Yaren;NPL|Nepal|AS|15|Kathmandu;NLD|Netherlands|EU|15|Amsterdam;NZL|New Zealand|OC|15|Wellington;NIC|Nicaragua|NA|15|Managua;NER|Niger|AF|15|Niamey;NGA|Nigeria|AF|15|Abuja;PRK|North Korea|AS|15|Pyongyang;MKD|North Macedonia|EU|15|Skopje;NOR|Norway|EU|15|Oslo;OMN|Oman|AS|15|Muscat;PAK|Pakistan|AS|15|Islamabad;PLW|Palau|OC|15|Ngerulmud;PSE|Palestine|AS|13|;PAN|Panama|NA|15|Panama City;PNG|Papua New Guinea|OC|15|Port Moresby;PRY|Paraguay|SA|15|Asunción;PER|Peru|SA|15|Lima;PHL|Philippines|AS|15|Manila;POL|Poland|EU|15|Warsaw;PRT|Portugal|EU|15|Lisbon;QAT|Qatar|AS|15|Doha;COG|Republic of the Congo|AF|15|Brazzaville;ROU|Romania|EU|15|Bucharest;RUS|Russia|EU|15|Moscow;RWA|Rwanda|AF|15|Kigali;KNA|Saint Kitts and Nevis|NA|15|Basseterre;LCA|Saint Lucia|NA|15|Castries;VCT|Saint Vincent and the Grenadines|NA|15|Kingstown;WSM|Samoa|OC|15|Apia;SMR|San Marino|EU|15|San Marino;STP|São Tomé and Príncipe|AF|15|São Tomé;SAU|Saudi Arabia|AS|15|Riyadh;SEN|Senegal|AF|15|Dakar;SRB|Serbia|EU|15|Belgrade;SYC|Seychelles|AF|15|Victoria;SLE|Sierra Leone|AF|15|Freetown;SGP|Singapore|AS|15|Singapore;SVK|Slovakia|EU|15|Bratislava;SVN|Slovenia|EU|15|Ljubljana;SLB|Solomon Islands|OC|15|Honiara;SOM|Somalia|AF|15|Mogadishu;ZAF|South Africa|AF|15|Pretoria;KOR|South Korea|AS|15|Seoul;SSD|South Sudan|AF|15|Juba;ESP|Spain|EU|15|Madrid;LKA|Sri Lanka|AS|15|Colombo;SDN|Sudan|AF|15|Khartoum;SUR|Suriname|SA|15|Paramaribo;SWE|Sweden|EU|15|Stockholm;CHE|Switzerland|EU|15|Bern;SYR|Syria|AS|15|Damascus;TWN|Taiwan|AS|15|Taipei;TJK|Tajikistan|AS|15|Dushanbe;TZA|Tanzania|AF|15|Dodoma;THA|Thailand|AS|15|Bangkok;TLS|Timor-Leste|AS|15|Dili;TGO|Togo|AF|15|Lomé;TON|Tonga|OC|15|Nukuʻalofa;TTO|Trinidad and Tobago|NA|15|Port of Spain;TUN|Tunisia|AF|15|Tunis;TUR|Türkiye|AS|15|Ankara;TKM|Turkmenistan|AS|15|Ashgabat;TUV|Tuvalu|OC|15|Funafuti;UGA|Uganda|AF|15|Kampala;UKR|Ukraine|EU|15|Kyiv;ARE|United Arab Emirates|AS|15|Abu Dhabi;GBR|United Kingdom|EU|15|London;USA|United States|NA|15|Washington;URY|Uruguay|SA|15|Montevideo;UZB|Uzbekistan|AS|15|Tashkent;VUT|Vanuatu|OC|7|Port Vila;VEN|Venezuela|SA|15|Caracas;VNM|Vietnam|AS|15|Hanoi;YEM|Yemen|AS|15|Sanaa;ZMB|Zambia|AF|15|Lusaka;ZWE|Zimbabwe|AF|15|Harare".split(';').forEach(r=>{const [c,n,re,m,k]=r.split('|');ATLAS[c]={n,r:re,m:+m|GBIT.customs,k}});
-const bits=m=>(m&1)+(m>>1&1)+(m>>2&1)+(m>>3&1)+(m>>4&1);
+const GBIT={borderline:1,citygrid:2,silhouette:4,top10:8,customs:16,flagpie:32};
+const ATLAS={};"AFG|Afghanistan|AS|15|Kabul;ALB|Albania|EU|15|Tirana;DZA|Algeria|AF|15|Algiers;AND|Andorra|EU|15|Andorra la Vella;AGO|Angola|AF|15|Luanda;ATG|Antigua and Barbuda|NA|15|St. John's;ARG|Argentina|SA|15|Buenos Aires;ARM|Armenia|AS|15|Yerevan;AUS|Australia|OC|15|Canberra;AUT|Austria|EU|15|Vienna;AZE|Azerbaijan|AS|15|Baku;BHS|Bahamas|NA|15|Nassau;BHR|Bahrain|AS|15|Manama;BGD|Bangladesh|AS|15|Dhaka;BRB|Barbados|NA|15|Bridgetown;BLR|Belarus|EU|15|Minsk;BEL|Belgium|EU|15|Brussels;BLZ|Belize|NA|15|Belmopan;BEN|Benin|AF|15|Porto-Novo;BTN|Bhutan|AS|15|Thimphu;BOL|Bolivia|SA|15|La Paz;BIH|Bosnia and Herzegovina|EU|15|Sarajevo;BWA|Botswana|AF|15|Gaborone;BRA|Brazil|SA|15|Brasília;BRN|Brunei|AS|15|Bandar Seri Begawan;BGR|Bulgaria|EU|15|Sofia;BFA|Burkina Faso|AF|15|Ouagadougou;BDI|Burundi|AF|15|Gitega;KHM|Cambodia|AS|15|Phnom Penh;CMR|Cameroon|AF|15|Yaoundé;CAN|Canada|NA|15|Ottawa;CPV|Cape Verde|AF|15|Praia;CAF|Central African Republic|AF|15|Bangui;TCD|Chad|AF|15|N'Djamena;CHL|Chile|SA|15|Santiago;CHN|China|AS|15|Beijing;COL|Colombia|SA|15|Bogotá;COM|Comoros|AF|15|Moroni;CRI|Costa Rica|NA|15|San José;HRV|Croatia|EU|15|Zagreb;CUB|Cuba|NA|15|Havana;CYP|Cyprus|EU|15|Nicosia;CZE|Czechia|EU|15|Prague;DNK|Denmark|EU|15|Copenhagen;DJI|Djibouti|AF|15|Djibouti;DMA|Dominica|NA|15|Roseau;DOM|Dominican Republic|NA|15|Santo Domingo;COD|DR Congo|AF|15|Kinshasa;ECU|Ecuador|SA|15|Quito;EGY|Egypt|AF|15|Cairo;SLV|El Salvador|NA|15|San Salvador;GNQ|Equatorial Guinea|AF|15|Malabo;ERI|Eritrea|AF|15|Asmara;EST|Estonia|EU|15|Tallinn;SWZ|Eswatini|AF|15|Mbabane;ETH|Ethiopia|AF|15|Addis Ababa;FJI|Fiji|OC|15|Suva;FIN|Finland|EU|15|Helsinki;FRA|France|EU|15|Paris;GAB|Gabon|AF|15|Libreville;GMB|Gambia|AF|15|Banjul;GEO|Georgia|AS|15|Tbilisi;DEU|Germany|EU|15|Berlin;GHA|Ghana|AF|15|Accra;GRC|Greece|EU|15|Athens;GRD|Grenada|NA|15|St. George's;GTM|Guatemala|NA|15|Guatemala City;GIN|Guinea|AF|15|Conakry;GNB|Guinea-Bissau|AF|15|Bissau;GUY|Guyana|SA|15|Georgetown;HTI|Haiti|NA|15|Port-au-Prince;HND|Honduras|NA|15|Tegucigalpa;HUN|Hungary|EU|15|Budapest;ISL|Iceland|EU|15|Reykjavík;IND|India|AS|15|Delhi;IDN|Indonesia|AS|15|Jakarta;IRN|Iran|AS|15|Tehran;IRQ|Iraq|AS|15|Baghdad;IRL|Ireland|EU|15|Dublin;ISR|Israel|AS|13|;ITA|Italy|EU|15|Rome;CIV|Ivory Coast|AF|15|Yamoussoukro;JAM|Jamaica|NA|15|Kingston;JPN|Japan|AS|15|Tokyo;JOR|Jordan|AS|15|Amman;KAZ|Kazakhstan|AS|15|Astana;KEN|Kenya|AF|15|Nairobi;KIR|Kiribati|OC|15|Tarawa;UNK|Kosovo|EU|15|Pristina;KWT|Kuwait|AS|15|Kuwait City;KGZ|Kyrgyzstan|AS|15|Bishkek;LAO|Laos|AS|15|Vientiane;LVA|Latvia|EU|15|Riga;LBN|Lebanon|AS|15|Beirut;LSO|Lesotho|AF|15|Maseru;LBR|Liberia|AF|15|Monrovia;LBY|Libya|AF|15|Tripoli;LIE|Liechtenstein|EU|15|Vaduz;LTU|Lithuania|EU|15|Vilnius;LUX|Luxembourg|EU|15|Luxembourg;MDG|Madagascar|AF|15|Antananarivo;MWI|Malawi|AF|15|Lilongwe;MYS|Malaysia|AS|15|Kuala Lumpur;MDV|Maldives|AS|15|Malé;MLI|Mali|AF|15|Bamako;MLT|Malta|EU|15|Valletta;MHL|Marshall Islands|OC|15|Majuro;MRT|Mauritania|AF|15|Nouakchott;MUS|Mauritius|AF|15|Port Louis;MEX|Mexico|NA|15|Mexico City;FSM|Micronesia|OC|15|Palikir;MDA|Moldova|EU|15|Chișinău;MCO|Monaco|EU|15|Monaco;MNG|Mongolia|AS|15|Ulaanbaatar;MNE|Montenegro|EU|15|Podgorica;MAR|Morocco|AF|15|Rabat;MOZ|Mozambique|AF|15|Maputo;MMR|Myanmar|AS|15|Naypyidaw;NAM|Namibia|AF|15|Windhoek;NRU|Nauru|OC|15|Yaren;NPL|Nepal|AS|15|Kathmandu;NLD|Netherlands|EU|15|Amsterdam;NZL|New Zealand|OC|15|Wellington;NIC|Nicaragua|NA|15|Managua;NER|Niger|AF|15|Niamey;NGA|Nigeria|AF|15|Abuja;PRK|North Korea|AS|15|Pyongyang;MKD|North Macedonia|EU|15|Skopje;NOR|Norway|EU|15|Oslo;OMN|Oman|AS|15|Muscat;PAK|Pakistan|AS|15|Islamabad;PLW|Palau|OC|15|Ngerulmud;PSE|Palestine|AS|13|;PAN|Panama|NA|15|Panama City;PNG|Papua New Guinea|OC|15|Port Moresby;PRY|Paraguay|SA|15|Asunción;PER|Peru|SA|15|Lima;PHL|Philippines|AS|15|Manila;POL|Poland|EU|15|Warsaw;PRT|Portugal|EU|15|Lisbon;QAT|Qatar|AS|15|Doha;COG|Republic of the Congo|AF|15|Brazzaville;ROU|Romania|EU|15|Bucharest;RUS|Russia|EU|15|Moscow;RWA|Rwanda|AF|15|Kigali;KNA|Saint Kitts and Nevis|NA|15|Basseterre;LCA|Saint Lucia|NA|15|Castries;VCT|Saint Vincent and the Grenadines|NA|15|Kingstown;WSM|Samoa|OC|15|Apia;SMR|San Marino|EU|15|San Marino;STP|São Tomé and Príncipe|AF|15|São Tomé;SAU|Saudi Arabia|AS|15|Riyadh;SEN|Senegal|AF|15|Dakar;SRB|Serbia|EU|15|Belgrade;SYC|Seychelles|AF|15|Victoria;SLE|Sierra Leone|AF|15|Freetown;SGP|Singapore|AS|15|Singapore;SVK|Slovakia|EU|15|Bratislava;SVN|Slovenia|EU|15|Ljubljana;SLB|Solomon Islands|OC|15|Honiara;SOM|Somalia|AF|15|Mogadishu;ZAF|South Africa|AF|15|Pretoria;KOR|South Korea|AS|15|Seoul;SSD|South Sudan|AF|15|Juba;ESP|Spain|EU|15|Madrid;LKA|Sri Lanka|AS|15|Colombo;SDN|Sudan|AF|15|Khartoum;SUR|Suriname|SA|15|Paramaribo;SWE|Sweden|EU|15|Stockholm;CHE|Switzerland|EU|15|Bern;SYR|Syria|AS|15|Damascus;TWN|Taiwan|AS|15|Taipei;TJK|Tajikistan|AS|15|Dushanbe;TZA|Tanzania|AF|15|Dodoma;THA|Thailand|AS|15|Bangkok;TLS|Timor-Leste|AS|15|Dili;TGO|Togo|AF|15|Lomé;TON|Tonga|OC|15|Nukuʻalofa;TTO|Trinidad and Tobago|NA|15|Port of Spain;TUN|Tunisia|AF|15|Tunis;TUR|Türkiye|AS|15|Ankara;TKM|Turkmenistan|AS|15|Ashgabat;TUV|Tuvalu|OC|15|Funafuti;UGA|Uganda|AF|15|Kampala;UKR|Ukraine|EU|15|Kyiv;ARE|United Arab Emirates|AS|15|Abu Dhabi;GBR|United Kingdom|EU|15|London;USA|United States|NA|15|Washington;URY|Uruguay|SA|15|Montevideo;UZB|Uzbekistan|AS|15|Tashkent;VUT|Vanuatu|OC|7|Port Vila;VEN|Venezuela|SA|15|Caracas;VNM|Vietnam|AS|15|Hanoi;YEM|Yemen|AS|15|Sanaa;ZMB|Zambia|AF|15|Lusaka;ZWE|Zimbabwe|AF|15|Harare".split(';').forEach(r=>{const [c,n,re,m,k]=r.split('|');ATLAS[c]={n,r:re,m:+m|GBIT.customs|GBIT.flagpie,k}});
+const bits=m=>(m&1)+(m>>1&1)+(m>>2&1)+(m>>3&1)+(m>>4&1)+(m>>5&1);
 // the first time: what the latest stamps on this device already say (names of countries and capitals)
 function atlasFromList(list){const a={},by={};
   for(const c in ATLAS){by['n'+ATLAS[c].n.toLowerCase()]=c;if(ATLAS[c].k)by['k'+ATLAS[c].k.toLowerCase()]=c}
   (list||[]).forEach(x=>{const b=GBIT[x.g];if(!b)return;const c=x.c&&ATLAS[x.c]?x.c:by[(x.g==='citygrid'?'k':'n')+String(x.t).toLowerCase()];
     if(c)a[c]=(a[c]||0)|b});return a}
-// cu: once, when Customs joined the atlas, the Customs stamps already in the list are added to an older atlas
-function atlas(p){p=p||pass();if(!p.atlas||typeof p.atlas!=='object'){p.atlas=atlasFromList(p.list);p.cu=1;store.set('gm-pass',JSON.stringify(p))}
-  else if(!p.cu){const f=atlasFromList(p.list);for(const c in f)p.atlas[c]=(p.atlas[c]||0)|f[c];p.cu=1;store.set('gm-pass',JSON.stringify(p))}
+// cu / fp: once, when Customs (and later Flag Pie) joined the atlas, their stamps already in the list are added to an older atlas
+function atlas(p){p=p||pass();if(!p.atlas||typeof p.atlas!=='object'){p.atlas=atlasFromList(p.list);p.cu=1;p.fp=1;store.set('gm-pass',JSON.stringify(p))}
+  else if(!p.cu||!p.fp){const f=atlasFromList(p.list);for(const c in f)p.atlas[c]=(p.atlas[c]||0)|f[c];p.cu=1;p.fp=1;store.set('gm-pass',JSON.stringify(p))}
   return p.atlas}
 // one country: {have: the games done, of: how many it needs, n: how many done, mine: true when all of them}
 function country(code,a){const c=ATLAS[code],h=((a||atlas())[code]||0)&c.m;return {have:h,n:bits(h),of:bits(c.m),mine:h===c.m}}
@@ -148,6 +152,7 @@ function ledger(){const L={},add=(d,id,mi)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))(L
   const t=json('t10-hist')||{};for(const d in t)if(t[d])add(d,'top10',pts((+t[d].f||0)/10));
   const s=json('sil-hist')||{};for(const d in s){const v=Object.values(s[d]||{}).filter(x=>typeof x==='number');if(v.length)add(d,'silhouette',pts(Math.max(...v)/9))}
   const u=json('cu-hist')||{};for(const d in u)if(u[d])add(d,'customs',pts((+u[d].p||0)/25));
+  const f=json('fp-hist')||{};for(const d in f)if(f[d])add(d,'flagpie',pts((+f[d].p||0)/5));
   return L}
 const dayTotal=day=>{const v=Object.values(day||{});return v.reduce((a,b)=>a+b,0)+(v.length>=ALLN?ALL5:0)};
 function level(km){let i=0;LEVELS.forEach((l,k)=>{if(km>=l[1])i=k});const next=LEVELS[i+1];
@@ -161,7 +166,7 @@ function bestStreak(){const n=k=>Math.round(Date.parse(k+'T12:00Z')/864e5),v=[..
 /* ---------- the clock: how long each daily took ----------
    gm-times {day: {game: {a: when today's puzzle was first on screen, b: when it ended, f: share right 0..1}}}, kept on this device.
    Each game starts it when it shows today's unfinished puzzle and stops it when the puzzle ends; the seconds go with the result
-   to the daily ranking (sec), for the Fastest of the day visa. Game ids: borderline, citygrid, connections, top10, silhouette, customs. */
+   to the daily ranking (sec), for the Fastest of the day visa. Game ids: borderline, citygrid, connections, top10, silhouette, customs, flagpie. */
 const clockAll=()=>{const T=json('gm-times');return T&&typeof T==='object'?T:{}};
 function clockStart(g,d){d=d||dayKey();if(d!==dayKey())return;const T=clockAll(),x=T[d]=T[d]||{};if(x[g])return;x[g]={a:Date.now()};
   const ks=Object.keys(T).sort();while(ks.length>400)delete T[ks.shift()];store.set('gm-times',JSON.stringify(T))}
@@ -214,6 +219,7 @@ function visas(){const H=k=>json(k)||{},vals=o=>Object.values(o).filter(Boolean)
   const full=d=>L[d]&&Object.keys(L[d]).length>=ALLN;
   const wknd=Object.keys(L).filter(d=>new Date(d+'T12:00Z').getUTCDay()===6&&full(d)&&full(new Date(Date.parse(d+'T12:00Z')+864e5).toISOString().slice(0,10))).length;
   // Six continents: a country of your own in each of them
+  const fpn=vals(H('fp-hist')).filter(e=>+e.r>0).length;
   const conts=new Set(Object.keys(ATLAS).filter(c=>country(c).mine).map(c=>ATLAS[c].r)).size;
   return [
     ['#A07C1E','1st','Gold medal','1st in a daily ranking',gold.length>0,0,'',times(gold.length,last(gold)),0],
@@ -238,6 +244,9 @@ function visas(){const H=k=>json(k)||{},vals=o=>Object.values(o).filter(Boolean)
     ['#C94A58','▦','Perfect grid','Every square of a daily grid',grid,0,'','',3],
     ['#6B4BA8','9/9','Eagle eye','9 out of 9 in Silhouette',sil,0,'','',3],
     ['#B5632A','5/5','Nothing to declare','All five travellers right in Customs',vals(H('cu-hist')).some(e=>+e.r>=5),0,'','',3],
+    ['#2E8C8C','◔','Pie master','Today\'s Flag Pie from the pie alone',vals(H('fp-hist')).some(e=>+e.p>=5),0,'','',3],
+    ['#2E8C8C','10◔','Flag spotter','10 daily flags named in Flag Pie',...up(fpn,10),'',3],
+    ['#2E8C8C','30◔','Colour wheel','30 daily flags named in Flag Pie',...up(fpn,30),'',3],
     ['#2A56B8','2+','Good company','Win a game with friends',fr,0,'','',3],
     ['#A07C1E','1','New homeland','Your first country',...up(cm,1),'',3],
     ['#25744F','100','Collector','100 stamps',...up(p.n,100),'',3],
@@ -350,8 +359,8 @@ function resultWindow(o){const g=game(o.game)||{name:o.gameName||''},nx=o.next||
 /* ---------- the GeoPass: one passport, the same from the home page and from every game ----------
    The data page on top (Mingo, name, level, km, streak, stamps, countries), then three pages:
    Passport (the route, today's entry stamp, the countries almost yours, the latest milestones, how it works), Countries (the atlas) and Visas. */
-const PINK={borderline:'#C94A58',citygrid:'#A07C1E',connections:'#2A56B8',top10:'#25744F',silhouette:'#6B4BA8',customs:'#B5632A'};
-const GORDER=[['borderline','Countries'],['citygrid','Capitals'],['silhouette','Silhouette'],['top10','Top 10'],['customs','Customs']];
+const PINK={borderline:'#C94A58',citygrid:'#A07C1E',connections:'#2A56B8',top10:'#25744F',silhouette:'#6B4BA8',customs:'#B5632A',flagpie:'#2E8C8C'};
+const GORDER=[['borderline','Countries'],['citygrid','Capitals'],['silhouette','Silhouette'],['top10','Top 10'],['customs','Customs'],['flagpie','Flag Pie']];
 const CONT=[['all','All'],['EU','Europe'],['AS','Asia'],['AF','Africa'],['AM','Americas'],['OC','Oceania']];
 const inCont=(c,k)=>k==='all'||(k==='AM'?c.r==='NA'||c.r==='SA':c.r===k);
 let gpTab='passport',gpCont='all',SHAPES=null,shapesBusy=false;
@@ -370,10 +379,10 @@ function howHTML(){return '<ul class="gp-how">'+
   '<li><b>Stamps.</b> Every right answer in any game is one more stamp in your count.</li>'+
   '<li><b>Km.</b> Every daily game you finish earns up to 100 km for how well it went. A perfect game +20, all '+ALLW+' in one day +'+ALL5+'.</li>'+
   '<li><b>Levels.</b> Km move you along the route: '+LEVELS.map(l=>l[0]+(l[1]?' ('+fmt(l[1])+')':'')).join(', ')+'.</li>'+
-  '<li><b>Countries.</b> A country is yours when you get it right in every game it comes up in: Countries, Capitals, Silhouette, Top 10 and Customs. The dots show which ones you have.</li>'+
+  '<li><b>Countries.</b> A country is yours when you get it right in every game it comes up in: Countries, Capitals, Silhouette, Top 10, Customs and Flag Pie. The dots show which ones you have.</li>'+
   '<li><b>Visas.</b> Special entries for special games, like a week in a row or a perfect grid.</li></ul>'}
 // Passport page (Héctor's option D, 2026-11-02): the route, today's entry stamp, the countries closest to being yours, the latest big moments
-const SHORT={borderline:'Countr.',citygrid:'Capit.',connections:'Conn.',top10:'Top 10',silhouette:'Silh.',customs:'Cust.'};
+const SHORT={borderline:'Countr.',citygrid:'Capit.',connections:'Conn.',top10:'Top 10',silhouette:'Silh.',customs:'Cust.',flagpie:'Pie'};
 function todayHTML(P){const k=dayKey(),L=live(),done=L.filter(g=>result(g.id).done).length;
   const cells=L.map(g=>{const r=result(g.id),c=PINK[g.id]||'#1D2B4C';
     if(!r.done)return '<a class="no" href="'+esc(g.href)+'" aria-label="'+esc(g.name)+': not played yet">'+esc(SHORT[g.id]||g.name)+'<b>–</b></a>';
