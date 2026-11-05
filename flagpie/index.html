@@ -99,7 +99,7 @@
 <div id="layer"></div>
 
 <script src="../shared/data.js?v=202610192300"></script>
-<script src="pies.js?v=202611041800"></script>
+<script src="pies.js?v=202611050245"></script>
 <script src="../shared/games.js?v=202610240100"></script>
 <script src="../shared/minigames.js?v=202611021845"></script>
 <script>
@@ -215,7 +215,9 @@ const squaresHTML=G=>`<span class="dsq" aria-hidden="true">${G.qs.map(q=>`<i cla
 /* ---- Daily: five flags, the same for everyone, new at midnight CET ----
    Only flags whose pie has no near twin (UNIQ), dealt five a day from a deck shuffled once per cycle, so no flag
    comes back until the deck is used up. Saved as fp-daily {date, over, S: the game}. */
-function dailyCodes(key){const n=dayNum(key,FIRST)-1,codes=UNIQ.filter(c=>cByCode[c]).sort(),days=Math.floor(codes.length/PER);
+// the daily deck, kept as it was on the first day so a day's flags never change when the pies are measured again
+const DECK=["AFG","AND","ARE","ARM","ATG","AZE","BEN","BFA","BGD","BHS","BIH","BLR","BLZ","BRA","BRB","BRN","BTN","BWA","CHL","CMR","COD","CPV","CUB","CYP","DEU","DJI","DMA","DNK","DZA","ERI","ESP","ETH","FIN","FJI","GAB","GEO","GMB","GNQ","GRC","GRD","GUY","IRN","ISL","ISR","JAM","JOR","JPN","KAZ","KEN","KHM","KIR","KNA","KOR","LAO","LBN","LBR","LBY","LCA","LKA","LSO","LUX","MDA","MDV","MHL","MMR","MNE","MNG","MOZ","MRT","MUS","MWI","NAM","NER","NGA","NOR","NPL","NRU","OMN","PAK","PAN","PER","PHL","PLW","PNG","PRK","PRT","PSE","RWA","SAU","SLB","SLE","SMR","SSD","STP","SUR","SWE","SWZ","SYC","TGO","TJK","TKM","TUR","TUV","TZA","UGA","UKR","UNK","URY","USA","UZB","VAT","VCT","VUT","ZAF","ZMB","ZWE"];
+function dailyCodes(key){const n=dayNum(key,FIRST)-1,codes=DECK.filter(c=>cByCode[c]).sort(),days=Math.floor(codes.length/PER);
   const cyc=Math.floor(n/days),i=((n%days)+days)%days;return shuffle(codes,rngFrom(seedOf('flagpie5-'+cyc))).slice(i*PER,(i+1)*PER)}
 let D=null;
 // saves from the first day, when a game was one flag ({c, k, …} without qs), are left behind

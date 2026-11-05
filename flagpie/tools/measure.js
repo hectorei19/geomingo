@@ -11,6 +11,8 @@ function palette(svg){const s=new Set();
   for(const m of svg.matchAll(/#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b/g)){let h=m[1].toLowerCase();if(h.length===3)h=h.split('').map(x=>x+x).join('');s.add('#'+h)}
   for(const m of svg.matchAll(/rgb\(\s*(\d+)[ ,]+(\d+)[ ,]+(\d+)/g))s.add('#'+[m[1],m[2],m[3]].map(v=>(+v).toString(16).padStart(2,'0')).join(''));
   for(const m of svg.matchAll(/(?:fill|stroke|stop-color|color)\s*[:=]\s*"?([a-z]+)/g))if(NAMED[m[1]])s.add(NAMED[m[1]]);
+  // SVG draws a shape with no fill in black (Afghanistan's black stripe): black is always a possible colour
+  s.add('#000000');
   return [...s]}
 (async()=>{const b=await chromium.launch();const p=await b.newPage();const out={},miss=[];
 for(const c of C){const k=c.c==='UNK'?'xk':iso2(c);const f=SVGDIR+'/'+k+'.svg';if(!fs.existsSync(f)){miss.push(c.c+' '+k);continue}
@@ -24,14 +26,14 @@ for(const c of C){const k=c.c==='UNK'?'xk':iso2(c);const f=SVGDIR+'/'+k+'.svg';i
     const img=new Image();img.src='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(s2)));await img.decode();
     const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.drawImage(img,0,0,W,H);
     const d=x.getImageData(0,0,W,H).data;const P=pal.map(h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]);
-    const cnt=new Float64Array(P.length);const cache=new Map();let tot=0;
+    const cnt=new Float64Array(P.length);const cache=new Map(),far=new Map();let tot=0,off=0;
     // small map of which colour each cell is, for the stripes clue (100 x rows)
     const GW=100,GH=Math.max(1,Math.round(GW*H/W)),grid=new Int16Array(GW*GH).fill(-1);
     for(let y=0;y<H;y++)for(let X=0;X<W;X++){const i=(y*W+X)*4,a=d[i+3]/255;if(a<0.02)continue;
       const key=d[i]<<16|d[i+1]<<8|d[i+2];let j=cache.get(key);
-      if(j===undefined){let bd=1e9;j=0;for(let q=0;q<P.length;q++){const dd=(P[q][0]-d[i])**2+(P[q][1]-d[i+1])**2+(P[q][2]-d[i+2])**2;if(dd<bd){bd=dd;j=q}}cache.set(key,j)}
-      cnt[j]+=a;tot+=a;
+      if(j===undefined){let bd=1e9;j=0;for(let q=0;q<P.length;q++){const dd=(P[q][0]-d[i])**2+(P[q][1]-d[i+1])**2+(P[q][2]-d[i+2])**2;if(dd<bd){bd=dd;j=q}}cache.set(key,j);far.set(key,bd>60*60)}
+      cnt[j]+=a;tot+=a;if(a>0.9&&far.get(key))off++;
       const gx=Math.floor(X*GW/W),gy=Math.floor(y*GH/H);if((X*GW)%W<GW&&(y*GH)%H<GH)grid[gy*GW+gx]=j}
-    return {W,H,tot,full:W*H,cnt:[...cnt],grid:[...grid],GW,GH}},{svg,pal});
+    return {W,H,tot,off:off/tot,full:W*H,cnt:[...cnt],grid:[...grid],GW,GH}},{svg,pal});
   out[c.c]={k,n:c.n,pal,...r}}
 await b.close();fs.writeFileSync(OUT,JSON.stringify(out));console.log('done',Object.keys(out).length,'missing',miss)})();
