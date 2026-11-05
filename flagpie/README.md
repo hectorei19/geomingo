@@ -15,4 +15,6 @@ Geography quiz: a pie chart shows the colours of a country's flag and how much o
 - `pies.js`: `PIE`, `LAY`, `SAME`, `UNIQ`, made with the scripts in `tools/`:
   1. `node tools/measure.js <repo> <folder with the svgs named by 2-letter code> raw.json` draws every flag 1.500 pixels wide in Chromium (Playwright) and gives each pixel to the closest colour named in the flag's SVG (so edges and gradients go to a real flag colour).
   2. `node tools/slices.js raw.json pies.json` joins colours that look the same (closer than 30 in RGB), puts specks under 0,5 % into the closest colour, names the colours, rounds to one decimal so they add up to exactly 100,0, and finds the stripes (rows or columns of one colour).
-  3. `SAME` and `UNIQ` compare the pies by colour name (see the commit that added the game).
+  3. `node tools/build.js pies.json > pies.js` compares the pies by colour name for `SAME` and `UNIQ`.
+- Black is always one of the possible colours: an SVG shape with no fill is drawn black (Afghanistan, Belgium, Jamaica… were missing their black until 2026-11-05).
+- The daily deck (`DECK` in index.html) is the list of the first day, kept as it is so a day's flags never change when the pies are measured again.
