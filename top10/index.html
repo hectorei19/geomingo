@@ -104,7 +104,7 @@ body.kbon .kbgu #src{align-self:center!important}
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script defer src="firebase-config.js?v=202611010100"></script>
 <script src="../shared/data.js?v=202610192300"></script>
-<script src="extra-data.js?v=202611031200"></script>
+<script src="extra-data.js?v=202611060900"></script>
 <script src="../shared/games.js?v=202610240100"></script>
 <script src="../shared/minigames.js?v=202611021845"></script>
 <script>
@@ -117,7 +117,11 @@ const n0=v=>EU(Math.round(v));
 const ppl=v=>(v>=1e9?EU(v/1e9,2)+' billion':v>=1e6?EU(v/1e6,1)+' million':n0(v))+' inhabitants';
 const d1=v=>EU(+v,1);
 const num=v=>typeof v==='number'&&isFinite(v)?v:undefined;
-const D=k=>c=>num(DATA[k][c.c]);
+const D=k=>c=>{const v=num(DATA[k][c.c]);return v!==undefined?v:num((XFILL[k]||{})[c.c])};
+// a country the source leaves out because it has none (no medals, no reactors, never at a World Cup...) counts as 0
+// a count with its word, singular for 1 ("1 medal", "3 medals")
+const PL=w=>v=>n0(v)+' '+w+(+v===1?'':'s');
+const Z=get=>c=>{const v=get(c);return v===undefined?0:v};
 const AREANOTE='Total area (land and inland water), from the country data used in Countries (mledoze/countries). Vatican City, missing there, is 0,44 km² (Wikipedia, "Vatican City").';
 // area in km²: the country data has none for Vatican City, so its official 0.44 km² is added here
 const AREA=c=>c.c==='VAT'?0.44:c.a>0?c.a:undefined;
@@ -129,9 +133,9 @@ const L=(id,title,get,dir,fmt,src)=>({id,title,get,dir,fmt,src});
 // figures only Top 10 uses (top10/extra-data.js)
 const X=k=>c=>num(XDATA[k][c.c]);
 // Credits: the countries' data, plus the sources of the figures only Top 10 uses
-function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Top 10's other figures, downloaded in November 2026 and each checked against a second source: beer (Kirin Holdings), McDonald's restaurants (McDonald's), wine (OIV), coffee (FAO via Our World in Data), and Wikipedia lists (CC BY-SA 4.0) for tourists (UN Tourism, with HelloSafe), World Cups (FIFA), temperature (World Bank), Nobel Prizes and gold (World Gold Council). Rice and oil: FAO and the Energy Institute via Our World in Data; natural gas: OPEC; steel: World Steel Association; cars: OICA; nuclear reactors: World Nuclear Association; military spending: SIPRI; Olympic golds: Wikipedia and Olympedia; tallest buildings: Wikipedia and CTBUH.</li></ul>`)}
+function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Top 10's other figures, downloaded in November 2026 and each checked against a second source: McDonald's restaurants (McDonald's, with Wikipedia), coffee (FAO via Our World in Data), and Wikipedia lists (CC BY-SA 4.0) for World Cups (FIFA), temperature (World Bank) and Nobel Prizes; nuclear reactors: World Nuclear Association; Olympic golds: Wikipedia and Olympedia. Gaps in Countries' figures used only here: life expectancy (UN World Population Prospects 2024, checked with the World Bank) and CO₂ per person (Global Carbon Project via Our World in Data).</li></ul>`)}
 const BEERNOTE='Litres of beer per person in 2022. Source: Kirin Holdings, "Global Beer Consumption by Country in 2022", which gives the top 35 countries and a few others; the rest have no figure.';
-const MCDNOTE='Restaurants open on 31 December 2025. Source: McDonald\'s, "Restaurants by Market 2025" (the same numbers as Wikipedia, "List of countries with McDonald\'s restaurants"). Small markets it does not list separately have no figure.';
+const MCDNOTE='Restaurants open on 31 December 2025. Source: McDonald\'s, "Restaurants by Market 2025" (the same numbers as Wikipedia, "List of countries with McDonald\'s restaurants"). Small markets it does not list separately come from Wikipedia, "List of countries with McDonald\'s restaurants" (Andorra 5, Fiji 5, Monaco 1, Liechtenstein 1, Samoa 1). Countries with no McDonald\'s count as 0 (the one in Cuba is on the US base at Guantánamo, so Cuba counts as 0).';
 const TEMPNOTE=NOTE('World Bank Climate Change Knowledge Portal, average for 1991–2020','List of countries by average yearly temperature');
 // the world lists; each one also comes in a version for Europe, Asia, Africa and the Americas (see REGIONS below)
 const WORLD_LISTS=[
@@ -162,7 +166,7 @@ const WORLD_LISTS=[
   L('landb-hi','The 10 countries with the longest land borders',D('landb'),-1,v=>n0(v)+' km',NOTE('total land border length','List of countries and territories by land borders')),
   L('forest-hi','The 10 most forested countries (share of land)',D('forest'),-1,v=>d1(v)+'%',FORESTNOTE),
   L('forestkm-hi','The 10 countries with the most forest (area)',c=>D('forest')(c)!==undefined&&AREA(c)?D('forest')(c)*AREA(c)/100:undefined,-1,v=>n0(v)+' km²','Forest share of land times total area, so a rough figure. '+FORESTNOTE+' '+AREANOTE),
-  L('olymp-hi','The 10 countries with the most Olympic medals',D('olymp'),-1,v=>n0(v)+' medals','All Summer and Winter Olympics together, up to the 2026 Winter Games. Medals won as part of a former team (Soviet Union, East Germany...) are not added. Source: Wikipedia, "All-time Olympic Games medal table".'),
+  L('olymp-hi','The 10 countries with the most Olympic medals',Z(D('olymp')),-1,PL('medal'),'All Summer and Winter Olympics together, up to the 2026 Winter Games. Medals won as part of a former team (Soviet Union, East Germany...) are not added. Source: Wikipedia, "All-time Olympic Games medal table".'),
   L('cap-hi','The 10 countries with the most populous capital city',c=>DATA.cap_skip.includes(c.c)?undefined:num(DATA.cappop[c.c]),-1,ppl,'Population of the capital within its city limits. '+CAPNOTE),
   L('cap-lo','The 10 countries with the least populous capital city',c=>DATA.cap_skip.includes(c.c)||!(DATA.cappop[c.c]>0)?undefined:DATA.cappop[c.c],1,v=>n0(v)+' inhabitants','Population of the capital within its city limits. '+CAPNOTE),
   L('gdptot-lo','The 10 countries with the smallest economy (total GDP)',c=>D('pop')(c)&&D('gdp')(c)?D('pop')(c)*D('gdp')(c):undefined,1,v=>'$'+big(v),'GDP per person times population. '+GDPNOTE+' '+POPNOTE),
@@ -176,29 +180,37 @@ const WORLD_LISTS=[
   L('lat-lo','The 10 southernmost countries',c=>c.lat,1,v=>EU(Math.abs(v))+'°'+(v<0?'S':'N'),'Latitude of the centre of the country, from the country data used in Countries (mledoze/countries).'),
   L('name-hi','The 10 countries with the longest names',c=>c.letters.length,-1,v=>v+' letters','Letters in the country\'s name as Geomingo writes it (spaces and hyphens not counted).'),
   L('name-lo','The 10 countries with the shortest names',c=>c.letters.length,1,v=>v+' letters','Letters in the country\'s name as Geomingo writes it (spaces and hyphens not counted).'),
-  L('olympc-hi','The 10 countries with the most Olympic medals per person',c=>D('olymp')(c)&&D('pop')(c)?D('olymp')(c)/D('pop')(c)*1e6:undefined,-1,v=>d1(v)+' per million people','All-time Olympic medals divided by population. Medals: Wikipedia, "All-time Olympic Games medal table" (Summer and Winter, up to the 2026 Winter Games). '+POPNOTE),
+  L('olympc-hi','The 10 countries with the most Olympic medals per person',c=>D('pop')(c)?Z(D('olymp'))(c)/D('pop')(c)*1e6:undefined,-1,v=>d1(v)+' per million people','All-time Olympic medals divided by population. Medals: Wikipedia, "All-time Olympic Games medal table" (Summer and Winter, up to the 2026 Winter Games). '+POPNOTE),
   // extra lists with their own figures (top10/extra-data.js)
   L('beer-hi','The 10 countries that drink the most beer (per person)',X('beer'),-1,v=>d1(v)+' litres',BEERNOTE),
   L('tour-hi','The 10 most visited countries (tourists from abroad)',X('tour'),-1,v=>d1(v)+' million','International tourist arrivals in 2024. The top 10: UN Tourism, as listed in Wikipedia, "World Tourism rankings". The other places: HelloSafe\'s 2026 table of UN Tourism figures (national figures where UN Tourism has none), which gives the same top 10. Countries outside its top 40 have no figure.'),
-  L('wc-hi','The 10 countries that have played the most FIFA World Cups',X('wc'),-1,v=>v+' World Cups','Men\'s World Cups played, up to and including 2026, as counted by FIFA (Wikipedia, "National team appearances in the FIFA World Cup"): West Germany counts for Germany, the Soviet Union for Russia, Yugoslavia for Serbia and Czechoslovakia for Czechia. England counts for the United Kingdom; Scotland, Wales and Northern Ireland play separately and are not added.'),
-  L('mcd-hi','The 10 countries with the most McDonald\'s restaurants',X('mcd'),-1,v=>n0(v)+' outlets',MCDNOTE),
+  L('wc-hi','The 10 countries that have played the most FIFA World Cups',Z(X('wc')),-1,PL('World Cup'),'Men\'s World Cups played, up to and including 2026, as counted by FIFA (Wikipedia, "National team appearances in the FIFA World Cup"): West Germany counts for Germany, the Soviet Union for Russia, Yugoslavia for Serbia and Czechoslovakia for Czechia. England counts for the United Kingdom; Scotland, Wales and Northern Ireland play separately and are not added.'),
+  L('mcd-hi','The 10 countries with the most McDonald\'s restaurants',Z(X('mcd')),-1,PL('outlet'),MCDNOTE),
   L('mcdpc-hi','The 10 countries with the most McDonald\'s per person',c=>X('mcd')(c)&&D('pop')(c)?X('mcd')(c)/D('pop')(c)*1e6:undefined,-1,v=>d1(v)+' per M','Restaurants per million (M) people: restaurants divided by population. '+MCDNOTE+' '+POPNOTE),
   L('temp-lo','The 10 coldest countries (average yearly temperature)',X('temp'),1,v=>d1(v)+' °C',TEMPNOTE),
-  L('nobel-hi','The 10 countries with the most Nobel Prize winners',X('nobel'),-1,v=>n0(v)+' winners','Nobel Prize winners up to October 2026. Source: Wikipedia, "List of Nobel laureates by country" (the top 15 updated with the 2026 prizes, as in Business Today, 19 October 2026). A winner linked to two countries counts for both; the Soviet Union counts for Russia.'),
+  L('nobel-hi','The 10 countries with the most Nobel Prize winners',Z(X('nobel')),-1,PL('winner'),'Nobel Prize winners up to October 2026. Source: Wikipedia, "List of Nobel laureates by country" (the top 15 updated with the 2026 prizes, as in Business Today, 19 October 2026). A winner linked to two countries counts for both; the Soviet Union counts for Russia.'),
   L('gold-hi','The 10 countries with the biggest gold reserves',X('gold'),-1,v=>n0(v)+' tonnes',NOTE('World Gold Council (IMF figures), August 2026, top 50 countries','Gold reserve')+' The World Gold Council\'s May 2026 table gives the same top 10.'),
   L('wine-hi','The 10 countries that make the most wine',X('wine'),-1,v=>v>=10?EU(v/10,2)+' bn litres':n0(v*100)+' M litres','Wine made in 2023. Source: International Organisation of Vine and Wine (OIV), "2024 World Wine Production Outlook", which lists 29 countries; the others have no figure.'),
-  L('coffee-hi','The 10 countries that grow the most coffee',X('coffee'),-1,v=>v>=1e6?EU(v/1e6,2)+' M t':n0(v)+' t','Green coffee grown in 2023. Source: FAO (FAOSTAT), as published by Our World in Data, "Coffee bean production"; Wikipedia, "List of countries by coffee production", gives the same top 10.'),
+  L('coffee-hi','The 10 countries that grow the most coffee',Z(X('coffee')),-1,v=>v>=1e6?EU(v/1e6,2)+' M t':n0(v)+' t','Green coffee grown in 2023. Source: FAO (FAOSTAT), as published by Our World in Data, "Coffee bean production"; Wikipedia, "List of countries by coffee production", gives the same top 10.'),
   // more lists: each top 10 checked against a second source
   L('rice-hi','The 10 countries that grow the most rice',X('rice'),-1,v=>v>=1e6?d1(v/1e6)+' M t':n0(v)+' t','Rice (paddy) grown in 2023. Source: FAO (FAOSTAT), as published by Our World in Data, "Rice production", which lists the top 40 here; Wikipedia, "List of countries by rice production" (FAO, 2022), gives the same top 10.'),
   L('oil-hi','The 10 countries that produce the most oil',X('oil'),-1,v=>n0(v)+' TWh','Oil produced in 2024, as energy (terawatt-hours). Source: Energy Institute, Statistical Review of World Energy, as published by Our World in Data, "Oil production"; the US EIA\'s 2023 ranking gives the same top 10.'),
   L('gas-hi','The 10 countries that produce the most natural gas',X('gas'),-1,v=>d1(v/1000)+' bn m³','Natural gas produced in 2025. Source: OPEC Annual Statistical Bulletin 2026, as listed in Wikipedia, "List of countries by natural gas production"; the Energy Institute\'s 2024 figures (Our World in Data) give the same top 10.'),
   L('steel-hi','The 10 countries that make the most steel',X('steel'),-1,v=>d1(v)+' M t','Crude steel made in 2025. Source: World Steel Association, as listed in Wikipedia, "List of countries by steel production", and as reported by GMK Center (same top 10).'),
   L('cars-hi','The 10 countries that build the most cars and lorries',X('cars'),-1,v=>v>=1e6?EU(v/1e6,2)+' M vehicles':n0(v/1000)+'k vehicles','Motor vehicles (cars, vans, lorries and buses; M = million, k = thousand) built in 2025. Source: OICA, 2025 production statistics, as listed in Wikipedia, "List of countries by motor vehicle production", and in the OICA table published by AFIA (same figures).'),
-  L('nuke-hi','The 10 countries with the most nuclear reactors',X('nuke'),-1,v=>v+' reactors','Reactors able to run, connected to the grid, in October 2026. Source: World Nuclear Association, "World Nuclear Power Reactors"; Wikipedia, "Nuclear power by country", gives the same top 10.'),
+  L('nuke-hi','The 10 countries with the most nuclear reactors',Z(X('nuke')),-1,PL('reactor'),'Reactors able to run, connected to the grid, in October 2026. Source: World Nuclear Association, "World Nuclear Power Reactors"; Wikipedia, "Nuclear power by country", gives the same top 10.'),
   L('mil-hi','The 10 countries that spend the most on their armed forces',X('mil'),-1,v=>'$'+d1(v)+' bn','Military spending in 2025, in US dollars. Source: SIPRI, "Trends in World Military Expenditure, 2025" (April 2026), the same as Wikipedia, "List of countries with highest military expenditures".'),
-  L('ogold-hi','The 10 countries with the most Olympic gold medals',X('ogold'),-1,v=>n0(v)+' golds','Gold medals at all Summer and Winter Olympics together, up to the 2026 Winter Games. Source: Wikipedia, "All-time Olympic Games medal table"; Olympedia gives the same top 10. Medals won as part of a former team (Soviet Union, East Germany...) are not added.'),
+  L('ogold-hi','The 10 countries with the most Olympic gold medals',Z(X('ogold')),-1,PL('gold'),'Gold medals at all Summer and Winter Olympics together, up to the 2026 Winter Games. Source: Wikipedia, "All-time Olympic Games medal table"; Olympedia gives the same top 10. Medals won as part of a former team (Soviet Union, East Germany...) are not added.'),
   L('tower-hi','The 10 countries with the tallest building',X('tower'),-1,v=>n0(v)+' m','Height of the tallest finished building in each country. Source: Wikipedia, "List of tallest buildings by country", checked against the Council on Tall Buildings and Urban Habitat (CTBUH), which gives the same top 10. Buildings only planned or being built do not count.'),
 ];
+// lists where a country missing from the source has none of it, so it counts as 0
+const ZERO_NOTE={'olymp-hi':'Countries that never won a medal count as 0.','olympc-hi':'Countries that never won a medal count as 0.','wc-hi':'Countries that never played a World Cup count as 0.','nobel-hi':'Countries with no winner in that list count as 0.','nuke-hi':'Countries with no reactor count as 0.','ogold-hi':'Countries that never won a gold count as 0.','coffee-hi':'Countries that grow no coffee count as 0.'};
+WORLD_LISTS.forEach(l=>{if(ZERO_NOTE[l.id])l.src+=' '+ZERO_NOTE[l.id]});
+// lists taken out (November 2026): their sources give figures for only some countries, or two sources disagree on the top 10.
+// They stay defined so old games and rooms still open, but they no longer come up.
+const OFF=['beer-hi','tour-hi','gold-hi','wine-hi','rice-hi','oil-hi','gas-hi','steel-hi','cars-hi','mil-hi','tower-hi','mcdpc-hi','life-hi','life-hi-eu',
+  // a country with no figure here (Taiwan, North Korea, Kosovo, Vatican City) could belong in the top 10
+  'gdp-hi-as','gdptot-hi-as','hdi-hi-as','forest-hi-as','gdp-lo','gdp-lo-as','gdptot-lo','gdptot-lo-eu','hdi-lo-eu','forest-hi-eu'];
 // the same rankings within one continent, as the country data groups them (Russia and Cyprus count as Europe; Turkey and the Caucasus as Asia)
 const REGIONS=[
   {k:'eu',name:'Europe',in:c=>c.r==='EU'},
@@ -221,7 +233,7 @@ function topCodes(l){const r=ranking(l),cut=r[9].v;return r.filter(x=>l.dir*(x.v
 // a country's place, shared when tied ("#10" for every country level with the 10th)
 function placeOf(l,code){const r=ranking(l),x=r.find(y=>y.c===code);return x?r.findIndex(y=>y.v===x.v)+1:0}
 // lists used: at least 20 countries with a figure, and at most 12 countries level with the top 10
-const LISTS=ALL_LISTS.filter(l=>{const r=ranking(l);return r.length>=20&&topCodes(l).length<=12});
+const LISTS=ALL_LISTS.filter(l=>{if(OFF.includes(l.id))return false;const r=ranking(l);return r.length>=20&&topCodes(l).length<=12});
 const listById=id=>ALL_LISTS.find(l=>l.id===id);
 const DAILY_LISTS=LISTS.filter(l=>!SOLO_ONLY.includes(l.id));
 // the daily list: lists come in a shuffled order that is the same for everyone, so none repeats until all were used.
@@ -229,8 +241,16 @@ const DAILY_LISTS=LISTS.filter(l=>!SOLO_ONLY.includes(l.id));
 const FIRST_ROUND=['pop-hi','pop-lo','area-hi','gdp-hi','gdp-lo','hdi-hi','hdi-lo','life-lo','age-hi','co2-hi','urban-lo','coast-hi','elev-hi','elev-lo','landb-hi','forest-hi','olymp-hi','cap-hi'].map(listById);
 function dailyList(key){const n=dayNum(key,T10_FIRST)-1;
   if(n<FIRST_ROUND.length)return shuffle(FIRST_ROUND,rngFrom(seedOf('top10-cycle-0')))[Math.max(n,0)];
-  const m=n-FIRST_ROUND.length,len=DAILY_LISTS.length,cycle=Math.floor(m/len);
-  return shuffle(DAILY_LISTS,rngFrom(seedOf('top10-round-'+cycle)))[m%len]}
+  const m=n-FIRST_ROUND.length,r2=round2();
+  if(m<r2.length)return listById(r2[m]);
+  const m2=m-r2.length,len=DAILY_LISTS.length,cycle=1+Math.floor(m2/len);
+  return shuffle(DAILY_LISTS,rngFrom(seedOf('top10-round-'+cycle)))[m2%len]}
+// the second round (from 2026-11-06) keeps the order it began with; from R2_CHANGE on, the lists taken out are skipped
+const R2_CHANGE='2026-11-07';
+const ROUND2_ORDER=["beer-hi","forest-lo-as","age-lo-af","cpi-hi-af","dens-lo-eu","hdi-hi-eu","elev-hi-eu","elev-lo-am","lat-lo-am","landb-hi-as","co2tot-hi-as","gdptot-hi-eu","life-hi-af","name-hi-eu","area-lo-eu","life-lo","name-lo-as","pop-hi-af","wine-hi","forestkm-hi-as","rice-hi","capshare-hi-am","urban-hi-as","area-hi-af","age-lo","nuke-hi","capshare-hi-eu","dens-hi-af","olympc-hi-as","age-lo-eu","hdi-hi-as","area-lo-am","coffee-hi","olymp-hi-as","cap-hi-eu","urban-lo-am","pop-lo-eu","pop-lo-as","elev-hi-am","mil-hi","landb-lo","urban-hi-eu","pop-hi","gdptot-lo-as","pop-hi-am","life-lo-as","gdptot-hi-am","olymp-hi-af","urban-hi-am","co2-hi","lat-hi-eu","life-hi-as","coast-hi-eu","age-hi-am","gdptot-lo-eu","cap-hi-as","hdi-hi-af","hdi-hi","forest-hi","lat-lo-as","coast-lo-as","cars-hi","landb-lo-eu","co2-lo-as","forestkm-hi-am","elev-lo-eu","lat-hi-as","mcdpc-hi","olympc-hi","forest-lo","nb-hi","cap-lo-as","dens-hi-as","tour-hi","life-lo-eu","gdptot-lo-af","hdi-lo-as","life-hi-eu","forest-hi-as","gas-hi","elev-lo","cpi-lo-eu","name-hi","life-lo-af","mcd-hi","tower-hi","age-hi-as","cap-lo-eu","co2-lo","forest-hi-eu","hdi-hi-am","lat-lo-eu","lat-lo-af","nb-hi-am","olymp-hi","gdp-lo-as","forestkm-hi","age-hi-af","area-hi-am","pop-lo","landb-lo-as","dens-lo","age-lo-as","forestkm-hi-af","gdptot-lo-am","gdp-lo","forest-hi-am","pop-lo-af","elev-lo-af","area-hi-as","co2-hi-as","forest-lo-am","life-lo-am","coast-hi-as","hdi-lo-af","cpi-hi-as","coast-hi-am","olympc-hi-af","urban-lo-as","coast-lo","urban-lo-eu","dens-hi","gdp-lo-am","olymp-hi-am","capshare-hi","forest-lo-af","gdp-hi-af","cap-lo-af","cpi-hi-eu","urban-lo-af","forest-hi-af","area-lo","area-lo-af","landb-lo-af","capshare-hi-as","capshare-hi-af","dens-hi-eu","elev-lo-as","hdi-lo-eu","age-hi-eu","cap-lo-am","landb-hi-af","gold-hi","co2tot-hi-am","gdp-hi-am","cap-hi-af","co2-hi-af","elev-hi-as","hdi-lo-am","area-lo-as","area-hi-eu","co2tot-hi","cpi-lo-af","gdp-hi-as","cap-hi-am","temp-lo","nobel-hi","forest-lo-eu","cpi-hi-am","forestkm-hi-eu","cpi-lo-as","landb-lo-am","cap-hi","ogold-hi","olympc-hi-eu","landb-hi-am","gdp-hi-eu","co2tot-hi-eu","steel-hi","coast-hi","dens-lo-af","landb-hi","elev-hi-af","landb-hi-eu","elev-hi","coast-hi-af","co2-lo-am","gdptot-hi-as","gdptot-lo","area-hi","gdptot-hi","gdp-hi","lat-hi-am","wc-hi","hdi-lo","lat-lo","life-hi","pop-hi-as","co2tot-hi-af","name-lo","co2-lo-eu","pop-lo-am","urban-hi-af","name-lo-am","gdp-lo-eu","age-lo-am","coast-lo-am","co2-hi-am","coast-lo-af","pop-hi-eu","gdptot-hi-af","olymp-hi-eu","cpi-lo-am","cap-lo","coast-lo-eu","name-lo-af","cpi-lo","lat-hi-af","oil-hi","urban-hi","urban-lo","age-hi","dens-hi-am","gdp-lo-af","dens-lo-am","dens-lo-as","life-hi-am","lat-hi","cpi-hi","olympc-hi-am","co2-hi-eu","co2-lo-af"];
+let R2=null;
+function round2(){if(R2)return R2;const k=dayNum(R2_CHANGE,T10_FIRST)-1-FIRST_ROUND.length,ok=new Set(DAILY_LISTS.map(l=>l.id));
+  return R2=[...ROUND2_ORDER.slice(0,k),...ROUND2_ORDER.slice(k).filter(id=>ok.has(id))]}
 // Solo: a random list you have not played on this device yet; when all were played, they all come back
 function soloList(){const seen=new Set(load('t10-seen',[])),cur=S&&S.list;
   let o=LISTS.filter(x=>!seen.has(x.id)&&x.id!==cur);
@@ -298,7 +318,7 @@ function guess(code){if(!S||S.over)return;const c=byCode[code];
     save();render();if(S.over)window.scrollTo(0,0);
   if(i>=0){if(!S.over){say(tKey(),'happy','Stamped: '+c.n+', #'+placeOf(listById(S.list),code)+'.',(10-S.found.length)+' to go.');render()}return}
   const r=placeOf(listById(S.list),code)-1;
-  if(!S.over){say(tKey(),'sad','Denied entry.',`${c.n} is not in the top 10${r>=0?` (it is #${r+1})`:' (no figure for it)'}. `+livesTxt());render()}}
+  if(!S.over){say(tKey(),'sad','Denied entry.',`${c.n} is not in the top 10${r>=0?` (it is #${r+1})`:` (${noFigure(listById(S.list),code)})`}. `+livesTxt());render()}}
 
 /* ---- share ---- */
 // ten squares for a result: one per place, or, when the 10th place is shared, the countries found first
@@ -486,11 +506,18 @@ function shortFig(t){return t.replace(/\d{1,3}(?:\.\d{3}){2,}(?:,\d+)?/g,m=>{con
   .replace(/^(\d{3})\.\d{3} inhabitants$/,'$1k inhabitants')
   .replace(/ per million people/g,' per M').replace(/ trillion/g,' tn').replace(/ billion/g,' bn').replace(/ million/g,' M')
   .replace(/ inhabitants per km²/g,'/km²').replace(/ inhabitants/g,' inhab.').replace(/ tonnes/g,' t').replace(/ neighbours/g,' nbrs').replace(/ vehicles/g,' cars')}
+// why a country has no figure in a list, shown instead of a number
+function noFigure(l,code){const id=l.id.replace(/-(eu|as|af|am)$/,''),c=byCode[code];
+  if(id==='coast-lo'&&D('coast')(c)===0)return 'landlocked';
+  if(id==='landb-lo'&&D('landb')(c)===0)return 'no land border';
+  if((id==='cap-hi'||id==='cap-lo'||id==='capshare-hi')&&DATA.cap_skip.includes(code))return 'two capitals';
+  if(id==='capshare-hi'&&D('pop')(c)&&num(DATA.cappop[code]))return 'city-state';
+  return 'not measured'}
 function wrongsHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries(r.map(x=>[x.c,x.v])),on=S.mode==='online';
   const who=c=>on&&S.by[c]!=null&&S.players[S.by[c]]?S.players[S.by[c]].name:'',pc=c=>`--pc:var(--p${S.by[c]%6})`;let h='';
   // wrong answers: sorted by their real place, each showing its place first and its figure, like the rows above
   if(S.wrong.length){const ws=S.wrong.map(c=>({c,p:placeOf(l,c)})).sort((a,b)=>(a.p||1e9)-(b.p||1e9));
-    h+=`<div class="wrongs">Not in the top 10:<div class="wl">${ws.map(({c,p})=>`<span class="w"${on?` style="${pc(c)}" title="${esc(who(c))}"`:''}><b class="wr">${p?'#'+p:'–'}</b><img src="${FLAGS[c]}" alt=""><span class="wn">${esc(byCode[c].n)}</span><small>${p?esc(shortFig(l.fmt(val[c]))):'no figure'}</small></span>`).join('')}</div></div>`}
+    h+=`<div class="wrongs">Not in the top 10:<div class="wl">${ws.map(({c,p})=>`<span class="w"${on?` style="${pc(c)}" title="${esc(who(c))}"`:''}><b class="wr">${p?'#'+p:'–'}</b><img src="${FLAGS[c]}" alt=""><span class="wn">${esc(byCode[c].n)}</span><small>${p?esc(shortFig(l.fmt(val[c]))):noFigure(l,c)}</small></span>`).join('')}</div></div>`}
   return h}
 const quickRules=extra=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name the ten countries of the ranking, in any order. A country outside the top 10 costs one of your ${LIVES} lives. Only independent countries count.${extra||''}</p></section>`;
 function homeHTML(){const key=todayKey(),num=dayNum(key,T10_FIRST),d=dailySaved(),h=load('t10-hist',{}),days=Object.keys(h);
@@ -633,7 +660,7 @@ function bind(){
   if($('rules'))$('rules').onclick=()=>dialog('How to play',rulesHTML());
   // give up: the list ends as it stands and the full ranking is shown
   bindGiveUp(()=>{if(!S||S.over||S.mode==='online')return;S.over=true;query='';typing=false;if(view==='home')view='game';save();render();window.scrollTo(0,0)});
-  if($('src'))$('src').onclick=()=>{const l=listById(S.list);dialog(esc(l.title),`<p>${esc(l.src)}</p><p class="hint">Independent countries only. Places with no figure in the source are left out.</p>`)};
+  if($('src'))$('src').onclick=()=>{const l=listById(S.list);dialog(esc(l.title),`<p>${esc(l.src)}</p><p class="hint">Independent countries only. Countries the source does not measure have no place.</p>`)};
   // phones: the ten places in two columns while you play; the button (or an empty place) opens the answer sheet
   document.body.classList.toggle('kbon',!!(KB&&S&&!S.over&&document.querySelector('.t10list')));
   bindAsk($('askbtn')&&S?{key:tKey()+':'+(S.turn||0),
