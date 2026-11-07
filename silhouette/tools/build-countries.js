@@ -1,15 +1,14 @@
-// Builds ../countries.js (and ../flags.js): the 196 countries of the game with their names, aliases, continent and silhouette.
+// Builds ../countries.js (and ../flags.js): the 197 countries of the game with their names, aliases, continent and silhouette.
 // Only needed to rebuild that file. Run from this folder:
 //   npm install
 //   node build-countries.js ../../shared/data.js     (any copy of Country Grid's data.js, e.g. Top 10's)
-// Borders: world-atlas (Natural Earth 1:10m, public domain). Names, aliases, continents: Country Grid's data.
+// Borders: world-atlas (Natural Earth 1:10m, public domain); Vatican City from geoBoundaries (public domain). Names, aliases, continents: Country Grid's data.
 const fs = require('fs'), path = require('path');
 const d3 = require('d3-geo'), topo = require('topojson-client'), wc = require('world-countries');
 
 const dataFile = process.argv[2];
 if (!dataFile) { console.error('Usage: node build-countries.js <path to data.js>'); process.exit(1); }
-// Vatican City is left out: at 0.44 km2 its border in world-atlas is a single line, with no shape to draw
-const C = JSON.parse(fs.readFileSync(dataFile, 'utf8').match(/const C = (\[.*?\]);/s)[1]).filter(c => !c.t && c.c !== 'VAT');
+const C = JSON.parse(fs.readFileSync(dataFile, 'utf8').match(/const C = (\[.*?\]);/s)[1]).filter(c => !c.t);
 
 // silhouettes are drawn in a 100 x 100 box
 const BOX = 100;
@@ -57,8 +56,14 @@ atlas.objects.countries.geometries.forEach(g => {
   const code = JOIN[g.properties.name] || (!SKIP.has(g.properties.name) && n2a[g.id]);
   if (code) (parts[code] = parts[code] || []).push(g);
 });
+// Vatican City: at 0.44 km2 its border in world-atlas is a single line, with no shape to draw, so its border comes from
+// geoBoundaries (vatican.geojson, VAT-ADM0, public domain: https://www.geoboundaries.org)
+const VAT = JSON.parse(fs.readFileSync(path.join(__dirname, 'vatican.geojson'), 'utf8')).features[0].geometry;
+// GeoJSON files wind their rings the other way round from d3: turned, or d3 reads the ring as the whole world minus Vatican City
+if (d3.geoArea(VAT) > 2 * Math.PI) VAT.coordinates = VAT.coordinates.map(r => [...r].reverse());
+parts.VAT = parts.VAT || [];
 // one shape per country, with the shared borders of joined pieces dissolved
-const featureOf = code => ({ type: 'Feature', properties: { code }, geometry: topo.merge(atlas, parts[code]) });
+const featureOf = code => ({ type: 'Feature', properties: { code }, geometry: code === 'VAT' ? VAT : topo.merge(atlas, parts[code]) });
 
 // keep the main part and what lies near it, so far-off pieces (French Guiana, Hawaii, Easter Island) do not shrink the country
 function keepParts(f, code, nearKm) {
@@ -156,7 +161,7 @@ const list = C.map(c => {
 
 const head = `// The ${list.length} countries of Silhouette: code, English name, other accepted names (al), continent (r),
 // flag emoji (f), in the Easy list (e) and silhouette (p, an SVG path in a 100 x 100 box, north up).
-// Made by tools/build-countries.js from world-atlas (Natural Earth 1:10m borders, public domain) and Country Grid's
+// Made by tools/build-countries.js from world-atlas (Natural Earth 1:10m borders, public domain; Vatican City from geoBoundaries, public domain) and Country Grid's
 // country data (mledoze/countries, ODbL). Do not edit by hand: change the tool and run it again.\n`;
 const body = 'const COUNTRIES = [\n' + list.map(x => JSON.stringify(x)).join(',\n') + '\n];\n';
 fs.writeFileSync(path.join(__dirname, '..', 'countries.js'), head + body);
