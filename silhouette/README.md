@@ -18,7 +18,7 @@ Files:
 - `firebase-config.js` – the Firebase web config, the same as Countries'.
 
 Publishing a new version: change the `?v=` number after the files in `index.html`, so phones load the new files. Change `ROOM_V` too when the room format changes.
-- `tools/` – only to rebuild `countries.js`: `cd tools`, `npm install`, `node build-countries.js ../../shared/data.js` (any copy of Countries' `data.js`).
+- `tools/` – only to rebuild `countries.js`: `cd tools`, `npm install`, `node build-countries.js` (reads `../data/countries.js` and `../data/flags.js`, the Geomingo country database).
 
 How the silhouettes are made: each country on its own map centred on itself (azimuthal equal-area), so nothing far from the equator is stretched and the date line never splits a country (Russia, Fiji, Kiribati). Far-off small parts are left out (French Guiana, Hawaii, Easter Island, the Canaries); big or nearby ones stay (Alaska, Svalbard, Sicily). Every shape fills the same box, so size gives nothing away. Outlines are simplified in screen units, a quarter of a pixel at 400 px, so small countries keep their detail. Nations made only of tiny atolls (Tuvalu, Maldives) keep all their islets, drawn as dots. Vatican City's border in world-atlas is a single line, so its shape comes from [geoBoundaries](https://www.geoboundaries.org) (VAT-ADM0, public domain), in `tools/vatican.geojson`. It joined the daily boards from the second 21-day cycle (2026-11-12), so earlier boards stay as they were.
 

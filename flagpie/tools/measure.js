@@ -1,7 +1,7 @@
 // Precise colour shares of every country flag (official proportions, svg-country-flags, public domain)
 const {chromium}=require('playwright');const fs=require('fs');const vm=require('vm');
 const REPO=process.argv[2],SVGDIR=process.argv[3],OUT=process.argv[4];
-const src=fs.readFileSync(REPO+'/shared/data.js','utf8');
+const src=fs.readFileSync(REPO+'/data/countries.js','utf8');
 const ctx={window:{},document:{},navigator:{},localStorage:{getItem(){},setItem(){}}};vm.createContext(ctx);
 vm.runInContext(src.replace(/^const /gm,'var ').replace(/^let /gm,'var '),ctx);
 const C=ctx.C.filter(c=>!c.t);

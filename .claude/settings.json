@@ -1,9 +1,9 @@
 {
   "permissions": {
     "deny": [
-      "Read(./shared/data.js)",
-      "Read(./countries/data.js)",
-      "Read(./countries/flags.js)",
+      "Read(./data/countries.js)",
+      "Read(./data/flags.js)",
+      "Read(./countries/daily.js)",
       "Read(./capitals/data.js)",
       "Read(./capitals/flags.js)",
       "Read(./silhouette/flags.js)",

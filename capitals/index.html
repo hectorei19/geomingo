@@ -314,13 +314,16 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 <footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
-<script src="data.js?v=202611081700"></script>
+<script src="../data/countries.js?v=202611081900"></script>
+<script src="data.js?v=202611081900"></script>
 <script src="flags.js?v=202611081530"></script>
 <script>
 const N = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z]/g,'');
-// every city: a national capital, one per country (CO, by ISO code), and the names it can be typed with
-C.forEach((c,i)=>{c.i=i;c.k=N(c.n);c.ak=c.al.map(N);c.co=CO[c.k3];c.t=0;});
-const byCode = Object.fromEntries(C.map(c=>[c.c,c]));
+// country names come from the Geomingo country database (../data/countries.js, C): one name per country
+const CO=Object.fromEntries(C.filter(c=>!c.t).map(c=>[c.c,{n:c.n}]));
+// every city (CITIES): a national capital, one per country (CO, by ISO code), and the names it can be typed with
+CITIES.forEach((c,i)=>{c.i=i;c.k=N(c.n);c.ak=c.al.map(N);c.co=CO[c.k3];c.t=0;});
+const byCode = Object.fromEntries(CITIES.map(c=>[c.c,c]));
 byCode['lapaz-bol']=byCode['sucre-bol']; // Bolivia used La Paz before: old saved games still open
 // countries whose capital is not their biggest city (Wikipedia list, as in Country Grid, plus China)
 const NOTBIG = new Set([...CO_LISTS.cap_notlargest,'CHN']);
@@ -356,7 +359,7 @@ add('name','Same first letter as its country',c=>c.k[0]===N(c.co.n)[0]);
 // and Ramallah (Palestine) were added (nw). Daily grids before that day leave them out (setOld), so those days stay as they were.
 const ONLY_COUNTRIES_FROM='2026-11-10';
 const oldDay=key=>!!key&&key<ONLY_COUNTRIES_FROM;
-CATS.forEach(k=>{k.set=C.map(c=>!!k.test(c));k.setOld=k.set.map((v,i)=>v&&!C[i].nw);k.count=k.set.filter(Boolean).length;});
+CATS.forEach(k=>{k.set=CITIES.map(c=>!!k.test(c));k.setOld=k.set.map((v,i)=>v&&!CITIES[i].nw);k.count=k.set.filter(Boolean).length;});
 const NAMEWORD='Uses the English name shown in this game (for example "Kyiv", "Delhi", "Washington"). Spaces, hyphens and accents are ignored.';
 function describe(k){
   const L=k.label;let m;
@@ -399,7 +402,7 @@ const POOL = CATS.filter(k=>k.count>=4);
 /* ---- seeded rng + generator ---- */
 function rngFrom(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function shuffle(arr,r){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-const inter=(a,b,old)=>{const A=old?a.setOld:a.set,B=old?b.setOld:b.set,o=[];for(let i=0;i<C.length;i++)if(A[i]&&B[i])o.push(i);return o};
+const inter=(a,b,old)=>{const A=old?a.setOld:a.set,B=old?b.setOld:b.set,o=[];for(let i=0;i<CITIES.length;i++)if(A[i]&&B[i])o.push(i);return o};
 function matching(cells){const own=new Map();const tryCell=(ci,seen)=>{for(const x of cells[ci]){if(seen.has(x))continue;seen.add(x);if(!own.has(x)||tryCell(own.get(x),seen)){own.set(x,ci);return true}}return false};for(let ci=0;ci<cells.length;ci++)if(!tryCell(ci,new Set()))return false;return true}
 /* A grid is "safe" when no sequence of correct answers can ever leave a square impossible:
    for every square, its countries can never all be taken by other squares at the same time. */
@@ -419,12 +422,12 @@ const EASY_LABELS=new Set(['In Africa','In Europe','In Asia','In Oceania','In No
 const HARD_ONLY=new Set(['Over 2,000 m above sea level','On the Danube','Hosted a men\'s World Cup final','Name contains Z']);
 const DIFFS=['easy','normal','hard'];
 let DIFF='normal';
-const sovCount=a=>{let k=0;for(const i of a)if(!C[i].t)k++;return k};
+const sovCount=a=>{let k=0;for(const i of a)if(!CITIES[i].t)k++;return k};
 let HARD_MAX=12,HARD_SMALL=5;
 function evalGrid(rows,cols){
   const answers=[];let bad=0,small=0;
   for(const rk of rows)for(const ck of cols){const a=inter(rk,ck);answers.push(a);
-    if(a.length<2)bad+=10;if(a.length>C.length*0.5)bad+=10;
+    if(a.length<2)bad+=10;if(a.length>CITIES.length*0.5)bad+=10;
     if(DIFF==='easy'&&sovCount(a)<5)bad+=5;
     if(DIFF==='hard'){if(a.length>HARD_MAX)bad+=5;if(a.length<=HARD_SMALL)small++}}
   if(DIFF==='hard'&&small*2<answers.length)bad+=(Math.ceil(answers.length/2)-small)*3;
@@ -1446,7 +1449,7 @@ function resultsView(){
 function answersView(){
   if(ui.reveal<0)return `<p class="hint">Tap any square to see every capital that fits it.</p>`;
   const ci=ui.reveal,n=S.n,i=Math.floor(ci/n),j=ci%n;
-  const list=S.answers[ci].map(x=>C[x]);
+  const list=S.answers[ci].map(x=>CITIES[x]);
   return `<section class="panel answers"><p class="hdr"><span>${colRef(j)}${rowRef(i)} · ${esc(EUT(CATS[S.rows[i]].label))} × ${esc(EUT(CATS[S.cols[j]].label))}</span><span class="nsol">${list.length} answer${list.length===1?'':'s'}</span></p><p>${list.map(c=>`${esc(c.n)}`).join(' · ')}</p></section>`;
 }
 
@@ -1459,7 +1462,7 @@ function matches(q){
   const easy=S&&S.diff==='easy';
   const starts=[],inside=[];
   const old=S&&oldDay(S.daily); // Jerusalem and Ramallah can't be typed in daily grids from before ONLY_COUNTRIES_FROM
-  for(const c of C){if(c.nw&&old)continue;if(c.ak.some(a=>a.startsWith(k))||c.k.startsWith(k))starts.push(c);else if(easy&&c.k.includes(k))inside.push(c)}
+  for(const c of CITIES){if(c.nw&&old)continue;if(c.ak.some(a=>a.startsWith(k))||c.k.startsWith(k))starts.push(c);else if(easy&&c.k.includes(k))inside.push(c)}
   return starts.concat(inside).slice(0,8);
 }
 // line icons for the menu (24×24, drawn with the text colour)
@@ -1519,7 +1522,7 @@ function drawLayer(){
       <h3>The idea</h3><ul>
       <li>Every row and every column has a category, for example "In Europe" or "On the coast".</li>
       <li>Fill each square with a capital that fits <b>both</b> its row and its column. For "In Europe" and "On the coast", Lisbon or Athens would work.</li>
-      <li>Any of the ${C.length} capitals in the game can be an answer, one per country, from Tokyo to Tarawa. The list shows each capital's country to help you. Each one can be used only once per grid.</li>
+      <li>Any of the ${CITIES.length} capitals in the game can be an answer, one per country, from Tokyo to Tarawa. The list shows each capital's country to help you. Each one can be used only once per grid.</li>
       <li>Not sure what a category means? Tap its <span class="ib">i</span>.</li>
       <li>Every grid can be finished: each empty square always has at least one capital left that fits.</li></ul>
       <h3>How to answer</h3><ul>

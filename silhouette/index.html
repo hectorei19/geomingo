@@ -83,7 +83,7 @@
 <footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
-<script src="countries.js?v=202611071300"></script>
+<script src="countries.js?v=202611081800"></script>
 <script src="silhouette.js?v=202610230100"></script>
 <script src="../shared/games.js?v=202610240100"></script>
 <script src="../shared/minigames.js?v=202611021845"></script>
@@ -294,7 +294,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>The 197 countries of every Geomingo game: the 193 UN members plus Vatican City, Palestine, Kosovo and Taiwan, never territories (Hong Kong, Greenland...). Far-off islands are left out of a shape (Hawaii, French Guiana, the Canaries) so the country does not shrink to a dot.</li></ul>
   <h3>How to play</h3><ul>
   <li>Tap <b>Type a country…</b>, start typing and tap the country in the list.</li>
-  <li>Names are in English. Accents, capitals and spaces don't matter, and common other names work too (Holland, Burma, UK…).</li>
+  <li>Names are in English. Accents, capitals and spaces don't matter. Each country has one name only, the one shown in the list as you type (United Kingdom, not UK).</li>
   <li>You have <b>${LIVES} lives</b> for the whole game, not for each shape. Every wrong answer, on any shape, costs one. Your wrong answers are listed under the shape.</li>
   <li>With no lives left, the game is over. <b>Give up</b> ends it early.</li></ul>
   <h3>Levels</h3><ul>
@@ -308,7 +308,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li><b>With friends</b>: 2 to 6 players online, each on their own phone. The host chooses <b>Getting harder</b> (3 Easy, 4 Normal, 3 Hard) or a continent and a level. Everyone gets the same ten shapes at the same time, ${SECS} seconds each. There are no lives: you can try as many countries as you like until you name it or the time runs out. A right answer scores 500 points, plus up to 500 more for speed. The ranking shows after every shape and at the end.</li></ul>`}
 function creditsHTML(){return `<ul style="padding-left:18px">
   <li>Borders: <a href="https://github.com/topojson/world-atlas" target="_blank" rel="noopener">world-atlas</a>, from <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> 1:10m (public domain); Vatican City from <a href="https://www.geoboundaries.org" target="_blank" rel="noopener">geoBoundaries</a> (public domain). Each country is drawn on its own map centred on itself, so no shape is stretched or cut by the date line.</li>
-  <li>Country names, other names and continents: Countries' data, from <a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a> (ODbL 1.0).</li>
+  <li>Country names and continents: Countries' data, from <a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a> (ODbL 1.0).</li>
   <li>Flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a> (MIT License).</li>
   <li>Fonts: Archivo, Public Sans and Courier Prime (Google Fonts, SIL Open Font License).</li></ul>`}
 
