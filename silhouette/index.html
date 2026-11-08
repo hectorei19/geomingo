@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611041830"></script>
+<script src="../brand/mingo.js?v=202611081700"></script>
 <script src="../brand/account.js?v=202611041830"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -83,7 +83,7 @@
 <footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
-<script src="countries.js?v=202610230100"></script>
+<script src="countries.js?v=202611071300"></script>
 <script src="silhouette.js?v=202610230100"></script>
 <script src="../shared/games.js?v=202610240100"></script>
 <script src="../shared/minigames.js?v=202611021845"></script>
@@ -92,13 +92,13 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script defer src="firebase-config.js?v=202611010100"></script>
 <!-- flags appear once a shape is answered; loaded after the page so the game shows at once -->
-<script defer src="flags.js?v=202610230100"></script>
+<script defer src="flags.js?v=202611071300"></script>
 <script>
 /* ---- one silhouette to name: the same piece in Solo, Daily and With friends ----
    A question is {c: country code, rot: turn in degrees (Hard), tries: wrong answers so far, st: 'play' | 'right' | 'wrong'}.
    The lives are for the whole game, not per shape: every wrong answer on any shape costs one, and at none the game is over. */
 const LIVES=5,DIFF_NAME={easy:'Easy',normal:'Normal',hard:'Hard'};
-const DIFF_HINT={easy:'Well-known countries, north up',normal:'All 196 countries, north up',hard:'All 196, each shape turned'};
+const DIFF_HINT={easy:'Well-known countries, north up',normal:'All 197 countries, north up',hard:'All 197, each shape turned'};
 const newQ=(c,rot)=>({c,rot:rot||0,tries:[],st:'play'});
 const flagSrc=c=>typeof FLAGS!=='undefined'&&FLAGS[c]?'data:image/svg+xml;utf8,'+encodeURIComponent(FLAGS[c]):'';
 const contName={EU:'Europe',AS:'Asia',AF:'Africa',NA:'North and Central America',SA:'South America',OC:'Oceania'};
@@ -192,10 +192,11 @@ function trainHTML(){const q=T.q,s=trainStats()[T.diff]||{best:0},done=q.st!=='p
    The level shuffles its countries once per cycle (same order for everyone, from the cycle number) and deals
    nine a day, so no country comes back until the cycle is over. The day's save keeps one entry per level
    (only Normal since there is one daily board; Easy and Hard live on in Solo and With friends). */
-const DAILY_FIRST='2026-10-22',DAILY_N=9,DAILY_LV='normal';
+const DAILY_FIRST='2026-10-22',DAILY_N=9,DAILY_LV='normal',NEW_FROM_CYCLE=1,NEW_CODES=new Set(['VAT']);
 function dailyBoard(key,diff){
-  const codes=poolOf(diff).map(c=>c.c).sort(),days=Math.floor(codes.length/DAILY_N),n=dayNum(key,DAILY_FIRST)-1;
-  const cycle=Math.floor(n/days),i=((n%days)+days)%days;
+  // Vatican City joined on 2026-11-07 (the same 197 countries as every Geomingo game): cycles before NEW_FROM_CYCLE keep their order without it
+  const all=poolOf(diff).map(c=>c.c).sort(),base=all.filter(c=>!NEW_CODES.has(c)),days=Math.floor(base.length/DAILY_N),n=dayNum(key,DAILY_FIRST)-1;
+  const cycle=Math.floor(n/days),i=((n%days)+days)%days,codes=cycle>=NEW_FROM_CYCLE?all:base;
   const deck=shuffled(codes,rng(seedOf(`silhouette-${diff}-cycle-${cycle}`))).slice(i*DAILY_N,(i+1)*DAILY_N);
   const turn=rng(seedOf(`silhouette-hard-${key}`));
   return deck.map(c=>newQ(c,diff==='hard'?hardTurn(turn):0))}
@@ -290,7 +291,7 @@ const quickRules=extra=>`<section class="panel qrules"><span class="label">Quick
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Each shape is the outline of a country. Guess which one it is.</li>
   <li>Every shape is drawn to fill the same frame, so a big country and a small one look the same size.</li>
-  <li>Only independent countries, never territories. Far-off islands are left out of a shape (Hawaii, French Guiana, the Canaries) so the country does not shrink to a dot. Vatican City is not in the game.</li></ul>
+  <li>The 197 countries of every Geomingo game: the 193 UN members plus Vatican City, Palestine, Kosovo and Taiwan, never territories (Hong Kong, Greenland...). Far-off islands are left out of a shape (Hawaii, French Guiana, the Canaries) so the country does not shrink to a dot.</li></ul>
   <h3>How to play</h3><ul>
   <li>Tap <b>Type a country…</b>, start typing and tap the country in the list.</li>
   <li>Names are in English. Accents, capitals and spaces don't matter, and common other names work too (Holland, Burma, UK…).</li>
@@ -298,15 +299,15 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>With no lives left, the game is over. <b>Give up</b> ends it early.</li></ul>
   <h3>Levels</h3><ul>
   <li><b>Easy</b>: 54 countries most people know from maps, news and travel, north up.</li>
-  <li><b>Normal</b>: all 196 countries, north up.</li>
-  <li><b>Hard</b>: all 196, each shape turned at a random angle, so north is no clue.</li>
+  <li><b>Normal</b>: all 197 countries, north up.</li>
+  <li><b>Hard</b>: all 197, each shape turned at a random angle, so north is no clue.</li>
   <li>Today's shapes are always <b>Normal</b>. In Solo and With friends you choose the level.</li></ul>
   <h3>Modes</h3><ul>
   <li><b>Today's shapes</b>: nine shapes on a 3 × 3 board, the same for everyone, new every day at midnight CET. Tap a shape to answer it, in any order. If your ${LIVES} lives run out, the shapes you have not named count as missed. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>
   <li><b>Solo</b>: shape after shape at the level you choose, until your ${LIVES} lives are gone. Your score is how many you named. No country comes back until you have seen them all.</li>
   <li><b>With friends</b>: 2 to 6 players online, each on their own phone. The host chooses <b>Getting harder</b> (3 Easy, 4 Normal, 3 Hard) or a continent and a level. Everyone gets the same ten shapes at the same time, ${SECS} seconds each. There are no lives: you can try as many countries as you like until you name it or the time runs out. A right answer scores 500 points, plus up to 500 more for speed. The ranking shows after every shape and at the end.</li></ul>`}
 function creditsHTML(){return `<ul style="padding-left:18px">
-  <li>Borders: <a href="https://github.com/topojson/world-atlas" target="_blank" rel="noopener">world-atlas</a>, from <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> 1:10m (public domain). Each country is drawn on its own map centred on itself, so no shape is stretched or cut by the date line.</li>
+  <li>Borders: <a href="https://github.com/topojson/world-atlas" target="_blank" rel="noopener">world-atlas</a>, from <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> 1:10m (public domain); Vatican City from <a href="https://www.geoboundaries.org" target="_blank" rel="noopener">geoBoundaries</a> (public domain). Each country is drawn on its own map centred on itself, so no shape is stretched or cut by the date line.</li>
   <li>Country names, other names and continents: Countries' data, from <a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a> (ODbL 1.0).</li>
   <li>Flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a> (MIT License).</li>
   <li>Fonts: Archivo, Public Sans and Courier Prime (Google Fonts, SIL Open Font License).</li></ul>`}
