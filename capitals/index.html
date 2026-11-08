@@ -21,13 +21,13 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611081600"></script>
-<script src="../brand/account.js?v=202611081600"></script>
+<script src="../brand/mingo.js?v=202611081800"></script>
+<script src="../brand/account.js?v=202611081800"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="firebase-config.js?v=202611010100"></script>
-<script defer src="../silhouette/flags.js?v=202610230100"></script>
+<script defer src="../silhouette/flags.js?v=202611071300"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -314,7 +314,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 <footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
-<script src="data.js?v=202611081530"></script>
+<script src="data.js?v=202611081700"></script>
 <script src="flags.js?v=202611081530"></script>
 <script>
 const N = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z]/g,'');
@@ -352,7 +352,11 @@ add('name','Name has 10+ letters',c=>c.k.length>=10);
 add('name','Name contains Z',c=>c.k.includes('z'));
 add('name','Name ends in A',c=>c.k.endsWith('a'));
 add('name','Same first letter as its country',c=>c.k[0]===N(c.co.n)[0]);
-CATS.forEach(k=>{k.set=C.map(c=>!!k.test(c));k.count=k.set.filter(Boolean).length;});
+// Since ONLY_COUNTRIES_FROM Capitals has all 197 countries of the other Geomingo games: Jerusalem (Israel, Tel Aviv also accepted)
+// and Ramallah (Palestine) were added (nw). Daily grids before that day leave them out (setOld), so those days stay as they were.
+const ONLY_COUNTRIES_FROM='2026-11-10';
+const oldDay=key=>!!key&&key<ONLY_COUNTRIES_FROM;
+CATS.forEach(k=>{k.set=C.map(c=>!!k.test(c));k.setOld=k.set.map((v,i)=>v&&!C[i].nw);k.count=k.set.filter(Boolean).length;});
 const NAMEWORD='Uses the English name shown in this game (for example "Kyiv", "Delhi", "Washington"). Spaces, hyphens and accents are ignored.';
 function describe(k){
   const L=k.label;let m;
@@ -395,7 +399,7 @@ const POOL = CATS.filter(k=>k.count>=4);
 /* ---- seeded rng + generator ---- */
 function rngFrom(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function shuffle(arr,r){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-const inter=(a,b)=>{const o=[];for(let i=0;i<C.length;i++)if(a.set[i]&&b.set[i])o.push(i);return o};
+const inter=(a,b,old)=>{const A=old?a.setOld:a.set,B=old?b.setOld:b.set,o=[];for(let i=0;i<C.length;i++)if(A[i]&&B[i])o.push(i);return o};
 function matching(cells){const own=new Map();const tryCell=(ci,seen)=>{for(const x of cells[ci]){if(seen.has(x))continue;seen.add(x);if(!own.has(x)||tryCell(own.get(x),seen)){own.set(x,ci);return true}}return false};for(let ci=0;ci<cells.length;ci++)if(!tryCell(ci,new Set()))return false;return true}
 /* A grid is "safe" when no sequence of correct answers can ever leave a square impossible:
    for every square, its countries can never all be taken by other squares at the same time. */
@@ -637,7 +641,7 @@ let dailyCache=null;
 function fixedDaily(key){const ids=DAILY_FIXED.days[key];if(!ids)return null;
   const ks=ids.map(i=>CATS.find(k=>k.label===DAILY_FIXED.labels[i]));if(ks.some(k=>!k))return null;
   const rows=ks.slice(0,DAILY_N),cols=ks.slice(DAILY_N),answers=[];
-  rows.forEach(r=>cols.forEach(c=>answers.push(inter(r,c))));
+  rows.forEach(r=>cols.forEach(c=>answers.push(inter(r,c,oldDay(key)))));
   if(answers.some(a=>!a.length)||!isSafe(answers))return null;
   return {rows:rows.map(k=>k.id),cols:cols.map(k=>k.id),answers}}
 function dailyGrid(day){const key=day||todayKey();if(dailyCache&&dailyCache.key===key)return dailyCache;
@@ -915,7 +919,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/ci
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202611031030';
+const APP_VERSION='202611081700';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
@@ -1454,7 +1458,8 @@ function matches(q){
   const k=N(q);if(!k)return[];
   const easy=S&&S.diff==='easy';
   const starts=[],inside=[];
-  for(const c of C){if(c.ak.some(a=>a.startsWith(k))||c.k.startsWith(k))starts.push(c);else if(easy&&c.k.includes(k))inside.push(c)}
+  const old=S&&oldDay(S.daily); // Jerusalem and Ramallah can't be typed in daily grids from before ONLY_COUNTRIES_FROM
+  for(const c of C){if(c.nw&&old)continue;if(c.ak.some(a=>a.startsWith(k))||c.k.startsWith(k))starts.push(c);else if(easy&&c.k.includes(k))inside.push(c)}
   return starts.concat(inside).slice(0,8);
 }
 // line icons for the menu (24×24, drawn with the text colour)
@@ -1491,7 +1496,7 @@ function drawLayer(){
         <dt>City data</dt>
         <dd><a href="https://www.geonames.org" target="_blank" rel="noopener">GeoNames</a> (via the <i>all-the-cities</i> package): names, coordinates and population of each city, under the <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">Creative Commons Attribution 4.0</a> licence. Adapted: English names, a few outdated populations corrected (Buenos Aires, Taipei, Kuwait City, Luxembourg, Thimphu, Bridgetown, Bandar Seri Begawan, Astana).</dd>
         <dt>Capitals</dt>
-        <dd>One capital per country, the 195 countries of Country Grid without the territories. Where a country has more than one, the game shows the same capital as the other Geomingo games (for example Sucre for Bolivia, Pretoria for South Africa, Mbabane for Eswatini) and also accepts the others as right answers (La Paz, Cape Town, Bloemfontein, Lobamba and more). Country names come from Country Grid's data (<a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a>, <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL 1.0</a>, adapted). "Not its country's biggest city" follows Wikipedia, <a href="https://en.wikipedia.org/wiki/List_of_countries_whose_capital_is_not_their_largest_city" target="_blank" rel="noopener">List of countries whose capital is not their largest city</a>, plus China.</dd>
+        <dd>One capital per country: the 197 countries of every Geomingo game (the 193 UN members plus Vatican City, Palestine, Kosovo and Taiwan). Jerusalem is shown for Israel (Tel Aviv is also accepted) and Ramallah for Palestine, as in Countries. Where a country has more than one, the game shows the same capital as the other Geomingo games (for example Sucre for Bolivia, Pretoria for South Africa, Mbabane for Eswatini) and also accepts the others as right answers (La Paz, Cape Town, Bloemfontein, Lobamba and more). Country names come from Country Grid's data (<a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a>, <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL 1.0</a>, adapted). "Not its country's biggest city" follows Wikipedia, <a href="https://en.wikipedia.org/wiki/List_of_countries_whose_capital_is_not_their_largest_city" target="_blank" rel="noopener">List of countries whose capital is not their largest city</a>, plus China.</dd>
         <dt>Coasts, seas, rivers and height</dt>
         <dd>Compiled by hand from Wikipedia (text under <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>) and checked against the <a href="https://www.naturalearthdata.com" target="_blank" rel="noopener">Natural Earth</a> coastline (public domain), October 2026. Each category's <span class="ib">i</span> explains the exact rule and the doubtful cases.</dd>
         <dt>Megacities</dt>

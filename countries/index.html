@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611081600"></script>
-<script src="../brand/account.js?v=202611081600"></script>
+<script src="../brand/mingo.js?v=202611081800"></script>
+<script src="../brand/account.js?v=202611081800"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -320,7 +320,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 <footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
-<script src="data.js?v=202611081500"></script>
+<script src="data.js?v=202611081700"></script>
 <script src="flags.js?v=202611081500"></script>
 <script>
 const N = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z]/g,'');
@@ -335,9 +335,13 @@ const add=(fam,label,test)=>CATS.push({id:CATS.length,fam,label,test});
 [['AF','In Africa'],['EU','In Europe'],['AS','In Asia'],['OC','In Oceania'],['NA','In North or Central America'],['SA','In South America']].forEach(([r,l])=>add('region',l,c=>c.r===r));
 ['CHN','RUS','IND','BRA','FRA','DEU','AUT','COD','TZA','TUR','SRB','SAU','ARG','HUN','NER','ZMB','IRN','PER'].forEach(k=>add('border','Borders '+byCode[k].n,c=>c.b.includes(k)));
 add('geo','Landlocked',c=>c.ll===1);
-add('geo','Island nation (no land borders)',c=>c.b.length===0&&!c.ll);
-add('geo','Has 5+ land neighbours',c=>c.b.length>=5);
-add('geo','Exactly 1 land neighbour',c=>c.b.length===1);
+// land neighbours: only countries count, not territories (China's are 14 with Hong Kong and Macau left out); daily grids
+// from before ONLY_COUNTRIES_FROM still count territories (OLD_RULES), so those days stay as they were
+let OLD_RULES=false;
+const NB=c=>OLD_RULES?c.b.length:c.b.filter(x=>byCode[x]&&!byCode[x].t).length;
+add('geo','Island nation (no land borders)',c=>NB(c)===0&&!c.ll);
+add('geo','Has 5+ land neighbours',c=>NB(c)>=5);
+add('geo','Exactly 1 land neighbour',c=>NB(c)===1);
 add('geo','Centre south of the Equator',c=>c.lat<0);
 add('geo','Centre in the tropics',c=>Math.abs(c.lat)<23.4);
 add('geo','Centre north of 45°N',c=>c.lat>45);
@@ -345,8 +349,8 @@ add('geo','Area over 1 million km²',c=>c.a>1e6);
 add('geo','Area under 30,000 km²',c=>c.a<3e4);
 add('geo','Area over 2 million km²',c=>c.a>2e6);
 add('geo','Area under 1,000 km²',c=>c.a>0&&c.a<1000);
-add('geo','Exactly 2 land neighbours',c=>c.b.length===2);
-add('geo','3 or 4 land neighbours',c=>c.b.length>=3&&c.b.length<=4);
+add('geo','Exactly 2 land neighbours',c=>NB(c)===2);
+add('geo','3 or 4 land neighbours',c=>NB(c)>=3&&NB(c)<=4);
 // population: UN estimate for 1 July 2023; places without a UN figure never count
 const POP=c=>DATA.pop[c.c];
 add('people','Population over 100 million',c=>POP(c)>1e8);
@@ -431,7 +435,12 @@ add('geo2','Crossed by the Equator',inList('geo_equator'));
 add('geo2','Has a peak over 5,000 m',inList('geo_5000'));
 [['pol_eu','EU member'],['pol_nato','NATO member'],['pol_cw','Commonwealth member'],['pol_g20','G20 member'],['pol_mon','Monarchy'],['pol_opec','OPEC member'],['pol_ussr','Former Soviet republic']].forEach(([k,l])=>add('pol',l,inList(k)));
 [['sp_summer','Hosted the Summer Olympics'],['sp_winter','Hosted the Winter Olympics'],['sp_wchost','Hosted the men\'s World Cup'],['sp_wcwin','Won the men\'s World Cup'],['sp_f1','Hosts a Formula 1 race (2026)']].forEach(([k,l])=>add('sport',l,inList(k)));
-CATS.forEach(k=>{k.set=C.map(c=>!!k.test(c));k.count=k.set.filter(Boolean).length;});
+// Since ONLY_COUNTRIES_FROM only the 197 countries are answers (193 UN members, Vatican City, Palestine, Kosovo, Taiwan),
+// the same list as every other Geomingo game. Territories (Hong Kong, Greenland...) stay in C so old games still show,
+// and daily grids before that day keep them (setAll), so those days stay exactly as they were.
+const ONLY_COUNTRIES_FROM='2026-11-10';
+const oldDay=key=>!!key&&key<ONLY_COUNTRIES_FROM;
+CATS.forEach(k=>{OLD_RULES=true;k.setAll=C.map(c=>!!k.test(c));OLD_RULES=false;k.set=C.map(c=>!c.t&&!!k.test(c));k.count=k.set.filter(Boolean).length;});
 const FLAGNOTE='Judged on the flag shown in the game.';
 const NOTE=(what,page)=>'Source: '+what+', as listed in Wikipedia, "'+page+'". Places with no figure there never count.';
 const POPNOTE='United Nations estimate for 1 July 2023 (Wikipedia, "List of countries by population (United Nations)"). Places with no UN figure never count.';
@@ -571,7 +580,7 @@ const POOL = CATS.filter(k=>k.count>=4);
 /* ---- seeded rng + generator ---- */
 function rngFrom(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function shuffle(arr,r){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-const inter=(a,b)=>{const o=[];for(let i=0;i<C.length;i++)if(a.set[i]&&b.set[i])o.push(i);return o};
+const inter=(a,b,all)=>{const A=all?a.setAll:a.set,B=all?b.setAll:b.set,o=[];for(let i=0;i<C.length;i++)if(A[i]&&B[i])o.push(i);return o};
 function matching(cells){const own=new Map();const tryCell=(ci,seen)=>{for(const x of cells[ci]){if(seen.has(x))continue;seen.add(x);if(!own.has(x)||tryCell(own.get(x),seen)){own.set(x,ci);return true}}return false};for(let ci=0;ci<cells.length;ci++)if(!tryCell(ci,new Set()))return false;return true}
 /* A grid is "safe" when no sequence of correct answers can ever leave a square impossible:
    for every square, its countries can never all be taken by other squares at the same time. */
@@ -817,7 +826,7 @@ let dailyCache=null;
 function fixedDaily(key){const ids=DAILY_FIXED.days[key];if(!ids)return null;
   const ks=ids.map(i=>CATS.find(k=>k.label===DAILY_FIXED.labels[i]));if(ks.some(k=>!k))return null;
   const rows=ks.slice(0,DAILY_N),cols=ks.slice(DAILY_N),answers=[];
-  rows.forEach(r=>cols.forEach(c=>answers.push(inter(r,c))));
+  rows.forEach(r=>cols.forEach(c=>answers.push(inter(r,c,oldDay(key)))));
   if(answers.some(a=>!a.length)||!isSafe(answers))return null;
   return {rows:rows.map(k=>k.id),cols:cols.map(k=>k.id),answers}}
 function dailyGrid(day){const key=day||todayKey();if(dailyCache&&dailyCache.key===key)return dailyCache;
@@ -1095,7 +1104,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/da
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202611031030';
+const APP_VERSION='202611081700';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
@@ -1634,7 +1643,8 @@ function matches(q){
   const k=N(q);if(!k)return[];
   const easy=S&&S.diff==='easy';
   const starts=[],inside=[];
-  for(const c of C){if(c.ak.some(a=>a.startsWith(k))||c.k.startsWith(k))starts.push(c);else if(easy&&c.k.includes(k))inside.push(c)}
+  const terr=S&&oldDay(S.daily); // territories can only be typed in daily grids from before ONLY_COUNTRIES_FROM
+  for(const c of C){if(c.t&&!terr)continue;if(c.ak.some(a=>a.startsWith(k))||c.k.startsWith(k))starts.push(c);else if(easy&&c.k.includes(k))inside.push(c)}
   return starts.concat(inside).slice(0,8);
 }
 // line icons for the menu (24×24, drawn with the text colour)
@@ -1700,7 +1710,7 @@ function drawLayer(){
       <h3>The idea</h3><ul>
       <li>Every row and every column has a category, for example "In Africa" or "Flag has a star".</li>
       <li>Fill each square with a country that fits <b>both</b> its row and its column. For "In Africa" and "Flag has a star", Ghana or Somalia would work.</li>
-      <li>Any of the ${C.length} countries and territories in the game can be an answer, from Brazil to Greenland or Hong Kong. Each one can be used only once per grid.</li>
+      <li>Any of the ${C.filter(c=>!c.t).length} countries can be an answer: the 193 UN members plus Vatican City, Palestine, Kosovo and Taiwan, the same list in every Geomingo game. Territories like Hong Kong or Greenland are not countries, so they don't count. Each country can be used only once per grid.</li>
       <li>Not sure what a category means? Tap its <span class="ib">i</span>.</li>
       <li>Every grid can be finished: each empty square always has at least one country left that fits.</li></ul>
       <h3>How to answer</h3><ul>
