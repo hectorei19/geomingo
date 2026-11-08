@@ -323,9 +323,9 @@ const themeBtn=()=>'';
 // the account button (Sign in, or your initial): ../brand/account.js fills it in once it knows who is playing
 const acctSlot=()=>'<span class="gm-acctslot" data-gm-acctslot>'+(window.Geomingo&&Geomingo.acctHTML?Geomingo.acctHTML():'')+'</span>';
 function header(o){o=o||{};
-  if(!o.game)return '<header class="gm-top"><h1 class="gm-logo">geo<span>mingo</span></h1><span class="gm-spacer"></span>'+passBtn()+acctSlot()+themeBtn()+'</header>';
+  if(!o.game)return '<header class="gm-top"><h1 class="gm-logo">geo<span>mingo</span></h1><span class="gm-beta" title="Still in testing. Official launch coming soon.">BETA</span><span class="gm-spacer"></span>'+passBtn()+acctSlot()+themeBtn()+'</header>';
   const g=GAMES.find(x=>x.name===o.game),gate=g?'Trip '+g.gate:'',sub=[gate,o.coord].filter(Boolean).join(' · ');
-  return '<header class="gm-top"><a class="gm-home" href="'+HOME+'" aria-label="All Geomingo games">'+ICO.back+logo+'</a><span class="gm-spacer"></span>'+passBtn()+acctSlot()+themeBtn()+'</header>'+
+  return '<header class="gm-top"><a class="gm-home" href="'+HOME+'" aria-label="All Geomingo games">'+ICO.back+logo+'<span class="gm-beta" title="Still in testing. Official launch coming soon.">BETA</span></a><span class="gm-spacer"></span>'+passBtn()+acctSlot()+themeBtn()+'</header>'+
     '<div class="gm-bar"><h2 class="gm-title" id="brand" role="link" tabindex="0" title="'+esc(o.game)+' home">'+esc(o.game)+(sub?'<small>'+esc(sub)+'</small>':'')+'</h2><span class="gm-spacer"></span>'+(o.menu||'')+'</div>'}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-gm-theme],[data-gm-pass]');if(!t)return;e.preventDefault();
   if(t.hasAttribute('data-gm-theme'))toggleTheme();else openPass()});
