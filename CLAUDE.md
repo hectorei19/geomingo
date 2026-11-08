@@ -22,7 +22,7 @@ Plain static HTML/CSS/JS: no build step, no framework, no tests. Each game is on
   They are one-line JSON/SVG blobs. If you really need a value, grep a short snippet
   (e.g. `grep -o '"c":"ESP".\{0,200\}' shared/data.js`); never print whole lines.
 - The game `index.html` files still have some long lines: read only line
-  ranges (`Read` with offset/limit, or `sed -n 'A,Bp'`),
+  ranges (`Read` with offset/limit, or `sed -n 'A,Bp'`)
   and find code with grep (`grep -n` and `cut -c1-200` to keep output short).
 
 ## Rules
