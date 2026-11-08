@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-game="impostor">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>Impostor · Geomingo</title>
+<meta name="description" content="Six countries, six rounds: every sentence is true for five of them. Find the impostor. Daily geography games from Geomingo.">
+<meta name="theme-color" content="#151E30">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Geomingo">
+<meta property="og:title" content="Impostor · Geomingo">
+<meta property="og:description" content="Six countries, six rounds: every sentence is true for five of them. Find the impostor.">
+<meta property="og:url" content="https://geomingo.com/impostor/">
+<meta property="og:image" content="https://geomingo.com/brand/og.png?v=2">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../brand/icons/favicon.svg?v=202611011030" type="image/svg+xml">
+<link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
+<link rel="manifest" href="../brand/site.webmanifest?v=3">
+<script src="../brand/mingo.js?v=202611081800"></script>
+<script src="../brand/account.js?v=202611081800"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
+<link rel="stylesheet" href="../shared/style.css?v=202610252300">
+<style>
+/* Impostor: six countries in a 3 x 2 grid, the sentences of the round under them, then Next sentence */
+.play{display:flex;flex-direction:column;gap:12px;width:100%}
+.six{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.six button{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;min-width:0;padding:10px 4px 9px;background:var(--sheet);border:2px solid var(--line);border-radius:12px;color:var(--ink);font:inherit;font-weight:600;font-size:.86rem;line-height:1.15;cursor:pointer}
+.six button img{height:34px;width:auto;max-width:90%;border-radius:3px;box-shadow:0 0 0 1px var(--rule);background:var(--rule)}
+.six button span{overflow-wrap:anywhere;text-align:center}
+.six button small{font-family:var(--mono);font-weight:700;font-size:.68rem;letter-spacing:.06em}
+.six button.sel{border-color:var(--flamingo);background:var(--flamingo-soft,var(--sea-soft))}
+.six button.imp{border-color:var(--bad);background:var(--bad-soft)}
+.six button.imp small{color:var(--bad)}
+.six button.ok{border-color:var(--good)}
+.six button.miss{border-style:dashed;opacity:.7}
+.six button:disabled{cursor:default}
+.facts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.fact{display:flex;gap:12px;align-items:flex-start;background:var(--sheet);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px}
+.fact .ci{flex:none;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--sea-soft);color:var(--ink);font-family:var(--mono);font-weight:700;font-size:.85rem}
+.fact .ct{display:flex;flex-direction:column;gap:2px;min-width:0;padding-top:3px}
+.fact .ct b{font-weight:600;font-size:1rem;line-height:1.3}
+.fact .ct small{font-size:.85rem;color:var(--ink-2)}
+.fact.new{border-color:var(--gold)}
+.fact.off{border-style:dashed;opacity:.55}
+.fact.off .ct b{font-family:var(--mono);letter-spacing:.2em}
+.fact .fp{margin-left:auto;align-self:center;font-family:var(--mono);font-size:.8rem;color:var(--ink-2);white-space:nowrap}
+.locked{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px dashed var(--line);border-radius:12px;color:var(--ink-2);font-size:.92rem}
+.locked .linkbtn{margin-left:auto}
+.go{width:100%}
+.verdict{display:flex;flex-direction:column;gap:4px;border:2px solid var(--good);background:var(--p4-soft);border-radius:12px;padding:10px 12px}
+.verdict.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.verdict b{font-family:var(--display);font-size:1.25rem;line-height:1.15}
+.verdict span{font-size:.92rem;color:var(--ink-2)}
+.dsq{grid-template-columns:repeat(6,1fr);width:120px}
+.dsq i.mid{background:var(--p2)}
+.dsq i.bad{background:var(--bad)}
+.arch .dsq{width:72px}
+.hflags{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;width:100%;margin-top:4px}
+.hflags img{width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:2px;box-shadow:0 0 0 1px var(--rule);background:var(--rule)}
+.desk{display:flex;gap:6px;width:100%}
+.desk button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px 6px;background:var(--sheet);border:2px dashed var(--line);border-radius:10px;color:var(--ink-2);font:inherit;font-size:.7rem;cursor:default}
+.desk button b{font-family:var(--mono);font-size:.95rem;color:var(--ink)}
+.desk button img{width:30px;height:20px;object-fit:cover;border-radius:2px;box-shadow:0 0 0 1px var(--rule);background:var(--rule)}
+.desk button.right,.desk button.wrong{padding:6px 2px;cursor:pointer}
+.desk button.now{border:2px solid var(--flamingo);background:var(--flamingo);color:var(--on-flamingo);font-weight:700;letter-spacing:.06em}
+.desk button.now b{font-size:1.1rem;color:var(--on-flamingo)}
+.desk button.right{border-style:solid;border-color:var(--good);background:var(--p4-soft)}
+.desk button.wrong{border-style:solid;border-color:var(--bad);background:var(--p0-soft)}
+.flist{display:flex;flex-direction:column;gap:8px}
+.frow{display:flex;align-items:center;gap:12px;background:var(--sheet);border:2px solid var(--good);border-radius:14px;padding:10px 12px}
+.frow.wrong{border-color:var(--bad)}
+.frow .rno{font-family:var(--mono);font-weight:700;color:var(--ink-2);width:24px}
+.frow img{width:44px;height:auto;border-radius:3px;box-shadow:0 0 0 1px var(--rule);flex:none}
+.frow .rn{display:flex;flex-direction:column;min-width:0}
+.frow .rn b{font-family:var(--display);font-weight:700;font-size:1.15rem;line-height:1.1}
+.frow .rn small{color:var(--ink-2);font-size:.85rem}
+.frow .rpts{margin-left:auto;font-family:var(--mono);color:var(--gold);white-space:nowrap}
+</style>
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611031030">
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
+<div id="layer"></div>
+
+<script src="../data/countries.js?v=202611081900"></script>
+<script src="../shared/data.js?v=202611081900"></script>
+<script src="../top10/extra-data.js?v=202611081900"></script>
+<script src="../shared/games.js?v=202610240100"></script>
+<script src="../shared/minigames.js?v=202611021845"></script>
+<script src="facts.js?v=202611081600"></script>
+<script>
+/* ---- Impostor: six countries, six rounds, find the one that doesn't fit ----
+   Héctor, 2026-11-08: the same six countries all game; in each round up to five sentences come out, from hard to easy,
+   and you pick the country the sentences are NOT true for. The sentences come from facts.js.
+   Right with k sentences open = 6 - k points (5 down to 1). A wrong country ends the round with 0. Best game 30.
+   The impostor changes from round to round and can come back once, so the last rounds can't be worked out by elimination.
+   A game is {set: the six codes, qs: six rounds, sel: the round on screen, over, left: the round just finished, shown
+   until Next round}; a round is {c: the impostor, f: [{t: sentence, v: what the impostor really has}], k: sentences open,
+   pick: the country chosen, st: 'play' | 'right' | 'wrong'}. */
+const SENT=5,ROUNDS=6,MAX=SENT*ROUNDS,FIRST='2026-11-08';
+const flagOf=c=>'../flagpie/flags/'+c+'.svg';
+const nameOf=c=>impByCode[c].n;
+const worth=q=>SENT+1-q.k;
+const ptsOf=q=>q.st==='right'?worth(q):0;
+const newGame=(g,o)=>Object.assign({set:g.set,qs:g.rounds.map(r=>({c:r.c,f:r.f,k:1,pick:null,st:'play'})),sel:0,over:false,left:null},o||{});
+let chosen=null;   // the country tapped, waiting for "That's the impostor"
+
+const tk=Geomingo.tk;
+const pointsOf=G=>G.qs.reduce((n,q)=>n+ptsOf(q),0);
+const rightOf=G=>G.qs.filter(q=>q.st==='right').length;
+const wrongOf=G=>G.qs.filter(q=>q.st==='wrong'&&q.pick).length;
+const firstOf=G=>G.qs.filter(q=>q.st==='right'&&q.k===1).length;
+
+// the six rounds in a row: the one on screen in flamingo, the finished ones with the impostor's flag and the points
+const deskHTML=G=>`<div class="desk" role="group" aria-label="The six rounds">${G.qs.map((q,i)=>{const now=i===G.sel&&!G.over&&G.left==null,cls=[now?'now':'',q.st==='right'?'right':q.st==='wrong'?'wrong':''].join(' ');
+  return `<button data-tv="${i}" class="${cls}" aria-label="Round ${i+1}${q.st==='play'?'':': '+esc(nameOf(q.c))}"${now?' aria-current="step"':''}>${q.st!=='play'?`<img src="${flagOf(q.c)}" alt=""><b>${q.st==='right'?'+'+worth(q):'0'}</b>`:now?`NOW<b>${i+1}</b>`:`#${i+1}<b>–</b>`}</button>`}).join('')}</div>`;
+// the six countries: buttons while the round is on, then the impostor in red and the others in green
+function sixHTML(G,q,done){return `<div class="six" role="group" aria-label="The six countries">${G.set.map(c=>{
+    let cls='',tag='';
+    if(done){if(c===q.c){cls='imp';tag='<small>IMPOSTOR</small>'}else if(c===q.pick){cls='miss';tag='<small>YOUR PICK</small>'}else cls='ok'}
+    else if(c===chosen)cls='sel';
+    return `<button data-c="${c}" class="${cls}"${done?' disabled':''}><img src="${flagOf(c)}" alt=""><span>${esc(nameOf(c))}</span>${tag}</button>`}).join('')}</div>`}
+function factsHTML(q,all){return `<ol class="facts">${q.f.map((f,i)=>{const open=all||i<q.k;
+    if(!open)return `<li class="fact off"><span class="ci">${i+1}</span><span class="ct"><b>? ? ?</b></span><span class="fp">${SENT-i} pt${SENT-i===1?'':'s'}</span></li>`;
+    return `<li class="fact${!all&&i===q.k-1&&q.k>1?' new':''}"><span class="ci">${i+1}</span><span class="ct"><b>${esc(f.t)}</b>${all&&f.v?`<small>${esc(nameOf(q.c))}: ${esc(f.v)}</small>`:''}</span></li>`}).join('')}</ol>`}
+// the play area: the rounds, the six countries, the sentences open so far, then the buttons
+function playHTML(G){let h=deskHTML(G);
+  if(G.left!=null)return `<div class="play">${h}${leftHTML(G,G.left)}</div>`;
+  if(G.over)return `<div class="play">${h}</div>`;
+  const q=G.qs[G.sel],more=SENT-q.k;
+  return `<div class="play">${h}<span class="label">Round ${G.sel+1} of ${ROUNDS} · worth ${worth(q)} point${worth(q)===1?'':'s'}</span>${sixHTML(G,q,false)}
+    <span class="label">Five of them fit every sentence. Which one doesn't?</span>${factsHTML(q,false)}
+    ${chosen?`<button class="primary go" id="confirm">${esc(nameOf(chosen))} is the impostor</button>`:`<div class="locked">${more?'Tap the impostor, or wait for another sentence':'All five sentences are out'}<button class="linkbtn" id="nextfact">${more?'Next sentence':'I don\'t know'}</button></div>`}
+    ${giveUpHTML()}</div>`}
+// a round that has just finished: who it was, all five sentences with the impostor's real figures, then Next round
+function leftHTML(G,i){const q=G.qs[i],ok=q.st==='right';
+  return `<span class="label">Round ${i+1} of ${ROUNDS}</span>${sixHTML(G,q,true)}
+    <div class="verdict${ok?'':' wrong'}"><b>${ok?'Caught! +'+worth(q):'It was '+esc(nameOf(q.c))+'. 0 points'}</b><span>${ok?esc(nameOf(q.c))+' after '+q.k+' sentence'+(q.k===1?'':'s')+'.':q.pick?'You said '+esc(nameOf(q.pick))+'.':'Nobody picked.'} None of these is true for ${esc(nameOf(q.c))}:</span></div>
+    ${factsHTML(q,true)}<button class="primary" id="nexttv">${G.over?'See your result':'Next round →'}</button>`}
+
+// a tap on a country picks it; the big button says it; a wrong one ends the round with 0
+function choose(G,code){const q=G.qs[G.sel];if(!q||q.st!=='play'||G.over)return;chosen=chosen===code?null:code;render()}
+function answer(q,code){q.pick=code;if(code===q.c){q.st='right';return 'right'}q.st='wrong';return 'wrong'}
+function moreFacts(q){if(q.st!=='play')return;if(q.k<SENT)q.k++;else q.st='wrong'}
+function feedback(q,res){if(res==='right')Geomingo.stamp('impostor',nameOf(q.c),'+'+worth(q),q.c)}
+function advance(G){if(G.qs[G.sel].st==='play')return;G.left=G.sel;const n=G.qs.findIndex(q=>q.st==='play');if(n<0)G.over=true;else G.sel=n}
+function nextRound(G,save){const end=G.over;G.left=null;chosen=null;if(save)save();render();
+  if(end){window.scrollTo(0,0);return}const d=document.querySelector('.desk');if(d)window.scrollTo(0,Math.max(0,d.getBoundingClientRect().top+window.scrollY-90))}
+function showLeft(){const d=document.querySelector('.desk');if(d&&d.getBoundingClientRect().top<0)window.scrollTo(0,Math.max(0,d.getBoundingClientRect().top+window.scrollY-90))}
+// the summary under a finished game: each round's impostor and the points
+const summaryHTML=G=>`<section class="panel"><span class="label">Today's impostors</span><div class="flist">${G.qs.map((q,i)=>{const ok=q.st==='right';
+  return `<div class="frow${ok?'':' wrong'}"><span class="rno">R${i+1}</span><img src="${flagOf(q.c)}" alt=""><span class="rn"><b>${esc(nameOf(q.c))}</b><small>${ok?'Caught after '+q.k+' sentence'+(q.k===1?'':'s'):q.pick?'You said '+esc(nameOf(q.pick)):'Missed'}</small></span><span class="rpts">${ok?'+'+worth(q):'0'}</span></div>`}).join('')}</div></section>`;
+const sq=q=>q.st==='right'?(q.k===1?'🟩':q.k<=3?'🟨':'🟧'):'🟥';
+const sqClass=q=>q.st==='right'?(q.k<=2?'on':'mid'):q.st==='wrong'?'bad':'';
+const squaresHTML=G=>`<span class="dsq" aria-hidden="true">${G.qs.map(q=>`<i class="${sqClass(q)}"></i>`).join('')}</span>`;
+
+/* ---- Daily: the same six countries and rounds for everyone, new at midnight CET ----
+   Countries with 2 million people or more, dealt from a seed of the day. Saved as im-daily {date, over, S: the game}. */
+const DAILY_POOL=IMP_COUNTRIES.filter(c=>(DATA.pop[c.c]||0)>=2e6).map(c=>c.c).sort();
+const dailyDeal=key=>dealGame(DAILY_POOL,rngFrom(seedOf('impostor-'+key)));
+let D=null;
+const isGame=S=>S&&Array.isArray(S.qs)&&Array.isArray(S.set);
+const dailySaved=()=>{const d=load('im-daily',null);return d&&d.date===todayKey()&&isGame(d.S)?d:null};
+function dailyGame(){const d=dailySaved();if(d)return d.S;
+  return newGame(dailyDeal(todayKey()),{mode:'daily',date:todayKey(),num:dayNum(todayKey(),FIRST)})}
+function dailySave(){if(!D)return;
+  if(D.mode==='archive'){const a=load('im-arch',{});a[D.date]=D;store('im-arch',a);if(D.over)logHist(D);return}
+  store('im-daily',{date:D.date,over:D.over,S:D});
+  if(D.over&&logHist(D)&&!TESTDAY){Geomingo.clock.stop('impostor',D.date,pointsOf(D)/MAX);Geomingo.account.done('impostor')}}
+// a finished daily (on its day) goes into the history once: {p points, r impostors caught, a caught with one sentence, m wrong picks}
+function logHist(G){if(G.mode!=='daily')return false;const h=load('im-hist',{});if(h[G.date])return false;
+  h[G.date]={p:pointsOf(G),r:rightOf(G),a:firstOf(G),m:wrongOf(G)};store('im-hist',h);return true}
+function dailyPick(){const q=D&&D.qs[D.sel];if(!q||q.st!=='play'||D.over||!chosen)return;
+  const res=answer(q,chosen);chosen=null;feedback(q,res);advance(D);dailySave();render();showLeft()}
+function dailyMore(){const q=D&&D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;chosen=null;moreFacts(q);advance(D);dailySave();render();if(q.st!=='play')showLeft()}
+function dailyShareText(G){return `${Geomingo.share('Impostor')} #${G.num}${G.mode==='archive'?' (archive)':''} — ${pointsOf(G)}/${MAX}\n${G.qs.map(sq).join('')}`}
+const dailyShare=G=>dailyShareText(G)+"\n\nPlay today's Impostor: "+pageLink();
+function verdict(G){const p=pointsOf(G),r=rightOf(G);
+  return r===ROUNDS&&p>=24?{pose:'happy',t:'Nobody fools you. '+p+' points.',s:'All six impostors caught.'}:r===ROUNDS?{pose:'happy',t:'All six caught.',s:p+' of '+MAX+' points.'}
+    :r>=4?{pose:'happy',t:r+' of 6 caught.',s:p+' points. Tap a round to see who it was.'}:r>=1?{pose:'think',t:'Sneaky impostors today.',s:r+' of 6, '+p+' points.'}
+    :{pose:'sad',t:'They all got away.',s:'Solo helps: unlimited games.'}}
+const imAverage=()=>{const v=Object.values(load('im-hist',{}));return v.length?EU(v.reduce((a,e)=>a+(+e.p||0),0)/v.length,1):'–'};
+function resultHTML(G){const p=pointsOf(G),v=verdict(G);
+  if(G.mode==='archive')return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Archive · Impostor #${G.num}</span><p class="big">${p} points</p>
+    <p class="hint">${rightOf(G)} of 6 caught. Archive games don't count for the ranking or your streak.</p>
+    <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
+    <div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="primary" id="archback" style="flex:1">Back to archive</button></div></section>`;
+  return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Impostor #${G.num}</span><p class="big">${p} points</p>
+    <p class="hint">${rightOf(G)} of 6 caught. New countries in ${nextIn()}.</p>
+    <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
+    <div class="row-btns"><button class="ghost" id="copy">Share</button>${nextGameBtn('impostor')}</div>
+    <button class="ghost" id="playsolo">Play Solo</button>
+    ${allPlayedHTML('impostor')}
+    <span class="label">Your daily games</span>${statTiles(Object.keys(load('im-hist',{})).length,imAverage(),streakOf(load('im-hist',{})))}</section>${rankingHTML()}`}
+// today's ranking (signed-in players, first try of the day): points, then fewer wrong picks, then who finished first
+const rankingHTML=()=>Geomingo.account.rankingHTML('impostor',{what:'game',score:r=>[r.s+' pts',r.m+' wrong']});
+Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&D.mode==='daily'&&D.date===todayKey()){D=dailyGame();liveKey=''}
+  if(!typing&&(view==='home'||view==='daily'&&D&&D.over))render()});
+function openDaily(){D=dailyGame();chosen=null;view='daily';render();window.scrollTo(0,0)}
+function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
+  const m=lf?(q.st==='right'?['happy','Caught.','Tap Next round when you are ready.']:['sad','It got away.','Tap Next round when you are ready.'])
+    :q.k>1?['think','Read them again.','Every sentence is true for five of them. Each new one lowers the points.']
+    :['pass','One of them is lying.','Every sentence is true for five of these countries. Find the one it isn\'t true for.'];
+  return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
+    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Round',(i+1)+'/'+ROUNDS)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
+function dailyHTML(){const arch=D.mode==='archive';let h=header('Impostor',(arch?'Archive #':'Daily #')+D.num);
+  h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's impostors"}</span></div>`;
+  if(D.over&&D.left==null)return h+resultHTML(D)+summaryHTML(D);
+  return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel">${playHTML(D)}</section>`+quickRules()}
+
+/* ---- the archive: past days, one try each on this device ---- */
+const archDay=k=>{const e=load('im-hist',{})[k];return e?e.p+' pts':null};
+function openArchive(){view='archive';chosen=null;render();window.scrollTo(0,0)}
+function playArchive(k){if(archDay(k)){toast('You played this day already.');return}
+  const a=load('im-arch',{});D=isGame(a[k])?a[k]:newGame(dailyDeal(k),{mode:'archive',date:k,num:dayNum(k,FIRST)});
+  chosen=null;view='daily';dailySave();render();window.scrollTo(0,0)}
+const archiveView=()=>header('Impostor','Archive')+archiveHTML({first:FIRST,label:'Day',num:k=>dayNum(k,FIRST),
+  played:archDay,saved:k=>{const g=load('im-arch',{})[k];return isGame(g)?g:null},done:g=>[pointsOf(g)+' pts',squaresHTML(g)]});
+
+/* ---- Solo: six random countries a game, as many games as you like (im-solo keeps the numbers) ----
+   Easy: well-known countries (10 million people or more). Hard: all of them. */
+let T=null;
+const soloDiff=()=>load('im-diff','easy')==='hard'?'hard':'easy';
+const seg=(name,opts,val)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-seg="${name}" data-v="${v}" aria-pressed="${v===val}">${l}</button>`).join('')}</div>`;
+const soloPool=()=>soloDiff()==='easy'?IMP_COUNTRIES.filter(c=>(DATA.pop[c.c]||0)>=1e7).map(c=>c.c):IMP_COUNTRIES.map(c=>c.c);
+function openSolo(){view='solo';chosen=null;render();window.scrollTo(0,0)}
+function soloHTML(){return header('Impostor','Solo')+`<section class="panel">
+  <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Solo</span></div>
+  <p class="hint">Six new countries and six rounds every game. Up to ${MAX} points.</p>
+  <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['hard','Hard']],soloDiff())}<p class="hint">${soloDiff()==='easy'?'Well-known countries, with 10 million people or more':'Any of the '+IMP_COUNTRIES.length+' countries, small islands included'}.</p></div>
+  <button class="primary" id="start">Start game</button></section>${quickRules()}`}
+function openTrain(){T=newGame(dealGame(soloPool(),Math.random),{mode:'solo'});chosen=null;view='train';render();window.scrollTo(0,0)}
+function trainEnd(){if(T.logged)return;T.logged=1;logSolo('im-solo',{p:pointsOf(T),best:pointsOf(T),r:rightOf(T)})}
+function trainPick(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over||!chosen)return;
+  const res=answer(q,chosen);chosen=null;feedback(q,res);advance(T);if(T.over)trainEnd();render();showLeft()}
+function trainMore(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;chosen=null;moreFacts(q);advance(T);if(T.over)trainEnd();render();if(q.st!=='play')showLeft()}
+function trainHTML(){let h=header('Impostor','Solo')+`<div class="backline"><button class="linkbtn" id="soloback">← Back</button><span class="ht">Solo</span></div>`;
+  if(T.over&&T.left==null){const p=pointsOf(T),s=load('im-solo',null)||{};
+    return h+`<section class="panel">${Geomingo.hello(p>=18?'happy':'think',p+' points.',rightOf(T)+' of 6 caught. Your best Solo game: '+(s.best||p)+'.',{key:'res'})}<span class="label">Solo</span><p class="big">${p} points</p>
+      <button class="primary" id="tagain">New game</button></section>`+summaryHTML(T).replace("Today's impostors",'The impostors')}
+  return h+ticketHTML(T,'practice')+`<section class="panel">${playHTML(T)}</section>`+quickRules()}
+
+/* ---- stats, rules, credits ---- */
+function myStatsHTML(){const h=load('im-hist',{}),so=load('im-solo',null)||{n:0};
+  return statsPageHTML({game:'Impostor',hist:h,unit:'day',avg:imAverage(),lbs:d=>[{path:'lb/impostor',dates:d}],num:k=>'Impostor #'+dayNum(k,FIRST),
+    solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'caught']]},
+    friends:{n:0,w:0,place:0,best:0,third:[0,'best']}})}
+const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Six countries, six rounds. In each round the sentences are true for five of the countries: tap the one they aren't true for. Find it with one sentence for 5 points; every new sentence lowers the points, and a wrong pick scores 0. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+function rulesHTML(){return `<h3>The idea</h3><ul>
+  <li>Six countries stay on screen the whole game. In every round one of them is the <b>impostor</b>.</li>
+  <li>Sentences come out one by one, from the hardest to the easiest. Each one is true for the other five countries and false for the impostor.</li>
+  <li>For example, with Spain, Japan, Brazil, Egypt, Canada and Australia: “It has hosted the Olympic Games” is true for all of them except Egypt.</li></ul>
+  <h3>Six rounds</h3><ul>
+  <li>The impostor changes from round to round, and the same country can be the impostor twice. So you can't work out the last rounds by elimination.</li>
+  <li>Tap a country, then <b>… is the impostor</b> to answer. Tap it again to change your mind.</li>
+  <li>Not sure yet? Tap <b>Next sentence</b> for another one.</li></ul>
+  <h3>Points</h3><ul>
+  <li>Right with 1 sentence: <b>5 points</b>. With 2: 4. With 3: 3. With 4: 2. With all 5: 1.</li>
+  <li>A wrong country, or <b>I don't know</b> with all five out, ends the round with 0.</li>
+  <li>Best game: ${MAX} points. <b>Give up</b> ends the game as it stands.</li></ul>
+  <h3>The sentences</h3><ul>
+  <li>They come from the same figures as the other Geomingo games: continents, borders, seas, flags, languages, clubs like the EU or NATO, population, size, sport and more.</li>
+  <li>A number in a sentence is a round number between the impostor and the closest of the other five, so it is always clearly true or false.</li>
+  <li>After each round you see what the impostor really has (for example “0,8 % forest”).</li>
+  <li>Only the ${IMP_COUNTRIES.length} independent countries, never territories.</li></ul>
+  <h3>Modes</h3><ul>
+  <li><b>Today's impostors</b>: six countries, the same for everyone, new every day at midnight CET. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>
+  <li><b>Solo</b>: six random countries, as many games as you like. <b>Easy</b>: countries with 10 million people or more. <b>Hard</b>: all of them.</li>
+  <li><b>With friends</b>: coming soon.</li></ul>`}
+function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Impostor: the sentences are made from the same data as Countries, Connections and Top 10 (see above and Top 10's credits). Flags in their official shapes from <a href="https://github.com/hjnilsson/country-flags" target="_blank" rel="noopener">hjnilsson/country-flags</a> (from Wikimedia Commons, public domain).</li></ul>`)}
+
+/* ---- home: today's countries on top, then Solo and With friends, as in the other games ---- */
+let view='home';
+const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
+function homeHTML(){const key=todayKey();
+  if(!D||D.mode!=='daily'||D.date!==key)D=dailyGame();
+  const h=load('im-hist',{});let daily;
+  const flags=`<span class="hflags" aria-hidden="true">${D.set.map(c=>`<img src="${flagOf(c)}" alt="">`).join('')}</span>`;
+  if(D.over)daily=`<button class="hcard" id="daily"><span class="hm">Impostor #${D.num} · done</span><span class="dsum">${squaresHTML(D)}<span class="dtxt"><span class="ht">${pointsOf(D)} points</span><span class="hs">${rightOf(D)} of 6 caught</span></span>${dstatsHTML(streakOf(h),Object.keys(h).length,imAverage())}</span><span class="hs">Tap to see who the impostors were and share your result.</span><span class="hm">New countries in ${nextIn()}</span></button>`;
+  else{const started=D.qs.some(q=>q.st!=='play'||q.k>1);
+    daily=`<button class="hcard ac" id="daily"><span class="hm">#${D.num} · ${dateLabel(key)}</span><span class="ht">Today's impostors</span><span class="hs">${started?'You started: '+pointsOf(D)+' points so far. Tap to carry on.':'Six countries, six rounds, the same for everyone, one try. Tap to start.'}</span>${flags}</button>`}
+  const st=Geomingo.streak(),p=D.over?pointsOf(D):0;
+  const hello=D.over?Geomingo.hello(p?'happy':'sad',p?'Stamped for today.'+(st>1?' '+st+'-day streak.':''):'Rough crossing today.',"Today's impostors are done. New ones in "+nextIn()+'.')
+    :Geomingo.hello('pass','GeoPass ready.','Six countries at the border, and one of them doesn\'t belong. Every impostor you catch is a stamp.');
+  return header('Impostor','')+`<section class="home">${hello}${Geomingo.account.userHTML()}${daily}${D.over?rankingHTML():''}
+    <div class="hrow"><button class="hcard" data-go="train"><span class="ht">Solo</span><span class="hs">Practice with new countries, at your pace.</span></button>
+    <div class="hcard soon" aria-disabled="true"><span class="ht">With friends</span><span class="hs">Play online, 2 to 6 players. (coming soon)</span></div></div></section>${quickRules()}`}
+function goHome(){view='home';toastMsg=null;drawToast();chosen=null;render();window.scrollTo(0,0)}
+function render(){
+  if(!TESTDAY&&(view==='home'||view==='daily'&&D&&D.mode==='daily')){const g=dailyGame();if(!g.over)Geomingo.clock.start('impostor',todayKey())}
+  if(D&&D.mode==='daily')watchResult('im:'+D.date,D.over&&D.left==null);
+  if(view==='train')app.innerHTML=trainHTML();
+  else if(view==='solo')app.innerHTML=soloHTML();
+  else if(view==='archive')app.innerHTML=archiveView();
+  else if(view==='daily')app.innerHTML=dailyHTML();
+  else app.innerHTML=homeHTML();
+  bind()}
+function bind(){
+  if(view==='train')bindGiveUp(()=>{if(!T||T.over)return;T.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});T.over=true;T.left=null;chosen=null;trainEnd();render();window.scrollTo(0,0)});
+  else bindGiveUp(()=>{if(!D||D.over)return;D.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});D.over=true;D.left=null;chosen=null;dailySave();render();window.scrollTo(0,0)});
+  if($('home'))$('home').onclick=goHome;
+  app.querySelectorAll('[data-go="train"]').forEach(b=>b.onclick=openSolo);
+  if($('playsolo'))$('playsolo').onclick=openSolo;
+  if($('soloback'))$('soloback').onclick=openSolo;
+  if($('archback'))$('archback').onclick=openArchive;
+  if($('start'))$('start').onclick=openTrain;
+  if($('tagain'))$('tagain').onclick=openTrain;
+  if($('daily'))$('daily').onclick=openDaily;
+  if($('copy'))$('copy').onclick=()=>share(dailyShare(D));
+  app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
+  const G=view==='train'?T:view==='daily'?D:null;
+  app.querySelectorAll('[data-tv]').forEach(b=>b.onclick=()=>{const q=G&&G.qs[+b.dataset.tv];if(q&&q.st!=='play')toast('Round '+(+b.dataset.tv+1)+': '+nameOf(q.c)+(q.st==='right'?' · +'+worth(q):''))});
+  app.querySelectorAll('.six [data-c]').forEach(b=>b.onclick=()=>{if(!b.disabled&&G)choose(G,b.dataset.c)});
+  if($('confirm'))$('confirm').onclick=view==='train'?trainPick:dailyPick;
+  if($('nextfact'))$('nextfact').onclick=view==='train'?trainMore:dailyMore;
+  if($('nexttv'))$('nexttv').onclick=()=>view==='train'?nextRound(T):nextRound(D,dailySave);
+  app.querySelectorAll('[data-seg="diff"]').forEach(b=>b.onclick=()=>{store('im-diff',b.dataset.v);render()})}
+render();
+// a new day while the page was in the background: today's new countries
+document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(view==='home'||view==='daily'&&D&&D.mode==='daily'&&D.date!==todayKey()){D=null;if(view==='daily')openDaily();else render()}});
+</script>
+</body>
+</html>

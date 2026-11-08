@@ -14,10 +14,10 @@ Plain static HTML/CSS/JS: no build step, no framework, no tests. Each game is on
 - `capitals/` – Capitals (old Cities / City Grid); cities in `data.js` (CITIES, CO_LISTS, DAILY_FIXED;
   country names CO are built from `data/countries.js`),
   Vatican flag in `flags.js` (FLAG_VAT); `cities/` only forwards to `capitals/`
-- `connections/`, `top10/`, `silhouette/`, `customs/`, `flagpie/` – the smaller games
+- `connections/`, `top10/`, `silhouette/`, `customs/`, `flagpie/`, `impostor/` – the smaller games
 - `shared/` – `style.css`, `games.js`, `minigames.js`, `data.js` (category rules only, no data)
-- Connections, Top 10, Customs, Flag Pie load `data/countries.js` before `shared/data.js`; Silhouette's `countries.js`
-  and `flags.js` are built from `data/` by `silhouette/tools/build-countries.js` (run it after changing `data/`).
+- Connections, Top 10, Customs, Flag Pie, Impostor load `data/countries.js` before `shared/data.js`; Silhouette's
+  `countries.js` and `flags.js` are built from `data/` by `silhouette/tools/build-countries.js` (run it after changing `data/`).
 - `silhouette/tools/`, `flagpie/tools/` – Node scripts that regenerate data files
 - `README.md` – longer description (brand, account, Firebase paths)
 
