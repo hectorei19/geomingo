@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./shared/data.js)",
+      "Read(./silhouette/flags.js)",
+      "Read(./silhouette/countries.js)",
+      "Read(./flagpie/flags/**)"
+    ]
+  }
+}
