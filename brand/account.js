@@ -50,7 +50,8 @@ const ADAPT={
   top10:simple('t10-hist','t10-daily',S=>({s:(S.found||[]).length,m:(S.wrong||[]).length})),
   'sil-easy':silhouette('easy'),'sil-normal':silhouette('normal'),'sil-hard':silhouette('hard'),
   customs:simple('cu-hist','cu-daily',S=>({s:(S.qs||[]).reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0),m:(S.qs||[]).reduce((n,q)=>n+(q.tries||[]).length,0)})),
-  flagpie:simple('fp-hist','fp-daily',S=>({s:(S.qs||[]).reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0),m:(S.qs||[]).reduce((n,q)=>n+(q.tries||[]).length,0)}))};
+  flagpie:simple('fp-hist','fp-daily',S=>({s:(S.qs||[]).reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0),m:(S.qs||[]).reduce((n,q)=>n+(q.tries||[]).length,0)})),
+  impostor:simple('im-hist','im-daily',S=>({s:(S.qs||[]).reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0),m:(S.qs||[]).filter(q=>q.st==='wrong'&&q.pick).length}))};
 
 /* ---- Firebase ---- */
 let ok=false,failed=false,db=null,user,name='',watchers=[];   // user: undefined until Firebase knows, then null (guest) or the account
@@ -79,7 +80,7 @@ const uid=()=>user&&user.uid;
 // signing out (here, or from Countries' menu) leaves the device clean, as Countries always did:
 // the stats, today's games, the GeoPass and the name go; the account keeps them for the next sign-in
 const DEVICE_KEYS=['bl-daily','bl-hist','bl-games','bl-arch','bl-user','cc-daily','cc-hist','cc-games','cc-arch','cc-user',
-  'cx-daily','cx-hist','t10-daily','t10-hist','sil-daily','sil-hist','sil-train','gm-pass','gm-days','gm-acct','gm-lbc','gm-ranks','cx-solo','cx-friends','t10-solo','t10-friends','sil-friends','gm-feats','cu-daily','cu-hist','cu-arch','cu-solo','cu-diff','fp-daily','fp-hist','fp-arch','fp-solo','fp-solo5','fp-diff','gm-ms'];
+  'cx-daily','cx-hist','t10-daily','t10-hist','sil-daily','sil-hist','sil-train','gm-pass','gm-days','gm-acct','gm-lbc','gm-ranks','cx-solo','cx-friends','t10-solo','t10-friends','sil-friends','gm-feats','cu-daily','cu-hist','cu-arch','cu-solo','cu-diff','fp-daily','fp-hist','fp-arch','fp-solo','fp-solo5','fp-diff','im-daily','im-hist','im-arch','im-solo','im-diff','gm-ms'];
 function onUser(u){const was=user;user=u||null;
   if(was&&!user){DEVICE_KEYS.forEach(k=>ls.set(k,null));ls.set('gm-acct',null);location.reload();return}
   if(user){if(!(LAST&&LAST.u===user.uid))name='';loadName()}
@@ -200,7 +201,7 @@ function rankingHTML(g,o){const u=who();if(TEST||u===undefined)return '';o=o||{}
 const FEATS=[['borderline','leaderboard','bl-hist',r=>(+r.c||0)>=8,e=>e&&e.f!==0],['citygrid','lb/citygrid','cc-hist',r=>(+r.c||0)>=8,e=>e&&e.f!==0],
   ['connections','lb/connections','cx-hist',r=>(+r.s||0)>=2,e=>!!e],['top10','lb/top10','t10-hist',r=>(+r.s||0)>=5,e=>!!e],
   ['silhouette','lb/sil-normal','sil-hist',r=>(+r.s||0)>=5,e=>e&&e.normal!=null],['customs','lb/customs','cu-hist',r=>(+r.s||0)>=13,e=>!!e],
-  ['flagpie','lb/flagpie','fp-hist',r=>(+r.s||0)>=13,e=>!!e]];
+  ['flagpie','lb/flagpie','fp-hist',r=>(+r.s||0)>=13,e=>!!e],['impostor','lb/impostor','im-hist',r=>(+r.s||0)>=15,e=>!!e]];
 let featBusy=false;
 const featStore=me=>{const c=json('gm-feats');return c&&c.u===me&&c.r?c:{u:me,r:{}}};
 function featsOf(rows,me,half){const L=Object.entries(rows||{}).map(([id,v])=>Object.assign({id},v)),i=L.slice().sort(lbOrder).findIndex(r=>r.id===me);
