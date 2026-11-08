@@ -12,13 +12,15 @@ Live at https://geomingo.com/capitals/ (formerly Cities, at /cities/, which stil
 - Results and stats are kept on the device (localStorage keys starting with `cc-`, so they never mix with Country Grid's `bl-` keys on the same website).
 
 Files:
-- `index.html` – the whole game (capitals, categories and country names included).
+- `index.html` – the whole game (categories and game logic).
+- `data.js` – the data: capitals (`C`), country names (`CO`), country lists (`CO_LISTS`) and the fixed daily grids (`DAILY_FIXED`).
+- `flags.js` – Vatican City's flag (`FLAG_VAT`), which Silhouette's flags don't have.
 
 ## How it was made
 
 `index.html` is Country Grid's game with its data swapped: the city list, the categories, all about the city itself (continent, coast or inland, height, latitude, population, megacity, not its country's biggest city, Olympic and World Cup hosts, Mediterranean, Danube, and the letters of its name), and their explanations. A guessed square shows the city's name in big letters, no flag. Each category's ⓘ in the game gives the exact rule and the doubtful cases.
 
-The daily grids are fixed in advance in `index.html` (`DAILY_FIXED`, one entry per day from 2026-10-22 to 2027-10-22), so changing categories later never changes a day's grid. Days not in the list fall back to generating the grid from the date. A category never comes back within 3 days.
+The daily grids are fixed in advance in `data.js` (`DAILY_FIXED`, one entry per day from 2026-10-22 to 2027-10-22), so changing categories later never changes a day's grid. Days not in the list fall back to generating the grid from the date. A category never comes back within 3 days.
 
 ## Credits
 
