@@ -13,7 +13,7 @@ Live at https://geomingo.com/capitals/ (formerly Cities, at /cities/, which stil
 
 Files:
 - `index.html` – the whole game (categories and game logic).
-- `data.js` – the data: capitals (`C`), country names (`CO`), country lists (`CO_LISTS`) and the fixed daily grids (`DAILY_FIXED`).
+- `data.js` – the data: capitals (`CITIES`), country lists (`CO_LISTS`) and the fixed daily grids (`DAILY_FIXED`). Country names (`CO`) come from the Geomingo country database, `../data/countries.js`.
 - `flags.js` – Vatican City's flag (`FLAG_VAT`), which Silhouette's flags don't have.
 
 ## How it was made

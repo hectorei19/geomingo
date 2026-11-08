@@ -19,7 +19,8 @@ Everything is one website, one repository (published with GitHub Pages from `mai
 - `capitals/` – Capitals (formerly Cities / City Grid)
 - `cities/` – only forwards old links to `capitals/`
 - `connections/`, `top10/`, `silhouette/` – the smaller games, each with its own `index.html` and `firebase-config.js`
-- `shared/` – files used by Connections, Top 10 and Silhouette: `style.css`, `games.js`, `minigames.js`, and `data.js` (the category rules of Connections, Top 10, Customs and Flag Pie; the country data itself is `countries/data.js` + `countries/flags.js`, the one source for every game)
+- `data/` – the Geomingo country database, the one source of country data for every game: `countries.js` (countries, one name each, figures, lists) and `flags.js` (flags).
+- `shared/` – files used by Connections, Top 10 and Silhouette: `style.css`, `games.js`, `minigames.js`, and `data.js` (the category rules of Connections, Top 10, Customs and Flag Pie; the country data itself is in `data/`)
 
 The games moved here from their own repositories (hectorei19/country-grid, city-grid, connections, top10, silhouette, and geo-games for the home page), which keep their history. Saved progress (localStorage) belongs to the website address, so saves made on the old hectorei19.github.io addresses do not show on geomingo.com. Rooms still use the Firebase project borderline-90920.
 

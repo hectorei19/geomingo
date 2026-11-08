@@ -1,13 +1,13 @@
 // Builds ../countries.js (and ../flags.js): the 197 countries of the game with their name, continent and silhouette.
 // Only needed to rebuild that file. Run from this folder:
 //   npm install
-//   node build-countries.js     (reads ../../countries/data.js and ../../countries/flags.js, the one source of country data)
-// Borders: world-atlas (Natural Earth 1:10m, public domain); Vatican City from geoBoundaries (public domain). Names and continents: Countries' data (one name per country, no other accepted names).
+//   node build-countries.js     (reads ../../data/countries.js and ../../data/flags.js, the Geomingo country database)
+// Borders: world-atlas (Natural Earth 1:10m, public domain); Vatican City from geoBoundaries (public domain). Names and continents: the Geomingo country database (one name per country, no other accepted names).
 const fs = require('fs'), path = require('path');
 const d3 = require('d3-geo'), topo = require('topojson-client'), wc = require('world-countries');
 
-const dataFile = path.join(__dirname, '..', '..', 'countries', 'data.js');
-const flagsFile = path.join(__dirname, '..', '..', 'countries', 'flags.js');
+const dataFile = path.join(__dirname, '..', '..', 'data', 'countries.js');
+const flagsFile = path.join(__dirname, '..', '..', 'data', 'flags.js');
 const C = JSON.parse(fs.readFileSync(dataFile, 'utf8').match(/const C = (\[.*?\]);/s)[1]).filter(c => !c.t);
 
 // silhouettes are drawn in a 100 x 100 box

@@ -6,24 +6,27 @@ Plain static HTML/CSS/JS: no build step, no framework, no tests. Each game is on
 ## Layout
 - `index.html` – home page (game tiles, GeoPass card, ranking)
 - `brand/` – shared look and logic: `geomingo.css`, `mingo.js` (`window.Geomingo`, list of games `GAMES`, GeoPass, header), `account.js` (Google sign-in, rankings), `icons/`, `og.png`
-- `countries/` – Countries (old Country Grid / Borderline); data in `data.js` (C, EXTRA, DATA, DAILY_FIXED),
-  flags in `flags.js` (FLAGS); `database.rules.json` = Firebase rules
-- `capitals/` – Capitals (old Cities / City Grid); data in `data.js` (C, CO, CO_LISTS, DAILY_FIXED),
+- `data/` – THE GEOMINGO COUNTRY DATABASE, the one source of country data for every game:
+  `countries.js` (C, EXTRA, DATA) and `flags.js` (FLAGS, loaded only by games that show flags).
+  One name per country (`n`); `al` stays empty everywhere. Change country data here, never in a game folder.
+- `countries/` – Countries (old Country Grid / Borderline); its daily grids in `daily.js` (DAILY_FIXED);
+  `database.rules.json` = Firebase rules
+- `capitals/` – Capitals (old Cities / City Grid); cities in `data.js` (CITIES, CO_LISTS, DAILY_FIXED;
+  country names CO are built from `data/countries.js`),
   Vatican flag in `flags.js` (FLAG_VAT); `cities/` only forwards to `capitals/`
 - `connections/`, `top10/`, `silhouette/`, `customs/`, `flagpie/` – the smaller games
 - `shared/` – `style.css`, `games.js`, `minigames.js`, `data.js` (category rules only, no data)
-- ONE source of country data: `countries/data.js` (+ `countries/flags.js` only in games that show flags).
-  Connections, Top 10, Customs, Flag Pie load it before `shared/data.js`; Silhouette's `countries.js` is built from it
-  by `silhouette/tools/build-countries.js`. One name per country (`n`); `al` stays empty everywhere.
+- Connections, Top 10, Customs, Flag Pie load `data/countries.js` before `shared/data.js`; Silhouette's `countries.js`
+  and `flags.js` are built from `data/` by `silhouette/tools/build-countries.js` (run it after changing `data/`).
 - `silhouette/tools/`, `flagpie/tools/` – Node scripts that regenerate data files
 - `README.md` – longer description (brand, account, Firebase paths)
 
 ## Big data files: do not read them whole
-- Reading is blocked in `.claude/settings.json` for `countries/data.js`,
-  `countries/flags.js`, `capitals/data.js`, `capitals/flags.js`, `silhouette/flags.js`,
+- Reading is blocked in `.claude/settings.json` for `data/countries.js`,
+  `data/flags.js`, `countries/daily.js`, `capitals/data.js`, `capitals/flags.js`, `silhouette/flags.js`,
   `silhouette/countries.js` and everything in `flagpie/flags/` (several MB of data/SVG).
   They are one-line JSON/SVG blobs. If you really need a value, grep a short snippet
-  (e.g. `grep -o '"c":"ESP".\{0,200\}' countries/data.js`); never print whole lines.
+  (e.g. `grep -o '"c":"ESP".\{0,200\}' data/countries.js`); never print whole lines.
 - The game `index.html` files still have some long lines: read only line
   ranges (`Read` with offset/limit, or `sed -n 'A,Bp'`)
   and find code with grep (`grep -n` and `cut -c1-200` to keep output short).
