@@ -10,7 +10,7 @@ Plain static HTML/CSS/JS: no build step, no framework, no tests. Each game is on
   flags in `flags.js` (FLAGS); `database.rules.json` = Firebase rules
 - `capitals/` – Capitals (old Cities / City Grid); data in `data.js` (C, CO, CO_LISTS, DAILY_FIXED),
   Vatican flag in `flags.js` (FLAG_VAT); `cities/` only forwards to `capitals/`
-- `connections/`, `top10/`, `silhouette/`, `customs/`, `flagpie/` – the smaller games
+- `connections/`, `top10/`, `silhouette/`, `customs/`, `flagpie/`, `impostor/` – the smaller games
 - `shared/` – `style.css`, `games.js`, `minigames.js`, `data.js` (country data for the smaller games)
 - `silhouette/tools/`, `flagpie/tools/` – Node scripts that regenerate data files
 - `README.md` – longer description (brand, account, Firebase paths)
