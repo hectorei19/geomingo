@@ -1,6 +1,6 @@
 # Impostor (Trip 8)
 
-Six countries, six rounds. In each round one of the six is the impostor: up to five sentences come out, from hard to
+Six rounds, each with six new countries (no country twice in a game). In each round one of the six is the impostor: up to five sentences come out, from hard to
 easy, each true for the other five countries and false for the impostor. Tap the impostor: 6 − sentences open points
 (5 down to 1), a wrong pick scores 0. Best game 30.
 

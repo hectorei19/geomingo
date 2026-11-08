@@ -6,12 +6,12 @@
 <meta name="color-scheme" content="dark">
 <style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 <title>Impostor · Geomingo</title>
-<meta name="description" content="Six countries, six rounds: every sentence is true for five of them. Find the impostor. Daily geography games from Geomingo.">
+<meta name="description" content="Six rounds of six countries: every sentence is true for five of them. Find the impostor. Daily geography games from Geomingo.">
 <meta name="theme-color" content="#151E30">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Geomingo">
 <meta property="og:title" content="Impostor · Geomingo">
-<meta property="og:description" content="Six countries, six rounds: every sentence is true for five of them. Find the impostor.">
+<meta property="og:description" content="Six rounds of six countries: every sentence is true for five of them. Find the impostor.">
 <meta property="og:url" content="https://geomingo.com/impostor/">
 <meta property="og:image" content="https://geomingo.com/brand/og.png?v=2">
 <meta property="og:image:width" content="1200">
@@ -95,13 +95,12 @@
 <script src="../top10/extra-data.js?v=202611081900"></script>
 <script src="../shared/games.js?v=202610240100"></script>
 <script src="../shared/minigames.js?v=202611021845"></script>
-<script src="facts.js?v=202611081600"></script>
+<script src="facts.js?v=202611081630"></script>
 <script>
 /* ---- Impostor: six countries, six rounds, find the one that doesn't fit ----
-   Héctor, 2026-11-08: the same six countries all game; in each round up to five sentences come out, from hard to easy,
+   Héctor, 2026-11-08: six new countries every round (first version kept the same six all game: boring); up to five sentences come out, from hard to easy,
    and you pick the country the sentences are NOT true for. The sentences come from facts.js.
    Right with k sentences open = 6 - k points (5 down to 1). A wrong country ends the round with 0. Best game 30.
-   The impostor changes from round to round and can come back once, so the last rounds can't be worked out by elimination.
    A game is {set: the six codes, qs: six rounds, sel: the round on screen, over, left: the round just finished, shown
    until Next round}; a round is {c: the impostor, f: [{t: sentence, v: what the impostor really has}], k: sentences open,
    pick: the country chosen, st: 'play' | 'right' | 'wrong'}. */
@@ -110,7 +109,9 @@ const flagOf=c=>'../flagpie/flags/'+c+'.svg';
 const nameOf=c=>impByCode[c].n;
 const worth=q=>SENT+1-q.k;
 const ptsOf=q=>q.st==='right'?worth(q):0;
-const newGame=(g,o)=>Object.assign({set:g.set,qs:g.rounds.map(r=>({c:r.c,f:r.f,k:1,pick:null,st:'play'})),sel:0,over:false,left:null},o||{});
+const newGame=(g,o)=>Object.assign({qs:g.rounds.map(r=>({set:r.set,c:r.c,f:r.f,k:1,pick:null,st:'play'})),sel:0,over:false,left:null},o||{});
+// the six countries of a round (games from the first hours of day #1 kept one set for the whole game, in G.set)
+const setOf=(G,q)=>q.set||G.set;
 let chosen=null;   // the country tapped, waiting for "That's the impostor"
 
 const tk=Geomingo.tk;
@@ -123,7 +124,7 @@ const firstOf=G=>G.qs.filter(q=>q.st==='right'&&q.k===1).length;
 const deskHTML=G=>`<div class="desk" role="group" aria-label="The six rounds">${G.qs.map((q,i)=>{const now=i===G.sel&&!G.over&&G.left==null,cls=[now?'now':'',q.st==='right'?'right':q.st==='wrong'?'wrong':''].join(' ');
   return `<button data-tv="${i}" class="${cls}" aria-label="Round ${i+1}${q.st==='play'?'':': '+esc(nameOf(q.c))}"${now?' aria-current="step"':''}>${q.st!=='play'?`<img src="${flagOf(q.c)}" alt=""><b>${q.st==='right'?'+'+worth(q):'0'}</b>`:now?`NOW<b>${i+1}</b>`:`#${i+1}<b>–</b>`}</button>`}).join('')}</div>`;
 // the six countries: buttons while the round is on, then the impostor in red and the others in green
-function sixHTML(G,q,done){return `<div class="six" role="group" aria-label="The six countries">${G.set.map(c=>{
+function sixHTML(G,q,done){return `<div class="six" role="group" aria-label="The six countries">${setOf(G,q).map(c=>{
     let cls='',tag='';
     if(done){if(c===q.c){cls='imp';tag='<small>IMPOSTOR</small>'}else if(c===q.pick){cls='miss';tag='<small>YOUR PICK</small>'}else cls='ok'}
     else if(c===chosen)cls='sel';
@@ -162,12 +163,12 @@ const sq=q=>q.st==='right'?(q.k===1?'🟩':q.k<=3?'🟨':'🟧'):'🟥';
 const sqClass=q=>q.st==='right'?(q.k<=2?'on':'mid'):q.st==='wrong'?'bad':'';
 const squaresHTML=G=>`<span class="dsq" aria-hidden="true">${G.qs.map(q=>`<i class="${sqClass(q)}"></i>`).join('')}</span>`;
 
-/* ---- Daily: the same six countries and rounds for everyone, new at midnight CET ----
+/* ---- Daily: the same six rounds for everyone, new at midnight CET ----
    Countries with 2 million people or more, dealt from a seed of the day. Saved as im-daily {date, over, S: the game}. */
 const DAILY_POOL=IMP_COUNTRIES.filter(c=>(DATA.pop[c.c]||0)>=2e6).map(c=>c.c).sort();
 const dailyDeal=key=>dealGame(DAILY_POOL,rngFrom(seedOf('impostor-'+key)));
 let D=null;
-const isGame=S=>S&&Array.isArray(S.qs)&&Array.isArray(S.set);
+const isGame=S=>S&&Array.isArray(S.qs)&&S.qs.length>0&&Array.isArray(S.qs[0].set||S.set);
 const dailySaved=()=>{const d=load('im-daily',null);return d&&d.date===todayKey()&&isGame(d.S)?d:null};
 function dailyGame(){const d=dailySaved();if(d)return d.S;
   return newGame(dailyDeal(todayKey()),{mode:'daily',date:todayKey(),num:dayNum(todayKey(),FIRST)})}
@@ -234,7 +235,7 @@ const soloPool=()=>soloDiff()==='easy'?IMP_COUNTRIES.filter(c=>(DATA.pop[c.c]||0
 function openSolo(){view='solo';chosen=null;render();window.scrollTo(0,0)}
 function soloHTML(){return header('Impostor','Solo')+`<section class="panel">
   <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Solo</span></div>
-  <p class="hint">Six new countries and six rounds every game. Up to ${MAX} points.</p>
+  <p class="hint">Six rounds, each with six new countries. Up to ${MAX} points.</p>
   <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['hard','Hard']],soloDiff())}<p class="hint">${soloDiff()==='easy'?'Well-known countries, with 10 million people or more':'Any of the '+IMP_COUNTRIES.length+' countries, small islands included'}.</p></div>
   <button class="primary" id="start">Start game</button></section>${quickRules()}`}
 function openTrain(){T=newGame(dealGame(soloPool(),Math.random),{mode:'solo'});chosen=null;view='train';render();window.scrollTo(0,0)}
@@ -253,13 +254,12 @@ function myStatsHTML(){const h=load('im-hist',{}),so=load('im-solo',null)||{n:0}
   return statsPageHTML({game:'Impostor',hist:h,unit:'day',avg:imAverage(),lbs:d=>[{path:'lb/impostor',dates:d}],num:k=>'Impostor #'+dayNum(k,FIRST),
     solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'caught']]},
     friends:{n:0,w:0,place:0,best:0,third:[0,'best']}})}
-const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Six countries, six rounds. In each round the sentences are true for five of the countries: tap the one they aren't true for. Find it with one sentence for 5 points; every new sentence lowers the points, and a wrong pick scores 0. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Six rounds, six new countries in each. The sentences are true for five of them: tap the one they aren't true for. Find it with one sentence for 5 points; every new sentence lowers the points, and a wrong pick scores 0. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
-  <li>Six countries stay on screen the whole game. In every round one of them is the <b>impostor</b>.</li>
+  <li>Six rounds, each with six new countries. In every round one of them is the <b>impostor</b>.</li>
   <li>Sentences come out one by one, from the hardest to the easiest. Each one is true for the other five countries and false for the impostor.</li>
   <li>For example, with Spain, Japan, Brazil, Egypt, Canada and Australia: “It has hosted the Olympic Games” is true for all of them except Egypt.</li></ul>
   <h3>Six rounds</h3><ul>
-  <li>The impostor changes from round to round, and the same country can be the impostor twice. So you can't work out the last rounds by elimination.</li>
   <li>Tap a country, then <b>… is the impostor</b> to answer. Tap it again to change your mind.</li>
   <li>Not sure yet? Tap <b>Next sentence</b> for another one.</li></ul>
   <h3>Points</h3><ul>
@@ -283,13 +283,13 @@ const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'sh
 function homeHTML(){const key=todayKey();
   if(!D||D.mode!=='daily'||D.date!==key)D=dailyGame();
   const h=load('im-hist',{});let daily;
-  const flags=`<span class="hflags" aria-hidden="true">${D.set.map(c=>`<img src="${flagOf(c)}" alt="">`).join('')}</span>`;
+  const flags=`<span class="hflags" aria-hidden="true">${setOf(D,D.qs[0]).map(c=>`<img src="${flagOf(c)}" alt="">`).join('')}</span>`;
   if(D.over)daily=`<button class="hcard" id="daily"><span class="hm">Impostor #${D.num} · done</span><span class="dsum">${squaresHTML(D)}<span class="dtxt"><span class="ht">${pointsOf(D)} points</span><span class="hs">${rightOf(D)} of 6 caught</span></span>${dstatsHTML(streakOf(h),Object.keys(h).length,imAverage())}</span><span class="hs">Tap to see who the impostors were and share your result.</span><span class="hm">New countries in ${nextIn()}</span></button>`;
   else{const started=D.qs.some(q=>q.st!=='play'||q.k>1);
-    daily=`<button class="hcard ac" id="daily"><span class="hm">#${D.num} · ${dateLabel(key)}</span><span class="ht">Today's impostors</span><span class="hs">${started?'You started: '+pointsOf(D)+' points so far. Tap to carry on.':'Six countries, six rounds, the same for everyone, one try. Tap to start.'}</span>${flags}</button>`}
+    daily=`<button class="hcard ac" id="daily"><span class="hm">#${D.num} · ${dateLabel(key)}</span><span class="ht">Today's impostors</span><span class="hs">${started?'You started: '+pointsOf(D)+' points so far. Tap to carry on.':'Six rounds of six countries, the same for everyone, one try. Tap to start.'}</span>${flags}</button>`}
   const st=Geomingo.streak(),p=D.over?pointsOf(D):0;
   const hello=D.over?Geomingo.hello(p?'happy':'sad',p?'Stamped for today.'+(st>1?' '+st+'-day streak.':''):'Rough crossing today.',"Today's impostors are done. New ones in "+nextIn()+'.')
-    :Geomingo.hello('pass','GeoPass ready.','Six countries at the border, and one of them doesn\'t belong. Every impostor you catch is a stamp.');
+    :Geomingo.hello('pass','GeoPass ready.','Six rounds, six countries at the border each time, and one of them doesn\'t belong. Every impostor you catch is a stamp.');
   return header('Impostor','')+`<section class="home">${hello}${Geomingo.account.userHTML()}${daily}${D.over?rankingHTML():''}
     <div class="hrow"><button class="hcard" data-go="train"><span class="ht">Solo</span><span class="hs">Practice with new countries, at your pace.</span></button>
     <div class="hcard soon" aria-disabled="true"><span class="ht">With friends</span><span class="hs">Play online, 2 to 6 players. (coming soon)</span></div></div></section>${quickRules()}`}
