@@ -1,5 +1,5 @@
 /* ---- Impostor: the sentences ----
-   Six countries. In each round one of them is the impostor: every sentence of that round is true for the other
+   Six countries a round. In each round one of them is the impostor: every sentence of that round is true for the other
    five and false for it. The sentences are made here from the same data as the other games (../shared/data.js:
    CATS, the yes/no traits of Connections and Countries; DATA and ../top10/extra-data.js XDATA, the figures of Top 10).
    - a trait the other five have and the impostor hasn't ("Its flag has a star"), or the other way round ("It is not in Africa")
@@ -150,22 +150,14 @@ function pickFive(list,r){const L=shuffle(list,r).sort((a,b)=>a.e-b.e),used={},o
     L.forEach((f,i)=>{if(out.includes(f)||!ok(f))return;const d=Math.abs(i-want);if(d<bd){bd=d;best=f}});if(best)take(best)}
   return out.length===5?out.sort((a,b)=>a.e-b.e):null}
 
-// a whole game: six countries and six rounds, or null when this group doesn't work (try another).
-// An impostor can come back, but never in two rounds in a row and at most twice, and at least four different ones.
-function buildGame(codes,r){const F=allFacts(codes),five={},again={};
-  for(const c of codes){const f=pickFive(F[c],r);if(!f)continue;five[c]=f;
-    // a second set of five, all different, lets the country be the impostor twice
-    const g=pickFive(F[c].filter(x=>!f.includes(x)),r);if(g)again[c]=g}
-  const can=Object.keys(five);if(can.length<4)return null;
-  // each round a random one of them, not the same as the round before, four different at least;
-  // twice only for a country with ten sentences or more, never three times
-  let rounds=null;
-  for(let t=0;t<50&&!rounds;t++){const R=[];
-    while(R.length<6){const pool=can.filter(c=>c!==R[R.length-1]&&R.filter(x=>x===c).length<(again[c]?2:1));if(!pool.length)break;R.push(pool[Math.floor(r()*pool.length)])}
-    if(R.length===6&&new Set(R).size>=4)rounds=R}
-  if(!rounds)return null;
-  const seen={};
-  return {set:codes,rounds:rounds.map(c=>{const f=seen[c]?again[c]:five[c];seen[c]=1;return {c,f:f.map(x=>({t:x.t,v:x.v}))}})}}
+// one round: six countries and the impostor among them, or null when no country of the six has five sentences
+function buildRound(codes,r){const F=allFacts(codes);
+  for(const c of shuffle(codes,r)){const f=pickFive(F[c],r);if(f)return {set:codes,c,f:f.map(x=>({t:x.t,v:x.v}))}}return null}
 
-// a group of six from a pool of codes, seeded: the first one that works
-function dealGame(pool,r){for(let n=0;n<400;n++){const g=buildGame(shuffle(pool,r).slice(0,6),r);if(g)return g}return null}
+// a whole game: six rounds, each with six new countries (Héctor, 2026-11-08: the same six all game was boring),
+// so no country shows up twice in a game. r: a random number function (seeded for the daily).
+function dealGame(pool,r){const used=new Set(),rounds=[];
+  while(rounds.length<6){let got=null;
+    for(let n=0;n<400&&!got;n++)got=buildRound(shuffle(pool.filter(c=>!used.has(c)),r).slice(0,6),r);
+    if(!got)return null;got.set.forEach(c=>used.add(c));rounds.push(got)}
+  return {rounds}}
