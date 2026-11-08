@@ -1,13 +1,13 @@
-// Builds ../countries.js (and ../flags.js): the 197 countries of the game with their names, aliases, continent and silhouette.
+// Builds ../countries.js (and ../flags.js): the 197 countries of the game with their name, continent and silhouette.
 // Only needed to rebuild that file. Run from this folder:
 //   npm install
-//   node build-countries.js ../../shared/data.js     (any copy of Country Grid's data.js, e.g. Top 10's)
-// Borders: world-atlas (Natural Earth 1:10m, public domain); Vatican City from geoBoundaries (public domain). Names, aliases, continents: Country Grid's data.
+//   node build-countries.js     (reads ../../countries/data.js and ../../countries/flags.js, the one source of country data)
+// Borders: world-atlas (Natural Earth 1:10m, public domain); Vatican City from geoBoundaries (public domain). Names and continents: Countries' data (one name per country, no other accepted names).
 const fs = require('fs'), path = require('path');
 const d3 = require('d3-geo'), topo = require('topojson-client'), wc = require('world-countries');
 
-const dataFile = process.argv[2];
-if (!dataFile) { console.error('Usage: node build-countries.js <path to data.js>'); process.exit(1); }
+const dataFile = path.join(__dirname, '..', '..', 'countries', 'data.js');
+const flagsFile = path.join(__dirname, '..', '..', 'countries', 'flags.js');
 const C = JSON.parse(fs.readFileSync(dataFile, 'utf8').match(/const C = (\[.*?\]);/s)[1]).filter(c => !c.t);
 
 // silhouettes are drawn in a 100 x 100 box
@@ -25,17 +25,6 @@ const BIG = 0.2;
 const ANCHOR = { KIR: [173.0, 1.4] }; // Kiribati: the Gilbert Islands (Tarawa), not Kiritimati
 // a speck smaller than this area (box units squared) is dropped, unless the country has no big landmass
 const SPECK = 0.15;
-
-// extra names players commonly type (the data already has official names and some short forms)
-const EXTRA = {
-  NLD: ['Holland'], CZE: ['Czech Republic'], MKD: ['Macedonia'], SWZ: ['Swaziland'], MMR: ['Burma'],
-  CPV: ['Cape Verde'], TLS: ['East Timor'], COD: ['DRC', 'Congo Kinshasa', 'Zaire'], COG: ['Congo Brazzaville', 'Republic of the Congo'],
-  PRK: ['DPRK'], ARE: ['UAE', 'Emirates'], VAT: ['Holy See', 'Vatican'], FSM: ['Micronesia'],
-  TUR: ['Turkey', 'Turkiye'], BIH: ['Bosnia'], GBR: ['Great Britain'], USA: ['USA', 'US'], CAF: ['CAR'], PNG: ['PNG'],
-  VCT: ['St Vincent'], KNA: ['St Kitts', 'Saint Kitts'], LCA: ['St Lucia'], STP: ['Sao Tome'], GNB: ['Guinea Bissau'],
-  TTO: ['Trinidad'], ATG: ['Antigua'], LAO: ['Laos'], BRN: ['Brunei'], RUS: ['Russian Federation'], SYR: ['Syria'],
-  VNM: ['Viet Nam'], IRN: ['Persia'], LKA: ['Ceylon'], ZAF: ['RSA'], NZL: ['NZ'], BLR: ['Belorussia']
-};
 
 // the Easy list: big or very present on maps, news and travel, and with a shape that reads in a small box
 const EASY = ['ESP','PRT','FRA','ITA','DEU','GBR','IRL','GRC','NOR','SWE','FIN','POL','UKR','RUS','TUR','ISL',
@@ -155,18 +144,18 @@ const badEasy = EASY.filter(k => !C.some(c => c.c === k));
 if (badEasy.length) { console.error('Easy codes not in the data', badEasy); process.exit(1); }
 
 const list = C.map(c => {
-  const al = [...new Set([...(c.al || []), ...(EXTRA[c.c] || [])])].filter(a => a !== c.n);
-  return { c: c.c, n: c.n, al, r: c.r, f: c.f, e: EASY.includes(c.c) ? 1 : 0, p: silhouette(featureOf(c.c), c.c) };
+  // one name per country (Héctor, 2026-11-08): al stays empty, so only the name shown is accepted
+  return { c: c.c, n: c.n, al: [], r: c.r, f: c.f, e: EASY.includes(c.c) ? 1 : 0, p: silhouette(featureOf(c.c), c.c) };
 }).sort((a, b) => a.n.localeCompare(b.n));
 
-const head = `// The ${list.length} countries of Silhouette: code, English name, other accepted names (al), continent (r),
+const head = `// The ${list.length} countries of Silhouette: code, English name (the only accepted answer; al is always empty), continent (r),
 // flag emoji (f), in the Easy list (e) and silhouette (p, an SVG path in a 100 x 100 box, north up).
 // Made by tools/build-countries.js from world-atlas (Natural Earth 1:10m borders, public domain; Vatican City from geoBoundaries, public domain) and Country Grid's
 // country data (mledoze/countries, ODbL). Do not edit by hand: change the tool and run it again.\n`;
 const body = 'const COUNTRIES = [\n' + list.map(x => JSON.stringify(x)).join(',\n') + '\n];\n';
 fs.writeFileSync(path.join(__dirname, '..', 'countries.js'), head + body);
 // flags (flag-icons, MIT, as in Country Grid), kept as plain SVG text: smaller to download than base64
-const F = JSON.parse(fs.readFileSync(dataFile, 'utf8').match(/const FLAGS = (\{.*?\});/s)[1]);
+const F = JSON.parse(fs.readFileSync(flagsFile, 'utf8').match(/const FLAGS = (\{.*?\});/s)[1]);
 const flags = {};
 list.forEach(c => { const u = F[c.c]; flags[c.c] = u.startsWith('data:image/svg+xml;base64,') ? Buffer.from(u.split(',')[1], 'base64').toString('utf8') : u; });
 const fhead = `// Flags of the ${list.length} countries as SVG text, shown once a silhouette is answered. Made by tools/build-countries.js

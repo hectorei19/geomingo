@@ -11,16 +11,19 @@ Plain static HTML/CSS/JS: no build step, no framework, no tests. Each game is on
 - `capitals/` – Capitals (old Cities / City Grid); data in `data.js` (C, CO, CO_LISTS, DAILY_FIXED),
   Vatican flag in `flags.js` (FLAG_VAT); `cities/` only forwards to `capitals/`
 - `connections/`, `top10/`, `silhouette/`, `customs/`, `flagpie/` – the smaller games
-- `shared/` – `style.css`, `games.js`, `minigames.js`, `data.js` (country data for the smaller games)
+- `shared/` – `style.css`, `games.js`, `minigames.js`, `data.js` (category rules only, no data)
+- ONE source of country data: `countries/data.js` (+ `countries/flags.js` only in games that show flags).
+  Connections, Top 10, Customs, Flag Pie load it before `shared/data.js`; Silhouette's `countries.js` is built from it
+  by `silhouette/tools/build-countries.js`. One name per country (`n`); `al` stays empty everywhere.
 - `silhouette/tools/`, `flagpie/tools/` – Node scripts that regenerate data files
 - `README.md` – longer description (brand, account, Firebase paths)
 
 ## Big data files: do not read them whole
-- Reading is blocked in `.claude/settings.json` for `shared/data.js`, `countries/data.js`,
+- Reading is blocked in `.claude/settings.json` for `countries/data.js`,
   `countries/flags.js`, `capitals/data.js`, `capitals/flags.js`, `silhouette/flags.js`,
   `silhouette/countries.js` and everything in `flagpie/flags/` (several MB of data/SVG).
   They are one-line JSON/SVG blobs. If you really need a value, grep a short snippet
-  (e.g. `grep -o '"c":"ESP".\{0,200\}' shared/data.js`); never print whole lines.
+  (e.g. `grep -o '"c":"ESP".\{0,200\}' countries/data.js`); never print whole lines.
 - The game `index.html` files still have some long lines: read only line
   ranges (`Read` with offset/limit, or `sed -n 'A,Bp'`)
   and find code with grep (`grep -n` and `cut -c1-200` to keep output short).

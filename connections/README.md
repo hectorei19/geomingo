@@ -14,7 +14,7 @@ Part of [Geomingo](https://geomingo.com/), daily geography games: [Countries](ht
 
 Files:
 - `index.html` – the game.
-- `../shared/data.js` – copy of Countries' data: countries, flags, figures, categories (`CATS`) and their descriptions.
+- `../countries/data.js` and `../countries/flags.js` – Countries' data and flags (the one source of country data); `../shared/data.js` – the categories (`CATS`) and their descriptions.
 - `../shared/style.css` – Countries' styles (colours, fonts, dark mode).
 - `../shared/games.js` – the Games menu, one file for Connections, Top 10 and Silhouette.
 - `../shared/minigames.js` – helpers shared by Connections, Top 10 and Silhouette.
