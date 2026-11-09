@@ -22,11 +22,11 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
 <script src="../brand/mingo.js?v=202611081800"></script>
-<script src="../brand/account.js?v=202611091500"></script>
+<script src="../brand/account.js?v=202611091550"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="../shared/style.css?v=202610252300">
+<link rel="stylesheet" href="../shared/style.css?v=202611091550">
 <style>
 /* Impostor: six countries in a 3 x 2 grid, the sentences of the round under them, then Next sentence */
 .play{display:flex;flex-direction:column;gap:12px;width:100%}
@@ -94,7 +94,7 @@
 <script src="../shared/data.js?v=202611081900"></script>
 <script src="../top10/extra-data.js?v=202611081900"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202611021845"></script>
+<script src="../shared/minigames.js?v=202611091550"></script>
 <script src="facts.js?v=202611081630"></script>
 <script>
 /* ---- Impostor: six countries, six rounds, find the one that doesn't fit ----
@@ -193,11 +193,11 @@ function resultHTML(G){const p=pointsOf(G),v=verdict(G);
   if(G.mode==='archive')return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Archive · Impostor #${G.num}</span><p class="big">${p} points</p>
     <p class="hint">${rightOf(G)} of 6 caught. Archive games don't count for the ranking or your streak.</p>
     <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
-    <div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="primary" id="archback" style="flex:1">Back to archive</button></div></section>`;
+    ${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="archback" style="flex:1">Back to archive</button></div></section>`;
   return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Impostor #${G.num}</span><p class="big">${p} points</p>
     <p class="hint">${rightOf(G)} of 6 caught. New countries in ${nextIn()}.</p>
     <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
-    <div class="row-btns"><button class="ghost" id="copy">Share</button>${nextGameBtn('impostor')}</div>
+    ${SHARE_BTN}<div class="row-btns sharerow">${nextGameBtn('impostor')}</div>
     <button class="ghost" id="playsolo">Play Solo</button>
     ${allPlayedHTML('impostor')}
     <span class="label">Your daily games</span>${statTiles(Object.keys(load('im-hist',{})).length,imAverage(),streakOf(load('im-hist',{})))}</section>${rankingHTML()}`}

@@ -22,11 +22,11 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
 <script src="../brand/mingo.js?v=202611081800"></script>
-<script src="../brand/account.js?v=202611091500"></script>
+<script src="../brand/account.js?v=202611091550"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="../shared/style.css?v=202610252300">
+<link rel="stylesheet" href="../shared/style.css?v=202611091550">
 <style>
 /* Silhouette: one big shape in a square frame, the answer box under it; the daily nine as a 3 x 3 board of small frames */
 .silbox{position:relative;width:100%;max-width:340px;align-self:center;aspect-ratio:1;background:var(--sheet);border:2px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:14px;
@@ -86,7 +86,7 @@
 <script src="countries.js?v=202611081800"></script>
 <script src="silhouette.js?v=202610230100"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202611021845"></script>
+<script src="../shared/minigames.js?v=202611091550"></script>
 <!-- online rooms (With friends): Firebase, loaded after the page so today's board shows at once -->
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -248,11 +248,11 @@ function dailyResultHTML(G){const r=rightOf(G),v=verdict(G);
   if(G.arch)return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Archive · Silhouette #${G.num}</span><p class="big">${r} of 9</p>
     <p class="hint">${r===9?'Every shape named.':'Tap a shape to see its name.'} Archive games don't count for the ranking or your streak.</p>
     <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
-    <div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="primary" id="archback" style="flex:1">Back to archive</button></div></section>`;
+    ${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="archback" style="flex:1">Back to archive</button></div></section>`;
   return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Silhouette #${G.num}</span><p class="big">${r} of 9</p>
     <p class="hint">${r===9?'Every shape named.':'Tap a shape to see its name.'} Next board in ${nextIn()}.</p>
     <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
-    <div class="row-btns"><button class="ghost" id="copy">Share</button>${nextGameBtn('silhouette')}</div>
+    ${SHARE_BTN}<div class="row-btns sharerow">${nextGameBtn('silhouette')}</div>
     <button class="ghost" id="playsolo">Play Solo</button>
     ${allPlayedHTML('silhouette')}
     <span class="label">Your daily boards</span>${statsHTML(true)}</section>${rankingHTML()}`}

@@ -48,6 +48,8 @@ function watchResult(key,over){if(!key)return;if(!over){liveKey=key;return}
   if(liveKey!==key)return;liveKey='';setTimeout(()=>window.scrollTo({top:0,behavior:'smooth'}),50)}
 // the next game of the day not played yet: the big button of a daily result (All games once every trip is done)
 // every game is a trip: one line, the same small size in every game, so no name ever wraps (a touch smaller only on very narrow phones)
+// the end-of-game Share button: full width with a gold border, on its own line above the other buttons
+const SHARE_BTN='<button class="primary sharebig" id="copy"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Share result</button>';
 const TRIP_STYLE='flex:1;display:flex;align-items:center;justify-content:center;min-width:0;white-space:nowrap;font-size:clamp(10px,calc((100vw - 170px)/15.5),14px);letter-spacing:.03em;padding:13.5px 8px 10.5px';
 function nextGameBtn(cur){const g=Geomingo.nextGame(cur);
   return g?`<a class="primary" href="${g.href}" style="${TRIP_STYLE}">Next trip: ${esc(g.name)} →</a>`:`<a class="primary" href="${Geomingo.HOME}" style="${TRIP_STYLE}">All games</a>`}
