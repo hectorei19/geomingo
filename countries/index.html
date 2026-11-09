@@ -132,6 +132,10 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .actions{display:flex;gap:8px;flex-wrap:wrap}
 .actions .ghost{flex:1;min-width:110px}
 
+/* lives on the ticket: pink dots, used ones empty */
+.tk-dots{display:inline-flex;gap:5px;align-items:center;height:22px}
+.tk-dots i{width:12px;height:12px;border-radius:50%;background:var(--flamingo,var(--coral))}
+.tk-dots i.off{background:transparent;box-shadow:inset 0 0 0 1.5px var(--line,var(--rule))}
 /* guess sheet */
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--sheet);border-top:1.5px solid var(--ink);box-shadow:0 -12px 30px -10px rgba(0,0,0,.35);padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px;max-width:560px;margin:0 auto;border-radius:10px 10px 0 0}
 .sheet .q{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;font-weight:600;font-size:.95rem}
@@ -845,7 +849,7 @@ function playDaily(){
   const key=dg.key,seed=dg.seed,g=dg.g;
   S={mode:'solo',daily:key,day:dayNumber(key),n:DAILY_N,seed,diff:DAILY_DIFF,code:makeCode(DAILY_N,seed,DAILY_DIFF),rows:g.rows,cols:g.cols,answers:g.answers,
      cells:g.answers.map(()=>({o:-1,c:null})),used:[],players:[{name:setup.user||'You',score:0}],turn:0,
-     guesses:DAILY_N*DAILY_N+DAILY_N,timer:0,deadline:0,passes:0,over:false,wrong:0};
+     lives:LIVES,timer:0,deadline:0,passes:0,over:false,wrong:0};
   // a guest's result can join the account later (sign in after playing), but only for the first game of the day on this device
   try{S.first=localStorage.getItem('bl-dfirst')!==key;localStorage.setItem('bl-dfirst',key)}catch(e){S.first=false}
   S.guest=!USER;
@@ -907,7 +911,7 @@ function playArchive(k){const a=loadArch(),r=(ARCH_REMOTE||{})[k];
   const g=dg.g;
   S={mode:'solo',daily:k,archive:true,day:dayNumber(k),n:DAILY_N,seed:dg.seed,diff:DAILY_DIFF,code:makeCode(DAILY_N,dg.seed,DAILY_DIFF),rows:g.rows,cols:g.cols,answers:g.answers,
      cells:g.answers.map(()=>({o:-1,c:null})),used:[],players:[{name:setup.user||'You',score:0}],turn:0,
-     guesses:DAILY_N*DAILY_N+DAILY_N,timer:0,deadline:0,passes:0,over:false,wrong:0};
+     lives:LIVES,timer:0,deadline:0,passes:0,over:false,wrong:0};
   startTurn(true);render();window.scrollTo(0,0);
   // signed in: claim this grid's try for this device; if another device got there first, stop
   if(USER&&db&&!TESTDAY){const mine=S;
@@ -935,7 +939,7 @@ function startGame(){
   const players=[{name:setup.user||'You',score:0}];
   S={mode:setup.mode,n,seed,diff,code:makeCode(n,seed,diff),rows:g.rows,cols:g.cols,answers:g.answers,
      cells:g.answers.map(()=>({o:-1,c:null})),used:[],players,turn:0,
-     guesses:setup.mode==='solo'?n*n+n:null,timer:setup.timer,deadline:0,passes:0,over:false,wrong:0,
+     lives:setup.mode==='solo'?LIVES:null,timer:setup.timer,deadline:0,passes:0,over:false,wrong:0,
      gid:'s-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7)};
   ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};
   startTurn(true);
@@ -957,7 +961,7 @@ function onTick(){
   if(sub)sub.textContent=Math.max(0,Math.ceil(left/1000))+'s';
   if(S.mode==='online'){if(left<=-400)tryTimeout(S.turn,S.deadline);return}
   if(left<=0){
-    if(S.mode==='solo'){spendGuess();say('sad',"Time's up.",'That cost a guess.')}
+    if(S.mode==='solo'){loseLife();const l=livesLeft();say('sad',"Time's up.",'That cost a life.'+(l>0?' '+livesWord(l)+' left.':''))}
     else say('sad',"Time's up.",'Too slow, '+S.players[S.turn].name+'. Turn passes.');
     ui.sel=-1;ui.query='';nextTurn(false);
   }
@@ -968,12 +972,18 @@ function nextTurn(claimed){
   if(S.mode!=='solo')S.turn=(S.turn+1)%S.players.length;
   startTurn();render();
 }
-function spendGuess(){if(S.mode==='solo'){S.guesses--;}}
+/* Solo and daily: five lives for the whole grid; only a wrong answer or a timed-out turn costs one.
+   Games saved before lives (they counted guesses) start from five minus their wrong answers. */
+const LIVES=5;
+const livesLeft=()=>S.lives!=null?S.lives:Math.max(0,LIVES-(S.wrong||0));
+const livesWord=n=>n+' '+(n===1?'life':'lives');
+function loseLife(){if(S.mode==='solo')S.lives=Math.max(0,livesLeft()-1)}
+const livesDots=(left,all)=>`<span class="tk-dots" aria-label="${livesWord(left)} left">${Array.from({length:all},(_,i)=>`<i class="${i<left?'':'off'}"></i>`).join('')}</span>`;
 function checkEnd(){
   const full=S.cells.every(c=>c.o>=0);
-  const outOfGuesses=S.mode==='solo'&&S.guesses<=0;
+  const outOfLives=S.mode==='solo'&&livesLeft()<=0;
   const allPassed=S.mode!=='solo'&&S.passes>=S.players.length;
-  if(full||outOfGuesses||allPassed){endGame();return true}
+  if(full||outOfLives||allPassed){endGame();return true}
   return false;
 }
 /* ---- scoring ----
@@ -1023,15 +1033,13 @@ function guess(ci,cid){
     const before=lineCounts()[S.turn];
     S.cells[ci]={o:S.turn,c:cid,p:pts,sb};S.used.push(cid);S.passes=0;ui.fresh=ci;
     const nl=lineCounts()[S.turn]-before;
-    const left=S.mode==='solo'?S.guesses-1:0;
     Geomingo.stamp('borderline',c.n,'',c.c);
-    say('happy','Stamped: '+c.n+'.','+'+pts+' pts'+(sb?' · +'+sb+' speed':'')+(nl?' · +'+nl*LINE_BONUS+' for the line':'')+(S.mode==='solo'?(left>0?' · '+left+' guess'+(left===1?'':'es')+' left':''):' for '+p.name+'.'));
+    say('happy','Stamped: '+c.n+'.','+'+pts+' pts'+(sb?' · +'+sb+' speed':'')+(nl?' · +'+nl*LINE_BONUS+' for the line':'')+(S.mode==='solo'?'':' for '+p.name+'.'));
   }else{
-    S.wrong++;
-    const left=S.mode==='solo'?S.guesses-1:0;
-    say('sad','Denied entry.',c.n+" doesn't fit that square."+(S.mode==='solo'?(left>0?' '+left+' guess'+(left===1?'':'es')+' left.':''):' Turn passes.'));
+    S.wrong++;loseLife();
+    const left=S.mode==='solo'?livesLeft():0;
+    say('sad','Denied entry.',c.n+" doesn't fit that square."+(S.mode==='solo'?(left>0?' '+livesWord(left)+' left.':''):' Turn passes.'));
   }
-  spendGuess();
   ui.sel=-1;ui.query='';
   nextTurn(ok);
 }
@@ -1514,7 +1522,7 @@ function setupView(){
   <section class="panel"><span class="label">Quick rules</span><ul class="rules">
     <li>Fill each square with a country that matches its row and its column.</li>
     <li>Each country once per grid. Tap <span class="ib">i</span> to see what a category means.</li>
-    ${on?'<li>Everyone on their own phone: the host creates a room and shares the code.</li>':'<li>You have a few more guesses than squares.</li>'}
+    ${on?'<li>Everyone on their own phone: the host creates a room and shares the code.</li>':'<li>You have 5 lives: a wrong answer costs one.</li>'}
     <li>Harder squares, quick answers and full lines score more.</li>
     <li>Full rules in <button type="button" class="qhelp">How to play</button>.</li>
   </ul></section>`;
@@ -1536,7 +1544,7 @@ function gameView(){
     const cell=Geomingo.tk;
     const time=S.timer?cell('Time',`<span id="tleft">${S.timer}s</span>`):'';
     const stub=S.mode==='solo'
-      ?cell('Traveller',esc(S.players[0].name),'tk-name')+cell('Class',DLABEL[S.diff||'normal'])+cell('Points',liveScore(0),'tk-pts')+cell('Guesses',S.guesses,'tk-gs')+time
+      ?cell('Traveller',esc(S.players[0].name),'tk-name')+cell('Class',DLABEL[S.diff||'normal'])+cell('Points',liveScore(0),'tk-pts')+cell('Lives',livesDots(livesLeft(),LIVES),'tk-gs')+time
       :S.players.map((q,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${q.on===false?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(q.name)}</i><b>${liveScore(i)}</b></div>`).join('')+time;
     h+=Geomingo.ticket(say,stub,{timer:S.timer,color:S.mode==='solo'?'':`var(--p${S.turn})`,mode:S.daily?(S.archive?'archive':'daily'):S.mode==='solo'?'practice':'',num:S.day});
   }
@@ -1717,8 +1725,8 @@ function drawLayer(){
       <h3>How to answer</h3><ul>
       <li>Tap an empty square. A box opens: start typing a country and tap it in the list.</li>
       <li>Right: its flag goes in the square and you get its points. Wrong: the square stays empty.</li>
-      <li>Every answer, right or wrong, uses one guess. A ${DAILY_N} × ${DAILY_N} grid has ${G} squares and you get ${G+DAILY_N} guesses, so you can miss ${DAILY_N} times. A 5 × 5 grid in Solo gives you 30 guesses for 25 squares.</li>
-      <li>The game ends when the grid is full or you run out of guesses. <b>Give up</b> ends it early.</li></ul>
+      <li>You have <b>5 lives</b> for the whole grid, whatever its size. A wrong answer costs one; a right answer costs nothing. With a time per turn, running out of time also costs one.</li>
+      <li>The game ends when the grid is full or you run out of lives. <b>Give up</b> ends it early.</li></ul>
       <h3>Modes</h3><ul>
       <li><b>Today's grid</b>: one ${DAILY_N} × ${DAILY_N} grid at Normal level, the same for everyone, new every day at midnight CET. One try; if you leave, you carry on where you stopped. Sign in with Google to appear in the daily ranking. Missed a day? Play it in <b>Menu → Archive</b>.</li>
       <li><b>Solo</b>: as many grids as you like. You choose the level, a 4 × 4 or 5 × 5 grid and the time per turn (Off, 15 s or 30 s).</li>
