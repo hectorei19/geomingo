@@ -65,7 +65,7 @@ const who=()=>failed?undefined:user!==undefined?user:lastUser();
 const meId=()=>{const w=who();return w&&w.uid};
 function remember(){put('gm-acct',user?{u:user.uid,n:name,dn:user.displayName||'',e:user.email||''}:{guest:1})}
 function script(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
-async function boot(){OWN=typeof window.initAuth==='function';
+async function boot(){OWN=typeof window.initAuth==='function';trialCheck();
   try{if(typeof firebase==='undefined')await script(SDK+'firebase-app-compat.js');
     if(typeof firebase.auth!=='function')await script(SDK+'firebase-auth-compat.js');
     if(typeof firebase.database!=='function')await script(SDK+'firebase-database-compat.js');
@@ -92,6 +92,37 @@ function signIn(){if(!ok){say('Sign-in is not available right now. Check the con
   const p=new firebase.auth.GoogleAuthProvider();
   firebase.auth().signInWithPopup(p).catch(e=>{if(e&&e.code==='auth/popup-blocked')firebase.auth().signInWithRedirect(p);else authError(e)})}
 function signOut(){if(ok)firebase.auth().signOut().catch(()=>{})}
+
+/* ---- 3 free days: a guest can play for 3 days, then every page asks to sign in ----
+   gm-trial: the days (dayKey) a guest opened a game page, at most 3. On a 4th day the sign-in screen covers the page
+   (home and games) and can't be closed; signing in takes it away. The home page alone doesn't use up a day.
+   An invite link (?room=) always opens, so a friend can join a room without an account; nor does test mode (?test) show it.
+   Signing out keeps gm-trial (it is not in DEVICE_KEYS), so the free days are not given again. */
+const TRIAL=3;
+const GAME_PAGE=/\/(countries|capitals|cities|connections|top10|silhouette|customs|flagpie|impostor)\//.test(location.pathname);
+const ROOM_LINK=(()=>{try{return new URLSearchParams(location.search).has('room')}catch(e){return false}})();
+const trialDays=()=>{const d=json('gm-trial');return Array.isArray(d)?d.filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x)):[]};
+// day: which free day today is (1-3, or the one it would be), left: free days still to come after today, over: no free day left
+function trialState(){const d=trialDays(),k=T(),i=d.indexOf(k);
+  return {day:i>=0?i+1:Math.min(d.length+1,TRIAL+1),left:Math.max(0,TRIAL-(i>=0?i+1:d.length+1)),over:i<0&&d.length>=TRIAL,max:TRIAL}}
+function trialCheck(){const u=who(),free=u!==null||ROOM_LINK||TEST||failed;
+  if(free){wall(false);return}
+  const d=trialDays(),k=T();if(GAME_PAGE&&!d.includes(k)&&d.length<TRIAL){d.push(k);put('gm-trial',d)}
+  wall(trialState().over)}
+function wall(on){let w=document.getElementById('gm-wall');
+  if(!on){if(w){w.remove();document.documentElement.classList.remove('gm-walled')}return}
+  if(w||!document.body)return;
+  let km=0,st=0;try{const g=G.geo();km=g.km;st=g.streak}catch(e){}
+  const have=km>0?'<p>You\'ve flown <b>'+EU(km)+' km</b>'+(st>1?' and have a <b>'+st+'-day streak</b>':'')+'. Sign in to keep them and keep playing.</p>'
+    :'<p>Sign in to keep playing every day. It\'s free and takes one tap.</p>';
+  w=document.createElement('div');w.id='gm-wall';w.setAttribute('role','dialog');w.setAttribute('aria-modal','true');w.setAttribute('aria-labelledby','gm-wall-t');
+  w.innerHTML='<div class="gm-wallcard">'+G.mingo('head',44)+'<h2 id="gm-wall-t">Your '+TRIAL+' free days are over</h2>'+
+    '<div class="gm-walldots" aria-hidden="true">'+'<i></i>'.repeat(TRIAL)+'</div>'+have+
+    '<ul><li>Your GeoPass, km and streak, on any phone</li><li>Your name in the daily rankings</li><li>Every game, every day</li></ul>'+
+    '<button class="gm-wallg" data-gm-signin><i aria-hidden="true">G</i>Continue with Google</button>'+
+    '<p class="gm-wallnote">Got an invite link from a friend? Open it to join their room.</p></div>';
+  document.body.appendChild(w);document.documentElement.classList.add('gm-walled');
+  const b=w.querySelector('button');if(b)setTimeout(()=>b.focus(),50)}
 
 /* ---- the name: chosen once, kept in the account, shown in every ranking ---- */
 function setName(n){name=n;ls.set('bl-user',n);ls.set('cc-user',n);if(user)remember();G.refreshPass()}
@@ -298,11 +329,12 @@ function bestRun(dates){const n=k=>Math.round(Date.parse(k+'T12:00Z')/864e5),ds=
 const noBanner=()=>ls.get('gm-nobanner')==='1';
 // under Mingo on a game's home screen: who's playing, and the sign-in banner for guests (as in Countries).
 // A guest plays with the name typed in any game (bl-user, the same everywhere) and can change it here.
+function trialLine(){const t=trialState();return t.over?'Sign in to keep playing':'Free day '+t.day+' of '+t.max+'. Sign in to keep playing after that.'}
 function userHTML(){const u=who();
   if(u)return '<div class="userline"><span class="pin" style="background:var(--sea)"></span>Playing as '+esc(name||'…')+'</div>';
   const signin=u===null;
   return '<div class="userline"><span class="pin" style="background:var(--sea)"></span>Playing as '+esc(G.traveller())+'<button class="ghost" data-gm-chname>Change</button>'+(signin&&noBanner()?'<span class="uright"><button class="ghost" data-gm-signin>Sign in</button></span>':'')+'</div>'+
-    (signin&&!noBanner()?'<div class="gbanner"><span>Sign in to join the daily ranking</span><button class="primary" data-gm-signin>Sign in</button><button class="linkbtn" data-gm-nobanner aria-label="Close">✕</button></div>':'')}
+    (signin&&!noBanner()?'<div class="gbanner"><span>'+trialLine()+'</span><button class="primary" data-gm-signin>Sign in</button><button class="linkbtn" data-gm-nobanner aria-label="Close">✕</button></div>':'')}
 // a guest's name: one small window, saved for every game on this device
 function changeName(then){const cur=G.traveller()==='Guest'?'':G.traveller();
   const box=G.openWindow('<div class="gm-res gm-namebox"><div class="gm-band">'+G.mingo('head',26)+'<b>Who\'s playing?</b></div><div class="gm-rbody">'+
@@ -336,14 +368,14 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('gm-acctmenu'))acctMenu(false)});
 
 // something changed: the header buttons are redrawn here; the page redraws itself (onChange) unless you are typing
-function changed(why){document.querySelectorAll('[data-gm-acctslot]').forEach(el=>{const h=acctHTML();if(el.innerHTML!==h)el.innerHTML=h});drawTrophies();
+function changed(why){trialCheck();document.querySelectorAll('[data-gm-acctslot]').forEach(el=>{const h=acctHTML();if(el.innerHTML!==h)el.innerHTML=h});drawTrophies();
   const a=document.activeElement,typing=a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA')&&!a.closest('#gm-window');
   watchers.forEach(f=>{try{f(why||'',typing)}catch(e){console.error(e)}})}
 
 G.acctHTML=acctHTML;
 // ready/user: known for sure, or the last account seen on this device until Firebase answers (wasSignedIn: that last one)
 G.account={get ready(){return who()!==undefined},get user(){return who()||null},get name(){return name},
-  wasSignedIn:!!(LAST&&LAST.u),
+  wasSignedIn:!!(LAST&&LAST.u),get trial(){return trialState()},trialLine,
   signIn,signOut,done,userHTML,changeName,rankingHTML,rankLine,mine,statsPage,levelBars,bestRun,onChange:f=>watchers.push(f)};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
