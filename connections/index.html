@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="../shared/style.css?v=202610252300">
+<link rel="stylesheet" href="../shared/style.css?v=202611091500">
 <style>
 /* Connections: 16 tiles in a 4 × 4 grid; found groups become coloured bars on top */
 .cx-board{display:flex;flex-direction:column;gap:8px}
@@ -94,7 +94,7 @@
 <script src="../data/flags.js?v=202611081900"></script>
 <script src="../shared/data.js?v=202611081900"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202611021845"></script>
+<script src="../shared/minigames.js?v=202611091500"></script>
 <!-- With friends: online rooms in Countries' Firebase Realtime Database -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -473,10 +473,10 @@ function resultHTML(){const v=verdict(),dated=S.mode==='daily'||S.mode==='archiv
   return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Connections #'+S.num:S.mode==='archive'?'Archive · Connections #'+S.num:'Solo puzzle'}</span><p class="big">${S.found.length} of 4</p>
     <p class="hint">${S.won?(S.mistakes?`All four groups, ${S.mistakes} mistake${S.mistakes===1?'':'s'}.`:'All four groups, not a single mistake.'):`You found ${S.found.length} of 4 groups.`} ${S.mode==='daily'?`Next puzzle in ${nextIn()}.`:S.mode==='archive'?"Archive games don't count for the ranking or your streak.":''}</p>
     <pre class="sharebox" id="share">${esc(shareText())}</pre>
-    ${S.mode==='daily'?`<div class="row-btns"><button class="ghost" id="copy">Share</button>${nextGameBtn('connections')}</div>
+    ${S.mode==='daily'?`${SHARE_BTN}<div class="row-btns sharerow">${nextGameBtn('connections')}</div>
     <button class="ghost" id="playsolo">Play Solo</button>${allPlayedHTML('connections')}`
-    :S.mode==='archive'?`<div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="primary" id="archback" style="flex:1">Back to archive</button></div>`
-    :`<div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="ghost" id="again" style="flex:1">New puzzle</button></div>`}
+    :S.mode==='archive'?`${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="archback" style="flex:1">Back to archive</button></div>`
+    :`${SHARE_BTN}<div class="row-btns sharerow"><button class="ghost" id="again" style="flex:1">New puzzle</button></div>`}
     ${S.mode==='daily'?`<span class="label">Your daily puzzles</span>${statsHTML()}`:''}</section>${S.mode==='daily'?rankingHTML():''}`}
 // today's ranking (signed-in players, first try of the day): groups found, then fewer mistakes, then who finished first
 const rankingHTML=()=>Geomingo.account.rankingHTML('connections',{what:'puzzle',score:r=>[r.s===4?'Solved':r.s+'/4',r.m+' mistake'+(r.m===1?'':'s')]});
@@ -491,7 +491,7 @@ function roomResultHTML(){const list=ranked(),cur=list.filter(p=>p.cur),pos=cur.
   return `<section class="panel">${Geomingo.hello(S.won?'happy':'sad',S.won?(pos===1&&!waiting?'You win. First to arrive.':'Solved. Now wait for the others.'):'So close.',waiting?'Some players are still playing.':'Everyone has finished.',{key:'res'})}<span class="label">Room ${roomCode} · game ${S.round}</span><p class="big">${head}</p>
     <div class="players">${list.map((p,k)=>`<div class="lp${p.pid===ME?' me':''}${p.on===false?' off':''}"><span class="rk">${p.cur?k+1:''}</span><span class="pin" style="${pinStyle(p.i)}"></span>${esc(p.name)}<span class="tag">${!p.cur?'joining':p.done?(p.won?`solved · ${p.m||0} mistake${p.m===1?'':'s'} · ${fmtTime(p.ms)}`:`${p.f||0} of 4 groups`):p.on===false?'left':'playing…'}</span></div>`).join('')}</div>
     <pre class="sharebox" id="share">${esc(shareText())}</pre>
-    <div class="row-btns"><button class="ghost" id="copy" style="flex:1">Share</button><button class="primary" id="rematch" style="flex:1" ${waiting?'disabled':''}>${waiting?'Waiting for the others…':'Play again'}</button></div>
+    ${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="rematch" style="flex:1" ${waiting?'disabled':''}>${waiting?'Waiting for the others…':'Play again'}</button></div>
   </section>`}
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>You see 16 countries. They make <b>four groups of four</b>, and each group shares something, for example "Uses the euro" or "Flag has a crescent moon".</li>
