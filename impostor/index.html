@@ -139,7 +139,7 @@ function playHTML(G){let h=deskHTML(G);
   const q=G.qs[G.sel],more=SENT-q.k;
   return `<div class="play">${h}<span class="label">Round ${G.sel+1} of ${ROUNDS} · worth ${worth(q)} point${worth(q)===1?'':'s'}</span>${sixHTML(G,q,false)}
     <span class="label">Five of them fit every sentence. Which one doesn't?</span>${factsHTML(q,false)}
-    ${chosen?`<button class="primary go" id="confirm">${esc(nameOf(chosen))} is the impostor</button>`:`<div class="locked">${more?'Tap the impostor, or wait for another sentence':'All five sentences are out'}<button class="linkbtn" id="nextfact">${more?'Next sentence':'I don\'t know'}</button></div>`}
+    ${chosen?`<button class="primary go" id="confirm">${esc(nameOf(chosen))} is the impostor</button>`:''}<div class="locked">${chosen?'Not sure? Tap it again to unselect':more?'Tap the impostor, or wait for another sentence':'All five sentences are out'}<button class="linkbtn" id="nextfact">${more?'Next sentence':'I don\'t know'}</button></div>
     ${giveUpHTML()}</div>`}
 // a round that has just finished: who it was, all five sentences with the impostor's real figures, then Next round
 function leftHTML(G,i){const q=G.qs[i],ok=q.st==='right';
