@@ -23,9 +23,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="brand/geomingo.css?v=202611031030">
+<link rel="stylesheet" href="brand/geomingo.css?v=202611091000">
 <script src="brand/mingo.js?v=202611081800"></script>
-<script src="brand/account.js?v=202611081800"></script>
+<script src="brand/account.js?v=202611091500"></script>
 <style>
 /* Home page: Sign in and Menu on top, today's games as colour tiles, Travel with friends, then the GeoPass
    (km, level, today's stamps) and the ranking by km (today, this week, this month) */
@@ -228,7 +228,7 @@ function passHTML(P){const lv=level(P.miles),live=G.live(),played=live.filter(g=
   const note='Each box: the km that game gave you today, and your result. '+(played===live.length?'All '+G.ALLW+' played: <b>+'+ALL5+' bonus km</b>. New trips at midnight.'
     :'Play all '+G.ALLW+' today for <b>+'+ALL5+' bonus km</b>.');
   // signed in: nothing to say here (the header already shows it); a guest gets the sign-in button
-  const foot=acc&&acc.ready&&!u?'<hr><p class="acct"><b>Sign in to keep your km.</b> Your GeoPass follows you to any phone, and you join the ranking.</p><button class="gbtn" data-gm-signin><i aria-hidden="true">G</i>Continue with Google</button>':'';
+  const foot=acc&&acc.ready&&!u?'<hr><p class="acct"><b>'+esc(acc.trialLine?acc.trialLine():'Sign in to keep your km.')+'</b> Your GeoPass follows you to any phone, and you join the ranking.</p><button class="gbtn" data-gm-signin><i aria-hidden="true">G</i>Continue with Google</button>':'';
   const st=(n,t)=>'<div class="stat"><b>'+n+'</b><span>'+t+'</span></div>';
   return '<div class="row"><span class="lab">My GeoPass</span><span class="lvl">'+lv.name+'</span></div>'+
     '<button class="who" id="openpass" aria-label="Open your GeoPass: '+fmt(P.miles)+' km, level '+lv.name+'">'+G.mingo(played?'happy':'pass',56)+
