@@ -253,8 +253,9 @@ function draw(){const P=geo();
 
 /* ---- the ranking: everyone's km from the games' public daily rankings, with three tabs:
    Today, This week (Monday to today) and This month (the 1st to today).
-   only signed-in games count there (one try a day per account), so it can differ from your own GeoPass */
-const LB=[['leaderboard','borderline',r=>pts((+r.c||0)/9)],['lb/citygrid','citygrid',r=>pts((+r.c||0)/9)],
+   only signed-in games count there (one try a day per account), so it can differ from your own GeoPass
+   Countries and Capitals: the daily grid is 4 x 4, so km come from right answers out of 16 (like GeoPass) */
+const LB=[['leaderboard','borderline',r=>pts((+r.c||0)/16)],['lb/citygrid','citygrid',r=>pts((+r.c||0)/16)],
   ['lb/connections','connections',r=>cxPts((+r.s||0)>=4,r.m)],['lb/top10','top10',r=>pts((+r.s||0)/10)],
   ['lb/sil-easy','silhouette',r=>pts((+r.s||0)/9)],['lb/sil-normal','silhouette',r=>pts((+r.s||0)/9)],['lb/sil-hard','silhouette',r=>pts((+r.s||0)/9)],['lb/customs','customs',r=>pts((+r.s||0)/25)],['lb/flagpie','flagpie',r=>pts((+r.s||0)/25)],['lb/impostor','impostor',r=>pts((+r.s||0)/30)]];
 const AV=['#7FA2F0','#F07884','#5FC28F','#D4AD4B','#A98BE0','#C99B78'];
