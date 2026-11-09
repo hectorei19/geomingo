@@ -25,9 +25,9 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .prow input{flex:1;min-width:0;border:1px solid var(--rule);background:var(--paper);border-radius:4px;padding:9px 10px}
 .row-btns{display:flex;gap:8px}
 .sharebig{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;min-height:54px;margin:4px 0 0}
+.primary.sharebig{background:transparent;color:#F3D98B;border:1.5px solid var(--gold)}
 .sharebig svg{flex:none}
 .sharerow>*{flex:1}
-.sharerow .primary{background:transparent;color:inherit;border:1px solid var(--rule)}
 .ghost{background:transparent;border:1px solid var(--rule);border-radius:4px;padding:8px 12px;font-weight:600}
 .ghost:disabled{opacity:.4;cursor:default}
 .primary{background:var(--sea);color:var(--sheet);border:0;border-radius:5px;padding:14px;font-weight:700;font-size:1.1rem;letter-spacing:.04em;text-transform:uppercase}

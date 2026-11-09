@@ -22,7 +22,7 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
 <script src="../brand/mingo.js?v=202611081800"></script>
-<script src="../brand/account.js?v=202611091500"></script>
+<script src="../brand/account.js?v=202611091550"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -56,9 +56,9 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .pin{width:14px;height:14px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);flex:none}
 .row-btns{display:flex;gap:8px}
 .sharebig{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;min-height:54px;margin:4px 0 0}
+.primary.sharebig{background:transparent;color:#F3D98B;border:1.5px solid var(--gold)}
 .sharebig svg{flex:none}
 .sharerow>*{flex:1}
-.sharerow .primary{background:transparent;color:inherit;border:1px solid var(--rule)}
 .ghost{background:transparent;border:1px solid var(--rule);border-radius:4px;padding:8px 12px;font-weight:600}
 .ghost:disabled{opacity:.4;cursor:default}
 .primary{background:var(--sea);color:var(--sheet);border:0;border-radius:5px;padding:14px;font-weight:700;font-size:1.1rem;letter-spacing:.04em;text-transform:uppercase}
@@ -1436,7 +1436,7 @@ function verdict(){const n=S.n;
 const verdictHTML=()=>{const v=verdict();return Geomingo.hello(v.pose,v.t,v.s,{key:'res'})};
 // the next daily game of Geomingo not played yet: the big button of today's result (Back to menu once every game is played)
 // every game is a trip: one line, the same small size in every game, so no name ever wraps (a touch smaller only on very narrow phones)
-// the end-of-game Share button: big and coral, on its own line above the other buttons
+// the end-of-game Share button: full width with a gold border, on its own line above the other buttons
 const SHARE_BTN='<button class="primary sharebig" id="copy"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Share result</button>';
 const TRIP_STYLE='flex:1;display:flex;align-items:center;justify-content:center;min-width:0;white-space:nowrap;font-size:clamp(10px,calc((100vw - 170px)/15.5),14px);letter-spacing:.03em;padding:13.5px 8px 10.5px';
 const nextGameBtn=g=>g?`<a class="primary" href="${g.href}" style="${TRIP_STYLE}">Next trip: ${esc(g.name)} →</a>`:`<button class="primary" id="newg" style="flex:1">Back to menu</button>`;
