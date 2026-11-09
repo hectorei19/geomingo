@@ -93,7 +93,7 @@ function signIn(){if(!ok){say('Sign-in is not available right now. Check the con
   firebase.auth().signInWithPopup(p).catch(e=>{if(e&&e.code==='auth/popup-blocked')firebase.auth().signInWithRedirect(p);else authError(e)})}
 function signOut(){if(ok)firebase.auth().signOut().catch(()=>{})}
 
-/* ---- 3 free days: a guest can play for 3 days, then every page asks to sign in ----
+/* ---- 3 guest days: a guest can play for 3 days, then every page asks to sign in ----
    gm-trial: the days (dayKey) a guest opened a game page, at most 3. On a 4th day the sign-in screen covers the page
    (home and games) and can't be closed; signing in takes it away. The home page alone doesn't use up a day.
    An invite link (?room=) always opens, so a friend can join a room without an account; nor does test mode (?test) show it.
@@ -113,10 +113,10 @@ function wall(on){let w=document.getElementById('gm-wall');
   if(!on){if(w){w.remove();document.documentElement.classList.remove('gm-walled')}return}
   if(w||!document.body)return;
   let km=0,st=0;try{const g=G.geo();km=g.km;st=g.streak}catch(e){}
-  const have=km>0?'<p>You\'ve flown <b>'+EU(km)+' km</b>'+(st>1?' and have a <b>'+st+'-day streak</b>':'')+'. Sign in to keep them and keep playing.</p>'
-    :'<p>Sign in to keep playing every day. It\'s free and takes one tap.</p>';
+  const have=km>0?'<p>You\'ve flown <b>'+EU(km)+' km</b>'+(st>1?' and have a <b>'+st+'-day streak</b>':'')+'. Sign in to keep them and keep playing. Geomingo is free, always.</p>'
+    :'<p>Sign in to keep playing every day. Geomingo is free, always: no payments, just one tap.</p>';
   w=document.createElement('div');w.id='gm-wall';w.setAttribute('role','dialog');w.setAttribute('aria-modal','true');w.setAttribute('aria-labelledby','gm-wall-t');
-  w.innerHTML='<div class="gm-wallcard">'+G.mingo('head',44)+'<h2 id="gm-wall-t">Your '+TRIAL+' free days are over</h2>'+
+  w.innerHTML='<div class="gm-wallcard">'+G.mingo('head',44)+'<h2 id="gm-wall-t">Your '+TRIAL+' days as a guest are over</h2>'+
     '<div class="gm-walldots" aria-hidden="true">'+'<i></i>'.repeat(TRIAL)+'</div>'+have+
     '<ul><li>Your GeoPass, km and streak, on any phone</li><li>Your name in the daily rankings</li><li>Every game, every day</li></ul>'+
     '<button class="gm-wallg" data-gm-signin><i aria-hidden="true">G</i>Continue with Google</button>'+
@@ -329,7 +329,7 @@ function bestRun(dates){const n=k=>Math.round(Date.parse(k+'T12:00Z')/864e5),ds=
 const noBanner=()=>ls.get('gm-nobanner')==='1';
 // under Mingo on a game's home screen: who's playing, and the sign-in banner for guests (as in Countries).
 // A guest plays with the name typed in any game (bl-user, the same everywhere) and can change it here.
-function trialLine(){const t=trialState();return t.over?'Sign in to keep playing':'Free day '+t.day+' of '+t.max+'. Sign in to keep playing after that.'}
+function trialLine(){const t=trialState();return t.over?'Sign in to keep playing. Geomingo is free.':'Guest day '+t.day+' of '+t.max+'. After that, sign in to keep playing. Geomingo is free.'}
 function userHTML(){const u=who();
   if(u)return '<div class="userline"><span class="pin" style="background:var(--sea)"></span>Playing as '+esc(name||'…')+'</div>';
   const signin=u===null;
