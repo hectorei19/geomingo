@@ -112,6 +112,26 @@ main{display:flex;flex-direction:column;gap:18px}
 .week .pt{font-family:var(--type);font-weight:700}
 .week li.me .nm{font-weight:700;color:#F3D98B}
 .week li.gap{justify-content:center;color:var(--muted);min-height:0}
+/* tap a name: the row opens with today's results, you vs them, game by game */
+.week li[data-who]{cursor:pointer;border-radius:10px;padding:0 4px;margin:0 -4px;-webkit-tap-highlight-color:transparent}
+.week li[data-who]:focus-visible{outline:2px solid #F3D98B}
+.week li .chev{width:12px;flex-shrink:0;color:var(--muted);font-size:10px;text-align:center}
+.week li.open{background:var(--page);box-shadow:0 0 0 1px #F3D98B;border-radius:10px 10px 0 0}
+.week li.open .chev{color:#F3D98B}
+.week li.duel{display:block;min-height:0;margin:-8px -4px 0;padding:10px;background:var(--page);box-shadow:0 0 0 1px #F3D98B;border-radius:0 0 10px 10px;cursor:default}
+.duel .dh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;font:800 11px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.duel .dh b{font-family:var(--type);font-size:15px;letter-spacing:0;color:var(--ink)}
+.duel .dg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.duel .dc{background:var(--guil);border-radius:10px;padding:6px 8px;border-left:3px solid var(--c);min-width:0}
+.duel .dc.off{opacity:.4}
+.duel .dc .t{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.duel .dc .s{display:flex;flex-wrap:wrap;justify-content:space-between;gap:0 4px;margin-top:2px;font:700 13px var(--type);white-space:nowrap}
+.duel .dc .s small{font:600 10px var(--body);color:var(--muted);margin-right:3px}
+.duel .w{color:var(--green)}.duel .l{color:var(--red)}
+.duel .lk{color:#F3D98B}
+.duel .dplay{display:block;margin-top:10px;padding:11px;border-radius:12px;background:#D4AD4B;color:#16202F;text-align:center;font-weight:800;font-size:14.5px;text-decoration:none}
+.duel .dn{margin-top:8px;font-size:12px;color:var(--muted)}
+.duel .dr{margin:8px 0 0;text-align:center;font-weight:800;font-size:14px;color:var(--ink)}
 .week p{margin:0;font-size:14px;color:var(--muted)}
 .rtabs{display:flex;gap:4px;padding:3px;border-radius:12px;background:var(--page);border:1px solid var(--line)}
 .rtabs button{flex:1;min-height:36px;border:0;border-radius:9px;background:none;color:var(--muted);font:800 12px var(--display);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;padding:0 4px}
@@ -251,25 +271,52 @@ const tabDays=t=>t==='day'?[G.dayKey()]:t==='week'?weekDays():monthDays();
 let RANK=(()=>{try{const w=JSON.parse(localStorage.getItem('gm-rank')||'null');return w&&w.ppl&&w.day===G.dayKey()?Object.assign(w,{at:0}):null}catch(e){return null}})(),rankBusy=false;
 function loadRank(){const acc=A();if(rankBusy||!acc||!acc.ready||typeof firebase==='undefined'||!firebase.apps.length)return;
   if(RANK&&RANK.day===G.dayKey()&&Date.now()-RANK.at<5*60e3)return;
-  rankBusy=true;const db=firebase.database(),days=[...new Set([...weekDays(),...monthDays()])],P={};
+  rankBusy=true;const db=firebase.database(),days=[...new Set([...weekDays(),...monthDays()])],P={},today=G.dayKey(),TD={};
   Promise.all(days.flatMap(d=>LB.map(([path,id,f])=>db.ref(path+'/'+d).once('value').then(s=>{const v=s.val()||{};
     for(const uid in v){const r=v[uid];if(!r||typeof r!=='object')continue;const p=P[uid]=P[uid]||{name:'',days:{}},day=p.days[d]=p.days[d]||{};
-      if(r.name)p.name=String(r.name).slice(0,16);day[id]=Math.max(day[id]||0,f(r))}}).catch(()=>{}))))
+      if(r.name)p.name=String(r.name).slice(0,16);day[id]=Math.max(day[id]||0,f(r));
+      if(d===today){const g=TD[id]=TD[id]||{},k=f(r);if(!g[uid]||k>g[uid].km)g[uid]={km:k,s:+r.s||0,c:+r.c||0}}}}).catch(()=>{}))))
   .then(()=>{const ppl=Object.entries(P).map(([id,p])=>{const km={};for(const d in p.days)km[d]=dayTotal(p.days[d]);return{id,name:p.name||'Player',km}});
-    RANK={day:G.dayKey(),at:Date.now(),ppl};rankBusy=false;try{localStorage.setItem('gm-rank',JSON.stringify(RANK))}catch(e){}drawWeek()})}
+    RANK={day:G.dayKey(),at:Date.now(),ppl,today:TD};rankBusy=false;try{localStorage.setItem('gm-rank',JSON.stringify(RANK))}catch(e){}drawWeek()})}
+/* tap a name in the ranking: the row opens with today's daily results, you vs them, game by game.
+   if they have played a game you haven't yet, their score stays hidden (🔒) so it spoils nothing, and a button takes you there */
+let OPEN=null;
+const DC={borderline:'#7FA2F0',citygrid:'#5FC28F',connections:'#D4AD4B',top10:'#A98BE0',silhouette:'#C99B78',customs:'#F07884',flagpie:'#6FC7C7',impostor:'#E58FC0'};
+// the daily grids of Countries and Capitals are 4×4; Customs and Flag Pie give up to 25 points, Impostor up to 30
+const OUTOF={borderline:16,citygrid:16,connections:4,top10:10,silhouette:9,customs:25,flagpie:25,impostor:30};
+const scoreText=(id,r)=>(id==='borderline'||id==='citygrid'?r.c:r.s)+(OUTOF[id]?'/'+OUTOF[id]:'');
+function duelHTML(p,me){const T=(RANK&&RANK.today)||{},self=p.id===me,nm=p.name.trim()||'Player';let w1=0,w2=0,next=null,any=false;
+  const cells=G.live().map(g=>{const t=T[g.id]||{},a=me?t[me]:null,b=self?null:t[p.id],loc=G.result(g.id),mine=!!a||!!(loc&&loc.done);
+    const av=a?scoreText(g.id,a):mine&&loc.label?esc(String(loc.label)):'–';let ca='',cb='',bv;
+    if(self)bv='';
+    else if(b&&!mine){bv='<span class="lk" title="Play it to see">🔒</span>';next=next||g;any=true}
+    else{bv=b?'<small>'+esc(nm.split(' ')[0].slice(0,8))+'</small>'+scoreText(g.id,b):'<small>'+esc(nm.split(' ')[0].slice(0,8))+'</small>–';
+      if(b)any=true;if(a&&b){if(a.km>b.km){ca='w';cb='l';w1++}else if(b.km>a.km){ca='l';cb='w';w2++}}}
+    const off=!mine&&!(b);
+    return '<div class="dc'+(off?' off':'')+'" style="--c:'+(DC[g.id]||'#9AA6B6')+'"><div class="t">'+esc(g.name)+'</div><div class="s"><span class="'+ca+'"><small>You</small>'+av+'</span><span class="'+cb+'">'+bv+'</span></div></div>'}).join('');
+  let foot='';
+  if(self)foot='<p class="dn">Tap ▲ to close.</p>';
+  else if(next)foot='<a class="dplay" href="'+esc(next.path)+'">Play '+esc(next.name)+' and beat '+esc(nm)+'</a><p class="dn">🔒 '+esc(nm)+' has played it. Play it too to see the score. Tap ▲ to close.</p>';
+  else if(!any)foot='<p class="dn">'+esc(nm)+' hasn\'t played any of today\'s games yet.</p>';
+  else if(w1||w2)foot='<p class="dr">'+(w1>w2?'You lead today!':w2>w1?esc(nm)+' leads today':'A draw so far')+'</p>';
+  return '<li class="duel"><div class="dh"><span>'+(self?'Today · your games':'Today · you vs '+esc(nm))+'</span>'+(self?'':'<b>'+w1+' – '+w2+'</b>')+'</div><div class="dg">'+cells+'</div>'+foot+'</li>'}
 function rankRows(t){const ds=tabDays(t);
   return RANK.ppl.map(p=>({id:p.id,name:p.name,mi:ds.reduce((a,d)=>a+(p.km[d]||0),0)})).filter(r=>r.mi>0).sort((a,b)=>b.mi-a.mi||a.name.localeCompare(b.name))}
 function drawWeek(){const el=document.getElementById('week'),acc=A();loadRank();
   if(!acc||!acc.ready||!RANK){el.hidden=true;return}
   const me=acc.user&&acc.user.uid,rows=rankRows(TAB),i=rows.findIndex(r=>r.id===me),tab=TABS.find(x=>x[0]===TAB);
-  const row=(r,k)=>'<li class="'+(r.id===me?'me':'')+'"><span class="rk">'+(k+1)+'</span><span class="av" style="--c:'+AV[k%AV.length]+'">'+esc((r.name.trim()[0]||'·').toUpperCase())+'</span><span class="nm">'+esc(r.id===me?r.name+' (you)':r.name)+'</span><span class="pt">'+fmt(r.mi)+' km</span></li>';
+  const row=(r,k)=>{const o=r.id===OPEN;return '<li class="'+(r.id===me?'me':'')+(o?' open':'')+'" data-who="'+esc(r.id)+'" role="button" tabindex="0" aria-expanded="'+o+'"><span class="rk">'+(k+1)+'</span><span class="av" style="--c:'+AV[k%AV.length]+'">'+esc((r.name.trim()[0]||'·').toUpperCase())+'</span><span class="nm">'+esc(r.id===me?r.name+' (you)':r.name)+'</span><span class="pt">'+fmt(r.mi)+' km</span><span class="chev" aria-hidden="true">'+(o?'▲':'▼')+'</span></li>'+(o?duelHTML(r,me):'')};
   const list=rows.slice(0,10).map(row).join('')+(i>=10?'<li class="gap">…</li>'+row(rows[i],i):'');
   const foot=!me?'<p>Sign in and play to join the ranking.</p>':i<0&&rows.length?'<p>Finish a daily game signed in to join this ranking.</p>':'';
   const tabs='<div class="rtabs" role="tablist">'+TABS.map(([k,l])=>'<button type="button" role="tab" data-rtab="'+k+'" aria-selected="'+(k===TAB)+'">'+l+'</button>').join('')+'</div>';
   el.hidden=false;
   const h='<h3>Ranking</h3>'+tabs+(rows.length?'<ol>'+list+'</ol>':'<p>'+tab[2]+'</p>')+foot;
   if(el.innerHTML!==h)el.innerHTML=h}
-document.getElementById('week').addEventListener('click',e=>{const b=e.target.closest('[data-rtab]');if(!b||b.dataset.rtab===TAB)return;
+document.getElementById('week').addEventListener('keydown',e=>{const w=e.target.closest('li[data-who]');
+  if(w&&(e.key==='Enter'||e.key===' ')){e.preventDefault();OPEN=OPEN===w.dataset.who?null:w.dataset.who;drawWeek();const n=document.querySelector('#week li[data-who="'+CSS.escape(w.dataset.who)+'"]');if(n)n.focus()}});
+document.getElementById('week').addEventListener('click',e=>{const w=e.target.closest('li[data-who]');
+  if(w){OPEN=OPEN===w.dataset.who?null:w.dataset.who;drawWeek();return}
+  const b=e.target.closest('[data-rtab]');if(!b||b.dataset.rtab===TAB)return;
   TAB=b.dataset.rtab;try{localStorage.setItem('gm-rank-tab',TAB)}catch(e){}drawWeek()});
 
 /* ---- windows: Menu, Travel with friends, the GeoPass ---- */
