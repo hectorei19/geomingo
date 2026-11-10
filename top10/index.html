@@ -36,7 +36,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611101000"></script>
+<script src="../brand/mingo.js?v=202611101300"></script>
 <script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -94,7 +94,7 @@ body.kbon .t10list .mini{width:18px;height:18px}
 body.kbon .kbgu{display:flex;flex-direction:column;align-items:center;gap:14px}
 body.kbon .kbgu #src{align-self:center!important}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611101000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611101300">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -110,7 +110,7 @@ body.kbon .kbgu #src{align-self:center!important}
 <script src="../shared/data.js?v=202611100900"></script>
 <script src="extra-data.js?v=202611081900"></script>
 <script src="../shared/games.js?v=202611101000"></script>
-<script src="../shared/minigames.js?v=202611100845"></script>
+<script src="../shared/minigames.js?v=202611101300"></script>
 <script>
 /* ---- the rankings ----
    Numbers Countries already uses (DATA and the country data), plus a few figures only Top 10 uses (XDATA,
@@ -627,6 +627,8 @@ function verdict(){const f=S.found.length;
   return S.won?(!S.wrong.length?{pose:'happy',t:'Full page. Perfect ten.',s:S.nolives?'Not a single mistake.':'Not a single life lost.'}:{pose:'happy',t:'Visited. All ten.',s:livesTxt()})
     :f>=6?{pose:'think',t:'So close. '+f+' of 10.',s:S.nolives?'The full list is below.':'No lives left. The full list is below.'}:{pose:'sad',t:'Rough crossing, this one.',s:f+' of 10 found. The full list is below.'}}
 function resultHTML(){const v=verdict();
+  if(S.mode==='daily')return `${Geomingo.doneTicket('top10',S.num,S.found.length+' of 10','next list in '+nextIn())}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
+    <div class="gm-done-btns">${nextGameBtn('top10')}${SHARE_BTN}</div>${rankingHTML()}`;
   return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Top 10 #'+S.num:S.mode==='archive'?'Archive · Top 10 #'+S.num:'Solo list'}</span><p class="big">${S.found.length} of 10</p>
     <p class="hint">${S.won?(S.nolives?`You named the whole list with ${S.wrong.length} mistake${S.wrong.length===1?'':'s'}.`:`You named the whole list with ${S.lives} li${S.lives===1?'fe':'ves'} left.`):S.lives?'The full list is below.':'No lives left. The full list is below.'} ${S.mode==='daily'?`Next list in ${nextIn()}.`:S.mode==='archive'?"Archive games don't count for the ranking or your streak.":''}</p>
     <pre class="sharebox" id="share">${esc(shareText())}</pre>

@@ -104,6 +104,12 @@ svg.mingo{display:block;flex-shrink:0;overflow:visible}
 /* the mode strip on top of the ticket: gold for the daily (it counts), blue for practice and the archive */
 .tk-mode{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 14px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden}
 .tk-mode span{overflow:hidden;text-overflow:ellipsis}
+/* today's result: the gold ticket with the score (doneTicket), then Next trip and Share */
+.gm-done-c{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px 14px 18px;text-align:center}
+.gm-done-c .big{font-size:52px;margin:0}
+.gm-done-s{margin:0;color:var(--muted);font-size:15px}
+.gm-done-s b{color:var(--gold);font-family:var(--display);font-weight:800}
+.gm-done-btns{display:flex;flex-direction:column;gap:10px}
 .tk-mode.daily{background:var(--gold);color:#16202F}
 .tk-mode.practice{background:var(--blue);color:#0C1220}
 .ticket.tk-practice{border-color:var(--blue)}

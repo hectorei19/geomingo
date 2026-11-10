@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611101000"></script>
+<script src="../brand/mingo.js?v=202611101300"></script>
 <script src="../brand/account.js?v=202611100905"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -318,7 +318,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .b5 .cell.flag .gm-stamp.wf .pts{font-size:.6rem;padding:0 3px 1px 4px;border-radius:0 0 0 5px}
 .b5 .cell.flag .gm-stamp.wf .cc{font-size:.6rem;padding:1px 4px 0 3px;border-radius:0 5px 0 0}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611101000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611101300">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -1423,9 +1423,9 @@ function shareResult(){const t=shareMessage();
 function copyShare(){const t=shareMessage();
   // if the clipboard API is blocked, put the full message (with the link) in the result box, select it
   // and try the older copy command; if that fails too, the text stays selected for a manual copy
-  const manual=()=>{const el=document.getElementById('share');if(el)el.textContent=t;selectShare();
+  const manual=()=>{const el=document.getElementById('share');if(el){el.hidden=false;el.textContent=t}selectShare();
     let ok=false;try{ok=document.execCommand('copy')}catch(e){}
-    if(ok)toast('Result and link copied.','good');else toast('Copy blocked here. The text is selected: copy it manually.')};
+    if(ok){if(el)el.hidden=true;toast('Result and link copied.','good')}else toast('Copy blocked here. The text is selected: copy it manually.')};
   try{navigator.clipboard.writeText(t).then(()=>toast('Result and link copied.','good'),manual)}catch(e){manual()}}
 function shareView(){const enc=encodeURIComponent;
   return `<div class="infoscrim" id="sharescrim"></div><div class="infobox" role="dialog" aria-modal="true" aria-labelledby="sht">
@@ -1463,6 +1463,8 @@ function watchResult(){if(!S){liveKey='';return}const k=gameKey();
   setTimeout(()=>window.scrollTo({top:0,behavior:'smooth'}),50)}
 function resultsView(){
   if(S.daily){const p=S.players[0],n=S.n,ms=msToNextDay(),next=S.archive?null:Geomingo.nextGame('citygrid');
+    if(!S.archive&&!S.dayof)return `${Geomingo.doneTicket('citygrid',S.day,EU(p.score)+' points',`next grid in ${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min`)}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
+    <div class="gm-done-btns">${nextGameBtn(next)}${SHARE_BTN}</div>${lbView(null)}`;
     return `<section class="panel respanel">${verdictHTML()}<span class="label">${S.dayof?'':S.archive?'Archive · ':''}Daily grid #${S.day}${S.dayof?' · played on its day':''}</span><p class="big">${EU(p.score)} points</p>${breakdown(p)}<p class="hint">${p.cells} of ${n*n} squares. ${S.wrong} wrong guess${S.wrong===1?'':'es'}. ${S.dayof?'You played this grid on its day, so it can\'t be played again.':S.archive?'Archive games don\'t count for the ranking or your streak.':`Share it: friends play today's grid with their own one try. Next grid in ${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min.`}</p><pre class="sharebox" id="share">${esc(shareText())}</pre>${SHARE_BTN}<div class="row-btns sharerow">${S.archive?`<button class="primary" id="newg" style="flex:1">Back to archive</button>`:nextGameBtn(next)}</div>${S.archive?'':afterNextHTML(next)+`<span class="label">Your daily grids</span>${statTiles(dailyStatsFrom({...loadHist(),[S.daily]:loadHist()[S.daily]||{s:p.score}}))}`}</section>${lbView(S.archive?S.daily:null)}`}
   if(S.mode==='solo'){const p=S.players[0];const n=S.n;
     return `<section class="panel respanel">${verdictHTML()}<p class="big">${EU(p.score)} points</p>${breakdown(p)}<p class="hint">${p.cells} of ${n*n} squares. ${S.wrong} wrong guess${S.wrong===1?'':'es'}. Share sends your result with a link: friends who open it play this same grid.</p><pre class="sharebox" id="share">${esc(shareText())}</pre>${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="again" style="flex:1">New grid</button></div><button class="ghost" id="newg">Change settings</button></section>`}

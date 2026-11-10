@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611101000"></script>
+<script src="../brand/mingo.js?v=202611101300"></script>
 <script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -86,7 +86,7 @@
 .cpre{display:flex;gap:6px;width:100%}
 .cpre i{flex:1;aspect-ratio:3/4;border-radius:8px;border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--mono);font-size:.8rem;color:var(--ink-2)}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611101000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611101300">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -97,7 +97,7 @@
 <script src="../data/flags.js?v=202611101000"></script>
 <script src="../shared/data.js?v=202611100900"></script>
 <script src="../shared/games.js?v=202611101000"></script>
-<script src="../shared/minigames.js?v=202611100845"></script>
+<script src="../shared/minigames.js?v=202611101300"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611101000"></script>
@@ -294,13 +294,8 @@ function resultHTML(G){const p=pointsOf(G),v=verdict(G);
     <p class="hint">${rightOf(G)} of 5 named. Archive games don't count for the ranking or your streak.</p>
     <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
     ${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="archback" style="flex:1">Back to archive</button></div></section>`;
-  return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Customs #${G.num}</span><p class="big">${p} points</p>
-    <p class="hint">${rightOf(G)} of 5 named. Next travellers in ${nextIn()}.</p>
-    <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
-    ${SHARE_BTN}<div class="row-btns sharerow">${nextGameBtn('customs')}</div>
-    <button class="ghost" id="playsolo">Play Solo</button>
-    ${allPlayedHTML('customs')}
-    <span class="label">Your daily games</span>${statTiles(Object.keys(load('cu-hist',{})).length,cuAverage(),streakOf(load('cu-hist',{})))}</section>${rankingHTML()}`}
+  return `${Geomingo.doneTicket('customs',G.num,p+' points','next travellers in '+nextIn())}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
+    <div class="gm-done-btns">${nextGameBtn('customs')}${SHARE_BTN}</div>${rankingHTML()}`}
 // the summary under a finished game: who each traveller was
 const summaryHTML=G=>`<section class="panel"><span class="label">The travellers</span>${G.qs.map(revealHTML).join('')}</section>`;
 // today's ranking (signed-in players, first try of the day): points, then fewer wrong answers, then who finished first
