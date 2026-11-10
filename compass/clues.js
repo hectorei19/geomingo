@@ -10,11 +10,15 @@ function bearing(a,b){const y=Math.sin((b.lon-a.lon)*R)*Math.cos(b.lat*R),x=Math
 const gap=(a,b)=>{const d=Math.abs(a-b)%360;return d>180?360-d:d};
 const BIG=3e5,NC=5;
 // the score of a set of clues (lower is better): each one near its target distance, well-known cities preferred
-const cost=(o,tg)=>Math.abs(Math.log(o.d/tg))+(o.x.pop<BIG?.6:o.x.pop<1e6?.2:0);
+const cost=(o,tg,v,av)=>Math.abs(Math.log(o.d/tg))+(o.x.pop<BIG?.6:o.x.pop<1e6?.2:0)+(v?jit(v,o.x.c)+(av.includes(o.x.c)?AVOID:0):0);
+// o.v (a capital's 2nd, 3rd… time in the daily, Héctor 2026-11-10): every city gets a small fixed nudge from v, so the
+// best five are other cities and a capital that comes back has new clues; without o.v nothing changes
+const JIT=1.2,AVOID=1; // o.avoid: the clue cities of its first time, pushed back so the new five are mostly other ones
+function jit(v,c){let h=2166136261;const s=v+'|'+c;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0)/4294967296*JIT}
 // [{c: city code, d: km (whole), b: degrees from north, clockwise}], far to near.
 // A small search: clue by clue, keep the best partial sets (300, more when it is hard); the five must sit at least G degrees apart (45 if it can, less round remote capitals)
 // o.pre: clue codes already on the compass (they stay, in order); o.skip: cities that can't be clues (wrong guesses)
-function cluesFor(t,o){o=o||{};const pre=o.pre||[],skip=o.skip||[];
+function cluesFor(t,o){o=o||{};const pre=o.pre||[],skip=o.skip||[],v=o.v||0,av=o.avoid||[];
   const all=CITIES.filter(x=>x.c!==t.c&&(pre.includes(x.c)||!skip.includes(x.c))).map(x=>({x,d:dist(t,x),b:bearing(t,x)})).filter(o=>o.d>=40).sort((a,b)=>a.d-b.d);
   const big=all.filter(o=>o.x.pop>=BIG),near=Math.min(big[0].d,all[0].d*2);
   const start=Math.max(2600,near*2.5),end=Math.max(all[0].d,120),tg=i=>start*Math.pow(end/start,i/(NC-1));
@@ -23,7 +27,7 @@ function cluesFor(t,o){o=o||{};const pre=o.pre||[],skip=o.skip||[];
     for(let i=beam[0].l.length;i<NC;i++){const nb=[];
       for(const st of beam){const last=st.l[st.l.length-1];
         for(const o of pool){if(st.l.includes(o)||last&&o.d>last.d/1.15)continue;if(st.l.some(p=>gap(p.b,o.b)<G))continue;
-          nb.push({s:st.s+cost(o,tg(i)),l:st.l.concat(o)})}}
+          nb.push({s:st.s+cost(o,tg(i),v,av),l:st.l.concat(o)})}}
       nb.sort((a,b)=>a.s-b.s);beam=nb.slice(0,G<30?2000:300);if(!beam.length)break}
     if(beam.length&&beam[0].l.length===NC)return beam[0].l.map(o=>({c:o.x.c,d:Math.round(o.d),b:Math.round(o.b)}))}
   return []}
