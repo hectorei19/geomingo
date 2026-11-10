@@ -192,6 +192,10 @@ const groupOf=(S,c)=>S.groups.findIndex(g=>g.m.includes(c));
 /* ---- state ---- */
 // view: 'home', 'game' (today's puzzle or Solo), 'friends' (create or join a room) or 'room' (a room's lobby and its game)
 let S=null,sel=[],mode='daily',view='home';
+// ?solo (from Practice on the Geomingo home page) opens the Solo screen
+try{if(new URLSearchParams(location.search).has('solo')){view='solo';history.replaceState(null,'',location.pathname)}}catch(e){}
+// Back from today's game, Solo or With friends goes to the Geomingo home page (in a room: leave it first)
+const toHub=()=>{if(typeof roomCode!=='undefined'&&roomCode){goHome();return}location.href='../'};
 const dailySaved=()=>{const d=load('cx-daily',null);return d&&d.date===todayKey()?d.S:null};
 function save(){if(!S)return;
   if(S.mode==='online'){if(S.over&&S.ms==null)S.ms=Math.max(0,now()-((room&&room.startAt)||now()));
@@ -421,16 +425,16 @@ function homeHTML(){const key=todayKey(),num=dayNum(key,CX_FIRST),d=dailySaved()
   const hi=d&&d.over?Geomingo.hello(d.found.length?'happy':'sad',d.found.length?'Stamped for today.'+(st>1?' '+st+'-day streak.':''):'Rough crossing today.',`Today's puzzle is done. Next one in ${nextIn()}.`)
     :d?Geomingo.hello('think','Your puzzle is waiting.','Tap a country to carry on. One try.')
     :Geomingo.hello('pass','GeoPass ready.','Tap a country to start. Every group you find is a stamp. One try, the same 16 for everyone.');
-  return header('Connec<span>tions</span>','',true)+`<section class="home">${hi}${Geomingo.account.userHTML()}${daily}${d&&d.over?rankingHTML():''}
-    <div class="hrow"><button class="hcard" data-go="free"><span class="ht">Solo</span><span class="hs">Practice on unlimited puzzles, at your pace.</span></button>
-    <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to ${MAX_PLAYERS} players.</span></button></div></section>
+  return header('Connec<span>tions</span>','',true)+`<section class="home">${hi}${Geomingo.account.userHTML()}${daily}${d&&d.over?rankingHTML():''}</section>
     ${rulesPanel()}`}
 const rulesPanel=on=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something: a region, a flag, a language, a name… Each country is in exactly one group, and only one split works for all 16. Pick four and tap <b>Submit</b>. ${on?'With friends there are no lives: play until you find all four groups. Fewer mistakes and speed decide the ranking.':`A wrong four costs one of your ${MAX_MISTAKES} lives.`} Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 // the logo goes home from anywhere; in a room that means leaving it (in the middle of a game, tap twice)
 function goHome(){if(roomRef){if(S&&S.mode==='online'&&!S.over&&!leaveArmed){leaveArmed=true;render();toast('Tap again to leave the room.');return}
     leaveRoom(true);return}
   view='home';toastMsg=null;drawToast();sel=[];render()}
+// opening the game goes straight into today's game (or today's result when it is played)
 function render(keepShake){
+  if(view==='home'){openDaily();return}
   // the clock of the visas starts when today's puzzle is first on screen (home or game), unless it is already over
   if(!TESTDAY&&(view==='home'||view==='game'&&S&&S.mode==='daily')){const d=dailySaved();if(!(d&&d.over))Geomingo.clock.start('connections',todayKey())}
   if(view==='home'){app.innerHTML=homeHTML();bind();return}
@@ -523,7 +527,7 @@ function bind(){
   if($('archback'))$('archback').onclick=openArchive;
   app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
   app.querySelectorAll('[data-go="friends"]').forEach(b=>b.onclick=()=>{view='friends';render()});
-  if($('home'))$('home').onclick=goHome;
+  if($('home'))$('home').onclick=toHub;
   app.querySelectorAll('[data-info]').forEach(b=>b.onclick=()=>{const k=CATS[+b.dataset.info];dialog(esc(EUT(k.label)),`<p>${esc(EUT(k.desc))}</p>`)});
   if($('rules'))$('rules').onclick=()=>dialog('How to play',rulesHTML());
   if($('shuf'))$('shuf').onclick=()=>{S.left=shuffle(S.left,Math.random);save();render()};

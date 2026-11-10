@@ -1195,7 +1195,7 @@ function dropRoom(){
   Geomingo.room.forget('bl-room');
 }
 // tapping the logo goes to the home screen from anywhere; a game that would be lost (Solo, a room) asks first
-function goHome(){if(USER&&NEEDNAME)return;
+function goHome(){if(USER&&NEEDNAME)return;AUTO=1;
   if(roomCode){if(confirm('Leave the room and go to the home screen?'))leaveRoom().then(()=>{screen='home';render();window.scrollTo(0,0)});return}
   if(S&&!S.over&&!S.daily&&!confirm('Leave this game and go to the home screen? This game will be lost.'))return;
   clearInterval(tick);S=null;setup.code='';clearGridParam();if(setup.user)editingUser=false;
@@ -1326,7 +1326,18 @@ const app=document.getElementById('app'),layer=document.getElementById('layer');
 const pinStyle=i=>`background:var(--p${i})`;
 const colRef=j=>'ABCDE'[j], rowRef=i=>String(i+1);
 
+// the Geomingo home page: Back from today's grid, Solo or With friends goes there
+const toHub=()=>{location.href='../'};
+// opening the game goes straight into today's grid (or today's result when it is played);
+// done once per visit (and again when the game name on top is tapped), and only once the sign-in is known
+let AUTO=1;
+function autoDaily(){if(!AUTO||S||screen!=='home'||editingUser||roomCode||MAYBE_IN()||(USER&&NEEDNAME))return false;
+  AUTO=0;if(USER)adoptDaily(ACCT_TODAY);const d=loadDaily();
+  if(USER&&otherDevice(ACCT_TODAY)&&!(d&&d.S.over))return false;
+  if(!d&&!dailyGrid())return false;
+  playDaily();return true}
 function render(){
+  if(autoDaily())return;
   // the clock of the visas starts when today's grid is first on screen (home or game), unless it is already over
   if(!TESTDAY&&!roomCode){const k=todayKey(),dd=loadDaily(),hh=loadHist()[k];
     if(S?S.daily===k&&!S.archive&&S.mode==='solo'&&!S.over:screen==='home'&&!(dd&&dd.S.over)&&!(hh&&hh.f===1))Geomingo.clock.start('borderline',k)}
@@ -1497,10 +1508,6 @@ function homeView(){
     ${daily}
     ${TEST?`<div class="testbar"><span>Test mode${TESTDAY?' · day '+TESTDAY:''}</span><button class="ghost" id="dreset">Test: reset today's grid</button>
       <small class="tdiag">${(()=>{const a=ACCT_TODAY,hh=loadHist()[key],l=loadDaily();return `version ${APP_VERSION} · this device ${ME}<br>account today: ${USER?(a?`device ${a.d||'none'}, ${a.s} pts, ${a.f===1?'finished':a.f===0?'started':'old format'}, full game ${a.j?'yes':'no'}`:'nothing'):'not signed in'}<br>this device today: ${l?(l.S.over?l.S.players[0].score+' pts, finished':'in progress'):'nothing'} · stats today: ${hh?hh.s+' pts':'none'}`})()}</small></div>`:''}
-    <div class="hrow">
-    <button class="hcard" data-go="solo"><span class="ht">Solo</span><span class="hs">Practice on unlimited grids, at your pace.</span></button>
-    <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to 6 players.</span></button>
-    </div>
   </section>
   ${QRULES}`;
 }
@@ -1817,10 +1824,11 @@ function bind(){
   app.querySelectorAll('[data-dcell]').forEach(b=>b.onclick=()=>{const ci=+b.dataset.dcell;playDaily();
     if(S&&S.daily&&!S.over&&S.cells[ci].o<0){ui.sel=ci;ui.query='';render()}});
   if($('brand')){$('brand').onclick=goHome;$('brand').onkeydown=e=>{if(e.key==='Enter')goHome()}}
-  if($('home'))$('home').onclick=()=>{screen='home';setup.code='';clearGridParam();render()};
+  if($('home'))$('home').onclick=toHub;
   if($('pass'))$('pass').onclick=pass;
   if($('giveup'))$('giveup').onclick=()=>{const b=$('giveup');if(b.dataset.armed){endGame()}else{b.dataset.armed='1';b.textContent='Tap again to '+(S&&S.mode==='solo'?'give up':'end the game')}};
   if($('gback')&&S&&S.mode==='online')$('gback').onclick=leaveRoom;
+  else if($('gback')&&S&&S.daily&&!S.archive)$('gback').onclick=toHub;
   else if($('gback'))$('gback').onclick=()=>{screen=screenFor(S);clearInterval(tick);S=null;setup.code='';render();window.scrollTo(0,0)};
   if($('playsolo'))$('playsolo').onclick=()=>{screen='solo';clearInterval(tick);S=null;setup.code='';render();window.scrollTo(0,0)};
   if($('create'))$('create').onclick=createRoom;
@@ -1859,6 +1867,8 @@ function start(data){
   if(editingUser||(S&&S.mode==='online'))S=null;
   if(S&&!S.over)startTurn();
   try{if(new URLSearchParams(location.search).has('friends')&&!S){screen='friends';history.replaceState(null,'',location.pathname)}}catch(e){}
+  // ?solo (from Practice on the Geomingo home page) opens the Solo screen
+  try{if(new URLSearchParams(location.search).has('solo')&&!S){screen='solo';history.replaceState(null,'',location.pathname)}}catch(e){}
   try{const q=new URLSearchParams(location.search).get('room');if(q&&/^[A-Za-z]{4}$/.test(q)){setup.mode='online';setup.join=q.toUpperCase();screen='friends'}}catch(e){}
   // a shared result link (?grid=4E-KQPMT) opens the setup screen ready to play that same grid
   try{const g=new URLSearchParams(location.search).get('grid');if(g&&parseCode(g)){setup.code=g.trim().toUpperCase();if(setup.mode==='online')setup.mode='solo';screen='solo';if(S&&S.mode!=='online')S=null}}catch(e){}
