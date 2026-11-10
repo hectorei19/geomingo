@@ -7,18 +7,17 @@ Geography quiz: name the country from its shape. Part of [Geomingo](https://geom
 - Solo: unlimited practice shapes at the chosen level (Easy, Normal or Hard), from a shuffled deck.
 - With friends: online rooms for 2 to 6 phones (`?room=ABCD` opens a room's join screen). The host picks "Getting harder" (3 Easy, 4 Normal not in Easy, 3 Hard) or a continent and a level; ten shapes, everyone sees the same one at the same time, 20 s each, 3 tries. A right answer scores 500 plus up to 500 for speed. The ranking shows after every shape and at the end. Rooms use Countries' Firebase Realtime Database (`rooms/ABCD`, marked `game: 'silhouette'`), so its rules need no change. Each phone writes only its own answers (`ans/<shape>/<player>`); the host's phone moves the room on (anyone's, a little later, if the host has gone).
 - Saved on the device (localStorage): `sil-daily`, `sil-hist`, `sil-train`, `sil-diff` (Solo's level); for rooms `sil-pid`, `sil-setup`, `sil-room`.
-- `check.html` shows every silhouette, north up or turned, to look them over.
 
 Files:
 - `index.html` – the game.
 - `countries.js` – the 197 countries (the same list as every Geomingo game): English name, other accepted names, continent, flag, Easy or not, and the silhouette (an SVG path in a 100 × 100 box). Made by `tools/build-countries.js`; do not edit it by hand.
 - `silhouette.js` – drawing a silhouette (turned and fitted to the box for Hard), the answer box's search (no accents, case or spaces needed; common other names such as Holland, Burma, UK), seeded random picks.
-- `flags.js` – the flags as SVG text, loaded after the page. Made by the same tool.
+- Flags: the Geomingo flags, `../data/flags.js`, loaded after the page.
 - `../shared/style.css`, `../shared/games.js`, `../shared/minigames.js` – styles, the Games list and helpers shared with Top 10 and Connections (`minigames.js` has a `creditsHTML` hook for this game's Credits and saves `sil-train` in test mode).
-- `firebase-config.js` – the Firebase web config, the same as Countries'.
+- `../brand/firebase-config.js` – the Firebase web config shared by every game.
 
 Publishing a new version: change the `?v=` number after the files in `index.html`, so phones load the new files. Change `ROOM_V` too when the room format changes.
-- `tools/` – only to rebuild `countries.js`: `cd tools`, `npm install`, `node build-countries.js` (reads `../data/countries.js` and `../data/flags.js`, the Geomingo country database).
+- `tools/` – only to rebuild `countries.js`: `cd tools`, `npm install`, `node build-countries.js` (reads `../data/countries.js`, the Geomingo country database).
 
 How the silhouettes are made: each country on its own map centred on itself (azimuthal equal-area), so nothing far from the equator is stretched and the date line never splits a country (Russia, Fiji, Kiribati). Far-off small parts are left out (French Guiana, Hawaii, Easter Island, the Canaries); big or nearby ones stay (Alaska, Svalbard, Sicily). Every shape fills the same box, so size gives nothing away. Outlines are simplified in screen units, a quarter of a pixel at 400 px, so small countries keep their detail. Nations made only of tiny atolls (Tuvalu, Maldives) keep all their islets, drawn as dots. Vatican City's border in world-atlas is a single line, so its shape comes from [geoBoundaries](https://www.geoboundaries.org) (VAT-ADM0, public domain), in `tools/vatican.geojson`. It joined the daily boards from the second 21-day cycle (2026-11-12), so earlier boards stay as they were.
 

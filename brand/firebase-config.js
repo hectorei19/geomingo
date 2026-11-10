@@ -1,4 +1,4 @@
-// Firebase web config for Country Grid (Firebase project still named borderline-90920) (not secret: access is controlled by database rules).
+// Firebase web config for every Geomingo game (project borderline-90920; not secret: access is controlled by the database rules in countries/database.rules.json).
 window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyBSHPqTRcuA3orK4W5LKbRNTNij48a4hdQ",
   authDomain: "borderline-90920.firebaseapp.com",

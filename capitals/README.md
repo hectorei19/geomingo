@@ -8,13 +8,13 @@ Live at https://geomingo.com/capitals/ (formerly Cities, at /cities/, which stil
 
 - Today's grid: one 4×4 Normal grid a day for everyone, new at midnight CET, one try.
 - Solo: unlimited grids (Easy, Normal, Hard; 3×3 or 4×4: 197 capitals are too few for 5×5). A shared result link (`?grid=4-KQPMT`) opens the same grid.
-- With friends: shown as "coming soon".
+- With friends: online rooms, as in Countries.
 - Results and stats are kept on the device (localStorage keys starting with `cc-`, so they never mix with Country Grid's `bl-` keys on the same website).
 
 Files:
 - `index.html` – the whole game (categories and game logic).
 - `data.js` – the data: capitals (`CITIES`), country lists (`CO_LISTS`) and the fixed daily grids (`DAILY_FIXED`). Country names (`CO`) come from the Geomingo country database, `../data/countries.js`.
-- `flags.js` – Vatican City's flag (`FLAG_VAT`), which Silhouette's flags don't have.
+- Flags: the Geomingo flags, `../data/flags.js`.
 
 ## How it was made
 

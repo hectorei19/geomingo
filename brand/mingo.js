@@ -12,14 +12,8 @@ const SRC=document.currentScript&&document.currentScript.src||location.href;
 const HOME=new URL('../',SRC).href;          // the Geomingo home page (geomingo.com/)
 const ROOT=HOME;                             // the games live in folders of the home page
 
-/* ---------- light / dark: the choice is kept for every game (gm-theme) ---------- */
+/* ---------- saved on this device ---------- */
 const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}};
-// Geomingo is dark only (Héctor, 2026-10-24): the light tokens stay in the CSS but are never used
-function applyTheme(){document.documentElement.setAttribute('data-theme','dark')}
-applyTheme();
-function currentTheme(){return 'dark'}
-function toggleTheme(){const next=currentTheme()==='dark'?'light':'dark';store.set('gm-theme',next);applyTheme();
-  document.querySelectorAll('[data-gm-theme]').forEach(b=>b.setAttribute('aria-pressed',String(next==='dark')))}
 
 /* ---------- the games, each one a trip ----------
    id: the id each game already uses for its saves (Countries kept Borderline's), soon: shown as "Coming soon" */
@@ -275,13 +269,12 @@ function visas(){const H=k=>json(k)||{},vals=o=>Object.values(o).filter(Boolean)
     ['#2A56B8','6','Six continents','A country of your own on every continent',...up(conts,6),'',3],
     ['#1D2B4C','1K','Full passport','1,000 stamps',...up(p.n,1000),'',3]]}
 const stamps=()=>pass().n;
-const stampsToday=g=>pass().list.filter(x=>x.d===dayKey()&&(!g||x.g===g)).length;
 // a stamp: name, small line, optional flag picture; a player class (c0…c5) gives the player's ink instead
 function stampHTML(t,sub,cls,flag){const r=(hsh(t)%15)-7,own=/\bc\d\b/.test(cls||'');
   const L=Math.max(...String(t).split(' ').map(w=>w.length)),fs=L>11?10:L>8?12:14; // long names get smaller, never cut in half
   return '<span class="gm-stamp '+(cls||'')+'" style="'+(own?'':'color:'+INK[hsh(t)%4]+';')+'--r:'+r+'deg">'+(flag?'<img class="sf" src="'+esc(flag)+'" alt="">':'')+'<b class="sn" style="font-size:'+fs+'px">'+esc(t)+'</b>'+(sub?'<small>'+esc(sub)+'</small>':'')+'</span>'}
 function refreshPass(){const n=stamps();document.querySelectorAll('[data-gm-pass]').forEach(b=>{const x=b.querySelector('b');if(x)x.textContent=fmt(n);b.setAttribute('aria-label','Open your GeoPass: '+n+' stamps')})}
-addEventListener('storage',e=>{if(e.key==='gm-theme')applyTheme();if(e.key==='gm-pass')refreshPass()});
+addEventListener('storage',e=>{if(e.key==='gm-pass')refreshPass()});
 
 /* ---------- Mingo: a flat, grown-up flamingo who carries the GeoPass ----------
    poses: pass (ready, GeoPass under the wing), happy (stamped), sad (denied), think (hold on), head */
@@ -328,24 +321,20 @@ function ticket(say,stub,o){o=o||{};const m=o.mode,n=o.num!=null?' #'+o.num:'';
 function traveller(){const a=window.Geomingo&&window.Geomingo.account;return ((a&&a.name)||store.get('bl-user')||store.get('cc-user')||'Guest').trim().slice(0,16)||'Guest'}
 
 /* ---------- the shared header ----------
-   header({game:'Countries', coord:'Daily #12', menu:'<button…>'}): "‹ geomingo", GeoPass and theme on top,
+   header({game:'Countries', coord:'Daily #12', menu:'<button…>'}): "‹ geomingo", GeoPass and account on top,
    then the game's own bar: its name (goes to the game's home screen, id="brand"), its trip number, Menu.
    Without game: the home page. */
-const ICO={back:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
-  moon:'<svg class="moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>',
-  sun:'<svg class="sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'};
+const ICO={back:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>'};
 const logo='<span class="gm-logo">geo<span>mingo</span></span>';
 const passBtn=()=>{const n=stamps();return '<button class="gm-pass" data-gm-pass aria-label="Open your GeoPass: '+n+' stamps" title="Your GeoPass"><i aria-hidden="true">✦</i><span class="gm-pw">GEOPASS</span><b>'+fmt(n)+'</b></button>'};
-const themeBtn=()=>'';
 // the account button (Sign in, or your initial): ../brand/account.js fills it in once it knows who is playing
 const acctSlot=()=>'<span class="gm-acctslot" data-gm-acctslot>'+(window.Geomingo&&Geomingo.acctHTML?Geomingo.acctHTML():'')+'</span>';
 function header(o){o=o||{};
-  if(!o.game)return '<header class="gm-top"><h1 class="gm-logo">geo<span>mingo</span></h1><span class="gm-beta" title="Still in testing. Official launch coming soon.">BETA</span><span class="gm-spacer"></span>'+passBtn()+acctSlot()+themeBtn()+'</header>';
+  if(!o.game)return '<header class="gm-top"><h1 class="gm-logo">geo<span>mingo</span></h1><span class="gm-beta" title="Still in testing. Official launch coming soon.">BETA</span><span class="gm-spacer"></span>'+passBtn()+acctSlot()+'</header>';
   const g=GAMES.find(x=>x.name===o.game),gate=g?'Trip '+g.gate:'',sub=[gate,o.coord].filter(Boolean).join(' · ');
-  return '<header class="gm-top"><a class="gm-home" href="'+HOME+'" aria-label="All Geomingo games">'+ICO.back+logo+'<span class="gm-beta" title="Still in testing. Official launch coming soon.">BETA</span></a><span class="gm-spacer"></span>'+passBtn()+acctSlot()+themeBtn()+'</header>'+
+  return '<header class="gm-top"><a class="gm-home" href="'+HOME+'" aria-label="All Geomingo games">'+ICO.back+logo+'<span class="gm-beta" title="Still in testing. Official launch coming soon.">BETA</span></a><span class="gm-spacer"></span>'+passBtn()+acctSlot()+'</header>'+
     '<div class="gm-bar"><h2 class="gm-title" id="brand" role="link" tabindex="0" title="'+esc(o.game)+' home">'+esc(o.game)+(sub?'<small>'+esc(sub)+'</small>':'')+'</h2><span class="gm-spacer"></span>'+(o.menu||'')+'</div>'}
-document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-gm-theme],[data-gm-pass]');if(!t)return;e.preventDefault();
-  if(t.hasAttribute('data-gm-theme'))toggleTheme();else openPass()});
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-gm-pass]');if(!t)return;e.preventDefault();openPass()});
 
 /* ---------- windows: the result card and the GeoPass booklet (one at a time, Escape closes) ---------- */
 let lastFocus=null,onCloseFn=null;
@@ -361,20 +350,6 @@ function openWindow(html,label,onClose){const had=document.getElementById('gm-wi
   return box}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('gm-window')){e.stopPropagation();closeWindow()}},true);
 
-/* the result card, like a boarding pass:
-   resultWindow({game:'borderline', pose, title:'Mingo's line', num:'1,240', unit:'Points', mini, line, share:fn, next, allDone, close:'See the grid', onClose}) */
-function resultWindow(o){const g=game(o.game)||{name:o.gameName||''},nx=o.next||null,st=o.game?stampsToday(o.game):0;
-  const line=o.line!=null?o.line:[st?st+' new stamp'+(st===1?'':'s'):'',o.stat||''].filter(Boolean).join(' · ');
-  const html='<div class="gm-res"><div class="gm-band">'+mingo('head',26)+'<b>'+esc(g.name)+' · visited</b></div><div class="gm-rbody">'+
-    '<div class="gm-rtop">'+mingo(o.pose||'happy',70)+'<div><span class="gm-lab">'+esc(o.unit||'Score')+'</span>'+(o.num!=null?'<span class="gm-num">'+esc(o.num)+'</span>':'')+'</div>'+(o.mini||'')+'</div>'+
-    (o.room&&o.title?'<p class="gm-say">'+esc(o.title)+'</p>':'')+(line?'<p class="gm-line">'+esc(line)+'</p>':'')+'<hr class="gm-rsep">'+
-    (st?'<button class="gm-big" data-gm-act="pass">See them in the GeoPass</button>':'')+
-    (o.share?'<button class="gm-big coral" data-gm-act="share">'+esc(o.shareLabel||'Share result')+'</button>':'')+
-    (nx?'<a class="gm-big ghost" href="'+esc(nx.href)+'">Next: '+esc(nx.name)+'</a>':(o.allDone?'<p class="gm-note">That was the last game today. New trips at midnight CET.</p>':''))+
-    '<button class="gm-text" data-gm-act="close">'+esc(o.close||'Close')+'</button></div></div>';
-  const box=openWindow(html,(g.name||'Game')+' result',o.onClose);box._acts={share:()=>o.share&&o.share()};
-  const f=box.querySelector('[data-gm-act="share"]')||box.querySelector('a,button');if(f)f.focus()}
-
 /* ---------- the GeoPass: one passport, the same from the home page and from every game ----------
    The data page on top (Mingo, name, level, km, streak, stamps, countries), then three pages:
    Passport (the route, today's entry stamp, the countries almost yours, the latest milestones, how it works), Countries (the atlas) and Visas. */
@@ -387,7 +362,7 @@ let gpTab='passport',gpCont='all',SHAPES=null,shapesBusy=false;
 function loadShapes(then){if(SHAPES)return then();
   const use=()=>{try{SHAPES={};COUNTRIES.forEach(c=>SHAPES[c.c]=c.p)}catch(e){SHAPES={}}then()};
   if(typeof COUNTRIES!=='undefined')return use();
-  if(shapesBusy)return;shapesBusy=true;const sc=document.createElement('script');sc.src=ROOT+'silhouette/countries.js?v=202610230100';
+  if(shapesBusy)return;shapesBusy=true;const sc=document.createElement('script');sc.src=ROOT+'silhouette/countries.js?v=202611081800';
   sc.onload=()=>{shapesBusy=false;use()};sc.onerror=()=>{shapesBusy=false;SHAPES={};then()};document.head.appendChild(sc)}
 function routeHTML(km){const lv=level(km),at=i=>8+i*21,me=lv.next?at(lv.i)+21*lv.pct/100:at(lv.i);
   return '<div class="gp-route" role="img" aria-label="'+esc(lv.name+', '+fmt(km)+' km'+(lv.next?'. '+fmt(lv.next[1]-km)+' km to '+lv.next[0]:''))+'">'+
@@ -495,10 +470,6 @@ function openPass(tab){if(typeof tab==='string')gpTab=tab;
     else{const i=box.querySelector('#gp-info');if(i){i.innerHTML=countryInfo(t.dataset.gpC);i.classList.add('on')}}});
   draw();const c=box.querySelector('[data-gm-act="close"]');if(c)c.focus()}
 
-/* a little grid of squares for the result card (true = got it) */
-function mini(list,cols){return '<div class="gm-mini" style="grid-template-columns:repeat('+cols+',16px)" aria-hidden="true">'+list.map(x=>'<i class="'+(x?'ok':'')+'"></i>').join('')+'</div>'}
-
-
 /* With friends: a room only comes back on its own while it is still being played.
    Each game keeps its room code in localStorage (key) and here the last time this phone had that room open (key+'-seen').
    Reopening the game: an invite link to another room always wins; a room not seen for 30 minutes is forgotten;
@@ -524,6 +495,6 @@ document.addEventListener('visibilitychange',()=>{
 const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,stale:roomStale};
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
-  days,streak,pass,stamp,stamps,stampsToday,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,traveller,header,passBtn,themeBtn,toggleTheme,currentTheme,
-  resultWindow,openWindow,closeWindow,mini,esc,refreshPass,room,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
+  days,streak,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,traveller,header,passBtn,
+  openWindow,closeWindow,esc,refreshPass,room,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();

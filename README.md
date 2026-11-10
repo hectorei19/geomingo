@@ -15,10 +15,10 @@ Daily geography games. Better with friends. Home page live at https://geomingo.c
 Everything is one website, one repository (published with GitHub Pages from `main`, root folder, at https://geomingo.com/ — the domain is in `CNAME`):
 
 - `index.html` – the home page; `brand/` – the shared Geomingo look (below)
-- `countries/` – Countries (formerly Country Grid / Borderline), with `firebase-config.js`, `database.rules.json` and `version.json`
+- `countries/` – Countries (formerly Country Grid / Borderline), with `database.rules.json` (the Firebase rules) and `version.json`
 - `capitals/` – Capitals (formerly Cities / City Grid)
 - `cities/` – only forwards old links to `capitals/`
-- `connections/`, `top10/`, `silhouette/` – the smaller games, each with its own `index.html` and `firebase-config.js`
+- `connections/`, `top10/`, `silhouette/` – the smaller games, each with its own `index.html`
 - `data/` – the Geomingo country database, the one source of country data for every game: `countries.js` (countries, one name each, figures, lists) and `flags.js` (flags).
 - `shared/` – files used by Connections, Top 10 and Silhouette: `style.css`, `games.js`, `minigames.js`, and `data.js` (the category rules of Connections, Top 10, Customs and Flag Pie; the country data itself is in `data/`)
 
@@ -28,12 +28,13 @@ The games moved here from their own repositories (hectorei19/country-grid, city-
 
 One source for every game. The games load these files from `../brand/`:
 
-- `geomingo.css` – the travel / passport look: colour tokens (paper, navy cover, coral, gold, stamp inks; light and dark, `data-theme`), the fonts Archivo, Public Sans and Courier Prime, the brand components (`gm-*`: header with the GeoPass button, theme button, Mingo's bubble, departures board, stamps, big buttons, result card, GeoPass booklet, toast) and the games' common pieces (panel, buttons, grid, answer sheet, Menu) in the brand's look. Load it after the game's own styles.
-- `mingo.js` – `window.Geomingo`: Mingo in his poses (`mingo('pass'|'happy'|'sad'|'think'|'head', width)`), his speech bubble (`hello`), the shared header (`header`), the result card (`resultWindow`), the GeoPass (`stamp`, `stamps`, `stampsToday`, `openPass`), the list of games with their gates, "played today" and today's score (`GAMES`, `result`, `nextGame`) and the streak. Load it in the `<head>`, before the page's own scripts: it applies the saved light/dark choice before anything is drawn.
+- `geomingo.css` – the travel / passport look: colour tokens (paper, navy cover, coral, gold, stamp inks; dark only), the fonts Archivo, Public Sans and Courier Prime, the brand components (`gm-*`: header with the GeoPass button, Mingo's bubble, departures board, stamps, big buttons, windows, GeoPass booklet, toast) and the games' common pieces (panel, buttons, grid, answer sheet, Menu) in the brand's look. Load it after the game's own styles.
+- `mingo.js` – `window.Geomingo`: Mingo in his poses (`mingo('pass'|'happy'|'sad'|'think'|'head', width)`), his speech bubble (`hello`), the shared header (`header`), the GeoPass (`stamp`, `stamps`, `openPass`), the list of games with their gates, "played today" and today's score (`GAMES`, `result`, `nextGame`) and the streak. Load it in the `<head>`, before the page's own scripts.
+- `firebase-config.js` – the Firebase web config, one file for every game (not secret: access is controlled by the database rules).
 - `account.js` – `Geomingo.account`: one Google sign-in for the whole site (Firebase project borderline-90920; the sign-in is shared by every page because they are one website). It adds the header button (Sign in, or your initial with Sign out), and for Connections, Top 10 and Silhouette the "Playing as … / Sign in to join the daily ranking" banner (`userHTML`), today's ranking (`rankingHTML`) and the saving of each daily result (`done(game)`, called by the game when today's puzzle ends). Load it right after `mingo.js`; it loads the Firebase SDK itself on pages that don't. Countries and Capitals keep their own sign-in code and share the same account and name.
 - `icons/` – favicon and app icons (Mingo's head), `og.png` – the picture shown when a link is shared, `site.webmanifest`.
 
-Saved on the device by the brand (new keys; the games' own keys never change): `gm-theme` (light or dark, for every game), `gm-days` (days with at least one daily game played, for the streak; filled in the first time from the games' histories) and `gm-pass` (the GeoPass: total stamps and the last 240, one stamp per right answer in any game; filled in the first time from the games' histories).
+Saved on the device by the brand (new keys; the games' own keys never change): `gm-days` (days with at least one daily game played, for the streak; filled in the first time from the games' histories) and `gm-pass` (the GeoPass: total stamps and the last 240, one stamp per right answer in any game; filled in the first time from the games' histories).
 
 ## The account (Firebase Realtime Database)
 
