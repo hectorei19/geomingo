@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-game="compass">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>Compass · Geomingo</title>
+<meta name="description" content="A mystery capital in the middle of a compass, other capitals round it with their distance: find it. Five new capitals every day. Daily geography games from Geomingo.">
+<meta name="theme-color" content="#151E30">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Geomingo">
+<meta property="og:title" content="Compass · Geomingo">
+<meta property="og:description" content="A mystery capital in the middle of a compass, other capitals round it with their distance: find it. Five new capitals every day.">
+<meta property="og:url" content="https://geomingo.com/compass/">
+<meta property="og:image" content="https://geomingo.com/brand/og.png?v=2">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../brand/icons/favicon.svg?v=202611011030" type="image/svg+xml">
+<link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
+<link rel="manifest" href="../brand/site.webmanifest?v=3">
+<script src="../brand/mingo.js?v=202611100700"></script>
+<script src="../brand/account.js?v=202611100700"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
+<link rel="stylesheet" href="../shared/style.css?v=202611091550">
+<style>
+/* Compass: the mystery capital in the middle of a compass; clue capitals appear round the rim, each in its real direction with its distance */
+.play{display:flex;flex-direction:column;gap:12px;width:100%}
+.cmpcard{display:flex;flex-direction:column;align-items:center;gap:8px;background:var(--sheet);border:2px solid var(--gold);border-radius:16px;padding:10px 6px 12px}
+.cmp{position:relative;width:min(100%,340px);aspect-ratio:1;container-type:inline-size}
+.cmp svg{position:absolute;inset:0;width:100%;height:100%}
+.cmp .lab{position:absolute;transform:translate(-50%,-50%);background:var(--guil);border:1.5px solid var(--gold);border-radius:8px;padding:2px 6px;text-align:center;line-height:1.1;white-space:nowrap;font-size:max(11px,3.6cqw);max-width:31cqw;overflow:hidden;text-overflow:ellipsis}
+.cmp .lab b{display:block;font-weight:700;overflow:hidden;text-overflow:ellipsis}
+.cmp .lab span{font-family:var(--mono);font-weight:700;color:var(--gold);font-size:.88em}
+.cmp .lab.bad{border-color:var(--bad)}.cmp .lab.bad span{color:var(--bad)}.cmp .lab.bad b{text-decoration:line-through;text-decoration-color:var(--bad)}
+.cmp .lab.new{box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 40%,transparent)}
+.cmp .ctr{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:22cqw;height:22cqw;border-radius:50%;background:var(--bg);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:var(--display);font-weight:900;font-size:10cqw;color:var(--gold)}
+.cmp .ctr.ok{width:30cqw;height:30cqw;border-color:var(--good);font-size:max(11px,3.8cqw);color:var(--ink);gap:3px;text-align:center;line-height:1.05;padding:0 4px}
+.cmp .ctr.miss{border-color:var(--bad)}
+.cmp .ctr img{width:12cqw;height:auto;border-radius:2px;box-shadow:0 0 0 1px var(--rule)}
+.cline{margin:0;text-align:center;font-size:.95rem;color:var(--ink-2);padding:0 8px}
+.cline b{color:var(--ink)}.cline.bad b.w{color:var(--bad)}
+.locked{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px dashed var(--line);border-radius:12px;color:var(--ink-2);font-size:.92rem}
+.locked .linkbtn{margin-left:auto}
+.ans{display:flex;flex-direction:column;gap:6px}
+.ans input{width:100%;border:1.5px solid var(--ink);border-radius:5px;padding:12px;font-size:1.1rem;background:var(--paper)}
+.ans .sugg{max-height:none}
+.reveal{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;border:2px solid var(--good);border-radius:16px;padding:12px 8px 16px;background:var(--sheet)}
+.reveal.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.reveal .ln{font-family:var(--display);font-weight:700;font-size:1.8rem;line-height:1.1;overflow-wrap:anywhere}
+.reveal .lst{font-family:var(--type,var(--mono));letter-spacing:.15em;font-weight:700;color:var(--good);border:2px solid currentColor;padding:2px 10px;border-radius:4px;transform:rotate(-3deg)}
+.reveal.wrong .lst{color:var(--bad)}
+.reveal .ls{color:var(--ink-2);font-size:.92rem}
+.reveal .primary{width:100%;margin-top:6px}
+.dsq{grid-template-columns:repeat(5,1fr);width:100px}
+.dsq i.mid{background:var(--p2)}
+.dsq i.bad{background:var(--bad)}
+.arch .dsq{width:64px}
+.desk{display:flex;gap:6px;width:100%}
+.desk button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px 6px;background:var(--sheet);border:2px dashed var(--line);border-radius:10px;color:var(--ink-2);font:inherit;font-size:.72rem;letter-spacing:.04em;cursor:default}
+.desk button b{font-family:var(--mono);font-size:.95rem;color:var(--ink)}
+.desk button img{width:34px;height:23px;object-fit:cover;border-radius:2px;box-shadow:0 0 0 1px var(--rule);background:var(--rule)}
+.desk button.right,.desk button.wrong{padding:6px 2px;cursor:pointer}
+.desk button.sel{border:2px solid var(--flamingo);background:var(--flamingo);color:var(--on-flamingo);font-weight:700;letter-spacing:.06em}
+.desk button.sel b{font-size:1.1rem;color:var(--on-flamingo)}
+.desk button.right{border-style:solid;border-color:var(--good);background:var(--p4-soft)}
+.desk button.wrong{border-style:solid;border-color:var(--bad);background:var(--p0-soft)}
+.flist{display:flex;flex-direction:column;gap:8px}
+.frow{display:flex;align-items:center;gap:12px;background:var(--sheet);border:2px solid var(--good);border-radius:14px;padding:10px 12px}
+.frow.wrong{border-color:var(--bad)}
+.frow img{width:48px;height:auto;border-radius:3px;box-shadow:0 0 0 1px var(--rule);flex:none}
+.frow .rn{display:flex;flex-direction:column;min-width:0}
+.frow .rn b{font-family:var(--display);font-weight:700;font-size:1.2rem;line-height:1.1}
+.frow .rn small{color:var(--ink-2);font-size:.85rem}
+.frow .rpts{margin-left:auto;font-family:var(--mono);color:var(--gold);white-space:nowrap}
+.hcmp{display:flex;justify-content:center;gap:6px;width:100%}
+.hcmp .mini{width:52px;height:52px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;color:var(--gold);font-size:1.3rem;background:var(--bg)}
+.hcmp img{width:52px;height:auto;align-self:center;border-radius:3px}
+</style>
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611100520">
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
+<div id="layer"></div>
+
+<script src="../data/countries.js?v=202611081900"></script>
+<script src="../shared/data.js?v=202611081900"></script>
+<script src="../capitals/data.js?v=202611081900"></script>
+<script src="clues.js?v=202611100700"></script>
+<script src="../shared/games.js?v=202610240100"></script>
+<script src="../shared/minigames.js?v=202611091550"></script>
+<script>
+/* ---- Compass: find the mystery capital from the capitals round it (Héctor's idea, 2026-11-10) ----
+   The mystery capital is the "?" in the middle of a compass. Clue capitals appear on the rim, each in its real direction
+   seen from the mystery capital and with its distance in km: the first far away, each next one closer (clues.js).
+   Five capitals per game, one at a time. Every clue after the first and every wrong guess costs 1 point:
+   right = 6 − clues open − wrong guesses (5 down to 1). A wrong guess also lands on the compass, in red, with its distance.
+   When the next clue or wrong guess would bring the points to 0, the capital is lost. Best game 25.
+   A game is {qs: five capitals, sel: the one on screen, over, left: the one just finished, shown until Next city};
+   a capital is {c: city code of ../capitals/data.js, k: clues open, tries: wrong city codes, st: 'play' | 'right' | 'wrong', p: points}. */
+const CLUES=5,PER=5,MAX=CLUES*PER,FIRST='2026-11-10';
+const cityBy=Object.fromEntries(CITIES.map(x=>[x.c,x]));
+const coBy=Object.fromEntries(C.map(c=>[c.c,c]));
+const coName=x=>(coBy[x.k3]||{}).n||x.k3;
+const realFlag=k3=>'../flagpie/flags/'+k3+'.svg';
+const CK={};const cluesOf=c=>CK[c]||(CK[c]=COMPASS.cluesFor(cityBy[c]));
+const worth=q=>CLUES+1-q.k-q.tries.length;
+const ptsOf=q=>q.st==='right'?(q.p||0):0;
+const newQ=c=>({c,k:1,tries:[],st:'play',p:0});
+const newGame=(codes,o)=>Object.assign({qs:codes.map(newQ),sel:0,over:false,left:null},o||{});
+const km=d=>EU(Math.round(d))+' km';
+const where=b=>COMPASS.dirWord(b);
+// a wrong guess, seen from the mystery capital: its distance and direction
+const seen=(q,c)=>{const t=cityBy[q.c],x=cityBy[c];return {c,d:Math.round(COMPASS.dist(t,x)),b:Math.round(COMPASS.bearing(t,x))}};
+let query='',typing=false;
+// the answer box says "capital city", not "country"
+const askCityHTML=()=>askBtnHTML().replace('Type a country…','Type a capital city…');
+const openSheet0=openSheet;openSheet=function(o){openSheet0(o);const q=$('sq');if(q){q.placeholder='Type a capital city…';q.setAttribute('aria-label','Type a capital city')}
+  const s=document.querySelector('#sheetlayer .sheet');if(s)s.setAttribute('aria-label','Name a capital city')};
+
+/* ---- the compass: the mystery capital in the middle, clues (gold) and wrong guesses (red) on the rim ---- */
+const RIM=36,LAB=45.5;   // % of the box: the rim, and where the labels sit
+function compassHTML(q,o){o=o||{};const cl=cluesOf(q.c).slice(0,q.k),bad=q.tries.map(c=>seen(q,c));
+  const pt=(a,r)=>[50+Math.sin(a*Math.PI/180)*r,50-Math.cos(a*Math.PI/180)*r];
+  let s=`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="${RIM}" fill="#0C1220" stroke="var(--gold)" stroke-width=".7"/>`;
+  for(let a=0;a<360;a+=15){const L=a%90===0?3.4:a%45===0?2.2:1.1,[x1,y1]=pt(a,RIM),[x2,y2]=pt(a,RIM-L);s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#9AA6B6" stroke-width="${a%90?.3:.6}"/>`}
+  [['N',0],['E',90],['S',180],['W',270]].forEach(([t,a])=>{const [x,y]=pt(a,RIM-7);s+=`<text x="${x}" y="${y+1.7}" fill="${t==='N'?'#F07884':'#5A6A86'}" font-family="Archivo,sans-serif" font-weight="900" font-size="4.6" text-anchor="middle">${t}</text>`});
+  const all=cl.map((x,i)=>({x,bad:false,i})).concat(bad.map((x,i)=>({x,bad:true,i})));
+  all.forEach(({x,bad})=>{const [x1,y1]=pt(x.b,11.5),[x2,y2]=pt(x.b,RIM),col=bad?'var(--bad)':'var(--gold)';
+    s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width=".6" stroke-dasharray="1.3 1.3" opacity=".85"/><circle cx="${x2}" cy="${y2}" r="1.7" fill="${col}"/>`});
+  s+='</svg>';
+  // labels: at the true direction, nudged sideways when two are too close (the dot on the rim stays true)
+  const placed=[];let h='';
+  all.forEach(({x,bad,i})=>{let a=x.b;
+    for(let step=0;step<14&&placed.some(p=>COMPASS.gap(p,a)<24);step++)a=x.b+(step%2?-1:1)*Math.ceil((step+1)/2)*5;
+    placed.push(a);const [lx,ly]=pt(a,LAB),nm=cityBy[x.c].n,isNew=!bad&&i===cl.length-1&&!o.done&&q.k>1;
+    h+=`<div class="lab${bad?' bad':''}${isNew?' new':''}" style="left:${lx}%;top:${ly}%"><b>${esc(nm)}</b><span>${km(x.d)}</span></div>`});
+  const t=cityBy[q.c];
+  const mid=o.done?`<div class="ctr ${q.st==='right'?'ok':'ok miss'}"><img src="${realFlag(t.k3)}" alt="">${esc(t.n)}</div>`:'<div class="ctr">?</div>';
+  const label='The compass. '+cl.map(x=>cityBy[x.c].n+' is '+km(x.d)+' to the '+where(x.b)).join('. ')+(bad.length?'. Wrong guesses: '+bad.map(x=>cityBy[x.c].n+', '+km(x.d)+' to the '+where(x.b)).join('; '):'');
+  return `<div class="cmp" role="img" aria-label="${esc(label)}">${s}${h}${mid}</div>`}
+// the newest news under the compass, in words
+function newsHTML(q,last){const cl=cluesOf(q.c);
+  if(last&&last.bad){const x=seen(q,last.c);return `<p class="cline bad"><b class="w">✗ Not ${esc(cityBy[x.c].n)}.</b> From the mystery capital, ${esc(cityBy[x.c].n)} is ${km(x.d)} to the <b>${where(x.b)}</b>.</p>`}
+  const x=cl[q.k-1];return `<p class="cline">From the mystery capital, <b>${esc(cityBy[x.c].n)}</b> is <b>${km(x.d)}</b> to the <b>${where(x.b)}</b>.</p>`}
+
+/* answering: the same box as in the other games, but capital cities (all 197, whatever the day's pool) */
+// a capital already on the compass (a clue or a wrong guess) can't be the answer
+const onCompass=(q,c)=>q.tries.includes(c)||cluesOf(q.c).slice(0,q.k).some(x=>x.c===c);
+const KEYS=CITIES.map(x=>({x,k:[x.n,...(x.al||[])].map(N)}));
+function matches(t){const k=N(t);if(!k)return [];
+  const ex=[],st=[],ins=[];for(const o of KEYS){if(o.k.includes(k))ex.push(o.x);else if(o.k.some(a=>a.startsWith(k)))st.push(o.x);else if(k.length>=3&&o.k.some(a=>a.includes(k)))ins.push(o.x)}
+  const by=(a,b)=>a.n.localeCompare(b.n);return [...ex.sort(by),...st.sort(by),...ins.sort(by)].slice(0,6)}
+function suggHTML(q){if(!query)return SHEETS?'<li class="hint" style="padding:8px 2px">Start typing, then tap the capital.</li>':'';const res=matches(query);
+  if(!res.length)return `<li class="hint" style="padding:8px 2px">No capital matches “${esc(query)}”.</li>`;
+  return res.map(x=>{const t=onCompass(q,x.c);return `<li><button data-g="${x.c}" ${t?'disabled':''}>${esc(x.n)} <small style="opacity:.7">· ${esc(coName(x))}</small>${t?'<span class="tag">on the compass</span>':''}</button></li>`}).join('')}
+function answerBoxHTML(q){
+  if(SHEETS)return askCityHTML();
+  return `<div class="ans"><input id="q" placeholder="Type a capital city…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(query)}" aria-label="Type a capital city"><ul class="sugg" id="sugg"></ul></div>`}
+function bindAnswer(G,onPick){const q=G.qs[G.sel];
+  if(SHEETS){bindAsk($('askbtn')?{key:q.c+':'+q.k+':'+q.tries.length+':'+view+':'+G.sel,back:'Back to the compass',
+    head:`<span>Which capital is in the middle? <i>${worth(q)} point${worth(q)===1?'':'s'}</i></span>`,
+    sugg:t=>{query=t;return suggHTML(q)},first:t=>{const m=matches(t).filter(x=>!onCompass(q,x.c));return m[0]&&m[0].c},pick:onPick}:null);return}
+  const box=$('q');if(!box)return;
+  const draw=()=>{const u=$('sugg');if(u){u.innerHTML=suggHTML(q);u.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>onPick(b.dataset.g))}};
+  box.oninput=e=>{query=e.target.value;draw()};
+  box.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const m=matches(query).filter(x=>!onCompass(q,x.c));if(m[0])onPick(m[0].c)}};
+  draw();if(query||typing)setTimeout(()=>{box.focus();box.setSelectionRange(box.value.length,box.value.length)},0)}
+// one answer: 'right', 'wrong' (it goes on the compass, 1 point less) or 'out' (no points left)
+function answer(q,code){if(code===q.c){q.p=worth(q);q.st='right';return 'right'}
+  if(onCompass(q,code))return 'same';q.tries.push(code);q.last={bad:1,c:code};if(worth(q)<=0){q.st='wrong';return 'out'}return 'wrong'}
+// the next clue (1 point less); with 1 point left, "I don't know" lets the capital go
+function nextClue(q){if(q.st!=='play')return;if(q.k<CLUES&&worth(q)>1){q.k++;q.last=null}else q.st='wrong'}
+function feedback(q,res){if(res==='right')Geomingo.stamp('compass',cityBy[q.c].n,'+'+q.p)}
+const tk=Geomingo.tk;
+const pointsOf=G=>G.qs.reduce((n,q)=>n+ptsOf(q),0);
+const rightOf=G=>G.qs.filter(q=>q.st==='right').length;
+const wrongOf=G=>G.qs.reduce((n,q)=>n+q.tries.length,0);
+const firstOf=G=>G.qs.filter(q=>q.st==='right'&&q.p===CLUES).length;
+// the five capitals of the game in a row: the one on screen in flamingo, the finished ones with their flag and points
+const deskHTML=G=>`<div class="desk" role="group" aria-label="The five capitals">${G.qs.map((q,i)=>{const now=i===G.sel&&!G.over&&G.left==null,cls=[now?'sel':'',q.st==='right'?'right':q.st==='wrong'?'wrong':''].join(' ');
+  return `<button data-tv="${i}" class="${cls}" aria-label="Capital ${i+1}${q.st==='play'?'':': '+esc(cityBy[q.c].n)}"${now?' aria-current="step"':''}>${q.st!=='play'?`<img src="${realFlag(cityBy[q.c].k3)}" alt=""><b>${q.st==='right'?'+'+q.p:'0'}</b>`:now?`NOW<b>${i+1}</b>`:`#${i+1}<b>–</b>`}</button>`}).join('')}</div>`;
+const cluesText=q=>q.k+' clue'+(q.k===1?'':'s')+(q.tries.length?', '+q.tries.length+' wrong':'');
+// a capital that has just finished: the compass with its name in the middle, then Next city
+function leftHTML(G,i){const q=G.qs[i],t=cityBy[q.c],ok=q.st==='right';
+  return `<div class="reveal${ok?'':' wrong'}"><span class="label">City ${i+1} of ${PER}</span>${compassHTML(q,{done:1})}<b class="ln">${esc(t.n)}</b><span class="ls">Capital of ${esc(coName(t))}</span><span class="lst">${ok?'STAMPED':'MISSED'}</span>
+    <span class="ls">${ok?'+'+q.p+' point'+(q.p===1?'':'s')+' · '+cluesText(q):'0 points'+(q.tries.length?' · you said '+q.tries.map(x=>esc(cityBy[x].n)).join(', '):'')}</span>
+    <button class="primary" id="nexttv">${G.over?'See your result':'Next city →'}</button></div>`}
+// the play area: the five capitals, the compass, the latest news, the next-clue line, the answer box
+function playHTML(G){let h=deskHTML(G);
+  if(G.left!=null)return `<div class="play">${h}${leftHTML(G,G.left)}</div>`;
+  if(G.over)return `<div class="play">${h}</div>`;
+  const q=G.qs[G.sel],w=worth(q),more=CLUES-q.k,can=more>0&&w>1;
+  return `<div class="play">${h}<div class="cmpcard"><span class="label">City ${G.sel+1} of ${PER} · worth ${w} point${w===1?'':'s'}</span>${compassHTML(q)}${newsHTML(q,q.last)}</div>
+    <div class="locked">${can?'🔒 '+more+' more clue'+(more===1?'':'s')+' · each one −1 point':w===1?'Last point: one more try':'All five clues are open'}<button class="linkbtn" id="nextclue">${can?'Next clue':'I don\'t know'}</button></div>
+    ${answerBoxHTML(q)}${giveUpHTML()}</div>`}
+// after a capital finishes: show it, then the next one still to play, or the game is over
+function advance(G){if(G.qs[G.sel].st==='play')return;G.left=G.sel;const n=G.qs.findIndex(q=>q.st==='play');if(n<0)G.over=true;else G.sel=n}
+function nextCity(G,save){const end=G.over;G.left=null;if(save)save();render();
+  if(end){window.scrollTo(0,0);return}const d=document.querySelector('.desk');if(d)window.scrollTo(0,Math.max(0,d.getBoundingClientRect().top+window.scrollY-90))}
+function showLeft(){const d=document.querySelector('.desk');if(d&&d.getBoundingClientRect().top<0)window.scrollTo(0,Math.max(0,d.getBoundingClientRect().top+window.scrollY-90))}
+// the summary under a finished game: each capital, its flag and the points
+const summaryHTML=G=>`<section class="panel"><span class="label">The five capitals</span><div class="flist">${G.qs.map(q=>{const t=cityBy[q.c],ok=q.st==='right';
+  return `<div class="frow${ok?'':' wrong'}"><img src="${realFlag(t.k3)}" alt=""><span class="rn"><b>${esc(t.n)}</b><small>${esc(coName(t))} · ${ok?'right with '+cluesText(q):'missed'}</small></span><span class="rpts">${ok?'+'+q.p:'0'}</span></div>`}).join('')}</div></section>`;
+const sq=q=>q.st==='right'?(q.p>=4?'🟩':q.p>=2?'🟨':'🟧'):'🟥';
+const sqClass=q=>q.st==='right'?(q.p>=4?'on':'mid'):q.st==='wrong'?'bad':'';
+const squaresHTML=G=>`<span class="dsq" aria-hidden="true">${G.qs.map(q=>`<i class="${sqClass(q)}"></i>`).join('')}</span>`;
+
+/* ---- Daily: five capitals, the same for everyone, new at midnight CET ----
+   Dealt five a day from a deck shuffled once per cycle, so no capital comes back until the deck is used up.
+   DECK: the capitals people know (country with 5 million people or more, or a capital of a million, or in Europe),
+   kept as it was on the first day so a day's capitals never change. Saved as cm-daily {date, over, S: the game}. */
+const DECK=["abudhabi-are","abuja-nga","accra-gha","addisababa-eth","algiers-dza","amman-jor","amsterdam-nld","ankara-tur","antananari-mdg","ashgabat-tkm","astana-kaz","asuncion-pry","athens-grc","baghdad-irq","baku-aze","bamako-mli","bangkok-tha","bangui-caf","beijing-chn","beirut-lbn","belgrade-srb","berlin-deu","bern-che","bishkek-kgz","bogota-col","brasilia-bra","bratislava-svk","brazzavill-cog","brussels-bel","bucharest-rou","budapest-hun","buenosaire-arg","cairo-egy","canberra-aus","caracas-ven","chisinau-mda","colombo-lka","conakry-gin","copenhagen-dnk","dakar-sen","damascus-syr","delhi-ind","dhaka-bgd","dodoma-tza","dublin-irl","dushanbe-tjk","freetown-sle","gitega-bdi","guatemalac-gtm","hanoi-vnm","harare-zwe","havana-cub","helsinki-fin","islamabad-pak","jakarta-idn","jerusalem-isr","juba-ssd","kabul-afg","kampala-uga","kathmandu-npl","khartoum-sdn","kigali-rwa","kinshasa-cod","kualalumpu-mys","kuwaitcity-kwt","kyiv-ukr","lilongwe-mwi","lima-per","lisbon-prt","ljubljana-svn","lome-tgo","london-gbr","luanda-ago","lusaka-zmb","luxembourg-lux","madrid-esp","managua-nic","manila-phl","maputo-moz","mexicocity-mex","minsk-blr","mogadishu-som","monrovia-lbr","montevideo-ury","moscow-rus","muscat-omn","nairobi-ken","naypyidaw-mmr","ndjamena-tcd","niamey-ner","nicosia-cyp","nouakchott-mrt","oslo-nor","ottawa-can","ouagadougo-bfa","paris-fra","phnompenh-khm","podgorica-mne","portauprin-hti","portmoresb-png","portonovo-ben","prague-cze","pretoria-zaf","pristina-unk","pyongyang-prk","quito-ecu","rabat-mar","ramallah-pse","reykjavik-isl","riga-lva","riyadh-sau","rome-ita","sanaa-yem","sanjose-cri","sansalvado-slv","santiago-chl","santodomin-dom","sarajevo-bih","seoul-kor","singapore-sgp","skopje-mkd","sofia-bgr","stockholm-swe","sucre-bol","taipei-twn","tallinn-est","tashkent-uzb","tbilisi-geo","tegucigalp-hnd","tehran-irn","tirana-alb","tokyo-jpn","tripoli-lby","tunis-tun","valletta-mlt","vienna-aut","vientiane-lao","vilnius-ltu","warsaw-pol","washington-usa","wellington-nzl","yamoussouk-civ","yaounde-cmr","yerevan-arm","zagreb-hrv"];
+function dailyCodes(key){const n=dayNum(key,FIRST)-1,codes=DECK.filter(c=>cityBy[c]).sort(),days=Math.floor(codes.length/PER);
+  const cyc=Math.floor(n/days),i=((n%days)+days)%days;return shuffle(codes,rngFrom(seedOf('compass-'+cyc))).slice(i*PER,(i+1)*PER)}
+let D=null;
+const isGame=S=>S&&Array.isArray(S.qs);
+const dailySaved=()=>{const d=load('cm-daily',null);return d&&d.date===todayKey()&&isGame(d.S)?d:null};
+function dailyGame(){const d=dailySaved();if(d)return d.S;
+  return newGame(dailyCodes(todayKey()),{mode:'daily',date:todayKey(),num:dayNum(todayKey(),FIRST)})}
+function dailySave(){if(!D)return;
+  if(D.mode==='archive'){const a=load('cm-arch',{});a[D.date]=D;store('cm-arch',a);if(D.over)logHist(D);return}
+  store('cm-daily',{date:D.date,over:D.over,S:D});
+  if(D.over&&logHist(D)&&!TESTDAY){Geomingo.clock.stop('compass',D.date,pointsOf(D)/MAX);Geomingo.account.done('compass')}}
+// a finished daily (on its day) goes into the history once: {p points, r capitals named, a with the first clue alone, m wrong guesses}
+function logHist(G){if(G.mode!=='daily')return false;const h=load('cm-hist',{});if(h[G.date])return false;
+  h[G.date]={p:pointsOf(G),r:rightOf(G),a:firstOf(G),m:wrongOf(G)};store('cm-hist',h);return true}
+function dailyPick(code){const q=D&&D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;
+  const res=answer(q,code);if(res==='same')return;query='';typing=res==='wrong';feedback(q,res);advance(D);dailySave();render();if(res!=='wrong')showLeft()}
+function dailyNextClue(){const q=D&&D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;nextClue(q);advance(D);dailySave();render();if(q.st!=='play')showLeft()}
+function dailyShareText(G){return `${Geomingo.share('Compass')} #${G.num}${G.mode==='archive'?' (archive)':''} — ${pointsOf(G)}/${MAX}\n${G.qs.map(sq).join('')}`}
+const dailyShare=G=>dailyShareText(G)+"\n\nPlay today's Compass: "+pageLink();
+function verdict(G){const p=pointsOf(G),r=rightOf(G);
+  return r===PER&&p>=20?{pose:'happy',t:'A born navigator. '+p+' points.',s:'All five found.'}:r===PER?{pose:'happy',t:'All five stamped.',s:p+' of '+MAX+' points.'}
+    :r>=3?{pose:'happy',t:r+' of 5 stamped.',s:p+' points. Tap a capital to see which it was.'}:r>=1?{pose:'think',t:'Lost in the fog today.',s:r+' of 5, '+p+' points.'}
+    :{pose:'sad',t:'No capital today.',s:'Solo helps: unlimited capitals.'}};
+const cmAverage=()=>{const v=Object.values(load('cm-hist',{}));return v.length?EU(v.reduce((a,e)=>a+(+e.p||0),0)/v.length,1):'–'};
+function resultHTML(G){const p=pointsOf(G),v=verdict(G);
+  if(G.mode==='archive')return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Archive · Compass #${G.num}</span><p class="big">${p} points</p>
+    <p class="hint">${rightOf(G)} of 5 found. Archive games don't count for the ranking or your streak.</p>
+    <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
+    ${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="archback" style="flex:1">Back to archive</button></div></section>`;
+  return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Compass #${G.num}</span><p class="big">${p} points</p>
+    <p class="hint">${rightOf(G)} of 5 found. Next capitals in ${nextIn()}.</p>
+    <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
+    ${SHARE_BTN}<div class="row-btns sharerow">${nextGameBtn('compass')}</div>
+    <button class="ghost" id="playsolo">Play Solo</button>
+    ${allPlayedHTML('compass')}
+    <span class="label">Your daily games</span>${statTiles(Object.keys(load('cm-hist',{})).length,cmAverage(),streakOf(load('cm-hist',{})))}</section>${rankingHTML()}`}
+// today's ranking (signed-in players, first try of the day): points, then fewer wrong guesses, then who finished first
+const rankingHTML=()=>Geomingo.account.rankingHTML('compass',{what:'game',score:r=>[r.s+' pts',r.m+' wrong']});
+Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&D.mode==='daily'&&D.date===todayKey()){D=dailyGame();liveKey=''}
+  if(!typing&&(view==='home'||view==='daily'&&D&&D.over))render()});
+function openDaily(){D=dailyGame();query='';view='daily';render();window.scrollTo(0,0)}
+function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
+  const m=lf?(q.st==='right'?['happy','Stamped.','Tap Next city when you are ready.']:['sad','Not this one.','Tap Next city when you are ready.'])
+    :q.last&&q.last.bad?['think','Not that one.','It is on the compass now, in red. Every miss lowers the points.']
+    :q.k>1?['think','A new capital on the compass.','Every clue lowers the points. Which capital sits in the middle?']
+    :['pass','Where am I?','The mystery capital is in the middle. The city on the rim shows how far it is, and which way.'];
+  return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
+    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('City',(i+1)+'/'+PER)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+q.p:'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
+function dailyHTML(){const arch=D.mode==='archive';let h=header('Compass',(arch?'Archive #':'Daily #')+D.num);
+  h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's capitals"}</span></div>`;
+  if(D.over&&D.left==null)return h+resultHTML(D)+summaryHTML(D);
+  return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel">${playHTML(D)}</section>`+quickRules()}
+
+/* ---- the archive: past days, one try each on this device ---- */
+const archDay=k=>{const e=load('cm-hist',{})[k];return e?e.p+' pts':null};
+function openArchive(){view='archive';query='';typing=false;render();window.scrollTo(0,0)}
+function playArchive(k){if(archDay(k)){toast('You played this day already.');return}
+  const a=load('cm-arch',{});D=isGame(a[k])?a[k]:newGame(dailyCodes(k),{mode:'archive',date:k,num:dayNum(k,FIRST)});
+  query='';typing=false;view='daily';dailySave();render();window.scrollTo(0,0)}
+const archiveView=()=>header('Compass','Archive')+archiveHTML({first:FIRST,label:'Day',num:k=>dayNum(k,FIRST),
+  played:archDay,saved:k=>{const g=load('cm-arch',{})[k];return isGame(g)?g:null},done:g=>[pointsOf(g)+' pts',squaresHTML(g)]});
+
+/* ---- Solo: five random capitals a game, as many games as you like (cm-solo keeps the numbers) ----
+   Easy: the daily deck (capitals people know). Hard: all 197. */
+let T=null;
+const soloDiff=()=>load('cm-diff','easy')==='hard'?'hard':'easy';
+const seg=(name,opts,val)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-seg="${name}" data-v="${v}" aria-pressed="${v===val}">${l}</button>`).join('')}</div>`;
+const soloPool=()=>soloDiff()==='easy'?DECK.filter(c=>cityBy[c]):CITIES.map(x=>x.c);
+function openSolo(){view='solo';query='';typing=false;render();window.scrollTo(0,0)}
+function soloHTML(){return header('Compass','Solo')+`<section class="panel">
+  <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Solo</span></div>
+  <p class="hint">Five capitals, a new set every game. Up to ${MAX} points.</p>
+  <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['hard','Hard']],soloDiff())}<p class="hint">${soloDiff()==='easy'?'Capitals most people know: the same ones as the daily game':'Any of the '+CITIES.length+' capitals, the tiny islands too'}.</p></div>
+  <button class="primary" id="start">Start game</button></section>${quickRules()}`}
+function openTrain(){T=newGame(shuffle(soloPool(),Math.random).slice(0,PER),{mode:'solo'});mood=null;view='train';query='';typing=false;render();window.scrollTo(0,0)}
+function trainEnd(){if(T.logged)return;T.logged=1;logSolo('cm-solo',{p:pointsOf(T),best:pointsOf(T),r:rightOf(T)})}
+function trainPick(code){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;
+  const res=answer(q,code);if(res==='same')return;query='';typing=res==='wrong';feedback(q,res);advance(T);if(T.over)trainEnd();render();if(res!=='wrong')showLeft()}
+function trainNextClue(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;nextClue(q);advance(T);if(T.over)trainEnd();render();if(q.st!=='play')showLeft()}
+function trainHTML(){let h=header('Compass','Solo')+`<div class="backline"><button class="linkbtn" id="soloback">← Back</button><span class="ht">Solo</span></div>`;
+  if(T.over&&T.left==null){const p=pointsOf(T),s=load('cm-solo',null)||{};
+    return h+`<section class="panel">${Geomingo.hello(p>=15?'happy':'think',p+' points.',rightOf(T)+' of 5 found. Your best Solo game: '+(s.best||p)+'.',{key:'res'})}<span class="label">Solo</span><p class="big">${p} points</p>
+      <button class="primary" id="tagain">New game</button></section>`+summaryHTML(T)}
+  return h+ticketHTML(T,'practice')+`<section class="panel">${playHTML(T)}</section>`+quickRules()}
+
+/* ---- stats, rules, credits ---- */
+function myStatsHTML(){const h=load('cm-hist',{}),so=load('cm-solo',null)||{n:0};
+  return statsPageHTML({game:'Compass',hist:h,unit:'day',avg:cmAverage(),lbs:d=>[{path:'lb/compass',dates:d}],num:k=>'Compass #'+dayNum(k,FIRST),
+    solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'found']]},
+    friends:{n:0,w:0,place:0,best:0,third:[0,'best']}})}
+const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">The mystery capital is in the middle of the compass. Capitals appear round it, each in its real direction and with its distance. Name it with one clue for 5 points; every new clue and every wrong guess costs 1 point. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+function rulesHTML(){return `<h3>The idea</h3><ul>
+  <li>Five capitals, one at a time. Each one is hidden in the middle of a compass: the <b>?</b>.</li>
+  <li>Other capitals appear on the rim of the compass, in their real direction seen from the mystery capital, with the distance in km. Example: <b>Rome · 765 km</b> at the bottom left means Rome is 765 km south-west of it.</li>
+  <li>Name the mystery capital. Any of the ${CITIES.length} national capitals can be the answer.</li></ul>
+  <h3>The clues</h3><ul>
+  <li>The first clue is far away, about 2.500 km or more. Each next one is closer, and they come from different directions.</li>
+  <li>Tap <b>Next clue</b> for one more capital on the compass.</li>
+  <li>A wrong guess lands on the compass too, in red, with its distance and direction: it helps you, but it costs a point.</li></ul>
+  <h3>Points</h3><ul>
+  <li>Right with the first clue alone: <b>5 points</b>. Every extra clue and every wrong guess: 1 point less.</li>
+  <li>When no points are left, or you tap <b>I don't know</b>, the capital goes with 0.</li>
+  <li>Best game: ${MAX} points. <b>Give up</b> ends the game as it stands.</li></ul>
+  <h3>How to answer</h3><ul>
+  <li>Tap <b>Type a capital city…</b>, start typing and tap the capital in the list (its country is shown next to it).</li>
+  <li>Names are in English. Accents, capitals and spaces don't matter. Some other names work too (Kiev for Kyiv, La Paz for Sucre).</li></ul>
+  <h3>Distances</h3><ul>
+  <li>In a straight line over the globe (great circle), from the centre of one city to the centre of the other, rounded to the km.</li>
+  <li>The direction is the one you would set off in from the mystery capital, shown as the nearest of the 8 compass points.</li></ul>
+  <h3>Modes</h3><ul>
+  <li><b>Today's capitals</b>: five capitals, the same for everyone, new every day at midnight CET. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>
+  <li><b>Solo</b>: five random capitals, as many games as you like. <b>Easy</b>: capitals most people know. <b>Hard</b>: all of them.</li>
+  <li><b>With friends</b>: coming soon.</li></ul>`}
+function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Compass: the capitals and their coordinates are the ones of Geomingo's Capitals game; distances and directions are worked out on a round Earth (radius 6.371 km).</li><li>Flags from <a href="https://github.com/hjnilsson/country-flags" target="_blank" rel="noopener">hjnilsson/country-flags</a> (from Wikimedia Commons, public domain).</li></ul>`)}
+
+/* ---- the game opens straight into today's capitals, as the other games ---- */
+let view='home';
+// ?solo (from Practice on the Geomingo home page) opens the Solo screen
+try{if(new URLSearchParams(location.search).has('solo')){view='solo';history.replaceState(null,'',location.pathname)}}catch(e){}
+// Back from today's game or Solo goes to the Geomingo home page
+const toHub=()=>{location.href='../'};
+function goHome(){view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
+function render(){
+  if(view==='home'){openDaily();return}
+  if(!TESTDAY&&view==='daily'&&D&&D.mode==='daily'){const g=dailyGame();if(!g.over)Geomingo.clock.start('compass',todayKey())}
+  if(D&&D.mode==='daily')watchResult('cm:'+D.date,D.over&&D.left==null);
+  if(view==='train')app.innerHTML=trainHTML();
+  else if(view==='solo')app.innerHTML=soloHTML();
+  else if(view==='archive')app.innerHTML=archiveView();
+  else if(view==='daily')app.innerHTML=dailyHTML();
+  bind()}
+function bind(){
+  if(!$('askbtn'))closeSheet();
+  if(view==='train')bindGiveUp(()=>{if(!T||T.over)return;T.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});T.over=true;T.left=null;trainEnd();render();window.scrollTo(0,0)});
+  else bindGiveUp(()=>{if(!D||D.over)return;D.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});D.over=true;D.left=null;query='';typing=false;dailySave();render();window.scrollTo(0,0)});
+  if($('home'))$('home').onclick=toHub;
+  if($('playsolo'))$('playsolo').onclick=openSolo;
+  if($('soloback'))$('soloback').onclick=openSolo;
+  if($('archback'))$('archback').onclick=openArchive;
+  if($('start'))$('start').onclick=openTrain;
+  if($('tagain'))$('tagain').onclick=openTrain;
+  if($('copy'))$('copy').onclick=()=>share(dailyShare(D));
+  app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
+  const G=view==='train'?T:view==='daily'?D:null;
+  app.querySelectorAll('[data-tv]').forEach(b=>b.onclick=()=>{const q=G&&G.qs[+b.dataset.tv];if(q&&q.st!=='play')toast(cityBy[q.c].n+(q.st==='right'?' · +'+q.p:''))});
+  if($('nextclue'))$('nextclue').onclick=view==='train'?trainNextClue:dailyNextClue;
+  if($('nexttv'))$('nexttv').onclick=()=>view==='train'?nextCity(T):nextCity(D,dailySave);
+  app.querySelectorAll('[data-seg="diff"]').forEach(b=>b.onclick=()=>{store('cm-diff',b.dataset.v);render()});
+  if(view==='train'&&T&&!T.over)bindAnswer(T,trainPick);
+  else if(view==='daily'&&D&&!D.over)bindAnswer(D,dailyPick)}
+render();
+// a new day while the page was in the background: today's new capitals
+document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(view==='daily'&&D&&D.mode==='daily'&&D.date!==todayKey()){D=null;openDaily()}});
+</script>
+</body>
+</html>
