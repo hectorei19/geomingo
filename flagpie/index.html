@@ -33,10 +33,10 @@
 .piecard{display:flex;flex-direction:column;align-items:center;gap:12px;background:var(--sheet);border:2px solid var(--gold);border-radius:16px;padding:14px 12px}
 .piecard svg{display:block;width:min(64vw,230px);height:auto}
 .piecard.small svg{width:min(40vw,150px)}
-.leg{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;width:100%}
+.leg{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:6px 18px;width:100%}
 .leg li{display:flex;align-items:center;gap:8px;font-size:.95rem;min-width:0}
 .leg i{flex:none;width:16px;height:16px;border-radius:4px;box-shadow:0 0 0 1px rgba(255,255,255,.25)}
-.leg span{min-width:0;overflow-wrap:anywhere}
+.leg span{white-space:nowrap}
 .leg b{margin-left:auto;font-family:var(--mono);font-weight:700;white-space:nowrap}
 .clues{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .clue{display:flex;gap:12px;align-items:flex-start;background:var(--sheet);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px}
