@@ -307,6 +307,11 @@ function hello(pose,title,sub,o){o=o||{};const key=o.key||'main',txt=pose+title,
    Values are HTML: escape names before passing them. o.timer adds the countdown bar along the bottom (.tbar);
    o.color paints it, the ticket's edge and the playing traveller's box in the colour of the player whose turn it is
    (e.g. 'var(--p1)'); in the last 5 seconds the bar pulses a glow, staying full colour (.tbar.low, set by the game's tick). */
+/* the result of today's daily, when it is over (right after playing, or opening the game again later): the gold ticket with
+   the score, the km it earned and when the next one comes; Next trip and Share go under it (Héctor 2026-11-10: less is more) */
+function doneTicket(id,num,score,next){const km=(ledger()[dayKey()]||{})[id];
+  return '<section class="ticket gm-done"><div class="tk-mode daily"><span>★ Daily #'+esc(String(num))+'</span><span>Done</span></div>'+
+    '<div class="gm-done-c"><p class="big">'+esc(String(score))+'</p><p class="gm-done-s">'+(km!=null?'<b>+'+fmt(km)+' km</b> · ':'')+esc(next)+'</p></div></section>'}
 function tk(k,v,c){return '<div class="tk-c'+(c?' '+c:'')+'"><i>'+k+'</i><b>'+v+'</b></div>'}
 /* o.mode puts a coloured strip on top so you always know what you are playing:
    'daily' (gold, "★ Daily #N · Counts for ranking"), 'practice' (blue, "Practice") or 'archive' (blue, "Archive #N"); o.num is the number.
@@ -495,6 +500,6 @@ document.addEventListener('visibilitychange',()=>{
 const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,stale:roomStale};
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
-  days,streak,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,traveller,header,passBtn,
+  days,streak,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
   openWindow,closeWindow,esc,refreshPass,room,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();

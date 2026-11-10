@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611101000"></script>
+<script src="../brand/mingo.js?v=202611101300"></script>
 <script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -76,7 +76,7 @@
 .ready{display:flex}
 @media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611101000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611101300">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -86,7 +86,7 @@
 <script src="countries.js?v=202611081800"></script>
 <script src="silhouette.js?v=202610230100"></script>
 <script src="../shared/games.js?v=202611101000"></script>
-<script src="../shared/minigames.js?v=202611100845"></script>
+<script src="../shared/minigames.js?v=202611101300"></script>
 <!-- online rooms (With friends): Firebase, loaded after the page so today's board shows at once -->
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -254,13 +254,8 @@ function dailyResultHTML(G){const r=rightOf(G),v=verdict(G);
     <p class="hint">${r===9?'Every shape named.':'Tap a shape to see its name.'} Archive games don't count for the ranking or your streak.</p>
     <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
     ${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="archback" style="flex:1">Back to archive</button></div></section>`;
-  return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Silhouette #${G.num}</span><p class="big">${r} of 9</p>
-    <p class="hint">${r===9?'Every shape named.':'Tap a shape to see its name.'} Next board in ${nextIn()}.</p>
-    <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
-    ${SHARE_BTN}<div class="row-btns sharerow">${nextGameBtn('silhouette')}</div>
-    <button class="ghost" id="playsolo">Play Solo</button>
-    ${allPlayedHTML('silhouette')}
-    <span class="label">Your daily boards</span>${statsHTML(true)}</section>${rankingHTML()}`}
+  return `${Geomingo.doneTicket('silhouette',G.num,r+' of 9','next board in '+nextIn())}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
+    <div class="gm-done-btns">${nextGameBtn('silhouette')}${SHARE_BTN}</div>${rankingHTML()}`}
 // today's ranking (signed-in players, first try of the day): shapes named, then fewer wrong tries, then who finished first
 const rankingHTML=()=>Geomingo.account.rankingHTML('sil-'+DAILY_LV,{what:'board',score:r=>[r.s+'/9',r.m+' wrong '+(r.m===1?'try':'tries')]});
 // signed in or out, today's boards arrived from another device, the ranking moved: show it (not while typing)

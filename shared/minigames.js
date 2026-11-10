@@ -104,8 +104,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelec
 // phones: the system share menu; elsewhere copy the result and the link (if the clipboard is blocked, select the text)
 const TOUCH=matchMedia('(pointer:coarse)').matches;
 function share(text){
-  const manual=()=>{const el=$('share');if(el){el.textContent=text;const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r)}
-    let ok=false;try{ok=document.execCommand('copy')}catch(e){}toast(ok?'Result and link copied.':'Copy blocked here. The text is selected: copy it manually.',ok?'good':'')};
+  const manual=()=>{const el=$('share');if(el){el.hidden=false;el.textContent=text;const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r)}
+    let ok=false;try{ok=document.execCommand('copy')}catch(e){}if(ok&&el)el.hidden=true;toast(ok?'Result and link copied.':'Copy blocked here. The text is selected: copy it manually.',ok?'good':'')};
   if(navigator.share&&TOUCH){navigator.share({text}).catch(e=>{if(e&&e.name!=='AbortError')manual()});return}
   try{navigator.clipboard.writeText(text).then(()=>toast('Result and link copied.','good'),manual)}catch(e){manual()}}
 const pageLink=q=>location.origin+location.pathname+(q||'');
