@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611101300"></script>
+<script src="../brand/mingo.js?v=202611101330"></script>
 <script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -324,7 +324,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .b3 .cell.flag .gm-stamp .sn{font-size:14px!important}
 .b5 .cell.flag .gm-stamp .sn{font-size:10px!important}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611101300">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611101330">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -1586,7 +1586,7 @@ function gameView(){
   h+=`</div></div>`;
   ui.fresh=-1;
   if(!S.over)h+=(S.mode==='solo'||(S.mode==='online'&&S.turn!==S.me)?'':'<div class="actions"><button class="ghost" id="pass">Pass turn</button></div>')+`<button class="linkbtn giveup" id="giveup">${S.mode==='solo'?'Give up':'End game'}</button>`+QRULES;
-  else h+=answersView();
+  else h+=answersView()+(S.daily&&!S.archive&&!S.dayof?lbView(null):'');
   return h;
 }
 function shareText(){
@@ -1649,7 +1649,7 @@ function watchResult(){if(!S){liveKey='';return}const k=gameKey();
 function resultsView(){
   if(S.daily){const p=S.players[0],n=S.n,ms=msToNextDay(),next=S.archive?null:Geomingo.nextGame('borderline');
     if(!S.archive&&!S.dayof)return `${Geomingo.doneTicket('borderline',S.day,EU(p.score)+' points',`next grid in ${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min`)}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
-    <div class="gm-done-btns">${nextGameBtn(next)}${SHARE_BTN}</div>${lbView(null)}`;
+    <div class="gm-done-btns">${nextGameBtn(next)}${SHARE_BTN.replace('Share result','Share')}</div>`;
     return `<section class="panel respanel">${verdictHTML()}<span class="label">${S.dayof?'':S.archive?'Archive · ':''}Daily grid #${S.day}${S.dayof?' · played on its day':''}</span><p class="big">${EU(p.score)} points</p>${breakdown(p)}<p class="hint">${p.cells} of ${n*n} squares. ${S.wrong} wrong guess${S.wrong===1?'':'es'}. ${S.dayof?'You played this grid on its day, so it can\'t be played again.':S.archive?'Archive games don\'t count for the ranking or your streak.':`Share it: friends play today's grid with their own one try. Next grid in ${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min.`}</p><pre class="sharebox" id="share">${esc(shareText())}</pre>${SHARE_BTN}<div class="row-btns sharerow">${S.archive?`<button class="primary" id="newg" style="flex:1">Back to archive</button>`:nextGameBtn(next)}</div>${S.archive?'':afterNextHTML(next)+`<span class="label">Your daily grids</span>${statTiles(dailyStatsFrom({...loadHist(),[S.daily]:loadHist()[S.daily]||{s:p.score}}))}`}</section>${lbView(S.archive?S.daily:null)}`}
   if(S.mode==='solo'){const p=S.players[0];const n=S.n;
     return `<section class="panel respanel">${verdictHTML()}<p class="big">${EU(p.score)} points</p>${breakdown(p)}<p class="hint">${p.cells} of ${n*n} squares. ${S.wrong} wrong guess${S.wrong===1?'':'es'}. Share sends your result with a link: friends who open it play this same grid.</p><pre class="sharebox" id="share">${esc(shareText())}</pre>${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="again" style="flex:1">New grid</button></div><button class="ghost" id="newg">Change settings</button></section>`}

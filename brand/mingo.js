@@ -311,7 +311,7 @@ function hello(pose,title,sub,o){o=o||{};const key=o.key||'main',txt=pose+title,
    the score, the km it earned and when the next one comes; Next trip and Share go under it (Héctor 2026-11-10: less is more) */
 function doneTicket(id,num,score,next){const km=(ledger()[dayKey()]||{})[id];
   return '<section class="ticket gm-done"><div class="tk-mode daily"><span>★ Daily #'+esc(String(num))+'</span><span>Done</span></div>'+
-    '<div class="gm-done-c"><p class="big">'+esc(String(score))+'</p><p class="gm-done-s">'+(km!=null?'<b>+'+fmt(km)+' km</b> · ':'')+esc(next)+'</p></div></section>'}
+    '<div class="gm-done-c"><p class="big">'+esc(String(score))+'</p><p class="gm-done-s">'+(km!=null?'<b>+'+fmt(km)+' km</b>':'')+'<span>'+esc(next)+'</span></p></div></section>'}
 function tk(k,v,c){return '<div class="tk-c'+(c?' '+c:'')+'"><i>'+k+'</i><b>'+v+'</b></div>'}
 /* o.mode puts a coloured strip on top so you always know what you are playing:
    'daily' (gold, "★ Daily #N · Counts for ranking"), 'practice' (blue, "Practice") or 'archive' (blue, "Archive #N"); o.num is the number.
