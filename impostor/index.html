@@ -28,7 +28,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
 <link rel="stylesheet" href="../shared/style.css?v=202611091550">
 <style>
-/* Impostor: six countries in a 3 x 2 grid, the sentences of the round under them, then Next sentence */
+/* Impostor: six countries in a 3 x 2 grid, the sentences of the round under them, then Next clue */
 .play{display:flex;flex-direction:column;gap:12px;width:100%}
 .six{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .six button{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;min-width:0;padding:10px 4px 9px;background:var(--sheet);border:2px solid var(--line);border-radius:12px;color:var(--ink);font:inherit;font-weight:600;font-size:.86rem;line-height:1.15;cursor:pointer}
@@ -143,7 +143,7 @@ function playHTML(G){let h=deskHTML(G);
   const q=G.qs[G.sel],more=SENT-q.k;
   return `<div class="play">${h}<span class="label">Round ${G.sel+1} of ${ROUNDS} · worth ${worth(q)} point${worth(q)===1?'':'s'}</span>${sixHTML(G,q,false)}
     <span class="label">Five of them fit every sentence. Which one doesn't?</span>${factsHTML(q,false)}
-    ${chosen?`<button class="primary go" id="confirm">${esc(nameOf(chosen))} is the impostor</button>`:''}<div class="locked">${chosen?'Not sure? Tap it again to unselect':more?'Tap the impostor, or wait for another sentence':'All five sentences are out'}<button class="linkbtn" id="nextfact">${more?'Next sentence':'I don\'t know'}</button></div>
+    ${chosen?`<button class="primary go" id="confirm">${esc(nameOf(chosen))} is the impostor</button>`:''}<div class="locked">${chosen?'Not sure? Tap it again to unselect':more?'🔒 '+more+' more clue'+(more===1?'':'s')+' locked':'All five clues are open'}<button class="linkbtn" id="nextfact">${more?'Next clue':'I don\'t know'}</button></div>
     ${giveUpHTML()}</div>`}
 // a round that has just finished: who it was, all five sentences with the impostor's real figures, then Next round
 function leftHTML(G,i){const q=G.qs[i],ok=q.st==='right';
@@ -261,7 +261,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>For example, with Spain, Japan, Brazil, Egypt, Canada and Australia: “It has hosted the Olympic Games” is true for all of them except Egypt.</li></ul>
   <h3>Six rounds</h3><ul>
   <li>Tap a country, then <b>… is the impostor</b> to answer. Tap it again to change your mind.</li>
-  <li>Not sure yet? Tap <b>Next sentence</b> for another one.</li></ul>
+  <li>Not sure yet? Tap <b>Next clue</b> for another one.</li></ul>
   <h3>Points</h3><ul>
   <li>Right with 1 sentence: <b>5 points</b>. With 2: 4. With 3: 3. With 4: 2. With all 5: 1.</li>
   <li>A wrong country, or <b>I don't know</b> with all five out, ends the round with 0.</li>
