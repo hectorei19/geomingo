@@ -527,6 +527,10 @@ function bindOnline(){
 
 /* ---- home: today's board open and playable on top, then Solo and With friends, as in the other games ---- */
 let view='home';
+// ?solo (from Practice on the Geomingo home page) opens the Solo screen
+try{if(new URLSearchParams(location.search).has('solo')){view='solo';history.replaceState(null,'',location.pathname)}}catch(e){}
+// Back from today's game, Solo or With friends goes to the Geomingo home page (in a room: leave it first)
+const toHub=()=>{if(typeof roomCode!=='undefined'&&roomCode){goHome();return}location.href='../'};
 const seg=(name,opts,val)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-seg="${name}" data-v="${v}" aria-pressed="${String(v)===String(val)}">${l}</button>`).join('')}</div>`;
 const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
 function homeHTML(){const key=todayKey();
@@ -540,13 +544,13 @@ function homeHTML(){const key=todayKey();
   const hello=D.over?Geomingo.hello(r?'happy':'sad',r?'Stamped for today.'+(st>1?' '+st+'-day streak.':''):'Rough crossing today.',"Today's shapes are done. Next ones in "+nextIn()+'.')
     :D.qs.some(q=>q.st!=='play')?Geomingo.hello('think','Your board is waiting.','Tap a shape to carry on. One try.')
     :Geomingo.hello('pass','GeoPass ready.','Tap a shape to start. Every one you name is a stamp. One try, the same nine for everyone.');
-  return header('Silhou<span>ette</span>','',true)+`<section class="home">${hello}${Geomingo.account.userHTML()}${daily}${D.over?rankingHTML():''}
-    <div class="hrow"><button class="hcard" data-go="train"><span class="ht">Solo</span><span class="hs">Practice on unlimited shapes, at your pace.</span></button>
-    <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to ${MAXP} players.</span></button></div></section>
+  return header('Silhou<span>ette</span>','',true)+`<section class="home">${hello}${Geomingo.account.userHTML()}${daily}${D.over?rankingHTML():''}</section>
     ${quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}`}
 function goHome(){if(roomCode){if(!confirm('Leave the room and go to the home screen?'))return;leaveRoom().then(()=>{view='home';render()});return}
   view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
+// opening the game goes straight into today's game (or today's result when it is played)
 function render(){
+  if(view==='home'){openDaily();return}
   // the clock of the visas starts when today's shapes are first on screen (home or board), unless the board is already over
   if(!TESTDAY&&!roomCode&&(view==='home'||view==='daily'&&D&&!D.arch)){const g=dailyGame();if(!g.over)Geomingo.clock.start('silhouette',todayKey())}
   // a board found out of lives on opening: save its end (history, ranking) once
@@ -567,7 +571,7 @@ function bind(){
   if(view==='train')bindGiveUp(trainSkip);
   else bindGiveUp(()=>{if(!D||D.over)return;D.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});D.over=true;query='';typing=false;
     dailySave();render();window.scrollTo(0,0)});
-  if($('home'))$('home').onclick=goHome;
+  if($('home'))$('home').onclick=toHub;
   app.querySelectorAll('[data-go="train"]').forEach(b=>b.onclick=openSolo);
   if($('playsolo'))$('playsolo').onclick=openSolo;
   if($('soloback'))$('soloback').onclick=openSolo;

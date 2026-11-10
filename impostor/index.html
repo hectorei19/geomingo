@@ -279,6 +279,10 @@ function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Impostor: the se
 
 /* ---- home: today's countries on top, then Solo and With friends, as in the other games ---- */
 let view='home';
+// ?solo (from Practice on the Geomingo home page) opens the Solo screen
+try{if(new URLSearchParams(location.search).has('solo')){view='solo';history.replaceState(null,'',location.pathname)}}catch(e){}
+// Back from today's game, Solo or With friends goes to the Geomingo home page (in a room: leave it first)
+const toHub=()=>{if(typeof roomCode!=='undefined'&&roomCode){goHome();return}location.href='../'};
 const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
 function homeHTML(){const key=todayKey();
   if(!D||D.mode!=='daily'||D.date!==key)D=dailyGame();
@@ -290,11 +294,11 @@ function homeHTML(){const key=todayKey();
   const st=Geomingo.streak(),p=D.over?pointsOf(D):0;
   const hello=D.over?Geomingo.hello(p?'happy':'sad',p?'Stamped for today.'+(st>1?' '+st+'-day streak.':''):'Rough crossing today.',"Today's impostors are done. New ones in "+nextIn()+'.')
     :Geomingo.hello('pass','GeoPass ready.','Six rounds, six countries at the border each time, and one of them doesn\'t belong. Every impostor you catch is a stamp.');
-  return header('Impostor','')+`<section class="home">${hello}${Geomingo.account.userHTML()}${daily}${D.over?rankingHTML():''}
-    <div class="hrow"><button class="hcard" data-go="train"><span class="ht">Solo</span><span class="hs">Practice with new countries, at your pace.</span></button>
-    <div class="hcard soon" aria-disabled="true"><span class="ht">With friends</span><span class="hs">Play online, 2 to 6 players. (coming soon)</span></div></div></section>${quickRules()}`}
+  return header('Impostor','')+`<section class="home">${hello}${Geomingo.account.userHTML()}${daily}${D.over?rankingHTML():''}</section>${quickRules()}`}
 function goHome(){view='home';toastMsg=null;drawToast();chosen=null;render();window.scrollTo(0,0)}
+// opening the game goes straight into today's game (or today's result when it is played)
 function render(){
+  if(view==='home'){openDaily();return}
   if(!TESTDAY&&(view==='home'||view==='daily'&&D&&D.mode==='daily')){const g=dailyGame();if(!g.over)Geomingo.clock.start('impostor',todayKey())}
   if(D&&D.mode==='daily')watchResult('im:'+D.date,D.over&&D.left==null);
   if(view==='train')app.innerHTML=trainHTML();
@@ -306,7 +310,7 @@ function render(){
 function bind(){
   if(view==='train')bindGiveUp(()=>{if(!T||T.over)return;T.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});T.over=true;T.left=null;chosen=null;trainEnd();render();window.scrollTo(0,0)});
   else bindGiveUp(()=>{if(!D||D.over)return;D.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});D.over=true;D.left=null;chosen=null;dailySave();render();window.scrollTo(0,0)});
-  if($('home'))$('home').onclick=goHome;
+  if($('home'))$('home').onclick=toHub;
   app.querySelectorAll('[data-go="train"]').forEach(b=>b.onclick=openSolo);
   if($('playsolo'))$('playsolo').onclick=openSolo;
   if($('soloback'))$('soloback').onclick=openSolo;

@@ -270,6 +270,10 @@ function newGame(mode,l,day){
    view: 'home' (today's list, then Solo and With friends), 'game' (a list on its own screen), 'solo' (Solo's start screen),
    'archive' (past daily lists) or 'friends' (online rooms) */
 let S=null,mode='daily',view='home',query='',fresh=null,typing=false;
+// ?solo (from Practice on the Geomingo home page) opens the Solo screen
+try{if(new URLSearchParams(location.search).has('solo')){view='solo';history.replaceState(null,'',location.pathname)}}catch(e){}
+// Back from today's game, Solo or With friends goes to the Geomingo home page (in a room: leave it first)
+const toHub=()=>{if(typeof roomCode!=='undefined'&&roomCode){goHome();return}location.href='../'};
 const dailySaved=()=>{const d=load('t10-daily',null);return d&&d.date===todayKey()?d.S:null};
 function save(){if(!S||S.mode==='online')return;
   if(S.mode==='daily'){store('t10-daily',{date:S.date,over:S.over,S});
@@ -538,9 +542,7 @@ function homeHTML(){const key=todayKey(),num=dayNum(key,T10_FIRST),d=dailySaved(
   const hi=d&&d.over?Geomingo.hello(d.found.length?'happy':'sad',d.found.length?'Stamped for today.'+(st>1?' '+st+'-day streak.':''):'Rough crossing today.',`Today's list is done. Next one in ${nextIn()}.`)
     :d?Geomingo.hello('think','Your list is waiting.','Tap it to carry on. One try.')
     :Geomingo.hello('pass','GeoPass ready.','Tap today\'s list to start. Every country in the top 10 is a stamp. One try, the same ranking for everyone.');
-  return header('Top <span>10</span>','',true)+`<section class="home">${hi}${Geomingo.account.userHTML()}${daily}${d&&d.over?rankingHTML():''}
-    <div class="hrow"><button class="hcard" data-go="free"><span class="ht">Solo</span><span class="hs">Practice on unlimited lists, at your pace.</span></button>
-    <button class="hcard" data-go="friends"><span class="ht">With friends</span><span class="hs">Play online, 2 to ${MAXP} players.</span></button></div></section>
+  return header('Top <span>10</span>','',true)+`<section class="home">${hi}${Geomingo.account.userHTML()}${daily}${d&&d.over?rankingHTML():''}</section>
     ${quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}`}
 function goHome(){if(roomCode){if(!confirm('Leave the room and go to the home screen?'))return;leaveRoom().then(()=>{view='home';render()});return}
   view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
@@ -586,7 +588,9 @@ function onlineHTML(){const cur=S.players[S.turn]||{};
   h+=`<section class="t10card"><div class="t10cq">${askHTML()}</div>${listHTML()}</section>${controlsHTML()}${wrongsHTML()}${srcHTML}`;
   h+=`<div class="row-btns">${S.host&&!S.over?'<button class="ghost" id="oend" style="flex:1">End game</button>':''}<button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;
   return h}
+// opening the game goes straight into today's game (or today's result when it is played)
 function render(){
+  if(view==='home'){openDaily();return}
   // the clock of the visas starts when today's list is first on screen (home or game), unless it is already over
   if(!TESTDAY&&!roomCode&&(view==='home'||view==='game'&&S&&S.mode==='daily')){const d=dailySaved();if(!(d&&d.over))Geomingo.clock.start('top10',todayKey())}
   // today's list is played on the home screen too: the summary follows the game, whatever the screen
@@ -660,7 +664,7 @@ function bind(){
   if($('archback'))$('archback').onclick=openArchive;
   app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
   app.querySelectorAll('[data-go="friends"]').forEach(b=>b.onclick=()=>{view='friends';render();window.scrollTo(0,0)});
-  if($('home'))$('home').onclick=goHome;
+  if($('home'))$('home').onclick=toHub;
   if($('rules'))$('rules').onclick=()=>dialog('How to play',rulesHTML());
   // give up: the list ends as it stands and the full ranking is shown
   bindGiveUp(()=>{if(!S||S.over||S.mode==='online')return;S.over=true;query='';typing=false;if(view==='home')view='game';save();render();window.scrollTo(0,0)});
@@ -676,7 +680,7 @@ function bind(){
     q.onkeydown=e=>{if(e.key==='Enter'){const m=matches(query).filter(c=>!S.found.includes(c.c)&&!S.wrong.includes(c.c));if(m[0])guess(m[0].c)}};
     drawSugg();
     // computers: the box has the focus while you play
-    if(query||typing||view!=='home')setTimeout(()=>{q.focus();q.setSelectionRange(q.value.length,q.value.length)},0)}
+    if(query||typing||view!=='home')setTimeout(()=>{q.focus({preventScroll:true});q.setSelectionRange(q.value.length,q.value.length)},0)}
   if($('copy'))$('copy').onclick=()=>share(shareMessage());
   if($('again'))$('again').onclick=()=>openFree(null,true);
   // With friends
