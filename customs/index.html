@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611100700"></script>
-<script src="../brand/account.js?v=202611100700"></script>
+<script src="../brand/mingo.js?v=202611100905"></script>
+<script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -93,11 +93,11 @@
 <footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
-<script src="../data/countries.js?v=202611100800"></script>
+<script src="../data/countries.js?v=202611100900"></script>
 <script src="../data/flags.js?v=202611100800"></script>
-<script src="../shared/data.js?v=202611081900"></script>
+<script src="../shared/data.js?v=202611100900"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202611091550"></script>
+<script src="../shared/minigames.js?v=202611100845"></script>
 <script>
 /* ---- Customs: a traveller at the desk, and you work out where they come from ----
    Each traveller hands over five clues, one at a time, from vague to obvious: size, where on the map, language and
@@ -126,7 +126,8 @@ const areaText=a=>num(a>=1e4?Math.round(a/1e3)*1e3:a>=100?Math.round(a/10)*10:a)
 const latText=l=>Math.abs(l)<1?'right on the Equator':Math.round(Math.abs(l))+'° '+(l>=0?'north':'south')+' of the Equator';
 const listText=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
 const isIn=(k,c)=>(EXTRA[k]||DATA[k]||[]).includes(c);
-const nbOf=c=>c.b.filter(b=>cByCode[b]);
+// land neighbours: landNeighbours() (data/countries.js) from NB_FROM on; before that day the old count, so a clue never changes mid-day
+const nbOf=c=>(todayKey()<NB_FROM?c.b:landNeighbours(c)).filter(b=>cByCode[b]);
 // a language named after the country gives it away (Icelandic, Italian, German…)
 const giveaway=(c,w)=>N(w).slice(0,4)===c.k.slice(0,4);
 const FLAGCOL=[['flag_red','red'],['flag_white','white'],['flag_blue','blue'],['flag_green','green'],['flag_yellow','yellow'],['flag_black','black'],['flag_orange','orange']];
@@ -308,7 +309,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
   const m=lf?(q.st==='right'?['happy','Stamped.','Tap Next traveller when you are ready.']:['sad','Not this time.','Tap Next traveller when you are ready.'])
     :[G.qs.some(x=>x.st!=='play')||q.k>1?'think':'pass','A traveller at the desk.','Read the clues and name the country. Every new clue lowers the points.'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
-    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Desk',(i+1)+'/'+PER)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
+    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Desk',(i+1)+'/'+PER)+(mode==='daily'?tk('km',Geomingo.clPts(G.qs.filter(x=>x.st==='right').length,pointsOf(G),PER),'tk-pts'):tk('Points',pointsOf(G),'tk-pts'))+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Customs',(arch?'Archive #':'Daily #')+D.num);
   h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's travellers"}</span></div>`;
   if(D.over&&D.left==null)return h+resultHTML(D)+summaryHTML(D);

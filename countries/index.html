@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611100700"></script>
-<script src="../brand/account.js?v=202611100700"></script>
+<script src="../brand/mingo.js?v=202611100905"></script>
+<script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -94,7 +94,10 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .namecard input{border:1.5px solid var(--ink);background:var(--paper);border-radius:5px;padding:12px;font-size:1.15rem;width:100%}
 .userline{display:flex;align-items:center;gap:8px;font-weight:600}
 .userline .ghost{padding:4px 10px;font-size:.85rem}
-.hd.col,.hd.rowh,.corner{aspect-ratio:1;min-width:0;overflow:hidden}
+.hd.col,.hd.rowh,.corner{min-width:0;overflow:hidden}
+/* the row names get a wider first column and the column names a taller top row, so their words stay readable on phones */
+.hd.col{aspect-ratio:1/1.6}
+.board .hd.col,.board.b4 .hd.col,.board.b5 .hd.col{padding-left:2px;padding-right:2px}
 .hd .ht{display:block;max-width:100%;font-size:1.05rem;font-weight:700;line-height:1.08;letter-spacing:.005em}
 .b4 .hd .ht{font-size:1rem}
 .b5 .hd .ht{font-size:.95rem}
@@ -328,7 +331,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 <footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
-<script src="../data/countries.js?v=202611100800"></script>
+<script src="../data/countries.js?v=202611100900"></script>
 <script src="daily.js?v=202611100800"></script>
 <script src="../data/flags.js?v=202611100800"></script>
 <script>
@@ -342,12 +345,13 @@ const has = (c,l)=>c.lg.includes(l);
 const CATS = [];
 const add=(fam,label,test)=>CATS.push({id:CATS.length,fam,label,test});
 [['AF','In Africa'],['EU','In Europe'],['AS','In Asia'],['OC','In Oceania'],['NA','In North or Central America'],['SA','In South America']].forEach(([r,l])=>add('region',l,c=>c.r===r));
-['CHN','RUS','IND','BRA','FRA','DEU','AUT','COD','TZA','TUR','SRB','SAU','ARG','HUN','NER','ZMB','IRN','PER'].forEach(k=>add('border','Borders '+byCode[k].n,c=>c.b.includes(k)));
+['CHN','RUS','IND','BRA','FRA','DEU','AUT','COD','TZA','TUR','SRB','SAU','ARG','HUN','NER','ZMB','IRN','PER'].forEach(k=>add('border','Borders '+byCode[k].n,c=>(OLD_RULES?c.b:landNeighbours(c)).includes(k)));
 add('geo','Landlocked',c=>c.ll===1);
-// land neighbours: only countries count, not territories (China's are 14 with Hong Kong and Macau left out); daily grids
+// land neighbours: landNeighbours() from data/countries.js, the same in every game (a territory counts as its country:
+// Spain borders the UK through Gibraltar, France borders Brazil; China's are 14, Hong Kong and Macau are China); daily grids
 // from before ONLY_COUNTRIES_FROM still count territories (OLD_RULES), so those days stay as they were
 let OLD_RULES=false;
-const NB=c=>OLD_RULES?c.b.length:c.b.filter(x=>byCode[x]&&!byCode[x].t).length;
+const NB=c=>OLD_RULES?c.b.length:landNeighbours(c).length;
 add('geo','Island nation (no land borders)',c=>NB(c)===0&&!c.ll);
 add('geo','Has 5+ land neighbours',c=>NB(c)>=5);
 add('geo','Exactly 1 land neighbour',c=>NB(c)===1);
@@ -1472,7 +1476,7 @@ const stampCell=(c,cell,cls,fits)=>{const pts=(cell.p||0)+(cell.sb||0),k=(cls?cl
 function dailyBoard(saved){
   const dg=saved?null:dailyGrid();if(!saved&&!dg)return '';
   const rows=saved?saved.rows:dg.g.rows,cols=saved?saved.cols:dg.g.cols,n=cols.length;
-  let h=`<div class="board-wrap dboard"><div class="board b${n}" lang="en" style="grid-template-columns:repeat(${n+1},minmax(0,1fr))">${cornerHTML(dayNumber(todayKey()))}`;
+  let h=`<div class="board-wrap dboard"><div class="board b${n}" lang="en" style="grid-template-columns:minmax(0,1.25fr) repeat(${n},minmax(0,1fr))">${cornerHTML(dayNumber(todayKey()))}`;
   cols.forEach((k,j)=>h+=`<div class="hd col" data-info="${k}" role="button" tabindex="0" aria-label="${esc(EUT(CATS[k].label))}: explain"><span class="ref">${colRef(j)}</span><span class="ht">${titleWithInfo(CATS[k].short)}</span></div>`);
   rows.forEach((rk,i)=>{
     h+=`<div class="hd rowh" data-info="${rk}" role="button" tabindex="0" aria-label="${esc(EUT(CATS[rk].label))}: explain"><span class="ref">${rowRef(i)}</span><span class="ht">${titleWithInfo(CATS[rk].short)}</span></div>`;
@@ -1561,11 +1565,13 @@ function gameView(){
     const cell=Geomingo.tk;
     const time=S.timer?cell('Time',`<span id="tleft">${S.timer}s</span>`):'';
     const stub=S.mode==='solo'
-      ?cell('Traveller',esc(S.players[0].name),'tk-name')+cell('Class',DLABEL[S.diff||'normal'])+cell('Points',liveScore(0),'tk-pts')+(S.nolives?cell('Mistakes',S.wrong,'tk-gs'):cell('Lives',livesDots(livesLeft(),LIVES),'tk-gs'))+time
+      ?cell('Traveller',esc(S.players[0].name),'tk-name')+cell('Stamps',S.cells.filter(c=>c.o===0).length+'/'+S.n*S.n)
+        // the same four boxes in every game (Héctor, 2026-11-10): today's km in the daily, the class in Practice and the archive
+        +(S.daily&&!S.archive?cell('km',Geomingo.pts(S.cells.filter(c=>c.o===0).length/(S.n*S.n)),'tk-pts'):cell('Class',DLABEL[S.diff||'normal'],'tk-pts'))+(S.nolives?cell('Mistakes',S.wrong,'tk-gs'):cell('Lives',livesDots(livesLeft(),LIVES),'tk-gs'))+time
       :S.players.map((q,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${q.on===false?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(q.name)}</i><b>${liveScore(i)}</b></div>`).join('')+time;
     h+=Geomingo.ticket(say,stub,{timer:S.timer,color:S.mode==='solo'?'':`var(--p${S.turn})`,mode:S.daily?(S.archive?'archive':'daily'):S.mode==='solo'?'practice':'',num:S.day});
   }
-  h+=`<div class="board-wrap"><div class="board b${n}" lang="en" style="grid-template-columns:repeat(${n+1},minmax(0,1fr))">`;
+  h+=`<div class="board-wrap"><div class="board b${n}" lang="en" style="grid-template-columns:minmax(0,1.25fr) repeat(${n},minmax(0,1fr))">`;
   h+=cornerHTML(S.daily?S.day:0,S.code);
   S.cols.forEach((k,j)=>h+=`<div class="hd col" data-info="${k}" role="button" tabindex="0" aria-label="${esc(EUT(CATS[k].label))}: explain"><span class="ref">${colRef(j)}</span><span class="ht">${titleWithInfo(CATS[k].short)}</span></div>`);
   S.rows.forEach((rk,i)=>{
@@ -1636,7 +1642,7 @@ const verdictHTML=()=>{const v=verdict();return Geomingo.hello(v.pose,v.t,v.s,{k
 const SHARE_BTN='<button class="primary sharebig" id="copy"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Share result</button>';
 const TRIP_STYLE='flex:1;display:flex;align-items:center;justify-content:center;min-width:0;white-space:nowrap;font-size:clamp(10px,calc((100vw - 170px)/15.5),14px);letter-spacing:.03em;padding:13.5px 8px 10.5px';
 const nextGameBtn=g=>g?`<a class="primary" href="${g.href}" style="${TRIP_STYLE}">Next trip: ${esc(g.name)} →</a>`:`<button class="primary" id="newg" style="flex:1">Back to menu</button>`;
-const afterNextHTML=g=>`<button class="ghost" id="playsolo">Play Solo</button>`+(g?'':`<p class="hint">You have played all of today's games. New ones at midnight, Spain time.</p>`);
+const afterNextHTML=g=>`<button class="ghost" id="playsolo">Play Solo</button>`+(g?'':`<p class="hint">You have played all of today's games. New ones at midnight CET.</p>`);
 // when a game you were playing ends: straight to the summary at the top of the page (no window over it)
 let liveKey='';
 function watchResult(){if(!S){liveKey='';return}const k=gameKey();

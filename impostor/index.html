@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611100700"></script>
-<script src="../brand/account.js?v=202611100700"></script>
+<script src="../brand/mingo.js?v=202611100905"></script>
+<script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -90,11 +90,11 @@
 <footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
-<script src="../data/countries.js?v=202611100800"></script>
-<script src="../shared/data.js?v=202611081900"></script>
+<script src="../data/countries.js?v=202611100900"></script>
+<script src="../shared/data.js?v=202611100900"></script>
 <script src="../top10/extra-data.js?v=202611081900"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202611091550"></script>
+<script src="../shared/minigames.js?v=202611100845"></script>
 <script src="facts.js?v=202611081630"></script>
 <script>
 /* ---- Impostor: six countries, six rounds, find the one that doesn't fit ----
@@ -166,7 +166,8 @@ const squaresHTML=G=>`<span class="dsq" aria-hidden="true">${G.qs.map(q=>`<i cla
 /* ---- Daily: the same six rounds for everyone, new at midnight CET ----
    Countries with 2 million people or more, dealt from a seed of the day. Saved as im-daily {date, over, S: the game}. */
 const DAILY_POOL=IMP_COUNTRIES.filter(c=>(DATA.pop[c.c]||0)>=2e6).map(c=>c.c).sort();
-const dailyDeal=key=>dealGame(DAILY_POOL,rngFrom(seedOf('impostor-'+key)));
+// days before NB_FROM keep the old neighbour count (shared/data.js), so their six rounds stay as they were
+const dailyDeal=key=>{neighbourRule(key<NB_FROM);try{return dealGame(DAILY_POOL,rngFrom(seedOf('impostor-'+key)))}finally{neighbourRule(false)}};
 let D=null;
 const isGame=S=>S&&Array.isArray(S.qs)&&S.qs.length>0&&Array.isArray(S.qs[0].set||S.set);
 const dailySaved=()=>{const d=load('im-daily',null);return d&&d.date===todayKey()&&isGame(d.S)?d:null};
@@ -211,7 +212,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     :q.k>1?['think','Read them again.','Every sentence is true for five of them. Each new one lowers the points.']
     :['pass','One of them is lying.','Every sentence is true for five of these countries. Find the one it isn\'t true for.'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
-    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Round',(i+1)+'/'+ROUNDS)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
+    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Round',(i+1)+'/'+ROUNDS)+(mode==='daily'?tk('km',Geomingo.clPts(G.qs.filter(x=>x.st==='right').length,pointsOf(G),ROUNDS),'tk-pts'):tk('Points',pointsOf(G),'tk-pts'))+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Impostor',(arch?'Archive #':'Daily #')+D.num);
   h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's impostors"}</span></div>`;
   if(D.over&&D.left==null)return h+resultHTML(D)+summaryHTML(D);

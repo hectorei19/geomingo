@@ -9,14 +9,20 @@ const LEFT = new Set('GBR IRL MLT CYP IND PAK BGD LKA NPL BTN MDV JPN THA MYS SG
 const has = (c,l)=>c.lg.includes(l);
 
 /* ---- categories ---- */
+// land neighbours: landNeighbours() from data/countries.js (only countries count, a territory counts as its country:
+// Spain borders the UK through Gibraltar, France borders Brazil). Daily games from before NB_FROM keep the old count
+// (every place in c.b, territories too) so those days stay exactly as they were: see neighbourRule().
+const NB_FROM='2026-11-11';
+let NB_OLD=false;
+const NBL=c=>NB_OLD?c.b:landNeighbours(c);
 const CATS = [];
 const add=(fam,label,test)=>CATS.push({id:CATS.length,fam,label,test});
 [['AF','In Africa'],['EU','In Europe'],['AS','In Asia'],['OC','In Oceania'],['NA','In North or Central America'],['SA','In South America']].forEach(([r,l])=>add('region',l,c=>c.r===r));
-['CHN','RUS','IND','BRA','FRA','DEU','AUT','COD','TZA','TUR','SRB','SAU','ARG','HUN','NER','ZMB','IRN','PER'].forEach(k=>add('border','Borders '+byCode[k].n,c=>c.b.includes(k)));
+['CHN','RUS','IND','BRA','FRA','DEU','AUT','COD','TZA','TUR','SRB','SAU','ARG','HUN','NER','ZMB','IRN','PER'].forEach(k=>add('border','Borders '+byCode[k].n,c=>NBL(c).includes(k)));
 add('geo','Landlocked',c=>c.ll===1);
-add('geo','Island nation (no land borders)',c=>c.b.length===0&&!c.ll);
-add('geo','Has 5+ land neighbours',c=>c.b.length>=5);
-add('geo','Exactly 1 land neighbour',c=>c.b.length===1);
+add('geo','Island nation (no land borders)',c=>NBL(c).length===0&&!c.ll);
+add('geo','Has 5+ land neighbours',c=>NBL(c).length>=5);
+add('geo','Exactly 1 land neighbour',c=>NBL(c).length===1);
 add('geo','Centre south of the Equator',c=>c.lat<0);
 add('geo','Centre in the tropics',c=>Math.abs(c.lat)<23.4);
 add('geo','Centre north of 45°N',c=>c.lat>45);
@@ -24,8 +30,8 @@ add('geo','Area over 1 million km²',c=>c.a>1e6);
 add('geo','Area under 30,000 km²',c=>c.a<3e4);
 add('geo','Area over 2 million km²',c=>c.a>2e6);
 add('geo','Area under 1,000 km²',c=>c.a>0&&c.a<1000);
-add('geo','Exactly 2 land neighbours',c=>c.b.length===2);
-add('geo','3 or 4 land neighbours',c=>c.b.length>=3&&c.b.length<=4);
+add('geo','Exactly 2 land neighbours',c=>NBL(c).length===2);
+add('geo','3 or 4 land neighbours',c=>{const n=NBL(c).length;return n>=3&&n<=4});
 // population: UN estimate for 1 July 2023; places without a UN figure never count
 const POP=c=>DATA.pop[c.c];
 add('people','Population over 100 million',c=>POP(c)>1e8);
@@ -110,7 +116,9 @@ add('geo2','Crossed by the Equator',inList('geo_equator'));
 add('geo2','Has a peak over 5,000 m',inList('geo_5000'));
 [['pol_eu','EU member'],['pol_nato','NATO member'],['pol_cw','Commonwealth member'],['pol_g20','G20 member'],['pol_mon','Monarchy'],['pol_opec','OPEC member'],['pol_ussr','Former Soviet republic']].forEach(([k,l])=>add('pol',l,inList(k)));
 [['sp_summer','Hosted the Summer Olympics'],['sp_winter','Hosted the Winter Olympics'],['sp_wchost','Hosted the men\'s World Cup'],['sp_wcwin','Won the men\'s World Cup'],['sp_f1','Hosts a Formula 1 race (2026)']].forEach(([k,l])=>add('sport',l,inList(k)));
-CATS.forEach(k=>{k.set=C.map(c=>!!k.test(c));k.count=k.set.filter(Boolean).length;});
+CATS.forEach(k=>{NB_OLD=true;k.setOld=C.map(c=>!!k.test(c));NB_OLD=false;k.setNew=C.map(c=>!!k.test(c));k.set=k.setNew;k.count=k.set.filter(Boolean).length;});
+// old=true: the neighbour count of daily games from before NB_FROM; old=false (the default): today's rule
+function neighbourRule(old){CATS.forEach(k=>{k.set=old?k.setOld:k.setNew;k.count=k.set.filter(Boolean).length})}
 const FLAGNOTE='Judged on the flag shown in the game.';
 const NOTE=(what,page)=>'Source: '+what+', as listed in Wikipedia, "'+page+'". Places with no figure there never count.';
 const POPNOTE='United Nations estimate for 1 July 2023 (Wikipedia, "List of countries by population (United Nations)"). Places with no UN figure never count.';

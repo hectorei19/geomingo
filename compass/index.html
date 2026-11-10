@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611100700"></script>
-<script src="../brand/account.js?v=202611100700"></script>
+<script src="../brand/mingo.js?v=202611100905"></script>
+<script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -88,12 +88,12 @@
 <footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
-<script src="../data/countries.js?v=202611100800"></script>
-<script src="../shared/data.js?v=202611081900"></script>
+<script src="../data/countries.js?v=202611100900"></script>
+<script src="../shared/data.js?v=202611100900"></script>
 <script src="../capitals/data.js?v=202611081900"></script>
-<script src="clues.js?v=202611100810"></script>
+<script src="clues.js?v=202611100915"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202611091550"></script>
+<script src="../shared/minigames.js?v=202611100845"></script>
 <script>
 /* ---- Compass: find the mystery capital from the capitals round it (Héctor's idea, 2026-11-10) ----
    The mystery capital is the "?" in the middle of a compass. Clue capitals appear on the rim, each in its real direction
@@ -108,12 +108,13 @@ const cityBy=Object.fromEntries(CITIES.map(x=>[x.c,x]));
 const coBy=Object.fromEntries(C.map(c=>[c.c,c]));
 const coName=x=>(coBy[x.k3]||{}).n||x.k3;
 const realFlag=k3=>'../flagpie/flags/'+k3+'.svg';
-const CK={};const cluesOf=c=>CK[c]||(CK[c]=COMPASS.cluesFor(cityBy[c]));
+// q.v: the capital's time round in the daily (0 the first, then 1, 2…): from the 2nd time it gets other clue cities
+const CK={};const cluesOf=(c,v)=>{const k=c+'|'+(v||0);return CK[k]||(CK[k]=COMPASS.cluesFor(cityBy[c],{v,avoid:v?cluesOf(c,0).map(x=>x.c):[]}))};
 // the clues on the compass now: q.cl once a clue was added (games saved before q.cl: the first k of the city's clues)
-const shown=q=>q.cl||cluesOf(q.c).slice(0,q.k);
+const shown=q=>q.cl||cluesOf(q.c,q.v).slice(0,q.k);
 // the next clue: never a city already guessed (Héctor, 2026-11-10); the clues already shown stay as they are
 function nextOf(q){const t=cityBy[q.c],have=shown(q),pre=have.map(x=>x.c),last=have[have.length-1];
-  const l=COMPASS.cluesFor(t,{pre,skip:q.tries});if(l[have.length])return l[have.length];
+  const l=COMPASS.cluesFor(t,{pre,skip:q.tries,v:q.v,avoid:q.v?cluesOf(q.c,0).map(x=>x.c):[]});if(l[have.length])return l[have.length];
   // nothing fits the usual rules: the closest-to-target city nearer than the last clue, not used yet
   const R=CITIES.filter(x=>x.c!==t.c&&!pre.includes(x.c)&&!q.tries.includes(x.c)).map(x=>({c:x.c,d:Math.round(COMPASS.dist(t,x)),b:Math.round(COMPASS.bearing(t,x))}))
     .filter(x=>x.d>=40&&(!last||x.d<last.d)).sort((a,b)=>b.d-a.d);return R[0]||null}
@@ -195,7 +196,7 @@ function answer(q,code){if(code===q.c){q.p=worth(q);q.st='right';return 'right'}
   if(onCompass(q,code))return 'same';q.tries.push(code);q.last={bad:1,c:code};if(worth(q)<=0){q.st='wrong';return 'out'}return 'wrong'}
 // the next clue (1 point less); with 1 point left, "I don't know" lets the capital go
 function nextClue(q){if(q.st!=='play')return;if(q.k<CLUES&&worth(q)>1){const n=nextOf(q);if(!n){q.st='wrong';return}q.cl=shown(q).concat(n);q.k++;q.last=null}else q.st='wrong'}
-function feedback(q,res){if(res==='right')Geomingo.stamp('compass',cityBy[q.c].n,'+'+q.p)}
+function feedback(q,res){if(res==='right')Geomingo.stamp('compass',cityBy[q.c].n,'+'+q.p,cityBy[q.c].k3)}
 const tk=Geomingo.tk;
 const pointsOf=G=>G.qs.reduce((n,q)=>n+ptsOf(q),0);
 const rightOf=G=>G.qs.filter(q=>q.st==='right').length;
@@ -237,11 +238,14 @@ const squaresHTML=G=>`<span class="dsq" aria-hidden="true">${G.qs.map(q=>`<i cla
 const DECK=["abudhabi-are","abuja-nga","accra-gha","addisababa-eth","algiers-dza","amman-jor","amsterdam-nld","ankara-tur","antananari-mdg","ashgabat-tkm","astana-kaz","asuncion-pry","athens-grc","baghdad-irq","baku-aze","bamako-mli","bangkok-tha","bangui-caf","beijing-chn","beirut-lbn","belgrade-srb","berlin-deu","bern-che","bishkek-kgz","bogota-col","brasilia-bra","bratislava-svk","brazzavill-cog","brussels-bel","bucharest-rou","budapest-hun","buenosaire-arg","cairo-egy","canberra-aus","caracas-ven","chisinau-mda","colombo-lka","conakry-gin","copenhagen-dnk","dakar-sen","damascus-syr","delhi-ind","dhaka-bgd","dodoma-tza","dublin-irl","dushanbe-tjk","freetown-sle","gitega-bdi","guatemalac-gtm","hanoi-vnm","harare-zwe","havana-cub","helsinki-fin","islamabad-pak","jakarta-idn","jerusalem-isr","juba-ssd","kabul-afg","kampala-uga","kathmandu-npl","khartoum-sdn","kigali-rwa","kinshasa-cod","kualalumpu-mys","kuwaitcity-kwt","kyiv-ukr","lilongwe-mwi","lima-per","lisbon-prt","ljubljana-svn","lome-tgo","london-gbr","luanda-ago","lusaka-zmb","luxembourg-lux","madrid-esp","managua-nic","manila-phl","maputo-moz","mexicocity-mex","minsk-blr","mogadishu-som","monrovia-lbr","montevideo-ury","moscow-rus","muscat-omn","nairobi-ken","naypyidaw-mmr","ndjamena-tcd","niamey-ner","nicosia-cyp","nouakchott-mrt","oslo-nor","ottawa-can","ouagadougo-bfa","paris-fra","phnompenh-khm","podgorica-mne","portauprin-hti","portmoresb-png","portonovo-ben","prague-cze","pretoria-zaf","pristina-unk","pyongyang-prk","quito-ecu","rabat-mar","ramallah-pse","reykjavik-isl","riga-lva","riyadh-sau","rome-ita","sanaa-yem","sanjose-cri","sansalvado-slv","santiago-chl","santodomin-dom","sarajevo-bih","seoul-kor","singapore-sgp","skopje-mkd","sofia-bgr","stockholm-swe","sucre-bol","taipei-twn","tallinn-est","tashkent-uzb","tbilisi-geo","tegucigalp-hnd","tehran-irn","tirana-alb","tokyo-jpn","tripoli-lby","tunis-tun","valletta-mlt","vienna-aut","vientiane-lao","vilnius-ltu","warsaw-pol","washington-usa","wellington-nzl","yamoussouk-civ","yaounde-cmr","yerevan-arm","zagreb-hrv"];
 function dailyCodes(key){const n=dayNum(key,FIRST)-1,codes=DECK.filter(c=>cityBy[c]).sort(),days=Math.floor(codes.length/PER);
   const cyc=Math.floor(n/days),i=((n%days)+days)%days;return shuffle(codes,rngFrom(seedOf('compass-'+cyc))).slice(i*PER,(i+1)*PER)}
+// a day's game: in the 2nd round of the list on (cycle 1, from day 30) each capital is back with other clue cities (q.v)
+function dailyNew(key,o){const n=dayNum(key,FIRST)-1,days=Math.floor(DECK.filter(c=>cityBy[c]).length/PER),cyc=Math.max(0,Math.floor(n/days));
+  const G=newGame(dailyCodes(key),o);if(cyc)G.qs.forEach(q=>q.v=cyc);return G}
 let D=null;
 const isGame=S=>S&&Array.isArray(S.qs);
 const dailySaved=()=>{const d=load('cm-daily',null);return d&&d.date===todayKey()&&isGame(d.S)?d:null};
 function dailyGame(){const d=dailySaved();if(d)return d.S;
-  return newGame(dailyCodes(todayKey()),{mode:'daily',date:todayKey(),num:dayNum(todayKey(),FIRST)})}
+  return dailyNew(todayKey(),{mode:'daily',date:todayKey(),num:dayNum(todayKey(),FIRST)})}
 function dailySave(){if(!D)return;
   if(D.mode==='archive'){const a=load('cm-arch',{});a[D.date]=D;store('cm-arch',a);if(D.over)logHist(D);return}
   store('cm-daily',{date:D.date,over:D.over,S:D});
@@ -282,7 +286,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     :q.k>1?['think','A new capital on the compass.','Every clue lowers the points. Which capital sits in the middle?']
     :['pass','Where am I?','The mystery capital is in the middle. The city on the rim shows how far it is, and which way.'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
-    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('City',(i+1)+'/'+PER)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+q.p:'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
+    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('City',(i+1)+'/'+PER)+(mode==='daily'?tk('km',Geomingo.clPts(G.qs.filter(x=>x.st==='right').length,pointsOf(G),PER),'tk-pts'):tk('Points',pointsOf(G),'tk-pts'))+tk('Worth',lf?(q.st==='right'?'+'+q.p:'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Compass',(arch?'Archive #':'Daily #')+D.num);
   h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's capitals"}</span></div>`;
   if(D.over&&D.left==null)return h+resultHTML(D)+summaryHTML(D);
@@ -292,7 +296,7 @@ function dailyHTML(){const arch=D.mode==='archive';let h=header('Compass',(arch?
 const archDay=k=>{const e=load('cm-hist',{})[k];return e?e.p+' pts':null};
 function openArchive(){view='archive';query='';typing=false;render();window.scrollTo(0,0)}
 function playArchive(k){if(archDay(k)){toast('You played this day already.');return}
-  const a=load('cm-arch',{});D=isGame(a[k])?a[k]:newGame(dailyCodes(k),{mode:'archive',date:k,num:dayNum(k,FIRST)});
+  const a=load('cm-arch',{});D=isGame(a[k])?a[k]:dailyNew(k,{mode:'archive',date:k,num:dayNum(k,FIRST)});
   query='';typing=false;view='daily';dailySave();render();window.scrollTo(0,0)}
 const archiveView=()=>header('Compass','Archive')+archiveHTML({first:FIRST,label:'Day',num:k=>dayNum(k,FIRST),
   played:archDay,saved:k=>{const g=load('cm-arch',{})[k];return isGame(g)?g:null},done:g=>[pointsOf(g)+' pts',squaresHTML(g)]});

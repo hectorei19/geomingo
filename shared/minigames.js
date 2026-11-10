@@ -53,7 +53,7 @@ const SHARE_BTN='<button class="primary sharebig" id="copy"><svg width="20" heig
 const TRIP_STYLE='flex:1;display:flex;align-items:center;justify-content:center;min-width:0;white-space:nowrap;font-size:clamp(10px,calc((100vw - 170px)/15.5),14px);letter-spacing:.03em;padding:13.5px 8px 10.5px';
 function nextGameBtn(cur){const g=Geomingo.nextGame(cur);
   return g?`<a class="primary" href="${g.href}" style="${TRIP_STYLE}">Next trip: ${esc(g.name)} →</a>`:`<a class="primary" href="${Geomingo.HOME}" style="${TRIP_STYLE}">All games</a>`}
-const allPlayedHTML=cur=>Geomingo.nextGame(cur)?'':`<p class="hint">You have played all of today's games. New ones at midnight, Spain time.</p>`;
+const allPlayedHTML=cur=>Geomingo.nextGame(cur)?'':`<p class="hint">You have played all of today's games. New ones at midnight CET.</p>`;
 function drawMenu(open){let box=$('menulayer');
   if(!box){box=document.createElement('div');box.id='menulayer';document.body.appendChild(box)}
   const b=$('menu');if(b)b.setAttribute('aria-expanded',open?'true':'false');

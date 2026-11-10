@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611100700"></script>
-<script src="../brand/account.js?v=202611100700"></script>
+<script src="../brand/mingo.js?v=202611100905"></script>
+<script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -33,10 +33,10 @@
 .piecard{display:flex;flex-direction:column;align-items:center;gap:12px;background:var(--sheet);border:2px solid var(--gold);border-radius:16px;padding:14px 12px}
 .piecard svg{display:block;width:min(64vw,230px);height:auto}
 .piecard.small svg{width:min(40vw,150px)}
-.leg{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;width:100%}
+.leg{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:6px 18px;width:100%}
 .leg li{display:flex;align-items:center;gap:8px;font-size:.95rem;min-width:0}
 .leg i{flex:none;width:16px;height:16px;border-radius:4px;box-shadow:0 0 0 1px rgba(255,255,255,.25)}
-.leg span{min-width:0;overflow-wrap:anywhere}
+.leg span{white-space:nowrap}
 .leg b{margin-left:auto;font-family:var(--mono);font-weight:700;white-space:nowrap}
 .clues{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .clue{display:flex;gap:12px;align-items:flex-start;background:var(--sheet);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px}
@@ -98,11 +98,11 @@
 <footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
-<script src="../data/countries.js?v=202611100800"></script>
-<script src="../shared/data.js?v=202611081900"></script>
+<script src="../data/countries.js?v=202611100900"></script>
+<script src="../shared/data.js?v=202611100900"></script>
 <script src="pies.js?v=202611050245"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202611091550"></script>
+<script src="../shared/minigames.js?v=202611100845"></script>
 <script>
 /* ---- Flag Pie: the colours of a flag as a pie chart, and you name the country ----
    Five flags per game (Héctor, 2026-11-04: one was too little), one at a time, as the travellers in Customs.
@@ -145,7 +145,7 @@ const SYM=[['flag_star','a star'],['flag_moon','a crescent moon'],['flag_sun','a
 function clue(q,i){const c=cByCode[q.c],d=c.c;
   if(i===2){const sym=SYM.filter(([k])=>isIn(k,d)).map(x=>x[1]);
     return {lab:'The design',main:LAY[d]||'No simple stripes',sub:sym.length?'With '+listText(sym):'No star, moon, sun, cross or coat of arms'}}
-  if(i===3){const nb=c.b.filter(b=>cByCode[b]).length;
+  if(i===3){const nb=(todayKey()<NB_FROM?c.b:landNeighbours(c)).filter(b=>cByCode[b]).length; // the new count from NB_FROM (shared/data.js)
     return {lab:'On the map',main:contName[c.r],sub:c.ll?'Landlocked: no coast':!nb?'An island country':'With a coast, '+nb+' land neighbour'+(nb===1?'':'s')}}
   if(i===4)return {lab:'People and capital',main:'Population: '+popText(DATA.pop[d]||0),sub:c.cap&&!giveaway(c,c.cap)?'The capital starts with '+c.cap[0].toUpperCase():''};
   return {lab:'The flag, blurred',blur:d}}
@@ -268,7 +268,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     :q.k>1||q.tries.length?['think','Look again.','A new clue is open. Every clue lowers the points.']
     :['pass','A flag in pieces.','These are its colours and how much of it each one covers. Whose flag is it?'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
-    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Flag',(i+1)+'/'+PER)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
+    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Flag',(i+1)+'/'+PER)+(mode==='daily'?tk('km',Geomingo.clPts(G.qs.filter(x=>x.st==='right').length,pointsOf(G),PER),'tk-pts'):tk('Points',pointsOf(G),'tk-pts'))+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Flag Pie',(arch?'Archive #':'Daily #')+D.num);
   h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's flags"}</span></div>`;
   if(D.over&&D.left==null)return h+resultHTML(D)+summaryHTML(D);

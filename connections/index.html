@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611100700"></script>
-<script src="../brand/account.js?v=202611100700"></script>
+<script src="../brand/mingo.js?v=202611100905"></script>
+<script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -90,11 +90,11 @@
 <footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
-<script src="../data/countries.js?v=202611100800"></script>
+<script src="../data/countries.js?v=202611100900"></script>
 <script src="../data/flags.js?v=202611100800"></script>
-<script src="../shared/data.js?v=202611081900"></script>
+<script src="../shared/data.js?v=202611100900"></script>
 <script src="../shared/games.js?v=202610240100"></script>
-<script src="../shared/minigames.js?v=202611091550"></script>
+<script src="../shared/minigames.js?v=202611100845"></script>
 <!-- With friends: online rooms in Countries' Firebase Realtime Database -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -111,9 +111,12 @@ const TIER0=new Set(['Landlocked','Island nation (no land borders)']);
 const SKIP=new Set(['Is a territory (not independent)']);
 // independent countries only: territories never appear
 const SOV=C.filter(c=>!c.t).map(c=>c.i);
-const POOLS=[[],[],[],[]];
-CATS.forEach(k=>{if(SKIP.has(k.label))return;const t=TIER0.has(k.label)?0:TIER_OF[k.fam];if(t==null)return;
-  if(SOV.filter(i=>k.set[i]).length>=4)POOLS[t].push(k)});
+// everything below that depends on which countries are in a category is worked out by prepRule(), once for each
+// neighbour rule (see neighbourRule in shared/data.js): dailies before NB_FROM (versions 1-3) keep the old count
+let POOLS,CHECKED,CHECKED_OF,POOLS2,MEMBERS,GAME,GAME_OF,POOLS3,NARROW;
+function poolsNow(){const P=[[],[],[],[]];
+  CATS.forEach(k=>{if(SKIP.has(k.label))return;const t=TIER0.has(k.label)?0:TIER_OF[k.fam];if(t==null)return;
+    if(SOV.filter(i=>k.set[i]).length>=4)P[t].push(k)});return P}
 function buildPuzzleV1(seed){const r=rngFrom(seed);
   for(let a=0;a<3000;a++){
     const ks=POOLS.map(p=>p[Math.floor(r()*p.length)]);
@@ -132,9 +135,6 @@ function buildPuzzleV1(seed){const r=rngFrom(seed);
 // Groups come only from those checked categories. Daily puzzles before that day keep the old way, so they stay as they were.
 const STRICT_FROM='2026-10-25',CHECK_MAX=40,CHECK_ALSO=new Set(['Landlocked','In Africa','In Europe']);
 const sizeOf=k=>SOV.filter(i=>k.set[i]).length;
-const CHECKED=CATS.filter(k=>!SKIP.has(k.label)&&(sizeOf(k)<=CHECK_MAX||CHECK_ALSO.has(k.label)));
-const CHECKED_OF=new Map(SOV.map(i=>[i,CHECKED.filter(k=>k.set[i])]));
-const POOLS2=POOLS.map(p=>p.filter(k=>sizeOf(k)<=CHECK_MAX||k.label==='Landlocked'));
 const isBig=i=>(DATA.pop[C[i].c]||0)>=1e6;
 // fill the 16 one country at a time (better-known countries first), never letting a category outside the puzzle reach four
 // (of: each country's checked categories; tries: how many fills to attempt)
@@ -149,7 +149,6 @@ function pickClean(ks,ex,r,of=CHECKED_OF,tries=6){
       ms[g].push(pick);of.get(pick).forEach(k=>cnt[k.id]++)}
     if(ok)return ms}
   return null}
-const MEMBERS=new Map(CATS.map(k=>[k,SOV.filter(i=>k.set[i])]));
 function buildClean(seed,pools,of,attempts,tries){
   const r=rngFrom(seed);
   for(let a=0;a<attempts;a++){
@@ -166,21 +165,30 @@ function buildClean(seed,pools,of,attempts,tries){
 // 16 countries four of them always share one, so they could never be kept apart. No four of the 16 share a GAME
 // category except the four groups, so there is exactly one solution and no other four to explain.
 const UNIQUE_FROM='2026-10-26';
-const GAME=CATS.filter(k=>!SKIP.has(k.label)&&(sizeOf(k)<=CHECK_MAX||CHECK_ALSO.has(k.label)||k.label==='In Asia'));
-const GAME_OF=new Map(SOV.map(i=>[i,GAME.filter(k=>k.set[i])]));
-const POOLS3=POOLS.map(p=>p.filter(k=>GAME.includes(k)));
-// ver: 1 (dailies before 2026-10-25), 2 (the daily of 2026-10-25) or 3 (everything since)
-function buildPuzzle(seed,ver){if(ver===1)return buildPuzzleV1(seed);
+const RULES={};
+function prepRule(old){neighbourRule(old);const key=old?'old':'new';
+  const R=RULES[key]||(RULES[key]=(()=>{const P=poolsNow();
+    const CK=CATS.filter(k=>!SKIP.has(k.label)&&(sizeOf(k)<=CHECK_MAX||CHECK_ALSO.has(k.label)));
+    const GM=CATS.filter(k=>!SKIP.has(k.label)&&(sizeOf(k)<=CHECK_MAX||CHECK_ALSO.has(k.label)||k.label==='In Asia'));
+    return {POOLS:P,CHECKED:CK,CHECKED_OF:new Map(SOV.map(i=>[i,CK.filter(k=>k.set[i])])),
+      POOLS2:P.map(p=>p.filter(k=>sizeOf(k)<=CHECK_MAX||k.label==='Landlocked')),
+      MEMBERS:new Map(CATS.map(k=>[k,SOV.filter(i=>k.set[i])])),GAME:GM,GAME_OF:new Map(SOV.map(i=>[i,GM.filter(k=>k.set[i])])),
+      POOLS3:P.map(p=>p.filter(k=>GM.includes(k))),NARROW:CATS.filter(k=>!SKIP.has(k.label)).sort((a,b)=>sizeOf(a)-sizeOf(b))}})());
+  ({POOLS,CHECKED,CHECKED_OF,POOLS2,MEMBERS,GAME,GAME_OF,POOLS3,NARROW}=R)}
+prepRule(false);
+// ver: 1 (dailies before 2026-10-25), 2 (the daily of 2026-10-25), 3 (dailies 2026-10-26 to NB_FROM) or 4 (everything
+// since: the same puzzle maker as 3 with today's neighbour rule)
+function buildPuzzle(seed,ver){prepRule(ver<4);try{return buildPuzzleAt(seed,ver)}finally{prepRule(false)}}
+function buildPuzzleAt(seed,ver){if(ver===1)return buildPuzzleV1(seed);
   if(ver===2)return buildClean(seed,POOLS2,CHECKED_OF,1500,6)||buildPuzzleV1(seed);
   // a rare seed with no clean puzzle moves on to the next one, so every seed still gives the same puzzle
   for(let s=0;s<20;s++){const p=buildClean((seed+s*7919)>>>0,POOLS3,GAME_OF,6000,20);if(p)return {...p,seed}}
   return null}
-const verOf=(mode,day)=>mode!=='daily'||day>=UNIQUE_FROM?3:day>=STRICT_FROM?2:1;
+const verOf=(mode,day)=>mode!=='daily'||day>=NB_FROM?4:day>=UNIQUE_FROM?3:day>=STRICT_FROM?2:1;
 // four countries that share a category which is not one of the groups (the first one found, narrowest first)
-const NARROW=CATS.filter(k=>!SKIP.has(k.label)).sort((a,b)=>sizeOf(a)-sizeOf(b));
 // (version 3 puzzles have none, and broad categories are not groups there: those four are an ordinary mistake)
 function sharedCategory(S,cs){if(S.v>=3)return null;const used=new Set(S.groups.map(g=>g.k)),ids=cs.map(c=>byCode[c].i);
-  return NARROW.find(k=>!used.has(k.id)&&ids.every(i=>k.set[i]))}
+  prepRule(true);try{return NARROW.find(k=>!used.has(k.id)&&ids.every(i=>k.set[i]))}finally{prepRule(false)}}
 // a game: the puzzle plus what happened (groups found in order, every guess, mistakes)
 function newGame(mode,seed,day){const date=day||todayKey(),dated=mode==='daily'||mode==='archive';
   const v=verOf(dated?'daily':mode,date),p=buildPuzzle(seed,v);if(!p)return null;
@@ -324,7 +332,7 @@ function pushProgress(){if(!roomRef||!S||S.mode!=='online'||S.code!==roomCode)re
   roomRef.child('players/'+ME).update(p).catch(()=>{})}
 // the host starts the first game; after a game anyone can start the next one once everyone has finished
 async function startRound(){if(!roomRef||!room)return;
-  let seed;do{seed=Math.floor(Math.random()*1e9)}while(!buildPuzzle(seed,3));
+  let seed;do{seed=Math.floor(Math.random()*1e9)}while(!buildPuzzle(seed,4));
   const round=(room.round||0)+1;
   try{await roomRef.transaction(x=>{if(!x)return x;if((x.round||0)>=round)return;
     x.status='play';x.round=round;x.seed=seed;x.startAt=now();return x})}
@@ -457,7 +465,7 @@ function render(keepShake){
   else{const cell=Geomingo.tk,left=MAX_MISTAKES-S.mistakes;
     // the ticket, as in every game: Mingo on top, then who is travelling, groups found and mistakes left
     h+=Geomingo.ticket(moodHTML(cxKey(),'pass','4 stamps to win.','Pick four countries that share something, then Submit.'),
-      cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Groups',S.found.length+'/4','tk-pts')+(on||S.nolives?cell('Mistakes',S.mistakes,'tk-gs'):cell('Lives',livesHTML(left,MAX_MISTAKES),'tk-gs')),{mode:S.mode==='free'?'practice':S.mode==='online'?'':S.mode,num:S.num})}
+      cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Groups',S.found.length+'/4')+(S.mode==='daily'?cell('km',Geomingo.cxPts(S.found.length,S.mistakes),'tk-pts'):'')+(on||S.nolives?cell('Mistakes',S.mistakes,'tk-gs'):cell('Lives',livesHTML(left,MAX_MISTAKES),'tk-gs')),{mode:S.mode==='free'?'practice':S.mode==='online'?'':S.mode,num:S.num})}
   h+=`<div class="cx-board">`;
   S.found.forEach(g=>h+=groupHTML(S.groups[g]));
   if(S.over)S.groups.forEach((g,i)=>{if(!S.found.includes(i))h+=groupHTML(g,true)});
