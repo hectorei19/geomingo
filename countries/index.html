@@ -1331,13 +1331,17 @@ const toHub=()=>{location.href='../'};
 // opening the game goes straight into today's grid (or today's result when it is played);
 // done once per visit (and again when the game name on top is tapped), and only once the sign-in is known
 let AUTO=1;
-function autoDaily(){if(!AUTO||S||screen!=='home'||editingUser||roomCode||MAYBE_IN()||(USER&&NEEDNAME))return false;
+// signed in on this phone before: wait up to 4 s for the sign-in, showing only "Opening today's grid…" (not the old screen)
+let AUTH_WAIT=1;setTimeout(()=>{if(AUTH_WAIT){AUTH_WAIT=0;if(!S&&screen==='home')render()}},4000);
+function autoDaily(){if(!AUTO||S||screen!=='home'||editingUser||roomCode||MAYBE_IN()&&AUTH_WAIT||(USER&&NEEDNAME))return false;
   AUTO=0;if(USER)adoptDaily(ACCT_TODAY);const d=loadDaily();
   if(USER&&otherDevice(ACCT_TODAY)&&!(d&&d.S.over))return false;
   if(!d&&!dailyGrid())return false;
   playDaily();return true}
 function render(){
   if(autoDaily())return;
+  if(AUTO&&AUTH_WAIT&&MAYBE_IN()&&!S&&screen==='home'&&!roomCode){
+    app.innerHTML=Geomingo.header({game:GAME_NAME,coord:'',menu:menuBtn()})+`<section class="panel"><p class="hint">Opening today's grid…</p></section>`;bind();drawLayer();return}
   // the clock of the visas starts when today's grid is first on screen (home or game), unless it is already over
   if(!TESTDAY&&!roomCode){const k=todayKey(),dd=loadDaily(),hh=loadHist()[k];
     if(S?S.daily===k&&!S.archive&&S.mode==='solo'&&!S.over:screen==='home'&&!(dd&&dd.S.over)&&!(hh&&hh.f===1))Geomingo.clock.start('borderline',k)}
