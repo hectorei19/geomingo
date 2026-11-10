@@ -75,9 +75,11 @@
 .lives .cnt{font-family:var(--body);font-weight:800}
 /* today's list on the home screen: the question and its ten empty places (a preview; tapping opens the list) */
 .hcard .t10q{display:block;margin:6px 0 2px}
-.t10peek{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:100%;margin-top:6px}
-.t10peek i{font-style:normal;font-family:var(--display);font-weight:700;color:var(--flamingo-text);border:2px dashed var(--line);border-radius:10px;padding:8px 0;text-align:center}
-.t10peek i.on{background:var(--lagoon-soft);border-style:solid}
+.t10meta{display:block;margin-top:10px;font-family:var(--type);font-size:13px;letter-spacing:.04em;color:var(--muted)}
+/* in the game: the question and its ten places in one card */
+.t10card{background:var(--sheet);border:2px solid var(--line);border-radius:18px;overflow:hidden}
+.t10cq{padding:16px;display:flex;flex-direction:column;gap:8px}
+.t10card .t10list{border:0;border-top:2px dashed var(--line);border-radius:0;box-shadow:none}
 .t10list li[data-ask]{cursor:pointer}
 /* phones: the ten places in two columns (1-5 and 6-10), each with its flag, name and figure, so they fit above the keyboard */
 body.kbon .t10list{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(var(--rows,5),auto);grid-auto-flow:column}
@@ -531,7 +533,7 @@ function homeHTML(){const key=todayKey(),num=dayNum(key,T10_FIRST),d=dailySaved(
     // not played yet: today's question and its ten empty places; tapping opens the list on its own screen
     const g=dailyGame(),l=listById(g.list);
     daily=`<button class="hcard ac" id="daily"><span class="hm">#${num} · ${dateLabel(key)}</span><span class="ht">Today's list</span><span class="hs">${d?`You started it: ${d.found.length} of 10 found. Tap to continue.`:'The same ranking for everyone, one try. Tap to start.'}</span>
-      <span class="t10q">${esc(l.title)}</span><span class="t10peek" aria-hidden="true">${g.top.slice(0,10).map((c,i)=>`<i class="${g.found.includes(c)?'on':''}">${i+1}</i>`).join('')}</span></button>`}
+      <span class="t10q">${esc(l.title)}</span><span class="t10meta">10 places to find · ${LIVES} lives</span></button>`}
   const st=Geomingo.streak();
   const hi=d&&d.over?Geomingo.hello(d.found.length?'happy':'sad',d.found.length?'Stamped for today.'+(st>1?' '+st+'-day streak.':''):'Rough crossing today.',`Today's list is done. Next one in ${nextIn()}.`)
     :d?Geomingo.hello('think','Your list is waiting.','Tap it to carry on. One try.')
@@ -581,7 +583,7 @@ function onlineHTML(){const cur=S.players[S.turn]||{};
       <p class="hint">${S.won?'All ten found.':`${S.found.length} of 10 found. The full list is below.`} ${rk.map(p=>`${esc(p.name)} ${p.score}`).join(' · ')}</p>${why?`<p class="hint" style="margin-top:0">${why}</p>`:''}
       ${S.host?`<div class="row-btns"><button class="primary" id="orematch" style="flex:1">Rematch</button><button class="ghost" id="olobby" style="flex:1">Back to room</button></div>`:'<p class="hint">Waiting for the host to start a rematch.</p>'}</section>`}
   if(!S.over&&!cur.on&&S.turn!==S.me)h+=`<button class="ghost" id="oskip">${esc(cur.name)} is offline: skip their turn</button>`;
-  h+=`<section class="panel t10ask">${askHTML()}</section>${listHTML()}${controlsHTML()}${wrongsHTML()}${srcHTML}`;
+  h+=`<section class="t10card"><div class="t10cq">${askHTML()}</div>${listHTML()}</section>${controlsHTML()}${wrongsHTML()}${srcHTML}`;
   h+=`<div class="row-btns">${S.host&&!S.over?'<button class="ghost" id="oend" style="flex:1">End game</button>':''}<button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;
   return h}
 function render(){
@@ -609,7 +611,7 @@ function render(){
     const dy=q.getBoundingClientRect().top-y;if(dy)window.scrollBy(0,dy);return}
   if(S.over)h+=resultHTML();
   else h+=`<div id="t10tk" style="display:contents">${tk()}</div>`;
-  h+=`<section class="panel t10ask">${askHTML(true)}</section><div id="t10ls" style="display:contents">${listHTML()}</div>${controlsHTML()}<div id="t10wr" style="display:contents">${wrongsHTML()}</div>${S.over?'':'<div class="t10gu" style="display:flex;justify-content:center">'+giveUpHTML()+'</div>'}${srcHTML}`;
+  h+=`<section class="t10card"><div class="t10cq">${askHTML(true)}</div><div id="t10ls" style="display:contents">${listHTML()}</div></section>${controlsHTML()}<div id="t10wr" style="display:contents">${wrongsHTML()}</div>${S.over?'':'<div class="t10gu" style="display:flex;justify-content:center">'+giveUpHTML()+'</div>'}${srcHTML}`;
   if(!S.over)h+=quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')+`<i id="t10game" data-k="${esc(tKey())}" hidden></i>`;
   app.innerHTML=h;bind();
 }
