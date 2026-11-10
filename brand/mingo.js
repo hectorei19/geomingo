@@ -109,8 +109,10 @@ const INK=['var(--green)','var(--blue)','var(--violet)','var(--coral-text)'];
 // whoever listens (../brand/account.js keeps the GeoPass in your account) hears of every new stamp
 const stampHooks=[];
 // stamp('borderline','France','','FRA'): the 4th value, the country's code, ticks that game for the country in the atlas
+// Compass (2026-11-10) has no dot of its own: a capital found there ticks the country's Capitals dot (ABIT)
+const ABIT=g=>GBIT[g]||(g==='compass'?GBIT.citygrid:0);
 function stamp(g,t,s,code){const p=pass(),x={g,t:String(t),s:s?String(s):'',d:dayKey()};
-  if(code&&GBIT[g]&&ATLAS[code]){x.c=code;const a=atlas(p),was=country(code,a).mine;a[code]=(a[code]||0)|GBIT[g];
+  if(code&&ABIT(g)&&ATLAS[code]){x.c=code;const a=atlas(p),was=country(code,a).mine;a[code]=(a[code]||0)|ABIT(g);
     if(!was&&country(code,a).mine)moment({k:'c',c:code,d:x.d})}
   p.n++;p.list.push(x);p.list=p.list.slice(-240);
   store.set('gm-pass',JSON.stringify(p));refreshPass();stampHooks.forEach(f=>{try{f(x)}catch(e){}});return p.n}
@@ -137,11 +139,11 @@ const bits=m=>(m&1)+(m>>1&1)+(m>>2&1)+(m>>3&1)+(m>>4&1)+(m>>5&1);
 function atlasFromList(list){const a={},by={};
   for(const c in ATLAS){by['n'+ATLAS[c].n.toLowerCase()]=c;if(ATLAS[c].k)by['k'+ATLAS[c].k.toLowerCase()]=c}
   by['kla paz']='BOL'; // older Capitals stamps said La Paz for Bolivia
-  (list||[]).forEach(x=>{const b=GBIT[x.g];if(!b)return;const c=x.c&&ATLAS[x.c]?x.c:by[(x.g==='citygrid'?'k':'n')+String(x.t).toLowerCase()];
+  (list||[]).forEach(x=>{const b=ABIT(x.g);if(!b)return;const c=x.c&&ATLAS[x.c]?x.c:by[(x.g==='citygrid'||x.g==='compass'?'k':'n')+String(x.t).toLowerCase()];
     if(c)a[c]=(a[c]||0)|b});return a}
-// cu / fp / va: once, when Customs (and later Flag Pie, then Vatican City on 2026-11-07) joined the atlas, their stamps already in the list are added to an older atlas
-function atlas(p){p=p||pass();if(!p.atlas||typeof p.atlas!=='object'){p.atlas=atlasFromList(p.list);p.cu=1;p.fp=1;p.va=1;store.set('gm-pass',JSON.stringify(p))}
-  else if(!p.cu||!p.fp||!p.va){const f=atlasFromList(p.list);for(const c in f)p.atlas[c]=(p.atlas[c]||0)|f[c];p.cu=1;p.fp=1;p.va=1;store.set('gm-pass',JSON.stringify(p))}
+// cu / fp / va / cm: once, when Customs (and later Flag Pie, Vatican City on 2026-11-07, Compass on 2026-11-10) joined the atlas, their stamps already in the list are added to an older atlas
+function atlas(p){p=p||pass();if(!p.atlas||typeof p.atlas!=='object'){p.atlas=atlasFromList(p.list);p.cu=1;p.fp=1;p.va=1;p.cm=1;store.set('gm-pass',JSON.stringify(p))}
+  else if(!p.cu||!p.fp||!p.va||!p.cm){const f=atlasFromList(p.list);for(const c in f)p.atlas[c]=(p.atlas[c]||0)|f[c];p.cu=1;p.fp=1;p.va=1;p.cm=1;store.set('gm-pass',JSON.stringify(p))}
   return p.atlas}
 // one country: {have: the games done, of: how many it needs, n: how many done, mine: true when all of them}
 function country(code,a){const c=ATLAS[code],h=((a||atlas())[code]||0)&c.m;return {have:h,n:bits(h),of:bits(c.m),mine:h===c.m}}
@@ -396,7 +398,7 @@ function howHTML(){return '<ul class="gp-how">'+
   '<li><b>Stamps.</b> Every right answer in any game is one more stamp in your count.</li>'+
   '<li><b>Km.</b> Every daily game you finish earns up to 100 km for how well it went. A perfect game +20, all '+ALLW+' in one day +'+ALL5+'.</li>'+
   '<li><b>Levels.</b> Km move you along the route: '+LEVELS.map(l=>l[0]+(l[1]?' ('+fmt(l[1])+')':'')).join(', ')+'.</li>'+
-  '<li><b>Countries.</b> A country is yours when you get it right in every game it comes up in: Countries, Capitals, Silhouette, Top 10, Customs and Flag Pie. The dots show which ones you have.</li>'+
+  '<li><b>Countries.</b> A country is yours when you get it right in every game it comes up in: Countries, Capitals, Silhouette, Top 10, Customs and Flag Pie. Finding its capital in Compass counts as Capitals. The dots show which ones you have.</li>'+
   '<li><b>Visas.</b> Special entries for special games, like a week in a row or a perfect grid.</li></ul>'}
 // Passport page (Héctor's option D, 2026-11-02): the route, today's entry stamp, the countries closest to being yours, the latest big moments
 const SHORT={borderline:'Countr.',citygrid:'Capit.',connections:'Conn.',top10:'Top 10',silhouette:'Silh.',customs:'Cust.',flagpie:'Pie',impostor:'Imp.',compass:'Comp.'};
@@ -522,6 +524,6 @@ document.addEventListener('visibilitychange',()=>{
 const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,stale:roomStale};
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
-  days,streak,pass,stamp,stamps,stampsToday,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,traveller,header,passBtn,themeBtn,toggleTheme,currentTheme,
+  days,streak,pass,stamp,stamps,stampsToday,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,traveller,header,passBtn,themeBtn,toggleTheme,currentTheme,
   resultWindow,openWindow,closeWindow,mini,esc,refreshPass,room,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();

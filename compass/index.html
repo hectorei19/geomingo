@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611100845"></script>
-<script src="../brand/account.js?v=202611100700"></script>
+<script src="../brand/mingo.js?v=202611100905"></script>
+<script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -195,7 +195,7 @@ function answer(q,code){if(code===q.c){q.p=worth(q);q.st='right';return 'right'}
   if(onCompass(q,code))return 'same';q.tries.push(code);q.last={bad:1,c:code};if(worth(q)<=0){q.st='wrong';return 'out'}return 'wrong'}
 // the next clue (1 point less); with 1 point left, "I don't know" lets the capital go
 function nextClue(q){if(q.st!=='play')return;if(q.k<CLUES&&worth(q)>1){const n=nextOf(q);if(!n){q.st='wrong';return}q.cl=shown(q).concat(n);q.k++;q.last=null}else q.st='wrong'}
-function feedback(q,res){if(res==='right')Geomingo.stamp('compass',cityBy[q.c].n,'+'+q.p)}
+function feedback(q,res){if(res==='right')Geomingo.stamp('compass',cityBy[q.c].n,'+'+q.p,cityBy[q.c].k3)}
 const tk=Geomingo.tk;
 const pointsOf=G=>G.qs.reduce((n,q)=>n+ptsOf(q),0);
 const rightOf=G=>G.qs.filter(q=>q.st==='right').length;

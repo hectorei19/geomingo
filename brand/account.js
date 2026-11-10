@@ -165,7 +165,7 @@ function syncPass(){const id=uid(),ref=db.ref('users/'+id+'/pass');
     put('gm-pass',Object.assign({},M,{u:id}));ref.set(M).catch(()=>{});G.refreshPass();changed()}).catch(()=>{})}
 G.onStamp(x=>{const id=uid(),p=json('gm-pass');if(!id||!db||!p||p.u!==id)return;
   db.ref('users/'+id+'/pass').transaction(cur=>{cur=cur||{n:0,since:x.d,list:[]};const l=asList(cur.list);l.push(x);
-    const at=Object.assign({},cur.atlas||{}),b=x.c&&G.GBIT[x.g];if(b)at[x.c]=(at[x.c]||0)|b;
+    const at=Object.assign({},cur.atlas||{}),b=x.c&&(G.ABIT?G.ABIT(x.g):G.GBIT[x.g]);if(b)at[x.c]=(at[x.c]||0)|b;
     return {n:(cur.n||0)+1,since:cur.since||x.d,list:l.slice(-240),atlas:at}}).catch(()=>{});
   markToday()});
 // the days you played (the streak): every device's, together
