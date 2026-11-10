@@ -95,7 +95,10 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .namecard input{border:1.5px solid var(--ink);background:var(--paper);border-radius:5px;padding:12px;font-size:1.15rem;width:100%}
 .userline{display:flex;align-items:center;gap:8px;font-weight:600}
 .userline .ghost{padding:4px 10px;font-size:.85rem}
-.hd.col,.hd.rowh,.corner{aspect-ratio:1;min-width:0;overflow:hidden}
+.hd.col,.hd.rowh,.corner{min-width:0;overflow:hidden}
+/* the row names get a wider first column and the column names a taller top row, so their words stay readable on phones */
+.hd.col{aspect-ratio:1/1.6}
+.board .hd.col,.board.b4 .hd.col,.board.b5 .hd.col{padding-left:2px;padding-right:2px}
 .hd .ht{display:block;max-width:100%;font-size:1.05rem;font-weight:700;line-height:1.08;letter-spacing:.005em}
 .b4 .hd .ht{font-size:1rem}
 .b5 .hd .ht{font-size:.95rem}
@@ -1290,7 +1293,7 @@ addEventListener('DOMContentLoaded',()=>{if(typeof FLAGS!=='undefined'&&document
 function dailyBoard(saved){
   const dg=saved?null:dailyGrid();if(!saved&&!dg)return '';
   const rows=saved?saved.rows:dg.g.rows,cols=saved?saved.cols:dg.g.cols,n=cols.length;
-  let h=`<div class="board-wrap dboard"><div class="board b${n}" lang="en" style="grid-template-columns:repeat(${n+1},minmax(0,1fr))">${cornerHTML(dayNumber(todayKey()))}`;
+  let h=`<div class="board-wrap dboard"><div class="board b${n}" lang="en" style="grid-template-columns:minmax(0,1.25fr) repeat(${n},minmax(0,1fr))">${cornerHTML(dayNumber(todayKey()))}`;
   cols.forEach((k,j)=>h+=`<div class="hd col" data-info="${k}" role="button" tabindex="0" aria-label="${esc(EUT(CATS[k].label))}: explain"><span class="ref">${colRef(j)}</span><span class="ht">${titleWithInfo(CATS[k].short)}</span></div>`);
   rows.forEach((rk,i)=>{
     h+=`<div class="hd rowh" data-info="${rk}" role="button" tabindex="0" aria-label="${esc(EUT(CATS[rk].label))}: explain"><span class="ref">${rowRef(i)}</span><span class="ht">${titleWithInfo(CATS[rk].short)}</span></div>`;
@@ -1382,7 +1385,7 @@ function gameView(){
       :S.players.map((q,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${q.on===false?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(q.name)}</i><b>${liveScore(i)}</b></div>`).join('')+time;
     h+=Geomingo.ticket(say,stub,{timer:S.timer,color:S.mode==='solo'?'':`var(--p${S.turn})`,mode:S.daily?(S.archive?'archive':'daily'):S.mode==='solo'?'practice':'',num:S.day});
   }
-  h+=`<div class="board-wrap"><div class="board b${n}" lang="en" style="grid-template-columns:repeat(${n+1},minmax(0,1fr))">`;
+  h+=`<div class="board-wrap"><div class="board b${n}" lang="en" style="grid-template-columns:minmax(0,1.25fr) repeat(${n},minmax(0,1fr))">`;
   h+=cornerHTML(S.daily?S.day:0);
   S.cols.forEach((k,j)=>h+=`<div class="hd col" data-info="${k}" role="button" tabindex="0" aria-label="${esc(EUT(CATS[k].label))}: explain"><span class="ref">${colRef(j)}</span><span class="ht">${titleWithInfo(CATS[k].short)}</span></div>`);
   S.rows.forEach((rk,i)=>{
