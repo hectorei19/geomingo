@@ -175,7 +175,7 @@ const dailyDeal=key=>{neighbourRule(key<NB_FROM);try{return dealGame(DAILY_POOL,
 let D=null;
 const isGame=S=>S&&Array.isArray(S.qs)&&S.qs.length>0&&Array.isArray(S.qs[0].set||S.set);
 const dailySaved=()=>{const d=load('im-daily',null);return d&&d.date===todayKey()&&isGame(d.S)?d:null};
-function dailyGame(){const d=dailySaved();if(d)return d.S;
+function dailyGame(){const d=dailySaved();if(d){if(d.S&&d.S.over)d.S.left=null;return d.S}
   return newGame(dailyDeal(todayKey()),{mode:'daily',date:todayKey(),num:dayNum(todayKey(),FIRST)})}
 function dailySave(){if(!D)return;
   if(D.mode==='archive'){const a=load('im-arch',{});a[D.date]=D;store('im-arch',a);if(D.over)logHist(D);return}
