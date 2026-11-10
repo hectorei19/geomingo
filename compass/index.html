@@ -221,7 +221,7 @@ function playHTML(G){let h=deskHTML(G);
   if(G.over)return `<div class="play">${h}</div>`;
   const q=G.qs[G.sel],w=worth(q),more=CLUES-q.k,can=more>0&&w>1;
   return `<div class="play">${h}<div class="cmpcard"><span class="label">City ${G.sel+1} of ${PER} · worth ${w} point${w===1?'':'s'}</span>${compassHTML(q)}${newsHTML(q,q.last)}</div>
-    <div class="locked">${can?'🔒 '+more+' more clue'+(more===1?'':'s')+' · each one −1 point':w===1?'Last point: one more try':'All five clues are open'}<button class="linkbtn" id="nextclue">${can?'Next clue':'I don\'t know'}</button></div>
+    <div class="locked">${can?'🔒 '+more+' more clue'+(more===1?'':'s')+' locked':w===1?'Last point: one more try':'All five clues are open'}<button class="linkbtn" id="nextclue">${can?'Next clue':'I don\'t know'}</button></div>
     ${answerBoxHTML(q)}${giveUpHTML()}</div>`}
 // after a capital finishes: show it, then the next one still to play, or the game is over
 function advance(G){if(G.qs[G.sel].st==='play')return;G.left=G.sel;const n=G.qs.findIndex(q=>q.st==='play');if(n<0)G.over=true;else G.sel=n}
