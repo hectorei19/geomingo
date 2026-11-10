@@ -105,11 +105,14 @@ svg.mingo{display:block;flex-shrink:0;overflow:visible}
 .tk-mode{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 14px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden}
 .tk-mode span{overflow:hidden;text-overflow:ellipsis}
 /* today's result: the gold ticket with the score (doneTicket), then Next trip and Share */
-.gm-done-c{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px 14px 18px;text-align:center}
-.gm-done-c .big{font-size:52px;margin:0}
-.gm-done-s{margin:0;color:var(--muted);font-size:15px}
-.gm-done-s b{color:var(--gold);font-family:var(--display);font-weight:800}
-.gm-done-btns{display:flex;flex-direction:column;gap:10px}
+.gm-done-c{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px 14px}
+.gm-done-c .big{font-size:30px;margin:0;white-space:nowrap}
+.gm-done-s{margin:0;display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right;color:var(--muted);font-size:13px;min-width:0}
+.gm-done-s b{color:var(--gold);font-family:var(--display);font-weight:800;font-size:18px}
+.gm-done-btns{display:flex;gap:8px;align-items:stretch}
+.gm-done-btns>.primary{min-height:50px;margin:0}
+.gm-done-btns>.primary:first-child{flex:1}
+.gm-done-btns>.sharebig{width:auto;flex:none;padding:0 14px;gap:8px;font-size:15px}
 .tk-mode.daily{background:var(--gold);color:#16202F}
 .tk-mode.practice{background:var(--blue);color:#0C1220}
 .ticket.tk-practice{border-color:var(--blue)}

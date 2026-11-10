@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611101300"></script>
+<script src="../brand/mingo.js?v=202611101330"></script>
 <script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -83,7 +83,7 @@
 .lp.me{border-color:var(--sea)}
 .primary[disabled]{opacity:.5;cursor:default}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611101300">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611101330">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -471,6 +471,7 @@ function render(keepShake){
   if(S.over)S.groups.forEach((g,i)=>{if(!S.found.includes(i))h+=groupHTML(g,true)});
   else h+=`<div class="cx-grid${keepShake?' shake':''}">${S.left.map(c=>tileHTML(c,'data-c')).join('')}</div>`;
   h+=`</div>`;
+  if(S.over&&!on&&S.mode==='daily')h+=rankingHTML();
   if(!S.over){
     h+=`<div class="cx-actions"><button class="ghost" id="shuf">Shuffle</button><button class="ghost" id="desel" ${sel.length?'':'disabled'}>Deselect all</button><button class="primary" id="submit" ${sel.length===4?'':'disabled'}>Submit</button></div>${on?'':giveUpHTML()}
     ${catsHTML()}${rulesPanel(on)}`}
@@ -486,7 +487,7 @@ function verdict(){const n=S.mistakes;
     :{pose:'sad',t:'Rough crossing, this one.',s:'You found '+S.found.length+' of 4 groups.'}}
 function resultHTML(){const v=verdict(),dated=S.mode==='daily'||S.mode==='archive';
   if(S.mode==='daily')return `${Geomingo.doneTicket('connections',S.num,S.found.length+' of 4','next puzzle in '+nextIn())}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
-    <div class="gm-done-btns">${nextGameBtn('connections')}${SHARE_BTN}</div>${rankingHTML()}`;
+    <div class="gm-done-btns">${nextGameBtn('connections')}${SHARE_BTN.replace('Share result','Share')}</div>`;
   return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Connections #'+S.num:S.mode==='archive'?'Archive · Connections #'+S.num:'Solo puzzle'}</span><p class="big">${S.found.length} of 4</p>
     <p class="hint">${S.won?(S.mistakes?`All four groups, ${S.mistakes} mistake${S.mistakes===1?'':'s'}.`:'All four groups, not a single mistake.'):`You found ${S.found.length} of 4 groups.`} ${S.mode==='daily'?`Next puzzle in ${nextIn()}.`:S.mode==='archive'?"Archive games don't count for the ranking or your streak.":''}</p>
     <pre class="sharebox" id="share">${esc(shareText())}</pre>
