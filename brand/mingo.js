@@ -224,7 +224,7 @@ function visas(){const H=k=>json(k)||{},vals=o=>Object.values(o).filter(Boolean)
   const at={};good.forEach(x=>at[x.d+x.g]=x.b);finish.forEach(([d,g,t])=>{const k=d+(g==='leaderboard'?'borderline':g);if(!at[k])at[k]=t});
   let owl=0,call=0;for(const k in at){const m=madridParts(at[k]),day=k.slice(0,10);if(dayKey(at[k])!==day)continue;
     if(+m.hour===0&&+m.minute<10)owl++;if(+m.hour===23&&+m.minute>=50)call++}
-  const close=vals(H('cx-hist')).filter(e=>+e.w&&+e.m===3).length;
+  const close=vals(H('cx-hist')).filter(e=>+e.w&&+e.m===4).length;
   const flaw=Object.values(L).filter(d=>Object.keys(d).length>=ALLN&&Object.values(d).every(v=>v>=120)).length;
   const pdn=pod.length;
   const breath=vals(H('t10-hist')).filter(e=>+e.f>=10&&+e.l===1).length;
@@ -246,7 +246,7 @@ function visas(){const H=k=>json(k)||{},vals=o=>Object.values(o).filter(Boolean)
     ['#2A56B8','15′','Speed tour','All '+ALLW+' dailies in under 15 minutes',bt!=null&&bt<900,0,'',tb(bt),1],
     ['#1D2B4C','0:00','Night owl','A daily in its first 10 minutes (midnight CET)',owl>0,0,'',times(owl),2],
     ['#A07C1E','23:59','Last call','A daily in its last 10 minutes',call>0,0,'',times(call),2],
-    ['#C94A58','3✕','Close call','Win Connections with 3 mistakes',close>0,0,'',times(close),2],
+    ['#C94A58','4✕','Close call','Win Connections with 4 mistakes',close>0,0,'',times(close),2],
     ['#25744F',ALLN+'★','Flawless day','All '+ALLW+' dailies perfect on one day',flaw>0,0,'',times(flaw),2],
     ['#6B4BA8','1♥','Last breath','All ten in a Top 10 with one life left',breath>0,0,'',times(breath),2],
     ['#2A56B8','SA·SU','Weekend away','All '+ALLW+' dailies on a Saturday and the Sunday after',wknd>0,0,'',times(wknd),2],
