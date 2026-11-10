@@ -29,10 +29,10 @@ const GAMES=[
   {id:'connections',name:'Connections',path:'connections/',gate:'3',hint:'Find 4 hidden groups'},
   {id:'top10',name:'Top 10',path:'top10/',gate:'4',hint:'Name the top 10 countries'},
   {id:'silhouette',name:'Silhouette',path:'silhouette/',gate:'5',hint:'Guess the hidden country'},
-  {id:'customs',name:'Customs',path:'customs/',gate:'6',hint:'Guess the country from clues',nofriends:1},
-  {id:'flagpie',name:'Flag Pie',path:'flagpie/',gate:'7',hint:'Guess the flag from its colours',nofriends:1},
-  {id:'impostor',name:'Impostor',path:'impostor/',gate:'8',hint:'Find the country that doesn\'t fit',nofriends:1},
-  {id:'compass',name:'Compass',path:'compass/',gate:'9',hint:'Find the capital with a compass',nofriends:1}];
+  {id:'customs',name:'Customs',path:'customs/',gate:'6',hint:'Guess the country from clues'},
+  {id:'flagpie',name:'Flag Pie',path:'flagpie/',gate:'7',hint:'Guess the flag from its colours'},
+  {id:'impostor',name:'Impostor',path:'impostor/',gate:'8',hint:'Find the country that doesn\'t fit'},
+  {id:'compass',name:'Compass',path:'compass/',gate:'9',hint:'Find the capital with a compass'}];
 GAMES.forEach(g=>g.href=ROOT+g.path);
 const live=()=>GAMES.filter(g=>!g.soon);
 const game=id=>GAMES.find(g=>g.id===id);
