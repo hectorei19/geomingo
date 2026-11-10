@@ -6,12 +6,12 @@
 <meta name="color-scheme" content="dark">
 <style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 <title>Impostor · Geomingo</title>
-<meta name="description" content="Six rounds of six countries: every sentence is true for five of them. Find the impostor. Daily geography games from Geomingo.">
+<meta name="description" content="Six rounds of six countries: every clue is true for five of them. Find the impostor. Daily geography games from Geomingo.">
 <meta name="theme-color" content="#151E30">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Geomingo">
 <meta property="og:title" content="Impostor · Geomingo">
-<meta property="og:description" content="Six rounds of six countries: every sentence is true for five of them. Find the impostor.">
+<meta property="og:description" content="Six rounds of six countries: every clue is true for five of them. Find the impostor.">
 <meta property="og:url" content="https://geomingo.com/impostor/">
 <meta property="og:image" content="https://geomingo.com/brand/og.png?v=2">
 <meta property="og:image:width" content="1200">
@@ -28,7 +28,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
 <link rel="stylesheet" href="../shared/style.css?v=202611091550">
 <style>
-/* Impostor: six countries in a 3 x 2 grid, the sentences of the round under them, then Next clue */
+/* Impostor: six countries in a 3 x 2 grid, the clues of the round under them, then Next clue */
 .play{display:flex;flex-direction:column;gap:12px;width:100%}
 .six{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .six button{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;min-width:0;padding:10px 4px 9px;background:var(--sheet);border:2px solid var(--line);border-radius:12px;color:var(--ink);font:inherit;font-weight:600;font-size:.86rem;line-height:1.15;cursor:pointer}
@@ -142,13 +142,13 @@ function playHTML(G){let h=deskHTML(G);
   if(G.over)return `<div class="play">${h}</div>`;
   const q=G.qs[G.sel],more=SENT-q.k;
   return `<div class="play">${h}<span class="label">Round ${G.sel+1} of ${ROUNDS} · worth ${worth(q)} point${worth(q)===1?'':'s'}</span>${sixHTML(G,q,false)}
-    <span class="label">Five of them fit every sentence. Which one doesn't?</span>${factsHTML(q,false)}
+    <span class="label">Five of them fit every clue. Which one doesn't?</span>${factsHTML(q,false)}
     ${chosen?`<button class="primary go" id="confirm">${esc(nameOf(chosen))} is the impostor</button>`:''}<div class="locked">${chosen?'Not sure? Tap it again to unselect':more?'🔒 '+more+' more clue'+(more===1?'':'s')+' locked':'All five clues are open'}<button class="linkbtn" id="nextfact">${more?'Next clue':'I don\'t know'}</button></div>
     ${giveUpHTML()}</div>`}
 // a round that has just finished: who it was, all five sentences with the impostor's real figures, then Next round
 function leftHTML(G,i){const q=G.qs[i],ok=q.st==='right';
   return `<span class="label">Round ${i+1} of ${ROUNDS}</span>${sixHTML(G,q,true)}
-    <div class="verdict${ok?'':' wrong'}"><b>${ok?'Caught! +'+worth(q):'It was '+esc(nameOf(q.c))+'. 0 points'}</b><span>${ok?esc(nameOf(q.c))+' after '+q.k+' sentence'+(q.k===1?'':'s')+'.':q.pick?'You said '+esc(nameOf(q.pick))+'.':'Nobody picked.'} None of these is true for ${esc(nameOf(q.c))}:</span></div>
+    <div class="verdict${ok?'':' wrong'}"><b>${ok?'Caught! +'+worth(q):'It was '+esc(nameOf(q.c))+'. 0 points'}</b><span>${ok?esc(nameOf(q.c))+' after '+q.k+' clue'+(q.k===1?'':'s')+'.':q.pick?'You said '+esc(nameOf(q.pick))+'.':'Nobody picked.'} None of these is true for ${esc(nameOf(q.c))}:</span></div>
     ${factsHTML(q,true)}<button class="primary" id="nexttv">${G.over?'See your result':'Next round →'}</button>`}
 
 // a tap on a country picks it; the big button says it; a wrong one ends the round with 0
@@ -162,7 +162,7 @@ function nextRound(G,save){const end=G.over;G.left=null;chosen=null;if(save)save
 function showLeft(){const d=document.querySelector('.desk');if(d&&d.getBoundingClientRect().top<0)window.scrollTo(0,Math.max(0,d.getBoundingClientRect().top+window.scrollY-90))}
 // the summary under a finished game: each round's impostor and the points
 const summaryHTML=G=>`<section class="panel"><span class="label">Today's impostors</span><div class="flist">${G.qs.map((q,i)=>{const ok=q.st==='right';
-  return `<div class="frow${ok?'':' wrong'}"><span class="rno">R${i+1}</span><img src="${flagOf(q.c)}" alt=""><span class="rn"><b>${esc(nameOf(q.c))}</b><small>${ok?'Caught after '+q.k+' sentence'+(q.k===1?'':'s'):q.pick?'You said '+esc(nameOf(q.pick)):'Missed'}</small></span><span class="rpts">${ok?'+'+worth(q):'0'}</span></div>`}).join('')}</div></section>`;
+  return `<div class="frow${ok?'':' wrong'}"><span class="rno">R${i+1}</span><img src="${flagOf(q.c)}" alt=""><span class="rn"><b>${esc(nameOf(q.c))}</b><small>${ok?'Caught after '+q.k+' clue'+(q.k===1?'':'s'):q.pick?'You said '+esc(nameOf(q.pick)):'Missed'}</small></span><span class="rpts">${ok?'+'+worth(q):'0'}</span></div>`}).join('')}</div></section>`;
 const sq=q=>q.st==='right'?(q.k===1?'🟩':q.k<=3?'🟨':'🟧'):'🟥';
 const sqClass=q=>q.st==='right'?(q.k<=2?'on':'mid'):q.st==='wrong'?'bad':'';
 const squaresHTML=G=>`<span class="dsq" aria-hidden="true">${G.qs.map(q=>`<i class="${sqClass(q)}"></i>`).join('')}</span>`;
@@ -208,8 +208,8 @@ Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&D.mode==='daily'&&
 function openDaily(){D=dailyGame();chosen=null;view='daily';render();window.scrollTo(0,0)}
 function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
   const m=lf?(q.st==='right'?['happy','Caught.','Tap Next round when you are ready.']:['sad','It got away.','Tap Next round when you are ready.'])
-    :q.k>1?['think','Read them again.','Every sentence is true for five of them. Each new one lowers the points.']
-    :['pass','One of them is lying.','Every sentence is true for five of these countries. Find the one it isn\'t true for.'];
+    :q.k>1?['think','Read them again.','Every clue is true for five of them. Each new one lowers the points.']
+    :['pass','One of them is lying.','Every clue is true for five of these countries. Find the one it isn\'t true for.'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
     tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Round',(i+1)+'/'+ROUNDS)+(mode==='daily'?tk('km',Geomingo.clPts(G.qs.filter(x=>x.st==='right').length,pointsOf(G),ROUNDS),'tk-pts'):tk('Points',pointsOf(G),'tk-pts'))+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Impostor',(arch?'Archive #':'Daily #')+D.num);
@@ -254,28 +254,28 @@ function myStatsHTML(){const h=load('im-hist',{}),so=load('im-solo',null)||{n:0}
   return statsPageHTML({game:'Impostor',hist:h,unit:'day',avg:imAverage(),lbs:d=>[{path:'lb/impostor',dates:d}],num:k=>'Impostor #'+dayNum(k,FIRST),
     solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'caught']]},
     friends:(fr=>Object.assign(fr,{third:[fr.best||0,'best']}))(friendsOf('im-friends'))})}
-const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Six rounds, six new countries in each. The sentences are true for five of them: tap the one they aren't true for. Find it with one sentence for 5 points; every new sentence lowers the points, and a wrong pick scores 0. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Six rounds, six new countries in each. The clues are true for five of them: tap the one they aren't true for. Find it with one clue for 5 points; every new clue lowers the points, and a wrong pick scores 0. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Six rounds, each with six new countries. In every round one of them is the <b>impostor</b>.</li>
-  <li>Sentences come out one by one, from the hardest to the easiest. Each one is true for the other five countries and false for the impostor.</li>
+  <li>Clues come out one by one, from the hardest to the easiest. Each one is true for the other five countries and false for the impostor.</li>
   <li>For example, with Spain, Japan, Brazil, Egypt, Canada and Australia: “It has hosted the Olympic Games” is true for all of them except Egypt.</li></ul>
   <h3>Six rounds</h3><ul>
   <li>Tap a country, then <b>… is the impostor</b> to answer. Tap it again to change your mind.</li>
   <li>Not sure yet? Tap <b>Next clue</b> for another one.</li></ul>
   <h3>Points</h3><ul>
-  <li>Right with 1 sentence: <b>5 points</b>. With 2: 4. With 3: 3. With 4: 2. With all 5: 1.</li>
+  <li>Right with 1 clue: <b>5 points</b>. With 2: 4. With 3: 3. With 4: 2. With all 5: 1.</li>
   <li>A wrong country, or <b>I don't know</b> with all five out, ends the round with 0.</li>
   <li>Best game: ${MAX} points. <b>Give up</b> ends the game as it stands.</li></ul>
-  <h3>The sentences</h3><ul>
+  <h3>The clues</h3><ul>
   <li>They come from the same figures as the other Geomingo games: continents, borders, seas, flags, languages, clubs like the EU or NATO, population, size, sport and more.</li>
-  <li>A number in a sentence is a round number between the impostor and the closest of the other five, so it is always clearly true or false.</li>
+  <li>A number in a clue is a round number between the impostor and the closest of the other five, so it is always clearly true or false.</li>
   <li>After each round you see what the impostor really has (for example “0,8 % forest”).</li>
   <li>Only the ${IMP_COUNTRIES.length} independent countries, never territories.</li></ul>
   <h3>Modes</h3><ul>
   <li><b>Today's impostors</b>: six countries, the same for everyone, new every day at midnight CET. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>
   <li><b>Solo</b>: six random countries, as many games as you like. <b>Easy</b>: countries with 10 million people or more. <b>Hard</b>: all of them.</li>
   <li><b>With friends</b>: online, 2 to 6 players, each on their own phone. Everyone gets the same six rounds (well-known countries) at the same time and plays at their own pace. No lives. Most points win, then the fastest.</li></ul>`}
-function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Impostor: the sentences are made from the same data as Countries, Connections and Top 10 (see above and Top 10's credits). Flags in their official shapes from <a href="https://github.com/hjnilsson/country-flags" target="_blank" rel="noopener">hjnilsson/country-flags</a> (from Wikimedia Commons, public domain).</li></ul>`)}
+function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Impostor: the clues are made from the same data as Countries, Connections and Top 10 (see above and Top 10's credits). Flags in their official shapes from <a href="https://github.com/hjnilsson/country-flags" target="_blank" rel="noopener">hjnilsson/country-flags</a> (from Wikimedia Commons, public domain).</li></ul>`)}
 
 /* ---- home: today's countries on top, then Solo and With friends, as in the other games ---- */
 let view='home';
