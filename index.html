@@ -100,6 +100,13 @@ main{display:flex;flex-direction:column;gap:18px}
 .pass .acct{font-size:14px;color:var(--ink);margin:0}
 .gbtn{min-height:50px;border-radius:12px;border:0;background:#F6F8F5;color:#16202F;display:flex;align-items:center;justify-content:center;gap:10px;font-family:var(--body);font-weight:700;font-size:16px;cursor:pointer}
 .gbtn i{width:22px;height:22px;border-radius:50%;border:2px solid #2A56B8;color:#2A56B8;font-style:normal;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
+/* a guest's box under Travel with friends: guest day N of 3 and the Google button */
+.guest{border-radius:16px;background:var(--guil);border:1.5px solid var(--gold);padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.guest[hidden]{display:none}
+.guest .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.guest .lab{font-family:var(--type);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.guest .gdots{display:flex;gap:5px}.guest .gdots i{width:26px;height:7px;border-radius:4px;background:var(--line)}.guest .gdots i.on{background:var(--gold)}
+.guest .acct{font-size:14px;line-height:1.45;color:var(--ink);margin:0}
 /* Travel with friends, and this week's ranking */
 .friends{min-height:54px;border-radius:14px;border:1.5px solid var(--line);background:var(--cover);color:#F3D98B;display:flex;align-items:center;justify-content:center;gap:10px;font-family:var(--display);font-weight:800;font-size:16px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
 .week{border-radius:16px;background:var(--guil);border:1px solid var(--line);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
@@ -170,6 +177,7 @@ footer{display:flex;flex-direction:column;gap:4px;align-items:center;padding-top
     <div class="hrow"><span class="hmingo"></span><div class="gm-head"><span class="gm-lab" id="dep">Today</span><h2>Today's itinerary</h2></div><button class="mypass" id="mypass" type="button" aria-label="Open my GeoPass"></button></div>
     <ul class="tiles c3" id="games"></ul>
     <button class="friends" id="friends"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20c1-3.5 3.5-5.5 6.5-5.5s5.5 2 6.5 5.5M15 14.5c2.8 0 5 1.6 6 4.5"/></svg>Travel with friends</button>
+    <section class="guest" id="guest" aria-label="Sign in" hidden></section>
     <section class="pass" id="pass" aria-label="Your GeoPass"></section>
     <section class="week" id="week" aria-label="Ranking" hidden></section>
   </main>
@@ -227,8 +235,8 @@ function passHTML(P){const lv=level(P.miles),live=G.live(),played=live.filter(g=
     return '<a class="slot on" href="'+g.href+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+': '+(mi!=null?'+'+mi+' km, ':'')+esc(res)+'"><small>'+nm+'</small><b>'+(mi!=null?'+'+mi:'✓')+'</b><i>'+esc(res)+'</i></a>'}).join('');
   const note='Each box: the km that game gave you today, and your result. '+(played===live.length?'All '+G.ALLW+' played: <b>+'+ALL5+' bonus km</b>. New trips at midnight.'
     :'Play all '+G.ALLW+' today for <b>+'+ALL5+' bonus km</b>.');
-  // signed in: nothing to say here (the header already shows it); a guest gets the sign-in button
-  const foot=acc&&acc.ready&&!u?'<hr><p class="acct"><b>'+esc(acc.trialLine?acc.trialLine():'Sign in to keep your km.')+'</b> Your GeoPass follows you to any phone, and you join the ranking.</p><button class="gbtn" data-gm-signin><i aria-hidden="true">G</i>Continue with Google</button>':'';
+  // the guest's sign-in box is its own card now, under Travel with friends (guestHTML)
+  const foot='';
   const st=(n,t)=>'<div class="stat"><b>'+n+'</b><span>'+t+'</span></div>';
   return '<div class="row"><span class="lab">My GeoPass</span><span class="lvl">'+lv.name+'</span></div>'+
     '<button class="who" id="openpass" aria-label="Open your GeoPass: '+fmt(P.miles)+' km, level '+lv.name+'">'+G.mingo(played?'happy':'pass',56)+
@@ -241,6 +249,12 @@ function passHTML(P){const lv=level(P.miles),live=G.live(),played=live.filter(g=
 function myPassHTML(P){const lv=level(P.miles);
   return '<svg viewBox="0 0 22 28" aria-hidden="true"><rect x="1" y="1" width="20" height="26" rx="3" fill="#0A1328" stroke="#D4AD4B" stroke-width="1.5"/><circle cx="11" cy="12" r="5" fill="none" stroke="#D4AD4B" stroke-width="1.2"/><path d="M6 12h10M11 7c-2 3-2 7 0 10M11 7c2 3 2 7 0 10" fill="none" stroke="#D4AD4B" stroke-width=".9"/><path d="M6 22h10" stroke="#D4AD4B" stroke-width="1.2"/></svg>'+
     '<span><small>My pass</small><b>'+fmt(P.miles)+' km</b><em>'+lv.name+'</em></span>'}
+// a guest (not signed in): which guest day this is, out of 3, and the Google button
+function guestHTML(){const acc=A();if(!acc||!acc.ready||acc.user||!acc.trial)return '';const t=acc.trial;
+  const dots=Array.from({length:t.max},(_,i)=>'<i'+(i<t.day?' class="on"':'')+'></i>').join('');
+  return '<div class="row"><span class="lab">Playing as a guest</span><span class="gdots" aria-hidden="true">'+dots+'</span></div>'+
+    '<p class="acct"><b>'+esc(acc.trialLine())+'</b> Your GeoPass follows you to any phone, and you join the ranking.</p>'+
+    '<button class="gbtn" data-gm-signin><i aria-hidden="true">G</i>Continue with Google</button>'}
 function draw(){const P=geo();
   document.querySelectorAll('.hmingo').forEach(el=>{if(!el.firstChild)el.innerHTML=G.mingo('pass',56)});
   document.querySelectorAll('[data-gm-acctslot]').forEach(el=>{const h=G.acctHTML?G.acctHTML():'';if(el.innerHTML!==h)el.innerHTML=h});
@@ -248,6 +262,7 @@ function draw(){const P=geo();
   const nl=G.live().length;let soon='';for(let n=nl+1;n<=Math.max(9,Math.ceil(nl/3)*3);n++)soon+=SOON(n);
   set('games',G.live().map(g=>tile(g,P)).join('')+soon);
   set('pass',passHTML(P));
+  const gb=document.getElementById('guest'),gh=guestHTML();gb.hidden=!gh;set('guest',gh);
   set('mypass',myPassHTML(P));
   drawWeek()}
 
