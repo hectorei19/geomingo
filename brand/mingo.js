@@ -368,7 +368,7 @@ function resultWindow(o){const g=game(o.game)||{name:o.gameName||''},nx=o.next||
     (o.room&&o.title?'<p class="gm-say">'+esc(o.title)+'</p>':'')+(line?'<p class="gm-line">'+esc(line)+'</p>':'')+'<hr class="gm-rsep">'+
     (st?'<button class="gm-big" data-gm-act="pass">See them in the GeoPass</button>':'')+
     (o.share?'<button class="gm-big coral" data-gm-act="share">'+esc(o.shareLabel||'Share result')+'</button>':'')+
-    (nx?'<a class="gm-big ghost" href="'+esc(nx.href)+'">Next: '+esc(nx.name)+'</a>':(o.allDone?'<p class="gm-note">That was the last game today. New trips at midnight, Spain time.</p>':''))+
+    (nx?'<a class="gm-big ghost" href="'+esc(nx.href)+'">Next: '+esc(nx.name)+'</a>':(o.allDone?'<p class="gm-note">That was the last game today. New trips at midnight CET.</p>':''))+
     '<button class="gm-text" data-gm-act="close">'+esc(o.close||'Close')+'</button></div></div>';
   const box=openWindow(html,(g.name||'Game')+' result',o.onClose);box._acts={share:()=>o.share&&o.share()};
   const f=box.querySelector('[data-gm-act="share"]')||box.querySelector('a,button');if(f)f.focus()}

@@ -6,7 +6,7 @@ Geography grid game with cities: name a city that matches each row and column (t
 
 Live at https://geomingo.com/capitals/ (formerly Cities, at /cities/, which still forwards here) · all the games: https://geomingo.com/
 
-- Today's grid: one 4×4 Normal grid a day for everyone, new at midnight CET (Spain), one try.
+- Today's grid: one 4×4 Normal grid a day for everyone, new at midnight CET, one try.
 - Solo: unlimited grids (Easy, Normal, Hard; 3×3 or 4×4: 197 capitals are too few for 5×5). A shared result link (`?grid=4-KQPMT`) opens the same grid.
 - With friends: shown as "coming soon".
 - Results and stats are kept on the device (localStorage keys starting with `cc-`, so they never mix with Country Grid's `bl-` keys on the same website).
