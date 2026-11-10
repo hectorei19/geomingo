@@ -13,7 +13,7 @@ Files:
 
 ## Daily grids
 
-The daily grids are fixed in advance in `daily.js` (`DAILY_FIXED`, one entry per day from 2026-10-15 to 2027-10-15), so adding or changing categories never changes a day's grid. Days not in the list fall back to generating the grid from the date. The days from 2026-11-10 on were made again with the recipe below when territories stopped counting.
+The daily grids are fixed in advance in `daily.js` (`DAILY_FIXED`, one entry per day from 2026-10-15 to 2027-10-15), so adding or changing categories never changes a day's grid. Days not in the list fall back to generating the grid from the date. The days from 2026-11-10 on were made again with the recipe below when territories stopped counting. On 2026-11-10 Peru and Costa Rica got their flags with the coat of arms (as in Flag Pie), and five days that no longer passed the check (2027-01-21, 2027-03-25, 2027-03-31, 2027-04-24, 2027-06-01) were made again the same way, avoiding the categories of the three days before and after.
 To add more days before the list runs out, open the game in a browser, run this in the console and paste the result into `DAILY_FIXED` (merging `labels` and `days`). A category never comes back within 3 days and appears at most 45 times a year:
 
 ```js
@@ -33,6 +33,6 @@ How categories are picked: every category has the same chance, then `CATW` (meas
 - Country data: [mledoze/countries](https://github.com/mledoze/countries) (npm `world-countries`), Open Database License (ODbL) 1.0. Adapted: some names shortened; a few borders, official languages, currencies and capitals corrected; Antarctica removed; "drives on the left" list added by hand.
 - Flag colours (measured, then checked by eye), flag symbols, seas, peaks, memberships, monarchies and sport lists: compiled by hand, correct as of October 2026.
 - Population, capitals, development and economy, politics and history, geography and sport categories: Wikipedia lists (CC BY-SA 4.0), downloaded in October 2026; each list and its original source (UN, UNDP, World Bank, CIA World Factbook, Transparency International...) is named in the game's Credits and in each category's info.
-- Flags: [flag-icons](https://github.com/lipis/flag-icons), MIT License.
+- Flags: [flag-icons](https://github.com/lipis/flag-icons), MIT License. Peru and Costa Rica are shown with their coat of arms, taken from the flags of Flag Pie ([hjnilsson/country-flags](https://github.com/hjnilsson/country-flags), public domain) and set on the square flag.
 - Fonts: Fredoka and Nunito (Google Fonts, SIL Open Font License).
 - Online rooms: Firebase Realtime Database.
