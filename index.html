@@ -27,7 +27,7 @@
 <script src="brand/mingo.js?v=202611100400"></script>
 <script src="brand/account.js?v=202611100400"></script>
 <style>
-/* Home page: Sign in and Menu on top, today's games as colour tiles (tabs Today / Practice / Friends), then the GeoPass
+/* Home page: Sign in and Menu on top, today's games as colour tiles, Practice and With friends, then the GeoPass
    (km, level, today's stamps) and the ranking by km (today, this week, this month) */
 .app{max-width:460px;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:max(16px,env(safe-area-inset-top,0px)) calc(40px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:18px}
 main{display:flex;flex-direction:column;gap:18px}
@@ -59,10 +59,14 @@ main{display:flex;flex-direction:column;gap:18px}
 .c3 .tile.ctr svg{margin:1cqw 0 1.5cqw}
 .c3 .tile b{font-size:14cqw;font-stretch:72%}
 .c3 .tile.ctr small{font-size:8.6cqw;letter-spacing:-.01em}
-/* Today / Practice / Friends: the same tiles, the tab says where they take you */
-.mtabs{display:flex;gap:4px;padding:3px;border-radius:12px;background:var(--page);border:1px solid var(--line)}
-.mtabs button{flex:1;min-height:40px;border:0;border-radius:9px;background:none;color:var(--muted);font:800 13px var(--display);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;padding:0 4px}
-.mtabs button[aria-selected="true"]{background:var(--guil);color:#F3D98B;box-shadow:0 0 0 1.5px #F3D98B inset}
+/* Practice and With friends under today's games; each opens a screen with the games (same tiles) */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.two button{min-height:84px;border-radius:14px;border:1.5px solid var(--line);background:var(--cover);color:#F3D98B;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.08em;text-transform:uppercase;padding:10px;cursor:pointer}
+.two small{font-family:var(--body);font-weight:500;font-size:12.5px;letter-spacing:0;text-transform:none;color:var(--muted)}
+.pkhead{display:flex;flex-direction:column;gap:8px}
+.pkhead .back{align-self:flex-start;background:none;border:0;padding:4px 0;color:var(--muted);font:700 16px var(--body);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.pkhead h2{margin:0;font-family:var(--display);font-weight:900;font-size:34px;text-transform:uppercase;line-height:1}
+.pkhead p{margin:0;color:var(--muted);font-size:15px}
 .tile.off{filter:grayscale(1);opacity:.35;box-shadow:none}
 .tile.soon{background:transparent;border:2px dashed #4A5570;color:var(--muted);box-shadow:none}
 .tile.soon svg{stroke:currentColor}
@@ -178,11 +182,13 @@ footer{display:flex;flex-direction:column;gap:4px;align-items:center;padding-top
   </header>
   <main>
     <p class="gm-betaline">We're still testing. Official launch coming soon.</p>
-    <div class="hrow"><span class="hmingo"></span><div class="gm-head"><span class="gm-lab" id="dep">Today</span><h2>Today's itinerary</h2></div><button class="mypass" id="mypass" type="button" aria-label="Open my GeoPass"></button></div>
-    <div class="mtabs" id="mtabs" role="tablist" aria-label="How to play">
-      <button type="button" role="tab" data-tab="today">Today</button><button type="button" role="tab" data-tab="practice">Practice</button><button type="button" role="tab" data-tab="friends">Friends</button>
-    </div>
+    <div class="hrow" id="todayhead"><span class="hmingo"></span><div class="gm-head"><span class="gm-lab" id="dep">Today</span><h2>Today's itinerary</h2></div><button class="mypass" id="mypass" type="button" aria-label="Open my GeoPass"></button></div>
+    <div class="pkhead" id="pkhead" hidden></div>
     <ul class="tiles c3" id="games"></ul>
+    <div class="two" id="two">
+      <button type="button" data-mode="practice"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg>Practice<small>Unlimited games</small></button>
+      <button type="button" data-mode="friends"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20c1-3.5 3.5-5.5 6.5-5.5s5.5 2 6.5 5.5M15 14.6c2.6-.4 5 1.2 6 4.4"/></svg>With friends<small>Online, 2 to 6 players</small></button>
+    </div>
     <section class="guest" id="guest" aria-label="Sign in" hidden></section>
     <section class="pass" id="pass" aria-label="Your GeoPass"></section>
     <section class="week" id="week" aria-label="Ranking" hidden></section>
@@ -220,9 +226,15 @@ function doneLine(id,label){if(id==='connections'&&label==='Solved')label='4/4';
   return /\d/.test(label)&&DONE_WORD[id]?DONE_WORD[id]+' · '+esc(label):esc(label)}
 // short line under the name, one line in a box a third of the width
 const HINT3={borderline:'Fill a country grid',citygrid:'Fill a capital grid',connections:'Find 4 groups',top10:'Name the top 10',silhouette:'Guess the country',customs:'Guess from clues',flagpie:'Guess from colours',impostor:'Find the odd one'};
-// the tab chosen (kept while the visit lasts, so Back from a game comes to the same tab)
+// Practice / With friends: a screen of the games (kept while the visit lasts, so Back from a game comes back to it);
+// it has its own history step, so the phone's back gesture returns to today's games
 let MODE='today';try{const t=sessionStorage.getItem('gm-tab');if(t==='practice'||t==='friends')MODE=t}catch(e){}
-function setTab(t){MODE=t;try{sessionStorage.setItem('gm-tab',t)}catch(e){}draw()}
+function setMode(t,push){MODE=t;try{sessionStorage.setItem('gm-tab',t)}catch(e){}
+  try{if(push&&t!=='today')history.pushState({gm:t},'','#'+t);else if(t==='today'&&location.hash)history.replaceState(null,'',location.pathname)}catch(e){}
+  draw();window.scrollTo(0,0)}
+if(MODE!=='today')try{history.replaceState(null,'',location.pathname);history.pushState({gm:MODE},'','#'+MODE)}catch(e){}
+window.addEventListener('popstate',()=>{const h=location.hash.slice(1);setMode(h==='practice'||h==='friends'?h:'today')});
+const PKHEAD={practice:['Practice','Unlimited games at your pace. They don\'t count for the ranking.'],friends:['With friends','Pick a game, then create a room and send the code to your friends. Or join with a code.']};
 // Practice opens the game's Solo screen, Friends its With friends screen (greyed when the game has none yet)
 function modeTile(g){const lk=look(g.id),pr=MODE==='practice',off=!pr&&g.nofriends;
   const state=pr?'PRACTICE':off?'SOON':'ONLINE',hint=pr?'Unlimited, any time':off?'Coming soon':'Create or join a room';
@@ -276,7 +288,10 @@ function draw(){const P=geo();
   set('dep',esc(G.dateText(G.dayKey(),{weekday:'short',day:'numeric',month:'short'})));
   const nl=G.live().length;let soon='';for(let n=nl+1;n<=Math.max(9,Math.ceil(nl/3)*3);n++)soon+=SOON(n);
   set('games',G.live().map(g=>tile(g,P)).join('')+(MODE==='today'?soon:''));
-  document.querySelectorAll('#mtabs [data-tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===MODE?'true':'false'));
+  const pk=document.getElementById('pkhead'),on=MODE!=='today';pk.hidden=!on;
+  if(on&&pk.dataset.m!==MODE){pk.dataset.m=MODE;pk.innerHTML='<button class="back" type="button" id="pkback">← Back</button><h2>'+PKHEAD[MODE][0]+'</h2><p>'+PKHEAD[MODE][1]+'</p>';
+    document.getElementById('pkback').onclick=()=>{if(history.state&&history.state.gm)history.back();else setMode('today')}}
+  ['todayhead','two','guest','pass','week'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=on?'none':''});
   set('pass',passHTML(P));
   const gb=document.getElementById('guest'),gh=guestHTML();gb.hidden=!gh;set('guest',gh);
   set('mypass',myPassHTML(P));
@@ -379,10 +394,10 @@ function openMenu(){const acc=A(),u=acc&&acc.user,P=geo();
     it('rank','#5FC28F','Ranking','')+it('how','#A98BE0','How the GeoPass works','')+'</ul>'+
     '<p>Daily geography puzzles, better with friends. New trips every day at midnight CET. How to play and the credits are in each game\'s menu.</p>',
     {gp:()=>G.openPass('passport'),friends:openFriends,how:openHow,rank:()=>{G.closeWindow();const w=document.getElementById('week');if(w&&!w.hidden)w.scrollIntoView({behavior:'smooth'})}})}
-function openFriends(){G.closeWindow();setTab('friends');const t=document.getElementById('mtabs');if(t)t.scrollIntoView({behavior:'smooth',block:'start'})}
+function openFriends(){G.closeWindow();setMode('friends',true)}
 function openHow(){win('How the GeoPass works',G.howHTML())}
 document.getElementById('menu').onclick=openMenu;
-document.querySelectorAll('#mtabs [data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+document.querySelectorAll('#two [data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode,true));
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#openpass,#mypass'))G.openPass('passport')});
 draw();
 if(G.account)G.account.onChange((why,typing)=>{if(!typing)draw()});
