@@ -1,7 +1,7 @@
 {
   "name": "Geomingo",
   "short_name": "Geomingo",
-  "description": "Daily geography games. Better with friends.",
+  "description": "Nine daily geography games: Countries, Capitals, Connections, Top 10, Silhouette, Customs, Flag Pie, Impostor and Compass. Better with friends.",
   "id": "/",
   "start_url": "/",
   "scope": "/",

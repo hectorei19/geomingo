@@ -7,6 +7,10 @@ Daily geography games. Better with friends. Home page live at https://geomingo.c
 - Connections: https://geomingo.com/connections/
 - Top 10: https://geomingo.com/top10/
 - Silhouette: https://geomingo.com/silhouette/
+- Customs: https://geomingo.com/customs/
+- Flag Pie: https://geomingo.com/flagpie/
+- Impostor: https://geomingo.com/impostor/
+- Compass: https://geomingo.com/compass/
 
 `index.html` is the home page, styled as a departures board: Mingo counts today's stamps, one trip per game with its gate (A1, A2, B1, B2, C1) and its real state ("Play" or "✓ score"), and Play with friends (rooms in Countries and Silhouette). "Played today" reads each game's own save on this device, so it only works on the live site (same origin as the games).
 
