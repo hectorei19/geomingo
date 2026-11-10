@@ -1,5 +1,5 @@
 // Today's games, from Geomingo's list (../brand/mingo.js): names, links, "played today" and the next game.
-// Each game has a copy of this file: change it in one, copy it to the others. The list itself lives in mingo.js.
+// One file for every small game (loaded from ../shared/games.js). The list itself lives in ../brand/mingo.js.
 const GAMES=Geomingo.live();
 const MORE_GAMES=Geomingo.HOME;
 const GAME_HERE=document.documentElement.dataset.game||'borderline';

@@ -6,7 +6,7 @@ Geography quiz: a pie chart shows the colours of a country's flag and how much o
 - Right with k clues open = 6 − k points (5 to 1). A wrong answer with all five open, or "I don't know", is 0.
 - A flag with the same pie (`SAME`: every colour within 1,5 points, for example France, the Netherlands, Russia and Thailand) is a right answer too.
 - Daily: one flag, the same for everyone, new at midnight CET, only from flags whose pie has no near twin (`UNIQ`: no other flag within 3 points), dealt from a deck shuffled once per cycle. `?test&day=2026-11-20` plays that day without saving.
-- Solo: one flag after another. Easy: `UNIQ` flags of countries with 10 million people or more. Hard: all 197. With friends: coming soon.
+- Solo: one flag after another. Easy: `UNIQ` flags of countries with 10 million people or more. Hard: all 197. With friends: an online room, everyone plays the same set at the same time on their own phone, no lives (`../shared/race.js`).
 - Saved on the device: `fp-daily`, `fp-hist` ({p points, r 1 if named, k clues, m wrong}), `fp-arch`, `fp-solo`, `fp-diff`. Ranking: `lb/flagpie` (s points, m wrong answers).
 
 ## The data

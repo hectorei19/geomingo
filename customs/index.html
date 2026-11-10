@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611100930"></script>
+<script src="../brand/mingo.js?v=202611101000"></script>
 <script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -86,7 +86,7 @@
 .cpre{display:flex;gap:6px;width:100%}
 .cpre i{flex:1;aspect-ratio:3/4;border-radius:8px;border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--mono);font-size:.8rem;color:var(--ink-2)}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611100520">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611101000">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -94,13 +94,13 @@
 <div id="layer"></div>
 
 <script src="../data/countries.js?v=202611100900"></script>
-<script src="../data/flags.js?v=202611100800"></script>
+<script src="../data/flags.js?v=202611101000"></script>
 <script src="../shared/data.js?v=202611100900"></script>
-<script src="../shared/games.js?v=202610240100"></script>
+<script src="../shared/games.js?v=202611101000"></script>
 <script src="../shared/minigames.js?v=202611100845"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="../connections/firebase-config.js?v=202611010100"></script>
+<script src="../brand/firebase-config.js?v=202611101000"></script>
 <script src="../shared/race.js?v=202611100930"></script>
 <script>
 /* ---- Customs: a traveller at the desk, and you work out where they come from ----
@@ -277,7 +277,6 @@ function dailySave(){if(!D)return;
 // a finished daily (on its day) goes into the history once: {p points, r travellers named, m wrong answers}
 function logHist(G){if(G.mode!=='daily')return false;const h=load('cu-hist',{});if(h[G.date])return false;
   h[G.date]={p:pointsOf(G),r:rightOf(G),m:wrongOf(G)};store('cu-hist',h);return true}
-const custKey=()=>view==='train'&&T?'train':D?'cu:'+D.date+':'+D.mode:'';
 function dailyPick(code){const q=D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;
   const res=answer(q,code);query='';typing=res==='wrong';
   feedback(q,res);advance(D);dailySave();render();if(res!=='wrong')showLeft()}

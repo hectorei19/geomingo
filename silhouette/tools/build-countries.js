@@ -1,13 +1,12 @@
-// Builds ../countries.js (and ../flags.js): the 197 countries of the game with their name, continent and silhouette.
+// Builds ../countries.js: the 197 countries of the game with their name, continent and silhouette.
 // Only needed to rebuild that file. Run from this folder:
 //   npm install
-//   node build-countries.js     (reads ../../data/countries.js and ../../data/flags.js, the Geomingo country database)
+//   node build-countries.js     (reads ../../data/countries.js, the Geomingo country database; the flags come straight from ../../data/flags.js)
 // Borders: world-atlas (Natural Earth 1:10m, public domain); Vatican City from geoBoundaries (public domain). Names and continents: the Geomingo country database (one name per country, no other accepted names).
 const fs = require('fs'), path = require('path');
 const d3 = require('d3-geo'), topo = require('topojson-client'), wc = require('world-countries');
 
 const dataFile = path.join(__dirname, '..', '..', 'data', 'countries.js');
-const flagsFile = path.join(__dirname, '..', '..', 'data', 'flags.js');
 const C = JSON.parse(fs.readFileSync(dataFile, 'utf8').match(/const C = (\[.*?\]);/s)[1]).filter(c => !c.t);
 
 // silhouettes are drawn in a 100 x 100 box
@@ -154,11 +153,4 @@ const head = `// The ${list.length} countries of Silhouette: code, English name 
 // country data (mledoze/countries, ODbL). Do not edit by hand: change the tool and run it again.\n`;
 const body = 'const COUNTRIES = [\n' + list.map(x => JSON.stringify(x)).join(',\n') + '\n];\n';
 fs.writeFileSync(path.join(__dirname, '..', 'countries.js'), head + body);
-// flags (flag-icons, MIT, as in Country Grid), kept as plain SVG text: smaller to download than base64
-const F = JSON.parse(fs.readFileSync(flagsFile, 'utf8').match(/const FLAGS = (\{.*?\});/s)[1]);
-const flags = {};
-list.forEach(c => { const u = F[c.c]; flags[c.c] = u.startsWith('data:image/svg+xml;base64,') ? Buffer.from(u.split(',')[1], 'base64').toString('utf8') : u; });
-const fhead = `// Flags of the ${list.length} countries as SVG text, shown once a silhouette is answered. Made by tools/build-countries.js
-// from Country Grid's flags (flag-icons, MIT License). Loaded after the page, so the game never waits for it.\n`;
-fs.writeFileSync(path.join(__dirname, '..', 'flags.js'), fhead + 'const FLAGS = ' + JSON.stringify(flags) + ';\n');
 console.log(list.length, 'countries,', EASY.length, 'easy,', Math.round((head + body).length / 1024), 'KB');

@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611100930"></script>
+<script src="../brand/mingo.js?v=202611101000"></script>
 <script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -76,7 +76,7 @@
 .ready{display:flex}
 @media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611100520">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611101000">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -85,14 +85,14 @@
 
 <script src="countries.js?v=202611081800"></script>
 <script src="silhouette.js?v=202610230100"></script>
-<script src="../shared/games.js?v=202610240100"></script>
+<script src="../shared/games.js?v=202611101000"></script>
 <script src="../shared/minigames.js?v=202611100845"></script>
 <!-- online rooms (With friends): Firebase, loaded after the page so today's board shows at once -->
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script defer src="firebase-config.js?v=202611010100"></script>
+<script defer src="../brand/firebase-config.js?v=202611101000"></script>
 <!-- flags appear once a shape is answered; loaded after the page so the game shows at once -->
-<script defer src="flags.js?v=202611100800"></script>
+<script defer src="../data/flags.js?v=202611101000"></script>
 <script>
 /* ---- one silhouette to name: the same piece in Solo, Daily and With friends ----
    A question is {c: country code, rot: turn in degrees (Hard), tries: wrong answers so far, st: 'play' | 'right' | 'wrong'}.
@@ -100,7 +100,7 @@
 const LIVES=5,DIFF_NAME={easy:'Easy',normal:'Normal',hard:'Hard'};
 const DIFF_HINT={easy:'Well-known countries, north up',normal:'All 197 countries, north up',hard:'All 197, each shape turned'};
 const newQ=(c,rot)=>({c,rot:rot||0,tries:[],st:'play'});
-const flagSrc=c=>typeof FLAGS!=='undefined'&&FLAGS[c]?'data:image/svg+xml;utf8,'+encodeURIComponent(FLAGS[c]):'';
+const flagSrc=c=>typeof FLAGS!=='undefined'&&FLAGS[c]||'';
 const contName={EU:'Europe',AS:'Asia',AF:'Africa',NA:'North and Central America',SA:'South America',OC:'Oceania'};
 let query='',typing=false;
 // lives left in a game: five, minus every wrong answer on any of its shapes

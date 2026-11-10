@@ -16,7 +16,7 @@ Part of [Geomingo](https://geomingo.com/), daily geography games: [Countries](ht
 
 Files:
 - `index.html` – the game.
-- `firebase-config.js` – the Firebase web config, the same as Countries'.
+- `../brand/firebase-config.js` – the Firebase web config shared by every game.
 - `../data/countries.js` and `../data/flags.js` – the Geomingo country database and flags (the one source of country data); `../shared/data.js` – the categories and their descriptions.
 - `../shared/style.css` – Countries' styles (colours, fonts, dark mode).
 - `../shared/games.js` – the Games menu, one file for Connections, Top 10 and Silhouette.

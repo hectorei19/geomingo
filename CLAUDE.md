@@ -5,26 +5,26 @@ Plain static HTML/CSS/JS: no build step, no framework, no tests. Each game is on
 
 ## Layout
 - `index.html` – home page (game tiles, GeoPass card, ranking)
-- `brand/` – shared look and logic: `geomingo.css`, `mingo.js` (`window.Geomingo`, list of games `GAMES`, GeoPass, header), `account.js` (Google sign-in, rankings), `icons/`, `og.png`
+- `brand/` – shared look and logic: `geomingo.css`, `mingo.js` (`window.Geomingo`, list of games `GAMES`, GeoPass, header), `account.js` (Google sign-in, rankings), `firebase-config.js` (one Firebase config for every game), `icons/`, `og.png`
 - `data/` – THE GEOMINGO COUNTRY DATABASE, the one source of country data for every game:
-  `countries.js` (C, EXTRA, DATA) and `flags.js` (FLAGS, loaded only by games that show flags).
+  `countries.js` (C, EXTRA, DATA) and `flags.js` (FLAG_SVG as SVG text; `FLAGS[code]` gives the image address; loaded only by games that show flags).
   One name per country (`n`); `al` stays empty everywhere. Change country data here, never in a game folder.
 - `countries/` – Countries (old Country Grid / Borderline); its daily grids in `daily.js` (DAILY_FIXED);
   `database.rules.json` = Firebase rules
 - `capitals/` – Capitals (old Cities / City Grid); cities in `data.js` (CITIES, CO_LISTS, DAILY_FIXED;
   country names CO are built from `data/countries.js`),
-  Vatican flag in `flags.js` (FLAG_VAT); `cities/` only forwards to `capitals/`
+  flags from `data/flags.js`; `cities/` only forwards to `capitals/`
 - `connections/`, `top10/`, `silhouette/`, `customs/`, `flagpie/`, `impostor/`, `compass/` – the smaller games
   (Compass loads `capitals/data.js` for the capitals and their coordinates)
 - `shared/` – `style.css`, `games.js`, `minigames.js`, `data.js` (category rules only, no data)
 - Connections, Top 10, Customs, Flag Pie, Impostor load `data/countries.js` before `shared/data.js`; Silhouette's
-  `countries.js` and `flags.js` are built from `data/` by `silhouette/tools/build-countries.js` (run it after changing `data/`).
+  `countries.js` is built from `data/` by `silhouette/tools/build-countries.js` (run it after changing `data/`).
 - `silhouette/tools/`, `flagpie/tools/` – Node scripts that regenerate data files
 - `README.md` – longer description (brand, account, Firebase paths)
 
 ## Big data files: do not read them whole
 - Reading is blocked in `.claude/settings.json` for `data/countries.js`,
-  `data/flags.js`, `countries/daily.js`, `capitals/data.js`, `capitals/flags.js`, `silhouette/flags.js`,
+  `data/flags.js`, `countries/daily.js`, `capitals/data.js`,
   `silhouette/countries.js` and everything in `flagpie/flags/` (several MB of data/SVG).
   They are one-line JSON/SVG blobs. If you really need a value, grep a short snippet
   (e.g. `grep -o '"c":"ESP".\{0,200\}' data/countries.js`); never print whole lines.

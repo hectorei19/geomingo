@@ -8,7 +8,7 @@ Today's grid (one 4×4 Normal grid a day for everyone), Solo (unlimited grids), 
 Files:
 - `index.html` – the whole game; its country data and flags come from the Geomingo country database (`../data/countries.js`, `../data/flags.js`) and its daily grids from `daily.js`, loaded just before the game script (big one-line files: grep them, never read them whole). Its look (colours, fonts, Mingo, the header, the result window) comes from Geomingo's shared files in `../brand/`.
 - `version.json` – the version number; change it together with `APP_VERSION` in `index.html` so phones with the game open get the reload notice.
-- `firebase-config.js` – your Firebase web config (paste it in).
+- `../brand/firebase-config.js` – the Firebase web config shared by every game.
 - `database.rules.json` – rules to paste in Firebase → Realtime Database → Rules.
 
 ## Daily grids

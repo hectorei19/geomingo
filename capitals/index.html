@@ -21,13 +21,13 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611100930"></script>
+<script src="../brand/mingo.js?v=202611101000"></script>
 <script src="../brand/account.js?v=202611100905"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="firebase-config.js?v=202611010100"></script>
-<script defer src="../silhouette/flags.js?v=202611100800"></script>
+<script src="../brand/firebase-config.js?v=202611101000"></script>
+<script defer src="../data/flags.js?v=202611101000"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -318,7 +318,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .b5 .cell.flag .gm-stamp.wf .pts{font-size:.6rem;padding:0 3px 1px 4px;border-radius:0 0 0 5px}
 .b5 .cell.flag .gm-stamp.wf .cc{font-size:.6rem;padding:1px 4px 0 3px;border-radius:0 5px 0 0}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611100520">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611101000">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -327,7 +327,6 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 
 <script src="../data/countries.js?v=202611100900"></script>
 <script src="data.js?v=202611081900"></script>
-<script src="flags.js?v=202611081530"></script>
 <script>
 const N = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z]/g,'');
 // country names come from the Geomingo country database (../data/countries.js, C): one name per country
@@ -414,7 +413,6 @@ const POOL = CATS.filter(k=>k.count>=4);
 function rngFrom(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function shuffle(arr,r){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 const inter=(a,b,old)=>{const A=old?a.setOld:a.set,B=old?b.setOld:b.set,o=[];for(let i=0;i<CITIES.length;i++)if(A[i]&&B[i])o.push(i);return o};
-function matching(cells){const own=new Map();const tryCell=(ci,seen)=>{for(const x of cells[ci]){if(seen.has(x))continue;seen.add(x);if(!own.has(x)||tryCell(own.get(x),seen)){own.set(x,ci);return true}}return false};for(let ci=0;ci<cells.length;ci++)if(!tryCell(ci,new Set()))return false;return true}
 /* A grid is "safe" when no sequence of correct answers can ever leave a square impossible:
    for every square, its countries can never all be taken by other squares at the same time. */
 function canBlock(ans,c){const A=ans[c];const own=new Map();
@@ -552,8 +550,6 @@ const dailyEntry=(s,f)=>({s:s.players[0].score||0,c:s.players[0].cells||0,n:s.n,
 // with an account, today's try belongs to the first device that started it (ACCT_TODAY is the account's entry for today)
 // an entry with no device (saved by an old version of the game) belongs to nobody: any device may replace it
 const otherDevice=e=>!!e&&!!e.d&&e.d!==ME;
-// an account entry saved before devices were recorded (no d) with the same result counts as this device's own
-const legacyMine=(cur,e)=>!!cur&&!cur.d&&cur.s===e.s&&cur.c===e.c;
 let dailyUp='';
 function recordDaily(s){if(TESTDAY)return;if(s.daily===todayKey())Geomingo.clock.stop('citygrid',s.daily,(s.players[0].cells||0)/(s.n*s.n));const h=loadHist(),e=dailyEntry(s,1),today=s.daily===todayKey();
   if(USER&&today&&otherDevice(ACCT_TODAY))return; // the account already used today's try elsewhere
@@ -1280,8 +1276,8 @@ const screenFor=s=>!s?'home':s.archive?'archive':s.daily?'home':s.mode==='solo'?
 // top-left corner of a board: the daily grid shows its number (GRID #3), other games Mingo's head
 const cornerHTML=day=>day?`<div class="corner dnum" aria-label="Grid number ${day}"><span class="dl">Grid</span><span class="dn${day>=100?' long':''}">#${day}</span></div>`
   :`<div class="corner" aria-hidden="true">${Geomingo.mingo('head',30)}</div>`;
-// flags of the countries: Silhouette's flags.js (loaded after the page, so the game never waits for it), plus Vatican City, which Silhouette doesn't have
-const flagSrc=k=>{const t=k==='VAT'?FLAG_VAT:typeof FLAGS!=='undefined'&&FLAGS[k];return t?'data:image/svg+xml;utf8,'+encodeURIComponent(t):''};
+// flags of the countries: the Geomingo flags, ../data/flags.js (loaded after the page, so the game never waits for it)
+const flagSrc=k=>typeof FLAGS!=='undefined'&&FLAGS[k]||'';
 // a right answer on the grid: a passport stamp with the city's name in the centre over its country's flag,
 // its points in the top right corner and the country's code in the bottom left (as in Countries)
 const stampCell=(c,cell,cls)=>{const f=flagSrc(c.k3),h=Geomingo.stampHTML(c.n,'',cls+' wf');

@@ -18,7 +18,7 @@ Files:
 - `../shared/style.css` – Countries' styles (colours, fonts, dark mode).
 - `../shared/games.js` – the Games menu, one file for Connections, Top 10 and Silhouette.
 - `../shared/minigames.js` – helpers shared by Connections, Top 10 and Silhouette.
-- `firebase-config.js` – Countries' Firebase web config (a copy), for With friends.
+- `../brand/firebase-config.js` – the Firebase web config shared by every game, for With friends.
 
 Publishing a new version: change the `?v=` number after the files in `index.html`, so phones load the new files.
 
