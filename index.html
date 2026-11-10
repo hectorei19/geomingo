@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="brand/geomingo.css?v=202611091000">
+<link rel="stylesheet" href="brand/geomingo.css?v=202611100600">
 <script src="brand/mingo.js?v=202611100400"></script>
 <script src="brand/account.js?v=202611100400"></script>
 <style>
@@ -152,7 +152,7 @@ main{display:flex;flex-direction:column;gap:18px}
 .rtabs button{flex:1;min-height:36px;border:0;border-radius:9px;background:none;color:var(--muted);font:800 12px var(--display);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;padding:0 4px}
 .rtabs button[aria-selected="true"]{background:var(--guil);color:#F3D98B;box-shadow:0 0 0 1.5px #F3D98B inset}
 footer{display:flex;flex-direction:column;gap:4px;align-items:center;padding-top:4px}
-/* the windows of this page: Menu, Travel with friends, GeoPass */
+/* the windows of this page: Menu, GeoPass */
 .hw .gm-rbody{gap:10px}
 .hw ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
 .hw .it{min-height:50px;width:100%;display:flex;align-items:center;gap:14px;padding:0 6px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);text-decoration:none;font:inherit;font-size:16px;font-weight:600;text-align:left;cursor:pointer}
@@ -380,7 +380,7 @@ document.getElementById('week').addEventListener('click',e=>{const w=e.target.cl
   const b=e.target.closest('[data-rtab]');if(!b||b.dataset.rtab===TAB)return;
   TAB=b.dataset.rtab;try{localStorage.setItem('gm-rank-tab',TAB)}catch(e){}drawWeek()});
 
-/* ---- windows: Menu, Travel with friends, the GeoPass ---- */
+/* ---- windows: Menu, the GeoPass ---- */
 const band=t=>'<div class="gm-band">'+G.mingo('head',26)+'<b>'+esc(t)+'</b></div>';
 const closeBtn='<button class="gm-text" data-gm-act="close">Close</button>';
 function win(title,body,acts){const box=G.openWindow('<div class="gm-res hw">'+band(title)+'<div class="gm-rbody">'+body+closeBtn+'</div></div>',title);
@@ -390,11 +390,10 @@ function openMenu(){const acc=A(),u=acc&&acc.user,P=geo();
   const who=!acc||!acc.ready?'':u?'<div class="acctbox"><b>'+esc(acc.name||u.displayName||'')+'</b><span>Signed in. Your GeoPass and results are saved in your account.</span><button class="gm-big ghost" data-gm-signout>Sign out</button></div>'
     :'<div class="acctbox"><b>Guest traveller</b><span>Saved on this phone only.</span><button class="gbtn" data-gm-signin><i aria-hidden="true">G</i>Continue with Google</button></div>';
   const it=(act,c,t,m)=>'<li><button class="it" data-gm-act="'+act+'" style="--c:'+c+'"><span class="dot"></span><span class="tx">'+t+'</span><span class="mt">'+m+'</span></button></li>';
-  win('Menu',who+'<ul>'+it('gp','#D4AD4B','My GeoPass',fmt(P.miles)+' km')+it('friends','#F07884','Travel with friends','')+
+  win('Menu',who+'<ul>'+it('gp','#D4AD4B','My GeoPass',fmt(P.miles)+' km')+
     it('rank','#5FC28F','Ranking','')+it('how','#A98BE0','How the GeoPass works','')+'</ul>'+
     '<p>Daily geography puzzles, better with friends. New trips every day at midnight CET. How to play and the credits are in each game\'s menu.</p>',
-    {gp:()=>G.openPass('passport'),friends:openFriends,how:openHow,rank:()=>{G.closeWindow();const w=document.getElementById('week');if(w&&!w.hidden)w.scrollIntoView({behavior:'smooth'})}})}
-function openFriends(){G.closeWindow();setMode('friends',true)}
+    {gp:()=>G.openPass('passport'),how:openHow,rank:()=>{G.closeWindow();const w=document.getElementById('week');if(w&&!w.hidden)w.scrollIntoView({behavior:'smooth'})}})}
 function openHow(){win('How the GeoPass works',G.howHTML())}
 document.getElementById('menu').onclick=openMenu;
 document.querySelectorAll('#two [data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode,true));
