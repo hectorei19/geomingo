@@ -500,7 +500,7 @@ const randSeed=()=>Math.floor(Math.random()*7962624);
 
 /* ---- state ---- */
 let S = null;
-let setup = {mode:'solo',n:4,timer:0,diff:'normal',code:'',user:''};
+let setup = {mode:'solo',n:4,timer:0,diff:'normal',nolives:0,code:'',user:''};
 try{const s=JSON.parse(localStorage.getItem('cc-setup')||'null');if(s&&typeof s==='object'){setup={...setup,...s,code:''};delete setup.names;if(setup.mode!=='online')setup.mode='solo'}}catch(e){}
 // 3 × 3 grids were dropped: an old saved choice of 3 becomes 4 × 4, the only size left
 setup.n=4;
@@ -760,7 +760,7 @@ function startGame(){
   const players=[{name:setup.user||'You',score:0}];
   S={mode:setup.mode,n,seed,diff,code:makeCode(n,seed,diff),rows:g.rows,cols:g.cols,answers:g.answers,
      cells:g.answers.map(()=>({o:-1,c:null})),used:[],players,turn:0,
-     lives:setup.mode==='solo'?LIVES:null,timer:setup.timer,deadline:0,passes:0,over:false,wrong:0,
+     lives:setup.mode==='solo'?LIVES:null,nolives:setup.mode==='solo'&&setup.nolives?1:0,timer:setup.timer,deadline:0,passes:0,over:false,wrong:0,
      gid:'s-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7)};
   ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};
   startTurn(true);
@@ -782,7 +782,7 @@ function onTick(){
   if(sub)sub.textContent=Math.max(0,Math.ceil(left/1000))+'s';
   if(S.mode==='online'){if(left<=-400)tryTimeout(S.turn,S.deadline);return}
   if(left<=0){
-    if(S.mode==='solo'){loseLife();const l=livesLeft();say('sad',"Time's up.",'That cost a life.'+(l>0?' '+livesWord(l)+' left.':''))}
+    if(S.mode==='solo'){loseLife();const l=livesLeft();say('sad',"Time's up.",S.nolives?'Try another square.':'That cost a life.'+(l>0?' '+livesWord(l)+' left.':''))}
     else say('sad',"Time's up.",'Too slow, '+S.players[S.turn].name+'. Turn passes.');
     ui.sel=-1;ui.query='';nextTurn(false);
   }
@@ -798,11 +798,12 @@ function nextTurn(claimed){
 const LIVES=5;
 const livesLeft=()=>S.lives!=null?S.lives:Math.max(0,LIVES-(S.wrong||0));
 const livesWord=n=>n+' '+(n===1?'life':'lives');
-function loseLife(){if(S.mode==='solo')S.lives=Math.max(0,livesLeft()-1)}
+// Practice can be played with no lives (training): wrong answers are only counted, the game ends when the grid is full
+function loseLife(){if(S.mode==='solo'&&!S.nolives)S.lives=Math.max(0,livesLeft()-1)}
 const livesDots=(left,all)=>`<span class="tk-dots" aria-label="${livesWord(left)} left">${Array.from({length:all},(_,i)=>`<i class="${i<left?'':'off'}"></i>`).join('')}</span>`;
 function checkEnd(){
   const full=S.cells.every(c=>c.o>=0);
-  const outOfLives=S.mode==='solo'&&livesLeft()<=0;
+  const outOfLives=S.mode==='solo'&&!S.nolives&&livesLeft()<=0;
   const allPassed=S.mode!=='solo'&&S.passes>=S.players.length;
   if(full||outOfLives||allPassed){endGame();return true}
   return false;
@@ -859,7 +860,7 @@ function guess(ci,cid){
   }else{
     S.wrong++;loseLife();
     const left=S.mode==='solo'?livesLeft():0;
-    say('sad','Denied entry.',c.n+" doesn't fit that square."+(S.mode==='solo'?(left>0?' '+livesWord(left)+' left.':''):' Turn passes.'));
+    say('sad','Denied entry.',c.n+" doesn't fit that square."+(S.mode==='solo'?(S.nolives?' Mistakes: '+S.wrong+'.':left>0?' '+livesWord(left)+' left.':''):' Turn passes.'));
   }
   ui.sel=-1;ui.query='';
   nextTurn(ok);
@@ -1347,6 +1348,7 @@ function setupView(){
     ${fg&&!on?`<div class="field"><span class="label">Friend's grid</span><p class="hint" style="color:var(--ink);font-size:1rem"><b>${esc(fg.code)}</b> · ${fg.n} × ${fg.n} · ${fg.diff[0].toUpperCase()+fg.diff.slice(1)}. You play exactly the squares your friend played.</p><button class="ghost" id="nofg">Play a random grid instead</button></div>`:`
     <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['normal','Normal'],['hard','Hard']],setup.diff||'normal')}<p class="hint">${DHINT[setup.diff||'normal']}</p></div>`}
     <div class="field"><span class="label">Time per turn</span>${seg('timer',[[0,'Off'],[15,'15 s'],[30,'30 s']],setup.timer)}</div>
+    ${on?'':`<div class="field"><span class="label">Lives</span>${seg('nolives',[[0,LIVES+' lives'],[1,'No lives']],setup.nolives?1:0)}<p class="hint">${setup.nolives?'Training: play until the grid is full. Mistakes are only counted.':'A wrong answer costs one. The game ends when they are gone.'}</p></div>`}
     ${on?`<div class="field">${FB_OK?'':'<p class="hint">Online play only works on the published site with Firebase connected.</p>'}<button class="primary" id="create" ${FB_OK?'':'disabled style="opacity:.5"'}>Create room</button></div>
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK?'':'disabled'}>Join</button></div></div>`:`
     <button class="primary" id="start">Start game</button>`}
@@ -1354,7 +1356,7 @@ function setupView(){
   <section class="panel"><span class="label">Quick rules</span><ul class="rules">
     <li>Fill each square with a capital that matches its row and its column.</li>
     <li>Each capital once per grid. Tap <span class="ib">i</span> to see what a category means.</li>
-    ${on?'<li>Everyone on their own phone: the host creates a room and shares the code.</li>':'<li>You have 5 lives: a wrong answer costs one.</li>'}
+    ${on?'<li>Everyone on their own phone: the host creates a room and shares the code.</li>':setup.nolives?'<li>No lives: play until the grid is full. Mistakes are only counted.</li>':'<li>You have 5 lives: a wrong answer costs one.</li>'}
     <li>Harder squares, quick answers and full lines score more.</li>
     <li>Full rules in <button type="button" class="qhelp">How to play</button>.</li>
   </ul></section>`;
@@ -1376,7 +1378,7 @@ function gameView(){
     const cell=Geomingo.tk;
     const time=S.timer?cell('Time',`<span id="tleft">${S.timer}s</span>`):'';
     const stub=S.mode==='solo'
-      ?cell('Traveller',esc(S.players[0].name),'tk-name')+cell('Class',DLABEL[S.diff||'normal'])+cell('Points',liveScore(0),'tk-pts')+cell('Lives',livesDots(livesLeft(),LIVES),'tk-gs')+time
+      ?cell('Traveller',esc(S.players[0].name),'tk-name')+cell('Class',DLABEL[S.diff||'normal'])+cell('Points',liveScore(0),'tk-pts')+(S.nolives?cell('Mistakes',S.wrong,'tk-gs'):cell('Lives',livesDots(livesLeft(),LIVES),'tk-gs'))+time
       :S.players.map((q,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${q.on===false?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(q.name)}</i><b>${liveScore(i)}</b></div>`).join('')+time;
     h+=Geomingo.ticket(say,stub,{timer:S.timer,color:S.mode==='solo'?'':`var(--p${S.turn})`,mode:S.daily?(S.archive?'archive':'daily'):S.mode==='solo'?'practice':'',num:S.day});
   }
@@ -1557,7 +1559,7 @@ function drawLayer(){
       <li>The game ends when the grid is full or you run out of lives. <b>Give up</b> ends it early.</li></ul>
       <h3>Modes</h3><ul>
       <li><b>Today's grid</b>: one ${DAILY_N} × ${DAILY_N} grid at Normal level, the same for everyone, new every day at midnight CET. One try; if you leave, you carry on where you stopped. Sign in with Google to appear in the daily ranking. Missed a day? Play it in <b>Menu → Archive</b>.</li>
-      <li><b>Solo</b>: as many grids as you like. You choose the level and the time per turn (Off, 15 s or 30 s).</li>
+      <li><b>Solo</b>: as many grids as you like. You choose the level and the time per turn (Off, 15 s or 30 s). Pick <b>No lives</b> to train: play until the end, mistakes are only counted.</li>
       <li><b>With friends</b>: 2 to 6 players online, each on their own phone. The host creates a room and shares its 4-letter code or link. You take turns: a right answer scores for you, a wrong one or running out of time passes the turn. You can also tap <b>Pass turn</b>. The game ends when the grid is full or everyone passes one after another.</li>
       <li><b>Share</b>: at the end, send your result with a link. Friends who open it play exactly your grid.</li></ul>
       <h3>Levels</h3><ul>

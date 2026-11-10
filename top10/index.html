@@ -264,6 +264,8 @@ function markSeen(id){const s=load('t10-seen',[]);if(!s.includes(id)){s.push(id)
 function newGame(mode,l,day){
   const S={mode,list:l.id,top:topCodes(l),found:[],wrong:[],lives:LIVES,over:false,won:false};
   if(mode==='daily'||mode==='archive'){S.date=day||todayKey();S.num=dayNum(S.date,T10_FIRST)}
+  // Solo can be played with no lives (training): wrong answers are only counted
+  else if(mode==='free'&&load('t10-nolives',0))S.nolives=1;
   return S}
 
 /* ---- state ----
@@ -290,11 +292,12 @@ function openFree(id,fresh){view='game';mode='free';const f=load('t10-free',null
   query='';save();render();window.scrollTo(0,0)}
 // Solo: a screen to start from, as in every game (an unfinished practice list can be continued)
 function openSolo(){view='solo';query='';render();window.scrollTo(0,0)}
-function soloHTML(){const f=load('t10-free',null),open=f&&!f.over&&listById(f.list);
+function soloHTML(){const f=load('t10-free',null),open=f&&!f.over&&listById(f.list),nl=load('t10-nolives',0)?1:0;
   return header('Top <span>10</span>','Solo')+`<section class="panel">
     <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Solo</span></div>
     <p class="hint">Practice on unlimited lists, at your pace. A different list each time until you have played them all; Share sends a link to the same list.</p>
     ${open?`<button class="ghost" id="cont">Continue your list (${f.found.length}/10)</button>`:''}
+    <div class="field"><span class="label">Lives</span>${seg('nolives',[[0,LIVES+' lives'],[1,'No lives']],nl)}<p class="hint">${nl?'Training: play until you find all ten. Mistakes are only counted.':'A country outside the top 10 costs one. The game ends when they are gone.'}</p></div>
     <button class="primary" id="start">Start game</button></section>${quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}`}
 // the archive: past daily lists, one try each on this device
 const archDay=k=>{const e=load('t10-hist',{})[k];return e?e.f+'/10':null};
@@ -315,14 +318,14 @@ function suggHTML(){if(!query)return KB?'<li class="hint">Type the first letters
     return `<li><button data-g="${c.c}" ${f||w?'disabled':''}>${esc(c.n)}${f?'<span class="tag">found</span>':w?'<span class="tag">not in it</span>':''}</button></li>`}).join('')}
 // Mingo's key for the game on screen (his bubble and the summary belong to one game)
 const tKey=()=>S?S.mode+':'+(S.date||'')+':'+S.list+':'+(roomCode||''):'';
-const livesTxt=()=>S.lives+' li'+(S.lives===1?'fe':'ves')+' left.';
+const livesTxt=()=>S.nolives?'Mistakes: '+S.wrong.length+'.':S.lives+' li'+(S.lives===1?'fe':'ves')+' left.';
 function guess(code){if(!S||S.over)return;const c=byCode[code];
   if(S.found.includes(code)||S.wrong.includes(code)){say(tKey(),'think','Hold on.',c.n+' is already in your pages.');render();return}
   query='';typing=true;
   if(S.mode==='online'){onlineGuess(code);return}
   const i=S.top.indexOf(code);
   if(i>=0){S.found.push(code);fresh=code;Geomingo.stamp('top10',c.n,'#'+placeOf(listById(S.list),code),code);if(S.found.length>=10){S.over=true;S.won=true}}
-  else{S.wrong.push(code);S.lives--;if(S.lives<=0)S.over=true}
+  else{S.wrong.push(code);if(!S.nolives){S.lives--;if(S.lives<=0)S.over=true}}
     save();render();if(S.over)window.scrollTo(0,0);
   if(i>=0){if(!S.over){say(tKey(),'happy','Stamped: '+c.n+', #'+placeOf(listById(S.list),code)+'.',(10-S.found.length)+' to go.');render()}return}
   const r=placeOf(listById(S.list),code)-1;
@@ -332,8 +335,8 @@ function guess(code){if(!S||S.over)return;const c=byCode[code];
 // ten squares for a result: one per place, or, when the 10th place is shared, the countries found first
 const tiles=st=>st.top.length>10?Array.from({length:10},(_,i)=>i<st.found.length):st.top.map(c=>st.found.includes(c));
 function shareText(){const l=listById(S.list);
-  const sq=tiles(S).map(on=>on?'🟩':'⬜').join(''),hearts='❤️'.repeat(S.lives)+'🖤'.repeat(LIVES-S.lives);
-  return `${Geomingo.share('Top 10')+(S.mode==='daily'?' #'+S.num:S.mode==='archive'?' #'+S.num+' (archive)':' (practice)')} — ${S.found.length}/10\n${l.title}\n${sq} ${hearts}`}
+  const sq=tiles(S).map(on=>on?'🟩':'⬜').join(''),hearts=S.nolives?'':'❤️'.repeat(S.lives)+'🖤'.repeat(LIVES-S.lives);
+  return `${Geomingo.share('Top 10')+(S.mode==='daily'?' #'+S.num:S.mode==='archive'?' #'+S.num+' (archive)':(S.nolives?' (practice, no lives)':' (practice)'))} — ${S.found.length}/10\n${l.title}\n${sq}${hearts?' '+hearts:''}`}
 const shareLink=()=>S.mode==='free'?pageLink('?l='+S.list):pageLink();
 const shareMessage=()=>shareText()+'\n\n'+(S.mode==='free'?'Play this list: ':"Play today's Top 10: ")+shareLink();
 
@@ -605,8 +608,8 @@ function render(){
   let h=header('Top <span>10</span>',S.mode==='daily'?'Daily #'+S.num:S.mode==='archive'?'Archive #'+S.num:'Solo');
   h+=`<div class="backline"><button class="linkbtn" id="${S.mode==='archive'?'archback':S.mode==='free'?'soloback':'home'}">← Back</button><span class="ht">${S.mode==='daily'?"Today's list":S.mode==='archive'?'List #'+S.num:'Solo'}</span></div>`;
   // the ticket, as in every game: Mingo on top, then who is travelling, countries found and lives left
-  const cell=Geomingo.tk,tk=()=>Geomingo.ticket(moodHTML(tKey(),'pass','10 stamps to win.','In any order. A country outside the top 10 costs a life.'),
-    cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Found',S.found.length+'/10','tk-pts')+cell('Lives',livesHTML(S.lives,LIVES),'tk-gs'),{mode:S.mode==='free'?'practice':S.mode,num:S.num});
+  const cell=Geomingo.tk,tk=()=>Geomingo.ticket(moodHTML(tKey(),'pass','10 stamps to win.',S.nolives?'In any order. No lives: play until you find them all.':'In any order. A country outside the top 10 costs a life.'),
+    cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Found',S.found.length+'/10','tk-pts')+(S.nolives?cell('Mistakes',S.wrong.length,'tk-gs'):cell('Lives',livesHTML(S.lives,LIVES),'tk-gs')),{mode:S.mode==='free'?'practice':S.mode,num:S.num});
   // a guess while this list is on screen: only the ticket and the list change. The box you type in stays
   // where it is, so the phone keeps its keyboard open and the page does not jump up and down
   const g=$('t10game'),q=$('q');
@@ -621,11 +624,11 @@ function render(){
 }
 // Mingo's verdict, for the result panel
 function verdict(){const f=S.found.length;
-  return S.won?(S.lives===LIVES?{pose:'happy',t:'Full page. Perfect ten.',s:'Not a single life lost.'}:{pose:'happy',t:'Visited. All ten.',s:livesTxt()})
-    :f>=6?{pose:'think',t:'So close. '+f+' of 10.',s:'No lives left. The full list is below.'}:{pose:'sad',t:'Rough crossing, this one.',s:f+' of 10 found. The full list is below.'}}
+  return S.won?(!S.wrong.length?{pose:'happy',t:'Full page. Perfect ten.',s:S.nolives?'Not a single mistake.':'Not a single life lost.'}:{pose:'happy',t:'Visited. All ten.',s:livesTxt()})
+    :f>=6?{pose:'think',t:'So close. '+f+' of 10.',s:S.nolives?'The full list is below.':'No lives left. The full list is below.'}:{pose:'sad',t:'Rough crossing, this one.',s:f+' of 10 found. The full list is below.'}}
 function resultHTML(){const v=verdict();
   return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Top 10 #'+S.num:S.mode==='archive'?'Archive · Top 10 #'+S.num:'Solo list'}</span><p class="big">${S.found.length} of 10</p>
-    <p class="hint">${S.won?`You named the whole list with ${S.lives} li${S.lives===1?'fe':'ves'} left.`:S.lives?'The full list is below.':'No lives left. The full list is below.'} ${S.mode==='daily'?`Next list in ${nextIn()}.`:S.mode==='archive'?"Archive games don't count for the ranking or your streak.":''}</p>
+    <p class="hint">${S.won?(S.nolives?`You named the whole list with ${S.wrong.length} mistake${S.wrong.length===1?'':'s'}.`:`You named the whole list with ${S.lives} li${S.lives===1?'fe':'ves'} left.`):S.lives?'The full list is below.':'No lives left. The full list is below.'} ${S.mode==='daily'?`Next list in ${nextIn()}.`:S.mode==='archive'?"Archive games don't count for the ranking or your streak.":''}</p>
     <pre class="sharebox" id="share">${esc(shareText())}</pre>
     ${S.mode==='daily'?`${SHARE_BTN}<div class="row-btns sharerow">${nextGameBtn('top10')}</div>
     <button class="ghost" id="playsolo">Play Solo</button>${allPlayedHTML('top10')}`
@@ -650,7 +653,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>The game ends when you find all ten or run out of lives. Then the full list is shown. <b>Give up</b> ends it early.</li></ul>
   <h3>Modes</h3><ul>
   <li><b>Today's list</b>: the same for everyone, new every day at midnight CET. One try. Missed one? Play it in <b>Menu → Archive</b>.</li>
-  <li><b>Solo</b>: as many practice lists as you like, a new one each time until you have played them all. <b>Share</b> sends a friend a link to the same list.</li>
+  <li><b>Solo</b>: as many practice lists as you like, a new one each time until you have played them all. <b>Share</b> sends a friend a link to the same list. Pick <b>No lives</b> to train: play until the end, mistakes are only counted.</li>
   <li><b>With friends</b>: 2 to ${MAXP} players online, each on their own phone. The host creates a room and shares its code or link, and can set a time per turn (Off, 15 s or 30 s). You take turns naming a country: one in the top 10 scores a point, one outside passes the turn. There are no lives. You can also tap <b>Pass</b>, and running out of time passes too. The game ends when the ten are found or everyone passes in a row. Most points wins. If level: fewer wrong answers wins, then the higher places found (the lower your places add up), then whoever found a country first.</li></ul>`}
 // tapping a suggestion does not take the focus from the box, so the phone keyboard stays open
 function drawSugg(){const u=$('sugg');if(u){u.innerHTML=suggHTML();u.querySelectorAll('[data-g]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>guess(b.dataset.g)})}}
@@ -684,6 +687,7 @@ function bind(){
   if($('copy'))$('copy').onclick=()=>share(shareMessage());
   if($('again'))$('again').onclick=()=>openFree(null,true);
   // With friends
+  app.querySelectorAll('[data-seg="nolives"]').forEach(b=>b.onclick=()=>{store('t10-nolives',+b.dataset.v);render()});
   app.querySelectorAll('[data-seg="timer"]').forEach(b=>b.onclick=()=>{saveSetup();setup.timer=+b.dataset.v;saveSetup();render()});
   if($('fname'))$('fname').onchange=saveSetup;
   if($('jcode'))$('jcode').oninput=e=>{setup.join=e.target.value};
