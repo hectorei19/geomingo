@@ -145,21 +145,27 @@ function country(code,a){const c=ATLAS[code],h=((a||atlas())[code]||0)&c.m;retur
 const countriesMine=a=>{a=a||atlas();return Object.keys(ATLAS).filter(c=>country(c,a).mine).length};
 
 /* ---------- km and levels: every daily game you finish earns km for how well it went ----------
-   up to 100 for the result, +20 for a perfect game, +50 on a day you play all of them (ALLN: how many games that is) */
+   up to 100 for the result, +20 for a perfect game, +50 on a day you play all of them (ALLN: how many games that is).
+   Clue games (Customs, Flag Pie, Impostor): each right answer is worth 100/n km, minus 5% for every extra clue it took
+   (so 80% at the last clue); all right = perfect (+20). Connections: 25 km per group found, minus 10 per mistake, +20
+   for no mistakes at all; nothing for giving up at once. */
 const LEVELS=[['Tourist',0],['Traveller',500],['Explorer',2000],['Ambassador',5000],['Globetrotter',10000]];
 const ALL5=50,ALLN=GAMES.filter(g=>!g.soon).length,ALLW=['','one','two','three','four','five','six','seven','eight'][ALLN]||String(ALLN);
 const pts=f=>{f=Math.max(0,Math.min(1,+f||0));return Math.round(f*100)+(f>=1?20:0)};
-const cxPts=(won,m)=>won?Math.max(40,100-15*(+m||0))+(m?0:20):20;
+// r right answers out of n, p points (5 for the first clue down to 1 for the fifth)
+const clPts=(r,p,n)=>{r=+r||0;p=+p||0;n=+n||0;if(!n)return 0;const f=Math.max(0,Math.min(1,(.75*r+.05*p)/n));return Math.round(f*100)+(r>=n?20:0)};
+// f groups found out of 4, m mistakes
+const cxPts=(f,m)=>{f=Math.max(0,Math.min(4,+f||0));m=+m||0;return Math.max(0,25*f-10*m)+(f>=4&&!m?20:0)};
 // this device's daily games, from each game's own history: {day: {game id: km}}
 function ledger(){const L={},add=(d,id,mi)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))(L[d]=L[d]||{})[id]=mi};
   [['bl-hist','borderline'],['cc-hist','citygrid']].forEach(([k,id])=>{const h=json(k)||{};
     for(const d in h){const e=h[d];if(e&&e.f!==0){const n=+e.n||3;add(d,id,pts((+e.c||0)/(n*n)))}}});
-  const cx=json('cx-hist')||{};for(const d in cx)if(cx[d])add(d,'connections',cxPts(cx[d].w,cx[d].m));
+  const cx=json('cx-hist')||{};for(const d in cx)if(cx[d])add(d,'connections',cxPts(cx[d].f!=null?cx[d].f:cx[d].w?4:0,cx[d].m));
   const t=json('t10-hist')||{};for(const d in t)if(t[d])add(d,'top10',pts((+t[d].f||0)/10));
   const s=json('sil-hist')||{};for(const d in s){const v=Object.values(s[d]||{}).filter(x=>typeof x==='number');if(v.length)add(d,'silhouette',pts(Math.max(...v)/9))}
-  const u=json('cu-hist')||{};for(const d in u)if(u[d])add(d,'customs',pts((+u[d].p||0)/25));
-  const f=json('fp-hist')||{};for(const d in f)if(f[d])add(d,'flagpie',pts((+f[d].p||0)/((+f[d].n||1)*5)));
-  const im=json('im-hist')||{};for(const d in im)if(im[d])add(d,'impostor',pts((+im[d].p||0)/30));
+  const u=json('cu-hist')||{};for(const d in u)if(u[d])add(d,'customs',clPts(u[d].r,u[d].p,5));
+  const f=json('fp-hist')||{};for(const d in f)if(f[d])add(d,'flagpie',clPts(f[d].r,f[d].p,+f[d].n||5));
+  const im=json('im-hist')||{};for(const d in im)if(im[d])add(d,'impostor',clPts(im[d].r,im[d].p,6));
   return L}
 const dayTotal=day=>{const v=Object.values(day||{});return v.reduce((a,b)=>a+b,0)+(v.length>=ALLN?ALL5:0)};
 function level(km){let i=0;LEVELS.forEach((l,k)=>{if(km>=l[1])i=k});const next=LEVELS[i+1];
@@ -512,6 +518,6 @@ document.addEventListener('visibilitychange',()=>{
 const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,stale:roomStale};
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
-  days,streak,pass,stamp,stamps,stampsToday,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,traveller,header,passBtn,themeBtn,toggleTheme,currentTheme,
+  days,streak,pass,stamp,stamps,stampsToday,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,traveller,header,passBtn,themeBtn,toggleTheme,currentTheme,
   resultWindow,openWindow,closeWindow,mini,esc,refreshPass,room,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();

@@ -49,9 +49,9 @@ const ADAPT={
   connections:simple('cx-hist','cx-daily',S=>({s:(S.found||[]).length,m:S.mistakes||0})),
   top10:simple('t10-hist','t10-daily',S=>({s:(S.found||[]).length,m:(S.wrong||[]).length})),
   'sil-easy':silhouette('easy'),'sil-normal':silhouette('normal'),'sil-hard':silhouette('hard'),
-  customs:simple('cu-hist','cu-daily',S=>({s:(S.qs||[]).reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0),m:(S.qs||[]).reduce((n,q)=>n+(q.tries||[]).length,0)})),
-  flagpie:simple('fp-hist','fp-daily',S=>({s:(S.qs||[]).reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0),m:(S.qs||[]).reduce((n,q)=>n+(q.tries||[]).length,0)})),
-  impostor:simple('im-hist','im-daily',S=>({s:(S.qs||[]).reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0),m:(S.qs||[]).filter(q=>q.st==='wrong'&&q.pick).length}))};
+  customs:simple('cu-hist','cu-daily',S=>({s:(S.qs||[]).reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0),r:(S.qs||[]).filter(q=>q.st==='right').length,m:(S.qs||[]).reduce((n,q)=>n+(q.tries||[]).length,0)})),
+  flagpie:simple('fp-hist','fp-daily',S=>({s:(S.qs||[]).reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0),r:(S.qs||[]).filter(q=>q.st==='right').length,m:(S.qs||[]).reduce((n,q)=>n+(q.tries||[]).length,0)})),
+  impostor:simple('im-hist','im-daily',S=>({s:(S.qs||[]).reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0),r:(S.qs||[]).filter(q=>q.st==='right').length,m:(S.qs||[]).filter(q=>q.st==='wrong'&&q.pick).length}))};
 
 /* ---- Firebase ---- */
 let ok=false,failed=false,db=null,user,name='',watchers=[];   // user: undefined until Firebase knows, then null (guest) or the account
@@ -202,7 +202,7 @@ function keepLB(g){const c=json('gm-lbc')||{};for(const k in c)if(!c[k]||c[k].da
 function submit(g,k,r){const id=uid();if(!id||!name||TEST||k!==T())return;const key=id+g+k;
   if(sent[key]||(LB[g]&&LB[g].date===k&&LB[g].rows&&LB[g].rows[id]))return;sent[key]=1;
   const sec=G.clock&&G.clock.secs(g.indexOf('sil-')===0?'silhouette':g,k);
-  db.ref('lb/'+g+'/'+k+'/'+id).set(Object.assign({name:name.slice(0,16),s:r.s,m:r.m||0,t:TS()},sec?{sec}:{})).catch(()=>{})}
+  db.ref('lb/'+g+'/'+k+'/'+id).set(Object.assign({name:name.slice(0,16),s:r.s,m:r.m||0,t:TS()},r.r!=null?{r:r.r}:{},sec?{sec}:{})).catch(()=>{})}
 function watch(g){if(!ok||TEST)return;const k=T();if(lbRef[g]&&lbRef[g].day===k)return;
   if(lbRef[g])lbRef[g].off();if(!(LB[g]&&LB[g].date===k))LB[g]={date:k,rows:null};lbRef[g]=db.ref('lb/'+g+'/'+k);lbRef[g].day=k;
   lbRef[g].on('value',s=>{LB[g]={date:k,rows:s.val()||{}};keepLB(g);changed()},()=>{LB[g]={date:k,rows:null,off:true};changed()})}
