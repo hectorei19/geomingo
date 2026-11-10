@@ -93,9 +93,9 @@
 <footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
-<script src="../data/countries.js?v=202611100800"></script>
+<script src="../data/countries.js?v=202611100900"></script>
 <script src="../data/flags.js?v=202611100800"></script>
-<script src="../shared/data.js?v=202611081900"></script>
+<script src="../shared/data.js?v=202611100900"></script>
 <script src="../shared/games.js?v=202610240100"></script>
 <script src="../shared/minigames.js?v=202611100845"></script>
 <script>
@@ -126,7 +126,8 @@ const areaText=a=>num(a>=1e4?Math.round(a/1e3)*1e3:a>=100?Math.round(a/10)*10:a)
 const latText=l=>Math.abs(l)<1?'right on the Equator':Math.round(Math.abs(l))+'° '+(l>=0?'north':'south')+' of the Equator';
 const listText=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
 const isIn=(k,c)=>(EXTRA[k]||DATA[k]||[]).includes(c);
-const nbOf=c=>c.b.filter(b=>cByCode[b]);
+// land neighbours: landNeighbours() (data/countries.js) from NB_FROM on; before that day the old count, so a clue never changes mid-day
+const nbOf=c=>(todayKey()<NB_FROM?c.b:landNeighbours(c)).filter(b=>cByCode[b]);
 // a language named after the country gives it away (Icelandic, Italian, German…)
 const giveaway=(c,w)=>N(w).slice(0,4)===c.k.slice(0,4);
 const FLAGCOL=[['flag_red','red'],['flag_white','white'],['flag_blue','blue'],['flag_green','green'],['flag_yellow','yellow'],['flag_black','black'],['flag_orange','orange']];

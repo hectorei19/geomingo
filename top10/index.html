@@ -105,9 +105,9 @@ body.kbon .kbgu #src{align-self:center!important}
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script defer src="firebase-config.js?v=202611010100"></script>
-<script src="../data/countries.js?v=202611100800"></script>
+<script src="../data/countries.js?v=202611100900"></script>
 <script src="../data/flags.js?v=202611100800"></script>
-<script src="../shared/data.js?v=202611081900"></script>
+<script src="../shared/data.js?v=202611100900"></script>
 <script src="extra-data.js?v=202611081900"></script>
 <script src="../shared/games.js?v=202610240100"></script>
 <script src="../shared/minigames.js?v=202611100845"></script>
@@ -179,7 +179,7 @@ const WORLD_LISTS=[
   L('forest-lo','The 10 least forested countries (share of land)',D('forest'),1,v=>d1(v)+'%',FORESTNOTE),
   L('coast-lo','The 10 countries with the shortest coastline (landlocked ones left out)',c=>D('coast')(c)>0?D('coast')(c):undefined,1,v=>EU(+(+v).toFixed(1))+' km',NOTE('CIA World Factbook figures','List of countries by length of coastline')),
   L('landb-lo','The 10 countries with the shortest land borders (islands left out)',c=>D('landb')(c)>0?D('landb')(c):undefined,1,v=>EU(+(+v).toFixed(1))+' km',NOTE('total land border length','List of countries and territories by land borders')),
-  L('nb-hi','The 10 countries with the most neighbouring countries',c=>c.b.filter(x=>byCode[x]&&!byCode[x].t).length,-1,v=>v+' neighbours','Independent countries that share a land border with it, from the country data used in Countries (mledoze/countries). Territories are not counted.'),
+  L('nb-hi','The 10 countries with the most neighbouring countries',c=>landNeighbours(c).length,-1,v=>v+' neighbours','Independent countries that share a land border with it, from the country data used in Countries (mledoze/countries). Territories are not counted.'),
   L('lat-hi','The 10 northernmost countries',c=>c.lat,-1,v=>EU(Math.abs(v))+'°'+(v<0?'S':'N'),'Latitude of the centre of the country, from the country data used in Countries (mledoze/countries).'),
   L('lat-lo','The 10 southernmost countries',c=>c.lat,1,v=>EU(Math.abs(v))+'°'+(v<0?'S':'N'),'Latitude of the centre of the country, from the country data used in Countries (mledoze/countries).'),
   L('name-hi','The 10 countries with the longest names',c=>c.letters.length,-1,v=>v+' letters','Letters in the country\'s name as Geomingo writes it (spaces and hyphens not counted).'),

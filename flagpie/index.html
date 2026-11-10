@@ -98,8 +98,8 @@
 <footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
-<script src="../data/countries.js?v=202611100800"></script>
-<script src="../shared/data.js?v=202611081900"></script>
+<script src="../data/countries.js?v=202611100900"></script>
+<script src="../shared/data.js?v=202611100900"></script>
 <script src="pies.js?v=202611050245"></script>
 <script src="../shared/games.js?v=202610240100"></script>
 <script src="../shared/minigames.js?v=202611100845"></script>
@@ -145,7 +145,7 @@ const SYM=[['flag_star','a star'],['flag_moon','a crescent moon'],['flag_sun','a
 function clue(q,i){const c=cByCode[q.c],d=c.c;
   if(i===2){const sym=SYM.filter(([k])=>isIn(k,d)).map(x=>x[1]);
     return {lab:'The design',main:LAY[d]||'No simple stripes',sub:sym.length?'With '+listText(sym):'No star, moon, sun, cross or coat of arms'}}
-  if(i===3){const nb=c.b.filter(b=>cByCode[b]).length;
+  if(i===3){const nb=(todayKey()<NB_FROM?c.b:landNeighbours(c)).filter(b=>cByCode[b]).length; // the new count from NB_FROM (shared/data.js)
     return {lab:'On the map',main:contName[c.r],sub:c.ll?'Landlocked: no coast':!nb?'An island country':'With a coast, '+nb+' land neighbour'+(nb===1?'':'s')}}
   if(i===4)return {lab:'People and capital',main:'Population: '+popText(DATA.pop[d]||0),sub:c.cap&&!giveaway(c,c.cap)?'The capital starts with '+c.cap[0].toUpperCase():''};
   return {lab:'The flag, blurred',blur:d}}

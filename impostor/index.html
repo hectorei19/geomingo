@@ -90,8 +90,8 @@
 <footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
-<script src="../data/countries.js?v=202611100800"></script>
-<script src="../shared/data.js?v=202611081900"></script>
+<script src="../data/countries.js?v=202611100900"></script>
+<script src="../shared/data.js?v=202611100900"></script>
 <script src="../top10/extra-data.js?v=202611081900"></script>
 <script src="../shared/games.js?v=202610240100"></script>
 <script src="../shared/minigames.js?v=202611100845"></script>
@@ -166,7 +166,8 @@ const squaresHTML=G=>`<span class="dsq" aria-hidden="true">${G.qs.map(q=>`<i cla
 /* ---- Daily: the same six rounds for everyone, new at midnight CET ----
    Countries with 2 million people or more, dealt from a seed of the day. Saved as im-daily {date, over, S: the game}. */
 const DAILY_POOL=IMP_COUNTRIES.filter(c=>(DATA.pop[c.c]||0)>=2e6).map(c=>c.c).sort();
-const dailyDeal=key=>dealGame(DAILY_POOL,rngFrom(seedOf('impostor-'+key)));
+// days before NB_FROM keep the old neighbour count (shared/data.js), so their six rounds stay as they were
+const dailyDeal=key=>{neighbourRule(key<NB_FROM);try{return dealGame(DAILY_POOL,rngFrom(seedOf('impostor-'+key)))}finally{neighbourRule(false)}};
 let D=null;
 const isGame=S=>S&&Array.isArray(S.qs)&&S.qs.length>0&&Array.isArray(S.qs[0].set||S.set);
 const dailySaved=()=>{const d=load('im-daily',null);return d&&d.date===todayKey()&&isGame(d.S)?d:null};
