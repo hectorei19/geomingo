@@ -51,7 +51,8 @@ const ADAPT={
   'sil-easy':silhouette('easy'),'sil-normal':silhouette('normal'),'sil-hard':silhouette('hard'),
   customs:simple('cu-hist','cu-daily',S=>({s:(S.qs||[]).reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0),r:(S.qs||[]).filter(q=>q.st==='right').length,m:(S.qs||[]).reduce((n,q)=>n+(q.tries||[]).length,0)})),
   flagpie:simple('fp-hist','fp-daily',S=>({s:(S.qs||[]).reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0),r:(S.qs||[]).filter(q=>q.st==='right').length,m:(S.qs||[]).reduce((n,q)=>n+(q.tries||[]).length,0)})),
-  impostor:simple('im-hist','im-daily',S=>({s:(S.qs||[]).reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0),r:(S.qs||[]).filter(q=>q.st==='right').length,m:(S.qs||[]).filter(q=>q.st==='wrong'&&q.pick).length}))};
+  impostor:simple('im-hist','im-daily',S=>({s:(S.qs||[]).reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0),r:(S.qs||[]).filter(q=>q.st==='right').length,m:(S.qs||[]).filter(q=>q.st==='wrong'&&q.pick).length})),
+  compass:simple('cm-hist','cm-daily',S=>({s:(S.qs||[]).reduce((n,q)=>n+(q.st==='right'?+q.p||0:0),0),r:(S.qs||[]).filter(q=>q.st==='right').length,m:(S.qs||[]).reduce((n,q)=>n+(q.tries||[]).length,0)}))};
 
 /* ---- Firebase ---- */
 let ok=false,failed=false,db=null,user,name='',watchers=[];   // user: undefined until Firebase knows, then null (guest) or the account
@@ -99,7 +100,7 @@ function signOut(){if(ok)firebase.auth().signOut().catch(()=>{})}
    An invite link (?room=) always opens, so a friend can join a room without an account; nor does test mode (?test) show it.
    Signing out keeps gm-trial (it is not in DEVICE_KEYS), so the free days are not given again. */
 const TRIAL=3;
-const GAME_PAGE=/\/(countries|capitals|cities|connections|top10|silhouette|customs|flagpie|impostor)\//.test(location.pathname);
+const GAME_PAGE=/\/(countries|capitals|cities|connections|top10|silhouette|customs|flagpie|impostor|compass)\//.test(location.pathname);
 const ROOM_LINK=(()=>{try{return new URLSearchParams(location.search).has('room')}catch(e){return false}})();
 const trialDays=()=>{const d=json('gm-trial');return Array.isArray(d)?d.filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x)):[]};
 // day: which free day today is (1-3, or the one it would be), left: free days still to come after today, over: no free day left
@@ -232,7 +233,8 @@ function rankingHTML(g,o){const u=who();if(TEST||u===undefined)return '';o=o||{}
 const FEATS=[['borderline','leaderboard','bl-hist',r=>(+r.c||0)>=8,e=>e&&e.f!==0],['citygrid','lb/citygrid','cc-hist',r=>(+r.c||0)>=8,e=>e&&e.f!==0],
   ['connections','lb/connections','cx-hist',r=>(+r.s||0)>=2,e=>!!e],['top10','lb/top10','t10-hist',r=>(+r.s||0)>=5,e=>!!e],
   ['silhouette','lb/sil-normal','sil-hist',r=>(+r.s||0)>=5,e=>e&&e.normal!=null],['customs','lb/customs','cu-hist',r=>(+r.s||0)>=13,e=>!!e],
-  ['flagpie','lb/flagpie','fp-hist',r=>(+r.s||0)>=13,e=>!!e],['impostor','lb/impostor','im-hist',r=>(+r.s||0)>=15,e=>!!e]];
+  ['flagpie','lb/flagpie','fp-hist',r=>(+r.s||0)>=13,e=>!!e],['impostor','lb/impostor','im-hist',r=>(+r.s||0)>=15,e=>!!e],
+  ['compass','lb/compass','cm-hist',r=>(+r.s||0)>=13,e=>!!e]];
 let featBusy=false;
 const featStore=me=>{const c=json('gm-feats');return c&&c.u===me&&c.r?c:{u:me,r:{}}};
 function featsOf(rows,me,half){const L=Object.entries(rows||{}).map(([id,v])=>Object.assign({id},v)),i=L.slice().sort(lbOrder).findIndex(r=>r.id===me);
