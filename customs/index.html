@@ -268,7 +268,7 @@ function dailyQs(key){const n=dayNum(key,FIRST)-1,deal=(pool,per,tag)=>{const co
   return shuffle([a[0],a[1],b[0],a[2],b[1]],rngFrom(seedOf('customs-order-'+key))).map(c=>newQ(c,rngFrom(seedOf('customs-clues-'+key+'-'+c))))}
 let D=null;
 const dailySaved=()=>{const d=load('cu-daily',null);return d&&d.date===todayKey()?d:null};
-function dailyGame(){const d=dailySaved();if(d&&d.S)return d.S;
+function dailyGame(){const d=dailySaved();if(d&&d.S){if(d.S.over)d.S.left=null;return d.S}
   return {mode:'daily',date:todayKey(),num:dayNum(todayKey(),FIRST),qs:dailyQs(todayKey()),sel:0,over:false}}
 function dailySave(){if(!D)return;
   if(D.mode==='archive'){const a=load('cu-arch',{});a[D.date]=D;store('cu-arch',a);if(D.over)logHist(D);return}

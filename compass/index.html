@@ -248,7 +248,7 @@ function dailyNew(key,o){const n=dayNum(key,FIRST)-1,days=Math.floor(DECK.filter
 let D=null;
 const isGame=S=>S&&Array.isArray(S.qs);
 const dailySaved=()=>{const d=load('cm-daily',null);return d&&d.date===todayKey()&&isGame(d.S)?d:null};
-function dailyGame(){const d=dailySaved();if(d)return d.S;
+function dailyGame(){const d=dailySaved();if(d){if(d.S&&d.S.over)d.S.left=null;return d.S}
   return dailyNew(todayKey(),{mode:'daily',date:todayKey(),num:dayNum(todayKey(),FIRST)})}
 function dailySave(){if(!D)return;
   if(D.mode==='archive'){const a=load('cm-arch',{});a[D.date]=D;store('cm-arch',a);if(D.over)logHist(D);return}

@@ -228,7 +228,7 @@ let D=null;
 // saves from the first day, when a game was one flag ({c, k, …} without qs), are left behind
 const isGame=S=>S&&Array.isArray(S.qs);
 const dailySaved=()=>{const d=load('fp-daily',null);return d&&d.date===todayKey()&&isGame(d.S)?d:null};
-function dailyGame(){const d=dailySaved();if(d)return d.S;
+function dailyGame(){const d=dailySaved();if(d){if(d.S&&d.S.over)d.S.left=null;return d.S}
   return newGame(dailyCodes(todayKey()),{mode:'daily',date:todayKey(),num:dayNum(todayKey(),FIRST)})}
 function dailySave(){if(!D)return;
   if(D.mode==='archive'){const a=load('fp-arch',{});a[D.date]=D;store('fp-arch',a);if(D.over)logHist(D);return}
