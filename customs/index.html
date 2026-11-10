@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611100905"></script>
+<script src="../brand/mingo.js?v=202611100930"></script>
 <script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -98,6 +98,10 @@
 <script src="../shared/data.js?v=202611100900"></script>
 <script src="../shared/games.js?v=202610240100"></script>
 <script src="../shared/minigames.js?v=202611100845"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="../connections/firebase-config.js?v=202611010100"></script>
+<script src="../shared/race.js?v=202611100930"></script>
 <script>
 /* ---- Customs: a traveller at the desk, and you work out where they come from ----
    Each traveller hands over five clues, one at a time, from vague to obvious: size, where on the map, language and
@@ -309,7 +313,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
   const m=lf?(q.st==='right'?['happy','Stamped.','Tap Next traveller when you are ready.']:['sad','Not this time.','Tap Next traveller when you are ready.'])
     :[G.qs.some(x=>x.st!=='play')||q.k>1?'think':'pass','A traveller at the desk.','Read the clues and name the country. Every new clue lowers the points.'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
-    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Desk',(i+1)+'/'+PER)+(mode==='daily'?tk('km',Geomingo.clPts(G.qs.filter(x=>x.st==='right').length,pointsOf(G),PER),'tk-pts'):tk('Points',pointsOf(G),'tk-pts'))+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
+    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Desk',(i+1)+'/'+PER)+(mode==='daily'?tk('km',Geomingo.clPts(G.qs.filter(x=>x.st==='right').length,pointsOf(G),PER),'tk-pts'):tk('Points',pointsOf(G),'tk-pts'))+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Customs',(arch?'Archive #':'Daily #')+D.num);
   h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's travellers"}</span></div>`;
   if(D.over&&D.left==null)return h+resultHTML(D)+summaryHTML(D);
@@ -337,7 +341,7 @@ const soloDiff=()=>load('cu-diff','easy')==='hard'?'hard':'easy';
 const seg=(name,opts,val)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-seg="${name}" data-v="${v}" aria-pressed="${v===val}">${l}</button>`).join('')}</div>`;
 function openTrain(){const pool=soloDiff()==='easy'?SOV.filter(c=>(DATA.pop[c.c]||0)>=1e7):SOV,codes=shuffle(pool.map(c=>c.c),Math.random).slice(0,PER);
   T={mode:'solo',qs:codes.map(c=>newQ(c)),sel:0,over:false};mood=null;view='train';query='';typing=false;render();window.scrollTo(0,0)}
-function trainEnd(){if(T.logged)return;T.logged=1;logSolo('cu-solo',{p:pointsOf(T),best:pointsOf(T),r:rightOf(T)})}
+function trainEnd(){if(view==='room'||T.logged)return;T.logged=1;logSolo('cu-solo',{p:pointsOf(T),best:pointsOf(T),r:rightOf(T)})}
 function trainPick(code){const q=T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;
   const res=answer(q,code);query='';typing=res==='wrong';feedback(q,res);advance(T);if(T.over)trainEnd();render();if(res!=='wrong')showLeft()}
 function trainNextClue(){const q=T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;nextClue(q);
@@ -352,7 +356,7 @@ function trainHTML(){let h=header('Customs','Solo')+`<div class="backline"><butt
 function myStatsHTML(){const h=load('cu-hist',{}),so=load('cu-solo',null)||{n:0};
   return statsPageHTML({game:'Customs',hist:h,unit:'day',avg:cuAverage(),lbs:d=>[{path:'lb/customs',dates:d}],num:k=>'Customs #'+dayNum(k,FIRST),
     solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'named']]},
-    friends:{n:0,w:0,place:0,best:0,third:[0,'best']}})}
+    friends:(fr=>Object.assign(fr,{third:[fr.best||0,'best']}))(friendsOf('cu-friends'))})}
 const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Five travellers, five clues each, from not obvious to obvious. Name the country with 1 clue for 5 points, with 2 for 4, down to 1 point with all five. A wrong answer opens the next clue. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Five travellers come to the customs desk, one at a time. Work out which country each one comes from.</li>
@@ -376,7 +380,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Today's travellers</b>: five countries, the same for everyone, new every day at midnight CET. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>
   <li><b>Solo</b>: five random travellers, as many games as you like. <b>Easy</b>: well-known countries (10 million people or more). <b>Hard</b>: any country.</li>
-  <li><b>With friends</b>: coming soon.</li></ul>`}
+  <li><b>With friends</b>: online, 2 to 6 players, each on their own phone. Everyone gets the same five travellers (well-known countries) at the same time and plays at their own pace. No lives. Most points win, then the fastest.</li></ul>`}
 function creditsHTML(){return DATA_CREDITS}
 
 /* ---- home: today's travellers on top, then Solo and With friends, as in the other games ---- */
@@ -399,7 +403,21 @@ function homeHTML(){const key=todayKey();
   return header('Customs','')+`<section class="home">${hello}${Geomingo.account.userHTML()}${daily}${D.over?rankingHTML():''}</section>${quickRules()}`}
 function goHome(){view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
 // opening the game goes straight into today's game (or today's result when it is played)
+/* ---- With friends: online rooms (../shared/race.js), everyone plays the same set at the same time ----
+   The room's game is played with the Solo moves (T is the room's game while view is 'room'). */
+const RACE=GeoRace({game:'customs',key:'cu',name:'Customs',total:PER,what:'the same five travellers',
+  deal:seed=>{const pool=SOV.filter(c=>(DATA.pop[c.c]||0)>=1e7).map(c=>c.c).sort();return {qs:shuffle(pool,rngFrom(seed)).slice(0,PER).map(c=>newQ(c,rngFrom(seedOf(seed+':'+c)))),sel:0,over:false,left:null}},
+  points:pointsOf,right:rightOf,shareLine:G=>G.qs.map(sq).join(''),header,render:()=>render()});
+function roomHTML(){if(!RACE.inGame())return RACE.lobbyHTML();
+  let h=header('Customs','Room '+RACE.code)+RACE.backHTML()+RACE.scoresHTML();
+  if(T.over&&T.left==null)return h+RACE.resultHTML()+summaryHTML(T);
+  return h+ticketHTML(T,'online')+`<section class="panel">${playHTML(T)}</section>`}
 function render(){
+  // With friends first: its screens stay until you leave the room or go back to the Geomingo home page
+  const rv=RACE.view();
+  if(rv==='friends'){view='friends';app.innerHTML=RACE.friendsHTML();bind();return}
+  if(rv==='room'){view='room';if(RACE.inGame()){T=RACE.G;RACE.save()}app.innerHTML=roomHTML();bind();return}
+  if(view==='room'||view==='friends')view='home';
   if(view==='home'){openDaily();return}
   if(!TESTDAY&&(view==='home'||view==='daily'&&D&&D.mode==='daily')){const g=dailyGame();if(!g.over)Geomingo.clock.start('customs',todayKey())}
   if(D&&D.mode==='daily')watchResult('cu:'+D.date,D.over&&D.left==null);
@@ -410,8 +428,9 @@ function render(){
   else app.innerHTML=homeHTML();
   bind()}
 function bind(){
+  RACE.bind();const TV=view==='train'||view==='room'&&RACE.inGame();
   if(!$('askbtn'))closeSheet();
-  if(view==='train')bindGiveUp(()=>{if(T.over)return;T.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});T.over=true;T.left=null;trainEnd();render();window.scrollTo(0,0)});
+  if(TV)bindGiveUp(()=>{if(T.over)return;T.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});T.over=true;T.left=null;trainEnd();render();window.scrollTo(0,0)});
   else bindGiveUp(()=>{if(!D||D.over)return;D.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});D.over=true;D.left=null;query='';typing=false;dailySave();render();window.scrollTo(0,0)});
   if($('home'))$('home').onclick=toHub;
   app.querySelectorAll('[data-go="train"]').forEach(b=>b.onclick=openSolo);
@@ -421,15 +440,16 @@ function bind(){
   if($('start'))$('start').onclick=openTrain;
   if($('tagain'))$('tagain').onclick=openTrain;
   if($('daily'))$('daily').onclick=openDaily;
-  if($('copy'))$('copy').onclick=()=>share(dailyShare(D));
+  if($('copy')&&view!=='room')$('copy').onclick=()=>share(dailyShare(D));
   app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
-  const G=view==='train'?T:view==='daily'?D:null;
+  const G=TV?T:view==='daily'?D:null;
   app.querySelectorAll('[data-tv]').forEach(b=>b.onclick=()=>{const q=G&&G.qs[+b.dataset.tv];if(q&&q.st!=='play')toast(cByCode[q.c].n+(q.st==='right'?' · +'+worth(q):''))});
-  if($('nextclue'))$('nextclue').onclick=view==='train'?trainNextClue:dailyNextClue;
-  if($('nexttv'))$('nexttv').onclick=()=>view==='train'?nextTraveller(T):nextTraveller(D,dailySave);
+  if($('nextclue'))$('nextclue').onclick=TV?trainNextClue:dailyNextClue;
+  if($('nexttv'))$('nexttv').onclick=()=>TV?nextTraveller(T):nextTraveller(D,dailySave);
   app.querySelectorAll('[data-seg="diff"]').forEach(b=>b.onclick=()=>{store('cu-diff',b.dataset.v);render()});
-  if(view==='train'&&T&&!T.over)bindAnswer(T.qs[T.sel],trainPick);
+  if(TV&&T&&!T.over)bindAnswer(T.qs[T.sel],trainPick);
   else if(view==='daily'&&D&&!D.over)bindAnswer(D.qs[D.sel],dailyPick)}
+RACE.boot();
 render();
 // a new day while the page was in the background: today's new travellers
 document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(view==='home'||view==='daily'&&D&&D.mode==='daily'&&D.date!==todayKey()){D=null;if(view==='daily')openDaily();else render()}});

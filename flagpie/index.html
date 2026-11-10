@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611100905"></script>
+<script src="../brand/mingo.js?v=202611100930"></script>
 <script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -103,6 +103,10 @@
 <script src="pies.js?v=202611050245"></script>
 <script src="../shared/games.js?v=202610240100"></script>
 <script src="../shared/minigames.js?v=202611100845"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="../connections/firebase-config.js?v=202611010100"></script>
+<script src="../shared/race.js?v=202611100930"></script>
 <script>
 /* ---- Flag Pie: the colours of a flag as a pie chart, and you name the country ----
    Five flags per game (Héctor, 2026-11-04: one was too little), one at a time, as the travellers in Customs.
@@ -268,7 +272,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     :q.k>1||q.tries.length?['think','Look again.','A new clue is open. Every clue lowers the points.']
     :['pass','A flag in pieces.','These are its colours and how much of it each one covers. Whose flag is it?'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
-    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Flag',(i+1)+'/'+PER)+(mode==='daily'?tk('km',Geomingo.clPts(G.qs.filter(x=>x.st==='right').length,pointsOf(G),PER),'tk-pts'):tk('Points',pointsOf(G),'tk-pts'))+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
+    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Flag',(i+1)+'/'+PER)+(mode==='daily'?tk('km',Geomingo.clPts(G.qs.filter(x=>x.st==='right').length,pointsOf(G),PER),'tk-pts'):tk('Points',pointsOf(G),'tk-pts'))+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Flag Pie',(arch?'Archive #':'Daily #')+D.num);
   h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's flags"}</span></div>`;
   if(D.over&&D.left==null)return h+resultHTML(D)+summaryHTML(D);
@@ -296,7 +300,7 @@ function soloHTML(){return header('Flag Pie','Solo')+`<section class="panel">
   <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['hard','Hard']],soloDiff())}<p class="hint">${soloDiff()==='easy'?'Well-known countries, with 10 million people or more, and no two pies alike':'Any of the '+SOV.length+' countries. Some flags share the same pie: any of them counts'}.</p></div>
   <button class="primary" id="start">Start game</button></section>${quickRules()}`}
 function openTrain(){T=newGame(shuffle(soloPool(),Math.random).slice(0,PER),{mode:'solo'});mood=null;view='train';query='';typing=false;render();window.scrollTo(0,0)}
-function trainEnd(){if(T.logged)return;T.logged=1;logSolo('fp-solo5',{p:pointsOf(T),best:pointsOf(T),r:rightOf(T)})}
+function trainEnd(){if(view==='room'||T.logged)return;T.logged=1;logSolo('fp-solo5',{p:pointsOf(T),best:pointsOf(T),r:rightOf(T)})}
 function trainPick(code){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;
   const res=answer(q,code);query='';typing=res==='wrong';feedback(q,res);advance(T);if(T.over)trainEnd();render();if(res!=='wrong')showLeft()}
 function trainNextClue(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;nextClue(q);advance(T);if(T.over)trainEnd();render();if(q.st!=='play')showLeft()}
@@ -310,7 +314,7 @@ function trainHTML(){let h=header('Flag Pie','Solo')+`<div class="backline"><but
 function myStatsHTML(){const h=load('fp-hist',{}),so=load('fp-solo5',null)||{n:0};
   return statsPageHTML({game:'Flag Pie',hist:h,unit:'day',avg:fpAverage(),lbs:d=>[{path:'lb/flagpie',dates:d}],num:k=>'Flag Pie #'+dayNum(k,FIRST),
     solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'named']]},
-    friends:{n:0,w:0,place:0,best:0,third:[0,'best']}})}
+    friends:(fr=>Object.assign(fr,{third:[fr.best||0,'best']}))(friendsOf('fp-friends'))})}
 const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Five flags, each one as a pie of its colours. Name the country with the pie alone for 5 points; every wrong answer opens one more clue and lowers the points. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Five flags, one at a time. Each one is shown as a pie chart: its colours and how much of the flag each one covers, coat of arms and all. Name the country.</li>
@@ -336,7 +340,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Today's flags</b>: five flags, the same for everyone, new every day at midnight CET. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>
   <li><b>Solo</b>: five random flags, as many games as you like. <b>Easy</b>: well-known countries, no two pies alike. <b>Hard</b>: every flag.</li>
-  <li><b>With friends</b>: coming soon.</li></ul>`}
+  <li><b>With friends</b>: online, 2 to 6 players, each on their own phone. Everyone gets the same five flags (well-known countries) at the same time and plays at their own pace. No lives. Most points win, then the fastest.</li></ul>`}
 function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Flag Pie: the flags in their official shapes from <a href="https://github.com/hjnilsson/country-flags" target="_blank" rel="noopener">hjnilsson/country-flags</a> (from Wikimedia Commons, public domain), measured pixel by pixel in November 2026.</li></ul>`)}
 
 /* ---- home: today's flags on top, then Solo and With friends, as in the other games ---- */
@@ -359,7 +363,21 @@ function homeHTML(){const key=todayKey();
   return header('Flag Pie','')+`<section class="home">${hello}${Geomingo.account.userHTML()}${daily}${D.over?rankingHTML():''}</section>${quickRules()}`}
 function goHome(){view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
 // opening the game goes straight into today's game (or today's result when it is played)
+/* ---- With friends: online rooms (../shared/race.js), everyone plays the same set at the same time ----
+   The room's game is played with the Solo moves (T is the room's game while view is 'room'). */
+const RACE=GeoRace({game:'flagpie',key:'fp',name:'Flag Pie',total:PER,what:'the same five flags',
+  deal:seed=>newGame(shuffle(UNIQ.filter(c=>cByCode[c]&&(DATA.pop[c]||0)>=1e7).sort(),rngFrom(seed)).slice(0,PER)),
+  points:pointsOf,right:rightOf,shareLine:G=>G.qs.map(sq).join(''),header,render:()=>render()});
+function roomHTML(){if(!RACE.inGame())return RACE.lobbyHTML();
+  let h=header('Flag Pie','Room '+RACE.code)+RACE.backHTML()+RACE.scoresHTML();
+  if(T.over&&T.left==null)return h+RACE.resultHTML()+summaryHTML(T);
+  return h+ticketHTML(T,'online')+`<section class="panel">${playHTML(T)}</section>`}
 function render(){
+  // With friends first: its screens stay until you leave the room or go back to the Geomingo home page
+  const rv=RACE.view();
+  if(rv==='friends'){view='friends';app.innerHTML=RACE.friendsHTML();bind();return}
+  if(rv==='room'){view='room';if(RACE.inGame()){T=RACE.G;RACE.save()}app.innerHTML=roomHTML();bind();return}
+  if(view==='room'||view==='friends')view='home';
   if(view==='home'){openDaily();return}
   if(!TESTDAY&&(view==='home'||view==='daily'&&D&&D.mode==='daily')){const g=dailyGame();if(!g.over)Geomingo.clock.start('flagpie',todayKey())}
   if(D&&D.mode==='daily')watchResult('fp:'+D.date,D.over&&D.left==null);
@@ -370,8 +388,9 @@ function render(){
   else app.innerHTML=homeHTML();
   bind()}
 function bind(){
+  RACE.bind();const TV=view==='train'||view==='room'&&RACE.inGame();
   if(!$('askbtn'))closeSheet();
-  if(view==='train')bindGiveUp(()=>{if(!T||T.over)return;T.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});T.over=true;T.left=null;trainEnd();render();window.scrollTo(0,0)});
+  if(TV)bindGiveUp(()=>{if(!T||T.over)return;T.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});T.over=true;T.left=null;trainEnd();render();window.scrollTo(0,0)});
   else bindGiveUp(()=>{if(!D||D.over)return;D.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});D.over=true;D.left=null;query='';typing=false;dailySave();render();window.scrollTo(0,0)});
   if($('home'))$('home').onclick=toHub;
   app.querySelectorAll('[data-go="train"]').forEach(b=>b.onclick=openSolo);
@@ -381,15 +400,16 @@ function bind(){
   if($('start'))$('start').onclick=openTrain;
   if($('tagain'))$('tagain').onclick=openTrain;
   if($('daily'))$('daily').onclick=openDaily;
-  if($('copy'))$('copy').onclick=()=>share(dailyShare(D));
+  if($('copy')&&view!=='room')$('copy').onclick=()=>share(dailyShare(D));
   app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
-  const G=view==='train'?T:view==='daily'?D:null;
+  const G=TV?T:view==='daily'?D:null;
   app.querySelectorAll('[data-tv]').forEach(b=>b.onclick=()=>{const q=G&&G.qs[+b.dataset.tv];if(q&&q.st!=='play')toast(cByCode[q.c].n+(q.st==='right'?' · +'+worth(q):''))});
-  if($('nextclue'))$('nextclue').onclick=view==='train'?trainNextClue:dailyNextClue;
-  if($('nexttv'))$('nexttv').onclick=()=>view==='train'?nextFlag(T):nextFlag(D,dailySave);
+  if($('nextclue'))$('nextclue').onclick=TV?trainNextClue:dailyNextClue;
+  if($('nexttv'))$('nexttv').onclick=()=>TV?nextFlag(T):nextFlag(D,dailySave);
   app.querySelectorAll('[data-seg="diff"]').forEach(b=>b.onclick=()=>{store('fp-diff',b.dataset.v);render()});
-  if(view==='train'&&T&&!T.over)bindAnswer(T,trainPick);
+  if(TV&&T&&!T.over)bindAnswer(T,trainPick);
   else if(view==='daily'&&D&&!D.over)bindAnswer(D,dailyPick)}
+RACE.boot();
 render();
 // a new day while the page was in the background: today's new flags
 document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(view==='home'||view==='daily'&&D&&D.mode==='daily'&&D.date!==todayKey()){D=null;if(view==='daily')openDaily();else render()}});

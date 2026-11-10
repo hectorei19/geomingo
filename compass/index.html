@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611100905"></script>
+<script src="../brand/mingo.js?v=202611100930"></script>
 <script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -94,6 +94,10 @@
 <script src="clues.js?v=202611100915"></script>
 <script src="../shared/games.js?v=202610240100"></script>
 <script src="../shared/minigames.js?v=202611100845"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="../connections/firebase-config.js?v=202611010100"></script>
+<script src="../shared/race.js?v=202611100930"></script>
 <script>
 /* ---- Compass: find the mystery capital from the capitals round it (Héctor's idea, 2026-11-10) ----
    The mystery capital is the "?" in the middle of a compass. Clue capitals appear on the rim, each in its real direction
@@ -286,7 +290,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     :q.k>1?['think','A new capital on the compass.','Every clue lowers the points. Which capital sits in the middle?']
     :['pass','Where am I?','The mystery capital is in the middle. The city on the rim shows how far it is, and which way.'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
-    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('City',(i+1)+'/'+PER)+(mode==='daily'?tk('km',Geomingo.clPts(G.qs.filter(x=>x.st==='right').length,pointsOf(G),PER),'tk-pts'):tk('Points',pointsOf(G),'tk-pts'))+tk('Worth',lf?(q.st==='right'?'+'+q.p:'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
+    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('City',(i+1)+'/'+PER)+(mode==='daily'?tk('km',Geomingo.clPts(G.qs.filter(x=>x.st==='right').length,pointsOf(G),PER),'tk-pts'):tk('Points',pointsOf(G),'tk-pts'))+tk('Worth',lf?(q.st==='right'?'+'+q.p:'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Compass',(arch?'Archive #':'Daily #')+D.num);
   h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's capitals"}</span></div>`;
   if(D.over&&D.left==null)return h+resultHTML(D)+summaryHTML(D);
@@ -314,7 +318,7 @@ function soloHTML(){return header('Compass','Solo')+`<section class="panel">
   <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['hard','Hard']],soloDiff())}<p class="hint">${soloDiff()==='easy'?'Capitals most people know: the same ones as the daily game':'Any of the '+CITIES.length+' capitals, the tiny islands too'}.</p></div>
   <button class="primary" id="start">Start game</button></section>${quickRules()}`}
 function openTrain(){T=newGame(shuffle(soloPool(),Math.random).slice(0,PER),{mode:'solo'});mood=null;view='train';query='';typing=false;render();window.scrollTo(0,0)}
-function trainEnd(){if(T.logged)return;T.logged=1;logSolo('cm-solo',{p:pointsOf(T),best:pointsOf(T),r:rightOf(T)})}
+function trainEnd(){if(view==='room'||T.logged)return;T.logged=1;logSolo('cm-solo',{p:pointsOf(T),best:pointsOf(T),r:rightOf(T)})}
 function trainPick(code){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;
   const res=answer(q,code);if(res==='same')return;query='';typing=res==='wrong';feedback(q,res);advance(T);if(T.over)trainEnd();render();if(res!=='wrong')showLeft()}
 function trainNextClue(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;nextClue(q);advance(T);if(T.over)trainEnd();render();if(q.st!=='play')showLeft()}
@@ -328,7 +332,7 @@ function trainHTML(){let h=header('Compass','Solo')+`<div class="backline"><butt
 function myStatsHTML(){const h=load('cm-hist',{}),so=load('cm-solo',null)||{n:0};
   return statsPageHTML({game:'Compass',hist:h,unit:'day',avg:cmAverage(),lbs:d=>[{path:'lb/compass',dates:d}],num:k=>'Compass #'+dayNum(k,FIRST),
     solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'found']]},
-    friends:{n:0,w:0,place:0,best:0,third:[0,'best']}})}
+    friends:(fr=>Object.assign(fr,{third:[fr.best||0,'best']}))(friendsOf('cm-friends'))})}
 const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">The mystery capital is in the middle of the compass. Capitals appear round it, each in its real direction and with its distance. Name it with one clue for 5 points; every new clue and every wrong guess costs 1 point. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Five capitals, one at a time. Each one is hidden in the middle of a compass: the <b>?</b>.</li>
@@ -351,7 +355,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Today's capitals</b>: five capitals, the same for everyone, new every day at midnight CET. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>
   <li><b>Solo</b>: five random capitals, as many games as you like. <b>Easy</b>: capitals most people know. <b>Hard</b>: all of them.</li>
-  <li><b>With friends</b>: coming soon.</li></ul>`}
+  <li><b>With friends</b>: online, 2 to 6 players, each on their own phone. Everyone gets the same five capitals (well-known ones) at the same time and plays at their own pace. No lives. Most points win, then the fastest.</li></ul>`}
 function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Compass: the capitals and their coordinates are the ones of Geomingo's Capitals game; distances and directions are worked out on a round Earth (radius 6.371 km).</li><li>Flags from <a href="https://github.com/hjnilsson/country-flags" target="_blank" rel="noopener">hjnilsson/country-flags</a> (from Wikimedia Commons, public domain).</li></ul>`)}
 
 /* ---- the game opens straight into today's capitals, as the other games ---- */
@@ -361,7 +365,21 @@ try{if(new URLSearchParams(location.search).has('solo')){view='solo';history.rep
 // Back from today's game or Solo goes to the Geomingo home page
 const toHub=()=>{location.href='../'};
 function goHome(){view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
+/* ---- With friends: online rooms (../shared/race.js), everyone plays the same set at the same time ----
+   The room's game is played with the Solo moves (T is the room's game while view is 'room'). */
+const RACE=GeoRace({game:'compass',key:'cm',name:'Compass',total:PER,what:'the same five capitals',
+  deal:seed=>newGame(shuffle(DECK.filter(c=>cityBy[c]).sort(),rngFrom(seed)).slice(0,PER)),
+  points:pointsOf,right:rightOf,shareLine:G=>G.qs.map(sq).join(''),header,render:()=>render()});
+function roomHTML(){if(!RACE.inGame())return RACE.lobbyHTML();
+  let h=header('Compass','Room '+RACE.code)+RACE.backHTML()+RACE.scoresHTML();
+  if(T.over&&T.left==null)return h+RACE.resultHTML()+summaryHTML(T);
+  return h+ticketHTML(T,'online')+`<section class="panel">${playHTML(T)}</section>`}
 function render(){
+  // With friends first: its screens stay until you leave the room or go back to the Geomingo home page
+  const rv=RACE.view();
+  if(rv==='friends'){view='friends';app.innerHTML=RACE.friendsHTML();bind();return}
+  if(rv==='room'){view='room';if(RACE.inGame()){T=RACE.G;RACE.save()}app.innerHTML=roomHTML();bind();return}
+  if(view==='room'||view==='friends')view='home';
   if(view==='home'){openDaily();return}
   if(!TESTDAY&&view==='daily'&&D&&D.mode==='daily'){const g=dailyGame();if(!g.over)Geomingo.clock.start('compass',todayKey())}
   if(D&&D.mode==='daily')watchResult('cm:'+D.date,D.over&&D.left==null);
@@ -371,8 +389,9 @@ function render(){
   else if(view==='daily')app.innerHTML=dailyHTML();
   bind()}
 function bind(){
+  RACE.bind();const TV=view==='train'||view==='room'&&RACE.inGame();
   if(!$('askbtn'))closeSheet();
-  if(view==='train')bindGiveUp(()=>{if(!T||T.over)return;T.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});T.over=true;T.left=null;trainEnd();render();window.scrollTo(0,0)});
+  if(TV)bindGiveUp(()=>{if(!T||T.over)return;T.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});T.over=true;T.left=null;trainEnd();render();window.scrollTo(0,0)});
   else bindGiveUp(()=>{if(!D||D.over)return;D.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});D.over=true;D.left=null;query='';typing=false;dailySave();render();window.scrollTo(0,0)});
   if($('home'))$('home').onclick=toHub;
   if($('playsolo'))$('playsolo').onclick=openSolo;
@@ -380,15 +399,16 @@ function bind(){
   if($('archback'))$('archback').onclick=openArchive;
   if($('start'))$('start').onclick=openTrain;
   if($('tagain'))$('tagain').onclick=openTrain;
-  if($('copy'))$('copy').onclick=()=>share(dailyShare(D));
+  if($('copy')&&view!=='room')$('copy').onclick=()=>share(dailyShare(D));
   app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
-  const G=view==='train'?T:view==='daily'?D:null;
+  const G=TV?T:view==='daily'?D:null;
   app.querySelectorAll('[data-tv]').forEach(b=>b.onclick=()=>{const q=G&&G.qs[+b.dataset.tv];if(q&&q.st!=='play')toast(cityBy[q.c].n+(q.st==='right'?' · +'+q.p:''))});
-  if($('nextclue'))$('nextclue').onclick=view==='train'?trainNextClue:dailyNextClue;
-  if($('nexttv'))$('nexttv').onclick=()=>view==='train'?nextCity(T):nextCity(D,dailySave);
+  if($('nextclue'))$('nextclue').onclick=TV?trainNextClue:dailyNextClue;
+  if($('nexttv'))$('nexttv').onclick=()=>TV?nextCity(T):nextCity(D,dailySave);
   app.querySelectorAll('[data-seg="diff"]').forEach(b=>b.onclick=()=>{store('cm-diff',b.dataset.v);render()});
-  if(view==='train'&&T&&!T.over)bindAnswer(T,trainPick);
+  if(TV&&T&&!T.over)bindAnswer(T,trainPick);
   else if(view==='daily'&&D&&!D.over)bindAnswer(D,dailyPick)}
+RACE.boot();
 render();
 // a new day while the page was in the background: today's new capitals
 document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(view==='daily'&&D&&D.mode==='daily'&&D.date!==todayKey()){D=null;openDaily()}});

@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611011030" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611011030">
 <link rel="manifest" href="../brand/site.webmanifest?v=3">
-<script src="../brand/mingo.js?v=202611100905"></script>
+<script src="../brand/mingo.js?v=202611100930"></script>
 <script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -95,6 +95,10 @@
 <script src="../top10/extra-data.js?v=202611081900"></script>
 <script src="../shared/games.js?v=202610240100"></script>
 <script src="../shared/minigames.js?v=202611100845"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="../connections/firebase-config.js?v=202611010100"></script>
+<script src="../shared/race.js?v=202611100930"></script>
 <script src="facts.js?v=202611081630"></script>
 <script>
 /* ---- Impostor: six countries, six rounds, find the one that doesn't fit ----
@@ -212,7 +216,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     :q.k>1?['think','Read them again.','Every sentence is true for five of them. Each new one lowers the points.']
     :['pass','One of them is lying.','Every sentence is true for five of these countries. Find the one it isn\'t true for.'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
-    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Round',(i+1)+'/'+ROUNDS)+(mode==='daily'?tk('km',Geomingo.clPts(G.qs.filter(x=>x.st==='right').length,pointsOf(G),ROUNDS),'tk-pts'):tk('Points',pointsOf(G),'tk-pts'))+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
+    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Round',(i+1)+'/'+ROUNDS)+(mode==='daily'?tk('km',Geomingo.clPts(G.qs.filter(x=>x.st==='right').length,pointsOf(G),ROUNDS),'tk-pts'):tk('Points',pointsOf(G),'tk-pts'))+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Impostor',(arch?'Archive #':'Daily #')+D.num);
   h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's impostors"}</span></div>`;
   if(D.over&&D.left==null)return h+resultHTML(D)+summaryHTML(D);
@@ -240,7 +244,7 @@ function soloHTML(){return header('Impostor','Solo')+`<section class="panel">
   <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['hard','Hard']],soloDiff())}<p class="hint">${soloDiff()==='easy'?'Well-known countries, with 10 million people or more':'Any of the '+IMP_COUNTRIES.length+' countries, small islands included'}.</p></div>
   <button class="primary" id="start">Start game</button></section>${quickRules()}`}
 function openTrain(){T=newGame(dealGame(soloPool(),Math.random),{mode:'solo'});chosen=null;view='train';render();window.scrollTo(0,0)}
-function trainEnd(){if(T.logged)return;T.logged=1;logSolo('im-solo',{p:pointsOf(T),best:pointsOf(T),r:rightOf(T)})}
+function trainEnd(){if(view==='room'||T.logged)return;T.logged=1;logSolo('im-solo',{p:pointsOf(T),best:pointsOf(T),r:rightOf(T)})}
 function trainPick(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over||!chosen)return;
   const res=answer(q,chosen);chosen=null;feedback(q,res);advance(T);if(T.over)trainEnd();render();showLeft()}
 function trainMore(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;chosen=null;moreFacts(q);advance(T);if(T.over)trainEnd();render();if(q.st!=='play')showLeft()}
@@ -254,7 +258,7 @@ function trainHTML(){let h=header('Impostor','Solo')+`<div class="backline"><but
 function myStatsHTML(){const h=load('im-hist',{}),so=load('im-solo',null)||{n:0};
   return statsPageHTML({game:'Impostor',hist:h,unit:'day',avg:imAverage(),lbs:d=>[{path:'lb/impostor',dates:d}],num:k=>'Impostor #'+dayNum(k,FIRST),
     solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'caught']]},
-    friends:{n:0,w:0,place:0,best:0,third:[0,'best']}})}
+    friends:(fr=>Object.assign(fr,{third:[fr.best||0,'best']}))(friendsOf('im-friends'))})}
 const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Six rounds, six new countries in each. The sentences are true for five of them: tap the one they aren't true for. Find it with one sentence for 5 points; every new sentence lowers the points, and a wrong pick scores 0. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Six rounds, each with six new countries. In every round one of them is the <b>impostor</b>.</li>
@@ -275,7 +279,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Today's impostors</b>: six countries, the same for everyone, new every day at midnight CET. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>
   <li><b>Solo</b>: six random countries, as many games as you like. <b>Easy</b>: countries with 10 million people or more. <b>Hard</b>: all of them.</li>
-  <li><b>With friends</b>: coming soon.</li></ul>`}
+  <li><b>With friends</b>: online, 2 to 6 players, each on their own phone. Everyone gets the same six rounds (well-known countries) at the same time and plays at their own pace. No lives. Most points win, then the fastest.</li></ul>`}
 function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Impostor: the sentences are made from the same data as Countries, Connections and Top 10 (see above and Top 10's credits). Flags in their official shapes from <a href="https://github.com/hjnilsson/country-flags" target="_blank" rel="noopener">hjnilsson/country-flags</a> (from Wikimedia Commons, public domain).</li></ul>`)}
 
 /* ---- home: today's countries on top, then Solo and With friends, as in the other games ---- */
@@ -298,7 +302,21 @@ function homeHTML(){const key=todayKey();
   return header('Impostor','')+`<section class="home">${hello}${Geomingo.account.userHTML()}${daily}${D.over?rankingHTML():''}</section>${quickRules()}`}
 function goHome(){view='home';toastMsg=null;drawToast();chosen=null;render();window.scrollTo(0,0)}
 // opening the game goes straight into today's game (or today's result when it is played)
+/* ---- With friends: online rooms (../shared/race.js), everyone plays the same set at the same time ----
+   The room's game is played with the Solo moves (T is the room's game while view is 'room'). */
+const RACE=GeoRace({game:'impostor',key:'im',name:'Impostor',total:ROUNDS,what:'the same six rounds',
+  deal:seed=>{const g=dealGame(IMP_COUNTRIES.filter(c=>(DATA.pop[c.c]||0)>=1e7).map(c=>c.c).sort(),rngFrom(seed));return g?newGame(g):null},
+  points:pointsOf,right:rightOf,shareLine:G=>G.qs.map(sq).join(''),header,render:()=>render()});
+function roomHTML(){if(!RACE.inGame())return RACE.lobbyHTML();
+  let h=header('Impostor','Room '+RACE.code)+RACE.backHTML()+RACE.scoresHTML();
+  if(T.over&&T.left==null)return h+RACE.resultHTML()+summaryHTML(T);
+  return h+ticketHTML(T,'online')+`<section class="panel">${playHTML(T)}</section>`}
 function render(){
+  // With friends first: its screens stay until you leave the room or go back to the Geomingo home page
+  const rv=RACE.view();
+  if(rv==='friends'){view='friends';app.innerHTML=RACE.friendsHTML();bind();return}
+  if(rv==='room'){view='room';if(RACE.inGame()){T=RACE.G;RACE.save()}app.innerHTML=roomHTML();bind();return}
+  if(view==='room'||view==='friends')view='home';
   if(view==='home'){openDaily();return}
   if(!TESTDAY&&(view==='home'||view==='daily'&&D&&D.mode==='daily')){const g=dailyGame();if(!g.over)Geomingo.clock.start('impostor',todayKey())}
   if(D&&D.mode==='daily')watchResult('im:'+D.date,D.over&&D.left==null);
@@ -309,7 +327,8 @@ function render(){
   else app.innerHTML=homeHTML();
   bind()}
 function bind(){
-  if(view==='train')bindGiveUp(()=>{if(!T||T.over)return;T.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});T.over=true;T.left=null;chosen=null;trainEnd();render();window.scrollTo(0,0)});
+  RACE.bind();const TV=view==='train'||view==='room'&&RACE.inGame();
+  if(TV)bindGiveUp(()=>{if(!T||T.over)return;T.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});T.over=true;T.left=null;chosen=null;trainEnd();render();window.scrollTo(0,0)});
   else bindGiveUp(()=>{if(!D||D.over)return;D.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});D.over=true;D.left=null;chosen=null;dailySave();render();window.scrollTo(0,0)});
   if($('home'))$('home').onclick=toHub;
   app.querySelectorAll('[data-go="train"]').forEach(b=>b.onclick=openSolo);
@@ -319,15 +338,16 @@ function bind(){
   if($('start'))$('start').onclick=openTrain;
   if($('tagain'))$('tagain').onclick=openTrain;
   if($('daily'))$('daily').onclick=openDaily;
-  if($('copy'))$('copy').onclick=()=>share(dailyShare(D));
+  if($('copy')&&view!=='room')$('copy').onclick=()=>share(dailyShare(D));
   app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
-  const G=view==='train'?T:view==='daily'?D:null;
+  const G=TV?T:view==='daily'?D:null;
   app.querySelectorAll('[data-tv]').forEach(b=>b.onclick=()=>{const q=G&&G.qs[+b.dataset.tv];if(q&&q.st!=='play')toast('Round '+(+b.dataset.tv+1)+': '+nameOf(q.c)+(q.st==='right'?' · +'+worth(q):''))});
   app.querySelectorAll('.six [data-c]').forEach(b=>b.onclick=()=>{if(!b.disabled&&G)choose(G,b.dataset.c)});
-  if($('confirm'))$('confirm').onclick=view==='train'?trainPick:dailyPick;
-  if($('nextfact'))$('nextfact').onclick=view==='train'?trainMore:dailyMore;
-  if($('nexttv'))$('nexttv').onclick=()=>view==='train'?nextRound(T):nextRound(D,dailySave);
+  if($('confirm'))$('confirm').onclick=TV?trainPick:dailyPick;
+  if($('nextfact'))$('nextfact').onclick=TV?trainMore:dailyMore;
+  if($('nexttv'))$('nexttv').onclick=()=>TV?nextRound(T):nextRound(D,dailySave);
   app.querySelectorAll('[data-seg="diff"]').forEach(b=>b.onclick=()=>{store('im-diff',b.dataset.v);render()})}
+RACE.boot();
 render();
 // a new day while the page was in the background: today's new countries
 document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(view==='home'||view==='daily'&&D&&D.mode==='daily'&&D.date!==todayKey()){D=null;if(view==='daily')openDaily();else render()}});
