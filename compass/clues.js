@@ -13,15 +13,16 @@ const BIG=3e5,NC=5;
 const cost=(o,tg)=>Math.abs(Math.log(o.d/tg))+(o.x.pop<BIG?.6:o.x.pop<1e6?.2:0);
 // [{c: city code, d: km (whole), b: degrees from north, clockwise}], far to near.
 // A small search: clue by clue, keep the best partial sets (300, more when it is hard); the five must sit at least G degrees apart (45 if it can, less round remote capitals)
-function cluesFor(t){
-  const all=CITIES.filter(x=>x.c!==t.c).map(x=>({x,d:dist(t,x),b:bearing(t,x)})).filter(o=>o.d>=40).sort((a,b)=>a.d-b.d);
+// o.pre: clue codes already on the compass (they stay, in order); o.skip: cities that can't be clues (wrong guesses)
+function cluesFor(t,o){o=o||{};const pre=o.pre||[],skip=o.skip||[];
+  const all=CITIES.filter(x=>x.c!==t.c&&(pre.includes(x.c)||!skip.includes(x.c))).map(x=>({x,d:dist(t,x),b:bearing(t,x)})).filter(o=>o.d>=40).sort((a,b)=>a.d-b.d);
   const big=all.filter(o=>o.x.pop>=BIG),near=Math.min(big[0].d,all[0].d*2);
   const start=Math.max(2600,near*2.5),end=Math.max(all[0].d,120),tg=i=>start*Math.pow(end/start,i/(NC-1));
-  for(const [G,R] of [[45,4000],[40,6000],[35,6000],[30,9000],[25,9000],[15,20000],[0,20000]]){let beam=[{s:0,l:[]}];
+  for(const [G,R] of [[45,4000],[40,6000],[35,6000],[30,9000],[25,9000],[15,20000],[0,20000]]){let beam=[{s:0,l:pre.map(c=>all.find(a=>a.x.c===c)).filter(Boolean)}];
     const pool=all.filter(o=>o.d<=Math.max(R,near*4)).slice(0,G<30?197:110);
-    for(let i=0;i<NC;i++){const nb=[];
+    for(let i=beam[0].l.length;i<NC;i++){const nb=[];
       for(const st of beam){const last=st.l[st.l.length-1];
-        for(const o of pool){if(last&&o.d>last.d/1.15)continue;if(st.l.some(p=>gap(p.b,o.b)<G))continue;
+        for(const o of pool){if(st.l.includes(o)||last&&o.d>last.d/1.15)continue;if(st.l.some(p=>gap(p.b,o.b)<G))continue;
           nb.push({s:st.s+cost(o,tg(i)),l:st.l.concat(o)})}}
       nb.sort((a,b)=>a.s-b.s);beam=nb.slice(0,G<30?2000:300);if(!beam.length)break}
     if(beam.length&&beam[0].l.length===NC)return beam[0].l.map(o=>({c:o.x.c,d:Math.round(o.d),b:Math.round(o.b)}))}

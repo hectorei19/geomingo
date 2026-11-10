@@ -91,7 +91,7 @@
 <script src="../data/countries.js?v=202611100800"></script>
 <script src="../shared/data.js?v=202611081900"></script>
 <script src="../capitals/data.js?v=202611081900"></script>
-<script src="clues.js?v=202611100700"></script>
+<script src="clues.js?v=202611100810"></script>
 <script src="../shared/games.js?v=202610240100"></script>
 <script src="../shared/minigames.js?v=202611091550"></script>
 <script>
@@ -109,6 +109,14 @@ const coBy=Object.fromEntries(C.map(c=>[c.c,c]));
 const coName=x=>(coBy[x.k3]||{}).n||x.k3;
 const realFlag=k3=>'../flagpie/flags/'+k3+'.svg';
 const CK={};const cluesOf=c=>CK[c]||(CK[c]=COMPASS.cluesFor(cityBy[c]));
+// the clues on the compass now: q.cl once a clue was added (games saved before q.cl: the first k of the city's clues)
+const shown=q=>q.cl||cluesOf(q.c).slice(0,q.k);
+// the next clue: never a city already guessed (Héctor, 2026-11-10); the clues already shown stay as they are
+function nextOf(q){const t=cityBy[q.c],have=shown(q),pre=have.map(x=>x.c),last=have[have.length-1];
+  const l=COMPASS.cluesFor(t,{pre,skip:q.tries});if(l[have.length])return l[have.length];
+  // nothing fits the usual rules: the closest-to-target city nearer than the last clue, not used yet
+  const R=CITIES.filter(x=>x.c!==t.c&&!pre.includes(x.c)&&!q.tries.includes(x.c)).map(x=>({c:x.c,d:Math.round(COMPASS.dist(t,x)),b:Math.round(COMPASS.bearing(t,x))}))
+    .filter(x=>x.d>=40&&(!last||x.d<last.d)).sort((a,b)=>b.d-a.d);return R[0]||null}
 const worth=q=>CLUES+1-q.k-q.tries.length;
 const ptsOf=q=>q.st==='right'?(q.p||0):0;
 const newQ=c=>({c,k:1,tries:[],st:'play',p:0});
@@ -125,7 +133,7 @@ const openSheet0=openSheet;openSheet=function(o){openSheet0(o);const q=$('sq');i
 
 /* ---- the compass: the mystery capital in the middle, clues (gold) and wrong guesses (red) on the rim ---- */
 const RIM=30,LAB=41;   // % of the box: the rim, and where the labels sit
-function compassHTML(q,o){o=o||{};const cl=cluesOf(q.c).slice(0,q.k),bad=q.tries.map(c=>seen(q,c));
+function compassHTML(q,o){o=o||{};const cl=shown(q),bad=q.tries.map(c=>seen(q,c));
   const pt=(a,r)=>[50+Math.sin(a*Math.PI/180)*r,50-Math.cos(a*Math.PI/180)*r];
   let s=`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="${RIM}" fill="#0C1220" stroke="var(--gold)" stroke-width=".7"/>`;
   for(let a=0;a<360;a+=15){const L=a%90===0?3.4:a%45===0?2.2:1.1,[x1,y1]=pt(a,RIM),[x2,y2]=pt(a,RIM-L);s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#9AA6B6" stroke-width="${a%90?.3:.6}"/>`}
@@ -156,13 +164,13 @@ function compassHTML(q,o){o=o||{};const cl=cluesOf(q.c).slice(0,q.k),bad=q.tries
   const label='The compass. '+cl.map(x=>cityBy[x.c].n+' is '+km(x.d)+' to the '+where(x.b)).join('. ')+(bad.length?'. Wrong guesses: '+bad.map(x=>cityBy[x.c].n+', '+km(x.d)+' to the '+where(x.b)).join('; '):'');
   return `<div class="cmp" role="img" aria-label="${esc(label)}">${s}${h}${mid}</div>`}
 // the newest news under the compass, in words
-function newsHTML(q,last){const cl=cluesOf(q.c);
+function newsHTML(q,last){const cl=shown(q);
   if(last&&last.bad){const x=seen(q,last.c);return `<p class="cline bad"><b class="w">✗ Not ${esc(cityBy[x.c].n)}.</b> From the mystery capital, ${esc(cityBy[x.c].n)} is ${km(x.d)} to the <b>${where(x.b)}</b>.</p>`}
   const x=cl[q.k-1];return `<p class="cline">From the mystery capital, <b>${esc(cityBy[x.c].n)}</b> is <b>${km(x.d)}</b> to the <b>${where(x.b)}</b>.</p>`}
 
 /* answering: the same box as in the other games, but capital cities (all 197, whatever the day's pool) */
 // a capital already on the compass (a clue or a wrong guess) can't be the answer
-const onCompass=(q,c)=>q.tries.includes(c)||cluesOf(q.c).slice(0,q.k).some(x=>x.c===c);
+const onCompass=(q,c)=>q.tries.includes(c)||shown(q).some(x=>x.c===c);
 const KEYS=CITIES.map(x=>({x,k:[x.n,...(x.al||[])].map(N)}));
 function matches(t){const k=N(t);if(!k)return [];
   const ex=[],st=[],ins=[];for(const o of KEYS){if(o.k.includes(k))ex.push(o.x);else if(o.k.some(a=>a.startsWith(k)))st.push(o.x);else if(k.length>=3&&o.k.some(a=>a.includes(k)))ins.push(o.x)}
@@ -186,7 +194,7 @@ function bindAnswer(G,onPick){const q=G.qs[G.sel];
 function answer(q,code){if(code===q.c){q.p=worth(q);q.st='right';return 'right'}
   if(onCompass(q,code))return 'same';q.tries.push(code);q.last={bad:1,c:code};if(worth(q)<=0){q.st='wrong';return 'out'}return 'wrong'}
 // the next clue (1 point less); with 1 point left, "I don't know" lets the capital go
-function nextClue(q){if(q.st!=='play')return;if(q.k<CLUES&&worth(q)>1){q.k++;q.last=null}else q.st='wrong'}
+function nextClue(q){if(q.st!=='play')return;if(q.k<CLUES&&worth(q)>1){const n=nextOf(q);if(!n){q.st='wrong';return}q.cl=shown(q).concat(n);q.k++;q.last=null}else q.st='wrong'}
 function feedback(q,res){if(res==='right')Geomingo.stamp('compass',cityBy[q.c].n,'+'+q.p)}
 const tk=Geomingo.tk;
 const pointsOf=G=>G.qs.reduce((n,q)=>n+ptsOf(q),0);
