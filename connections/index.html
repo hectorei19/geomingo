@@ -103,7 +103,7 @@
 /* ---- the puzzle ----
    Four hidden categories from Countries' CATS, four countries each. Every country fits its own category and
    none of the other three, so there is only one way to split the 16 into groups.
-   Colour = difficulty: yellow (well-known themes), green, blue, purple (the trickiest: names and capitals). */
+   Colour = difficulty: yellow (well-known themes), green, blue, purple (the trickiest: names and capitals, and from version 5 also history, politics and sport). */
 const CX_FIRST='2026-10-19',MAX_MISTAKES=5;
 const TEMOJI=['🟨','🟩','🟦','🟪'];
 const TIER_OF={region:0,lang:0,money:0,pol:0,flagc:1,flags:1,sea:1,border:1,sport:1,hist:1,geo2:1,geo:2,people:2,dev:2,geo3:2,sport2:2,pol2:2,misc:2,name:3,cap:3};
@@ -178,13 +178,32 @@ function prepRule(old){neighbourRule(old);const key=old?'old':'new';
 prepRule(false);
 // ver: 1 (dailies before 2026-10-25), 2 (the daily of 2026-10-25), 3 (dailies 2026-10-26 to NB_FROM) or 4 (everything
 // since: the same puzzle maker as 3 with today's neighbour rule)
+// Since VARY_FROM (version 5): the same puzzle maker as 4, but each colour first draws one family of categories
+// (continents, languages, flags, seas, names…), all families equally likely, and then a category of that family.
+// The purple group is no longer always about names or capitals: it shares that colour with history, politics and
+// sport trivia. Before, every day had a "name/capital starts with…" group and almost every day a continent group.
+const VARY_FROM='2026-11-12';
+const TIER5={region:0,lang:0,money:0,pol:0,flagc:1,flags:1,sea:1,border:1,sport:1,geo2:1,geo:2,people:2,dev:2,geo3:2,misc:2,name:3,cap:3,hist:3,pol2:3,sport2:3};
+let POOLS5=null;
+function pools5(){if(POOLS5)return POOLS5;const P=[{},{},{},{}];
+  GAME.forEach(k=>{if(SKIP.has(k.label))return;const t=TIER0.has(k.label)?0:TIER5[k.fam];if(t==null)return;
+    if(SOV.filter(i=>k.set[i]).length<4)return;const f=TIER0.has(k.label)?'geo0':k.fam;(P[t][f]||(P[t][f]=[])).push(k)});
+  return POOLS5=P.map(t=>Object.values(t))}
 function buildPuzzle(seed,ver){prepRule(ver<4);try{return buildPuzzleAt(seed,ver)}finally{prepRule(false)}}
 function buildPuzzleAt(seed,ver){if(ver===1)return buildPuzzleV1(seed);
   if(ver===2)return buildClean(seed,POOLS2,CHECKED_OF,1500,6)||buildPuzzleV1(seed);
   // a rare seed with no clean puzzle moves on to the next one, so every seed still gives the same puzzle
-  for(let s=0;s<20;s++){const p=buildClean((seed+s*7919)>>>0,POOLS3,GAME_OF,6000,20);if(p)return {...p,seed}}
-  return null}
-const verOf=(mode,day)=>mode!=='daily'||day>=NB_FROM?4:day>=UNIQUE_FROM?3:day>=STRICT_FROM?2:1;
+  // (version 5: the yellow family is fixed by the seed, and so is the purple one for the first 50 tries; the same four
+  // families get 5 tries, then new ones are drawn for the other colours, so an easy family does not win more often)
+  const V5=ver>=5;
+  for(let s=0;s<(V5?100:20);s++){const sd=(seed+s*7919)>>>0;let pools=POOLS3;
+    if(V5){const P=pools5(),r0=rngFrom((seed^0x5eed5)>>>0),r=rngFrom(((seed+Math.floor(s/5)*104729)>>>0)^0x5eed5);
+      const f0=P[0][Math.floor(r0()*P[0].length)],f3=P[3][Math.floor(r0()*P[3].length)],pick=t=>P[t][Math.floor(r()*P[t].length)];
+      pools=[f0,pick(1),pick(2),s<50?f3:pick(3)]}
+    const p=buildClean(sd,pools,GAME_OF,V5?250:6000,V5?6:20);if(p)return {...p,seed}}
+  // a very rare seed with no version 5 puzzle gets the version 4 one
+  return V5?buildPuzzleAt(seed,4):null}
+const verOf=(mode,day)=>mode!=='daily'||day>=VARY_FROM?5:day>=NB_FROM?4:day>=UNIQUE_FROM?3:day>=STRICT_FROM?2:1;
 // four countries that share a category which is not one of the groups (the first one found, narrowest first)
 // (version 3 puzzles have none, and broad categories are not groups there: those four are an ordinary mistake)
 function sharedCategory(S,cs){if(S.v>=3)return null;const used=new Set(S.groups.map(g=>g.k)),ids=cs.map(c=>byCode[c].i);
@@ -332,7 +351,7 @@ function pushProgress(){if(!roomRef||!S||S.mode!=='online'||S.code!==roomCode)re
   roomRef.child('players/'+ME).update(p).catch(()=>{})}
 // the host starts the first game; after a game anyone can start the next one once everyone has finished
 async function startRound(){if(!roomRef||!room)return;
-  let seed;do{seed=Math.floor(Math.random()*1e9)}while(!buildPuzzle(seed,4));
+  let seed;do{seed=Math.floor(Math.random()*1e9)}while(!buildPuzzle(seed,5));
   const round=(room.round||0)+1;
   try{await roomRef.transaction(x=>{if(!x)return x;if((x.round||0)>=round)return;
     x.status='play';x.round=round;x.seed=seed;x.startAt=now();return x})}
