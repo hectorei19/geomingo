@@ -49,7 +49,7 @@
 .missed{margin:0;font-size:.92rem;color:var(--ink-2)}
 .reveal{display:flex;align-items:center;gap:12px;background:var(--sheet);border:2px solid var(--good);border-radius:16px;padding:10px 12px}
 .reveal.wrong{border-color:var(--bad)}
-.reveal .flag{width:48px;height:36px;object-fit:cover;border-radius:3px;box-shadow:0 0 0 1px var(--rule);flex:none;background:var(--rule)}
+.reveal .flag{width:48px;height:auto;border-radius:3px;box-shadow:0 0 0 1px var(--rule);flex:none}
 .reveal .rn{display:flex;flex-direction:column;min-width:0}
 .reveal .rn b{font-family:var(--display);font-weight:700;font-size:1.4rem;line-height:1.1}
 .reveal .rn small{color:var(--ink-2);font-size:.9rem}
@@ -100,7 +100,7 @@
 const LIVES=5,DIFF_NAME={easy:'Easy',normal:'Normal',hard:'Hard'};
 const DIFF_HINT={easy:'Well-known countries, north up',normal:'All 197 countries, north up',hard:'All 197, each shape turned'};
 const newQ=(c,rot)=>({c,rot:rot||0,tries:[],st:'play'});
-const flagSrc=c=>typeof FLAGS!=='undefined'&&FLAGS[c]||'';
+const flagSrc=c=>'../flagpie/flags/'+c+'.svg';
 const contName={EU:'Europe',AS:'Asia',AF:'Africa',NA:'North and Central America',SA:'South America',OC:'Oceania'};
 let query='',typing=false;
 // lives left in a game: five, minus every wrong answer on any of its shapes
