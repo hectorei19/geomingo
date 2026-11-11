@@ -95,25 +95,25 @@ const fig=(k,fill)=>c=>{const v=DATA[k]&&DATA[k][c.c];if(typeof v==='number')ret
 const xfig=k=>c=>{const v=XDATA[k]&&XDATA[k][c.c];return typeof v==='number'?v:undefined};
 const zero=f=>c=>{const v=f(c);return v===undefined?0:v};
 const FIGS=[
-  ['pop',.5,fig('pop'),x=>`More than ${fpop(x)} people live there.`,x=>`Fewer than ${fpop(x)} people live there.`,fpop,{r:1.15},v=>fpop(Math.round(v))+' people'],
-  ['area',.5,c=>c.a||undefined,x=>`It is bigger than ${fnum(x)} km².`,x=>`It is smaller than ${fnum(x)} km².`,fnum,{r:1.15},v=>fnum(Math.round(v))+' km²'],
-  ['lat',.4,c=>typeof c.lat==='number'?c.lat:undefined,x=>`Its centre is north of ${flat(x)}.`,x=>`Its centre is south of ${flat(x)}.`,flat,{d:3},v=>'centre at '+flat(Math.round(v*10)/10)],
-  ['gdp',.4,fig('gdp'),x=>`It makes more than ${fnum(x)} US dollars per person a year (GDP).`,x=>`It makes less than ${fnum(x)} US dollars per person a year (GDP).`,fnum,{r:1.25},v=>fnum(Math.round(v))+' US dollars per person'],
-  ['life',.35,fig('life',typeof XFILL!=='undefined'?XFILL:null),x=>`People live more than ${fnum(x)} years on average.`,x=>`People live less than ${fnum(x)} years on average.`,fnum,{d:2},v=>fnum(v,1)+' years on average'],
-  ['hdi',.3,fig('hdi'),x=>`Its Human Development Index (0 to 1) is over ${fnum(x)}.`,x=>`Its Human Development Index (0 to 1) is under ${fnum(x)}.`,fnum,{d:.03},v=>'HDI '+fnum(v,3)],
-  ['age',.3,fig('age'),x=>`Half the people there are older than ${fnum(x)}.`,x=>`Half the people there are younger than ${fnum(x)}.`,fnum,{d:2},v=>'median age '+fnum(v,1)],
-  ['cpi',.2,fig('cpi'),x=>`It scores over ${fnum(x)} out of 100 in the corruption index (higher is cleaner).`,x=>`It scores under ${fnum(x)} out of 100 in the corruption index (higher is cleaner).`,fnum,{d:5},v=>fnum(v)+' out of 100 in the corruption index'],
-  ['co2',.25,fig('co2',typeof XFILL!=='undefined'?XFILL:null),x=>`Each person puts out more than ${fnum(x)} t of CO₂ a year.`,x=>`Each person puts out less than ${fnum(x)} t of CO₂ a year.`,fnum,{r:1.3},v=>fnum(v,1)+' t of CO₂ per person'],
-  ['urban',.25,fig('urban'),x=>`More than ${fnum(x)} % of people live in towns and cities.`,x=>`Less than ${fnum(x)} % of people live in towns and cities.`,fnum,{d:5},v=>fnum(Math.round(v))+' % in towns and cities'],
-  ['coast',.3,c=>{const v=DATA.coast[c.c];return typeof v==='number'&&v>0?v:undefined},x=>`Its coastline is longer than ${fnum(x)} km.`,x=>`Its coastline is shorter than ${fnum(x)} km.`,fnum,{r:1.3},v=>fnum(Math.round(v))+' km of coast'],
-  ['elev',.3,fig('elev',typeof XFILL!=='undefined'?XFILL:null),x=>`Its highest point is over ${fnum(x)} m.`,x=>`Its highest point is under ${fnum(x)} m.`,fnum,{r:1.2},v=>'highest point '+fnum(Math.round(v))+' m'],
-  ['forest',.25,fig('forest'),x=>`Forest covers more than ${fnum(x)} % of it.`,x=>`Forest covers less than ${fnum(x)} % of it.`,fnum,{d:5},v=>fnum(v,1)+' % forest'],
-  ['temp',.3,xfig('temp'),x=>`Its average yearly temperature is over ${fnum(x)} °C.`,x=>`Its average yearly temperature is under ${fnum(x)} °C.`,fnum,{d:2},v=>fnum(v,1)+' °C a year on average'],
-  ['capital',.3,c=>DATA.cap_skip.includes(c.c)?undefined:fig('cappop')(c),x=>`More than ${fpop(x)} people live in its capital.`,x=>`Fewer than ${fpop(x)} people live in its capital.`,fpop,{r:1.3},v=>fpop(Math.round(v))+' people in the capital'],
-  ['olymp',.35,zero(fig('olymp')),x=>x<1?'It has won at least one Olympic medal.':`It has won more than ${fnum(x)} Olympic medals.`,x=>`It has won fewer than ${fnum(x)} Olympic medals.`,fnum,{r:1.3,z:1},v=>fnum(v)+' Olympic medal'+(v===1?'':'s')],
-  ['olymp',.3,zero(xfig('ogold')),x=>x<1?'It has won at least one Olympic gold medal.':`It has won more than ${fnum(x)} Olympic gold medals.`,x=>`It has won fewer than ${fnum(x)} Olympic gold medals.`,fnum,{r:1.3,z:1},v=>fnum(v)+' Olympic gold medal'+(v===1?'':'s')],
-  ['wc',.4,zero(xfig('wc')),x=>x<1?'It has played at least one men\'s football World Cup.':`It has played more than ${fnum(x)} men's football World Cups.`,x=>`It has played fewer than ${fnum(x)} men's football World Cups.`,fnum,{r:1.3,z:1},v=>v?'played '+fnum(v)+' World Cup'+(v===1?'':'s'):'never played a World Cup'],
-  ['nobel',.2,zero(xfig('nobel')),x=>x<1?'At least one Nobel Prize winner comes from there.':`More than ${fnum(x)} Nobel Prize winners come from there.`,x=>`Fewer than ${fnum(x)} Nobel Prize winners come from there.`,fnum,{r:1.4,z:1},v=>fnum(v)+' Nobel Prize winner'+(v===1?'':'s')]];
+  ['pop',.5,fig('pop'),x=>`More than ${fpop(x)} people live there.`,x=>`Fewer than ${fpop(x)} people live there.`,fpop,{r:1.15},v=>fpop(Math.round(v))+' people',(a,b)=>`Between ${fpop(a)} and ${fpop(b)} people live there.`],
+  ['area',.5,c=>c.a||undefined,x=>`It is bigger than ${fnum(x)} km².`,x=>`It is smaller than ${fnum(x)} km².`,fnum,{r:1.15},v=>fnum(Math.round(v))+' km²',(a,b)=>`It is between ${fnum(a)} and ${fnum(b)} km².`],
+  ['lat',.4,c=>typeof c.lat==='number'?c.lat:undefined,x=>`Its centre is north of ${flat(x)}.`,x=>`Its centre is south of ${flat(x)}.`,flat,{d:3},v=>'centre at '+flat(Math.round(v*10)/10),(a,b)=>`Its centre is between ${flat(a)} and ${flat(b)}.`],
+  ['gdp',.4,fig('gdp'),x=>`It makes more than ${fnum(x)} US dollars per person a year (GDP).`,x=>`It makes less than ${fnum(x)} US dollars per person a year (GDP).`,fnum,{r:1.25},v=>fnum(Math.round(v))+' US dollars per person',(a,b)=>`It makes between ${fnum(a)} and ${fnum(b)} US dollars per person a year (GDP).`],
+  ['life',.35,fig('life',typeof XFILL!=='undefined'?XFILL:null),x=>`People live more than ${fnum(x)} years on average.`,x=>`People live less than ${fnum(x)} years on average.`,fnum,{d:2},v=>fnum(v,1)+' years on average',(a,b)=>`People live between ${fnum(a)} and ${fnum(b)} years on average.`],
+  ['hdi',.3,fig('hdi'),x=>`Its Human Development Index (0 to 1) is over ${fnum(x)}.`,x=>`Its Human Development Index (0 to 1) is under ${fnum(x)}.`,fnum,{d:.03},v=>'HDI '+fnum(v,3),(a,b)=>`Its Human Development Index (0 to 1) is between ${fnum(a)} and ${fnum(b)}.`],
+  ['age',.3,fig('age'),x=>`Half the people there are older than ${fnum(x)}.`,x=>`Half the people there are younger than ${fnum(x)}.`,fnum,{d:2},v=>'median age '+fnum(v,1),(a,b)=>`Half the people there are older than ${fnum(a)}, and half are younger than ${fnum(b)}.`],
+  ['cpi',.2,fig('cpi'),x=>`It scores over ${fnum(x)} out of 100 in the corruption index (higher is cleaner).`,x=>`It scores under ${fnum(x)} out of 100 in the corruption index (higher is cleaner).`,fnum,{d:5},v=>fnum(v)+' out of 100 in the corruption index',(a,b)=>`It scores between ${fnum(a)} and ${fnum(b)} out of 100 in the corruption index (higher is cleaner).`],
+  ['co2',.25,fig('co2',typeof XFILL!=='undefined'?XFILL:null),x=>`Each person puts out more than ${fnum(x)} t of CO₂ a year.`,x=>`Each person puts out less than ${fnum(x)} t of CO₂ a year.`,fnum,{r:1.3},v=>fnum(v,1)+' t of CO₂ per person',(a,b)=>`Each person puts out between ${fnum(a)} and ${fnum(b)} t of CO₂ a year.`],
+  ['urban',.25,fig('urban'),x=>`More than ${fnum(x)} % of people live in towns and cities.`,x=>`Less than ${fnum(x)} % of people live in towns and cities.`,fnum,{d:5},v=>fnum(Math.round(v))+' % in towns and cities',(a,b)=>`Between ${fnum(a)} % and ${fnum(b)} % of people live in towns and cities.`],
+  ['coast',.3,c=>{const v=DATA.coast[c.c];return typeof v==='number'&&v>0?v:undefined},x=>`Its coastline is longer than ${fnum(x)} km.`,x=>`Its coastline is shorter than ${fnum(x)} km.`,fnum,{r:1.3},v=>fnum(Math.round(v))+' km of coast',(a,b)=>`Its coastline is between ${fnum(a)} and ${fnum(b)} km long.`],
+  ['elev',.3,fig('elev',typeof XFILL!=='undefined'?XFILL:null),x=>`Its highest point is over ${fnum(x)} m.`,x=>`Its highest point is under ${fnum(x)} m.`,fnum,{r:1.2},v=>'highest point '+fnum(Math.round(v))+' m',(a,b)=>`Its highest point is between ${fnum(a)} and ${fnum(b)} m.`],
+  ['forest',.25,fig('forest'),x=>`Forest covers more than ${fnum(x)} % of it.`,x=>`Forest covers less than ${fnum(x)} % of it.`,fnum,{d:5},v=>fnum(v,1)+' % forest',(a,b)=>`Forest covers between ${fnum(a)} % and ${fnum(b)} % of it.`],
+  ['temp',.3,xfig('temp'),x=>`Its average yearly temperature is over ${fnum(x)} °C.`,x=>`Its average yearly temperature is under ${fnum(x)} °C.`,fnum,{d:2},v=>fnum(v,1)+' °C a year on average',(a,b)=>`Its average yearly temperature is between ${fnum(a)} and ${fnum(b)} °C.`],
+  ['capital',.3,c=>DATA.cap_skip.includes(c.c)?undefined:fig('cappop')(c),x=>`More than ${fpop(x)} people live in its capital.`,x=>`Fewer than ${fpop(x)} people live in its capital.`,fpop,{r:1.3},v=>fpop(Math.round(v))+' people in the capital',(a,b)=>`Between ${fpop(a)} and ${fpop(b)} people live in its capital.`],
+  ['olymp',.35,zero(fig('olymp')),x=>x<1?'It has won at least one Olympic medal.':`It has won more than ${fnum(x)} Olympic medals.`,x=>`It has won fewer than ${fnum(x)} Olympic medals.`,fnum,{r:1.3,z:1},v=>fnum(v)+' Olympic medal'+(v===1?'':'s'),(a,b)=>a<1?`It has won at least one Olympic medal, but fewer than ${fnum(b)}.`:`It has won more than ${fnum(a)}, but fewer than ${fnum(b)} Olympic medals.`],
+  ['olymp',.3,zero(xfig('ogold')),x=>x<1?'It has won at least one Olympic gold medal.':`It has won more than ${fnum(x)} Olympic gold medals.`,x=>`It has won fewer than ${fnum(x)} Olympic gold medals.`,fnum,{r:1.3,z:1},v=>fnum(v)+' Olympic gold medal'+(v===1?'':'s'),(a,b)=>a<1?`It has won at least one Olympic gold medal, but fewer than ${fnum(b)}.`:`It has won more than ${fnum(a)}, but fewer than ${fnum(b)} Olympic gold medals.`],
+  ['wc',.4,zero(xfig('wc')),x=>x<1?'It has played at least one men\'s football World Cup.':`It has played more than ${fnum(x)} men's football World Cups.`,x=>`It has played fewer than ${fnum(x)} men's football World Cups.`,fnum,{r:1.3,z:1},v=>v?'played '+fnum(v)+' World Cup'+(v===1?'':'s'):'never played a World Cup',(a,b)=>a<1?`It has played at least one men's football World Cup, but fewer than ${fnum(b)}.`:`It has played more than ${fnum(a)}, but fewer than ${fnum(b)} men's football World Cups.`],
+  ['nobel',.2,zero(xfig('nobel')),x=>x<1?'At least one Nobel Prize winner comes from there.':`More than ${fnum(x)} Nobel Prize winners come from there.`,x=>`Fewer than ${fnum(x)} Nobel Prize winners come from there.`,fnum,{r:1.4,z:1},v=>fnum(v)+' Nobel Prize winner'+(v===1?'':'s'),(a,b)=>a<1?`At least one Nobel Prize winner comes from there, but fewer than ${fnum(b)}.`:`More than ${fnum(a)}, but fewer than ${fnum(b)} Nobel Prize winners come from there.`]];
 
 // the roundest number strictly between a and b (a < b): 5 million rather than 5.381.204
 function roundBetween(a,b){for(let p=12;p>=-3;p--)for(const m of [5,2,1]){const s=m*Math.pow(10,p);
@@ -151,13 +151,77 @@ function pickFive(list,r){const L=shuffle(list,r).sort((a,b)=>a.e-b.e),used={},o
   return out.length===5?out.sort((a,b)=>a.e-b.e):null}
 
 // one round: six countries and the impostor among them, or null when no country of the six has five sentences
-function buildRound(codes,r){const F=allFacts(codes);
-  for(const c of shuffle(codes,r)){const f=pickFive(F[c],r);if(f)return {set:codes,c,f:f.map(x=>({t:x.t,v:x.v}))}}return null}
+/* ---- Suspects (Héctor, 2026-11-11: the clues were too obvious, the impostor was always "the opposite" of the sentence) ----
+   A clue can now be false for up to three of the six: the impostor and one or two others. The impostor fails EVERY clue;
+   the others fail some but never all. So one clue gives two or three suspects, and you cross the clues to find it.
+   Figures can also give a range ("Its highest point is between 1.000 and 4.000 m"): the countries outside it, on both
+   sides, fail it, so the impostor is not simply the highest or the lowest.
+   A clue: {t: text, topic, e: ease, fail: the codes it is false for, v: {code: what that country really has}}. */
+function allClues(codes){const cs=codes.map(c=>impByCode[c]),out=[];
+  for(const k of CATS){let tr=TRAITS[k.label],m;
+    if(!tr&&(m=/^Borders (.+)$/.exec(k.label)))tr=['border',BORDER_EASE,'It shares a land border with '+m[1]+'.','It does not border '+m[1]+'.'];
+    if(!tr)continue;
+    const has=cs.map(c=>!!k.set[impIdx[c.c]]),n=has.filter(Boolean).length;
+    if(n>=3&&n<=5&&tr[2])out.push({t:tr[2],topic:tr[0],e:tr[1],fail:cs.filter((c,i)=>!has[i]).map(c=>c.c),v:{}});
+    if(n>=1&&n<=3&&tr[3])out.push({t:tr[3],topic:tr[0],e:tr[1],fail:cs.filter((c,i)=>has[i]).map(c=>c.c),v:{}})}
+  for(const [topic,e,val,above,below,,gap,show,between] of FIGS){const v=cs.map(val);if(v.some(x=>x===undefined))continue;
+    const s=[...v].sort((a,b)=>a-b),far=(a,b)=>gap.d!=null?b-a>=gap.d:(a<=0?(gap.z?b>0:false):b/a>=gap.r);
+    const R=topic==='lat'?roundLat:roundBetween;
+    // a cut between the i-th and (i+1)-th lowest: a round number strictly between them, or null when they are too close
+    // counts (medals, World Cups, Nobel Prizes) use whole numbers: "more than 2" rather than "more than 2,5"
+    const cut=(i,up)=>{if(!(s[i-1]<s[i]&&far(s[i-1],s[i])))return null;if(gap.z&&s[i-1]<=0)return 0;const x=R(s[i-1],s[i]);
+      return x==null||!gap.z||Number.isInteger(x)?x:up?Math.ceil(x):Math.floor(x)};
+    const shows=list=>Object.fromEntries(list.map(i=>[cs[i].c,show(v[i])]));
+    // lo: how many of the lowest fail, hi: how many of the highest fail (one to three in all)
+    for(let lo=0;lo<=3;lo++)for(let hi=0;lo+hi<=3;hi++){if(!lo&&!hi)continue;
+      const a=lo?cut(lo,false):null,b=hi?cut(6-hi,true):null;if(lo&&a==null||hi&&b==null)continue;
+      const failI=v.map((x,i)=>i).filter(i=>lo&&v[i]<s[lo]||hi&&v[i]>s[5-hi]);if(failI.length!==lo+hi)continue;
+      const t=lo&&hi?between(a,b):lo?above(a):below(b);
+      out.push({t,topic,e:e+(lo&&hi?-.1:0),fail:failI.map(i=>cs[i].c),v:shows(failI)})}}
+  return out}
+
+// five clues against impostor c, the most suspects first: after clue 1 two or three suspects, after clue 3 only the
+// impostor; clues 4 and 5 are easy ones false only for the impostor, for players who don't know a fact.
+// Never two clues on one topic (flags and clubs: two). Returns null when the six don't allow it.
+function pickSuspects(clues,c,r){const L=shuffle(clues.filter(f=>f.fail.includes(c)),r);
+  const multi=L.filter(f=>f.fail.length>1),solo=L.filter(f=>f.fail.length===1).sort((a,b)=>a.e-b.e);
+  if(multi.length<2||solo.length<2)return null;
+  const okTopic=(used,f)=>(used[f.topic]||0)<(TOPIC_MAX[f.topic]||1);
+  let best=null,bs=-1;
+  for(let n=0;n<120;n++){const used={},take=[];let sus=null;
+    const add=f=>{used[f.topic]=(used[f.topic]||0)+1;take.push(f);sus=sus?sus.filter(x=>f.fail.includes(x)):f.fail.slice()};
+    // clues 1 to 3: the ones that leave suspects, each one cutting the suspects down
+    const pool=shuffle(multi,r);
+    for(const f of pool){if(take.length>=3||!okTopic(used,f))continue;
+      const next=sus?sus.filter(x=>f.fail.includes(x)):f.fail;
+      if(sus&&next.length>=sus.length)continue;add(f)}
+    // not enough suspect clues: finish the cutting with an easy one-country clue
+    if(take.length<2||sus.length>1&&take.length===3)continue;
+    const easy=solo.filter(f=>okTopic(used,f));
+    // clues 4 and 5 (or 3 to 5): the one-country clues, spread from hard to easy
+    const need=5-take.length;if(easy.length<need)continue;
+    const picks=[];for(let i=0;i<need;i++){const f=easy[Math.round(i*(easy.length-1)/Math.max(1,need-1))];if(!picks.includes(f)&&okTopic(used,f)){used[f.topic]=(used[f.topic]||0)+1;picks.push(f)}}
+    if(picks.length<need)continue;
+    // score: more suspects early is more mystery (3 then 2 is best), one-country clues later is better
+    const s1=take[0].fail.length,s2=take[1]?take[0].fail.filter(x=>take[1].fail.includes(x)).length:1,score=s1*2+s2+take.length;
+    if(score>bs){bs=score;best=take.concat(picks.sort((a,b)=>a.e-b.e))}}
+  return best}
+
+// one round: six countries and the impostor among them, or null when no country of the six gets five clues.
+// old=true: the first rules (every clue false only for the impostor), kept for daily games from before SUSPECTS_FROM.
+function buildRound(codes,r,old){
+  if(old){const F=allFacts(codes);
+    for(const c of shuffle(codes,r)){const f=pickFive(F[c],r);if(f)return {set:codes,c,f:f.map(x=>({t:x.t,v:x.v}))}}return null}
+  const all=allClues(codes);
+  for(const c of shuffle(codes,r)){const f=pickSuspects(all,c,r);
+    if(f)return {set:codes,c,f:f.map(x=>({t:x.t,v:x.v[c]||'',o:x.fail.filter(y=>y!==c),ov:x.fail.filter(y=>y!==c).map(y=>x.v[y]||'')}))}}
+  return null}
+const SUSPECTS_FROM='2026-11-12';
 
 // a whole game: six rounds, each with six new countries (Héctor, 2026-11-08: the same six all game was boring),
 // so no country shows up twice in a game. r: a random number function (seeded for the daily).
-function dealGame(pool,r){const used=new Set(),rounds=[];
+function dealGame(pool,r,old){const used=new Set(),rounds=[];
   while(rounds.length<6){let got=null;
-    for(let n=0;n<400&&!got;n++)got=buildRound(shuffle(pool.filter(c=>!used.has(c)),r).slice(0,6),r);
+    for(let n=0;n<400&&!got;n++)got=buildRound(shuffle(pool.filter(c=>!used.has(c)),r).slice(0,6),r,old);
     if(!got)return null;got.set.forEach(c=>used.add(c));rounds.push(got)}
   return {rounds}}
