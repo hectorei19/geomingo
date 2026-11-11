@@ -67,7 +67,7 @@ svg.mingo{display:block;flex-shrink:0;overflow:visible}
 /* small "BETA" tag next to the logo while the site is in testing */
 .gm-top .gm-beta{flex-shrink:0;align-self:center;margin-left:2px;padding:2px 5px 1px;border:1px solid #F3D98B;border-radius:5px;color:#F3D98B;font:800 10px/1.3 var(--display);letter-spacing:.12em;white-space:nowrap}
 .gm-home .gm-beta{font-size:9px;padding:1px 4px 0}
-.gm-betaline{margin:0;font-size:13px;color:var(--muted);text-align:left}
+.gm-betaline{margin:0;font-size:min(13px,3.2vw);color:var(--muted);text-align:left}
 /* game headers on phones: logo + BETA + GeoPass + Sign in must fit in one row, so the GeoPass button keeps only its icon and count */
 @media (max-width:480px){.gm-top .gm-home~.gm-pass .gm-pw{display:none}}
 @media (max-width:400px){.gm-home .gm-logo{font-size:19px}.gm-home .gm-beta{font-size:8px;letter-spacing:.08em;padding:1px 3px 0}.gm-top .gm-acct:not(.me){padding:0 8px}}
