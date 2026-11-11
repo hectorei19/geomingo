@@ -33,7 +33,7 @@
 .desk{display:flex;gap:6px;width:100%}
 .desk button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px 6px;background:var(--sheet);border:2px dashed var(--line);border-radius:10px;color:var(--ink-2);font:inherit;font-size:.7rem;cursor:default}
 .desk button b{font-family:var(--mono);font-size:.95rem;color:var(--ink)}
-.desk button img{width:34px;height:23px;object-fit:cover;border-radius:2px;box-shadow:0 0 0 1px var(--rule);background:var(--rule)}
+.desk button img{height:23px;width:auto;max-width:40px;object-fit:contain;border-radius:2px;box-shadow:0 0 0 1px var(--rule)}
 .desk button.right,.desk button.wrong{padding:6px 2px}
 /* the traveller at the desk now: the same size, filled in flamingo */
 .desk button.sel{border:2px solid var(--flamingo);background:var(--flamingo);color:var(--on-flamingo);font-weight:700;letter-spacing:.06em}
@@ -48,7 +48,7 @@
 .clue .ct span{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
 .clue .ct b{font-weight:600;font-size:1rem;line-height:1.3}
 .clue .ct small{font-size:.85rem;color:var(--ink-2)}
-.clue .fl{width:84px;height:56px;object-fit:cover;border-radius:4px;box-shadow:0 0 0 1px var(--rule);margin-top:4px;background:var(--rule)}
+.clue .fl{height:56px;width:auto;max-width:120px;object-fit:contain;border-radius:4px;box-shadow:0 0 0 1px var(--rule);margin-top:4px}
 .clue.new{border-color:var(--gold)}
 .clue.off{border-style:dashed;opacity:.55}
 .clue.off .ci{background:transparent;box-shadow:inset 0 0 0 1.5px var(--rule)}
@@ -63,7 +63,7 @@
 /* a traveller who has just left the desk: the answer in big, then Next traveller */
 .left{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;border:2px solid var(--good);border-radius:16px;padding:16px 14px;background:var(--p4-soft)}
 .left.wrong{border-color:var(--bad);background:var(--bad-soft)}
-.left img{width:120px;height:80px;object-fit:cover;border-radius:5px;box-shadow:0 0 0 1px var(--rule);background:var(--rule)}
+.left img{height:80px;width:auto;max-width:180px;object-fit:contain;border-radius:5px;box-shadow:0 0 0 1px var(--rule)}
 .left .ln{font-family:var(--display);font-weight:700;font-size:1.8rem;line-height:1.1;overflow-wrap:anywhere}
 .left .lst{font-family:var(--type,var(--mono));letter-spacing:.15em;font-weight:700;color:var(--good);border:2px solid currentColor;padding:2px 10px;border-radius:4px;transform:rotate(-4deg)}
 .left.wrong .lst{color:var(--bad)}
@@ -71,7 +71,7 @@
 .left .primary{width:100%;margin-top:6px}
 .reveal{display:flex;align-items:center;gap:12px;background:var(--sheet);border:2px solid var(--good);border-radius:16px;padding:10px 12px}
 .reveal.wrong{border-color:var(--bad)}
-.reveal .flag{width:48px;height:36px;object-fit:cover;border-radius:3px;box-shadow:0 0 0 1px var(--rule);flex:none;background:var(--rule)}
+.reveal .flag{width:48px;height:auto;border-radius:3px;box-shadow:0 0 0 1px var(--rule);flex:none}
 .reveal .rn{display:flex;flex-direction:column;min-width:0}
 .reveal .rn b{font-family:var(--display);font-weight:700;font-size:1.4rem;line-height:1.1}
 .reveal .rn small{color:var(--ink-2);font-size:.9rem}
@@ -111,7 +111,7 @@
 const CLUES=5,PER=5,MAX=CLUES*PER,FIRST='2026-11-02';
 const SOV=C.filter(c=>!c.t);
 const cByCode=Object.fromEntries(SOV.map(c=>[c.c,c]));
-const flagSrc=c=>FLAGS[c]||'';
+const flagSrc=c=>'../flagpie/flags/'+c+'.svg';
 const contName={EU:'Europe',AS:'Asia',AF:'Africa',NA:'North or Central America',SA:'South America',OC:'Oceania'};
 const worth=q=>CLUES+1-q.k;
 const ptsOf=q=>q.st==='right'?worth(q):0;

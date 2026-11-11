@@ -40,7 +40,7 @@
 /* a group found: its four tiles turn over and show their flags, then join the group's bar */
 .tile.turn{transform:rotateY(90deg);transition:transform .22s ease-in}
 .tile.flipped{flex-direction:column;gap:4px;background:var(--gc-soft)!important;border:1.5px solid var(--gc)!important;color:var(--ink)!important;transform:none;transition:transform .22s ease-out}
-.tile .tflag{width:58%;max-width:56px;aspect-ratio:4/3;object-fit:cover;border-radius:3px;box-shadow:0 0 0 1px var(--rule)}
+.tile .tflag{height:28px;width:auto;max-width:58%;object-fit:contain;border-radius:3px;box-shadow:0 0 0 1px var(--rule)}
 .tile.long{font-size:.78rem}
 @media (max-width:420px){.tile{font-size:.8rem}.tile.long{font-size:.68rem}.cx-grid,.cx-board{gap:6px}}
 .grp{border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;background:var(--gc-soft);border:1.5px solid var(--gc);text-align:center}
@@ -396,7 +396,7 @@ let turning=false;
 function turnOver(cs,t,done){const els=cs.map(c=>app.querySelector(`.cx-grid [data-c="${c}"]`)).filter(Boolean);
   if(els.length!==4||matchMedia('(prefers-reduced-motion:reduce)').matches){done();return}
   turning=true;els.forEach(e=>{e.classList.remove('on');e.classList.add('turn')});
-  setTimeout(()=>{els.forEach(e=>{const c=e.dataset.c;e.innerHTML=`<img class="tflag" src="${FLAGS[c]}" alt=""><span>${esc(byCode[c].n)}</span>`;
+  setTimeout(()=>{els.forEach(e=>{const c=e.dataset.c;e.innerHTML=`<img class="tflag" src="../flagpie/flags/${c}.svg" alt=""><span>${esc(byCode[c].n)}</span>`;
     e.classList.remove('turn');e.classList.add('flipped','g'+t)})},230);
   setTimeout(()=>{turning=false;done()},1100)}
 
