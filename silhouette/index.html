@@ -76,7 +76,7 @@
 .ready{display:flex}
 @media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611120700">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611120720">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -254,7 +254,7 @@ function dailyResultHTML(G){const r=rightOf(G),v=verdict(G);
     <p class="hint">${r===9?'Every shape named.':'Tap a shape to see its name.'} Archive games don't count for the ranking or your streak.</p>
     <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
     ${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="archback" style="flex:1">Back to archive</button></div></section>`;
-  return `${Geomingo.doneTicket('silhouette',G.num,r+' of 9','next board in '+nextIn(),`<section class="panel play">${boardHTML(G)}</section>`)}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
+  return `${Geomingo.doneTicket('silhouette',G.num,r+' of 9','next in '+nextIn(),`<section class="panel play">${boardHTML(G)}</section>`)}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns">${nextGameBtn('silhouette')}${SHARE_BTN.replace('Share result','Share')}</div>`}
 // today's ranking (signed-in players, first try of the day): shapes named, then fewer wrong tries, then who finished first
 const rankingHTML=()=>Geomingo.account.rankingHTML('sil-'+DAILY_LV,{what:'board',score:r=>[r.s+'/9',r.m+' wrong '+(r.m===1?'try':'tries')]});

@@ -86,7 +86,7 @@
 .cpre{display:flex;gap:6px;width:100%}
 .cpre i{flex:1;aspect-ratio:3/4;border-radius:8px;border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--mono);font-size:.8rem;color:var(--ink-2)}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611120700">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611120720">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -294,7 +294,7 @@ function resultHTML(G){const p=pointsOf(G),v=verdict(G);
     <p class="hint">${rightOf(G)} of 5 named. Archive games don't count for the ranking or your streak.</p>
     <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
     ${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="archback" style="flex:1">Back to archive</button></div></section>`;
-  return `${Geomingo.doneTicket('customs',G.num,p+' points','next travellers in '+nextIn(),summaryHTML(G))}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
+  return `${Geomingo.doneTicket('customs',G.num,p+' points','next in '+nextIn(),summaryHTML(G))}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns">${nextGameBtn('customs')}${SHARE_BTN.replace('Share result','Share')}</div>`}
 // the summary under a finished game: who each traveller was
 const summaryHTML=G=>`<section class="panel"><span class="label">The travellers</span>${G.qs.map(revealHTML).join('')}</section>`;

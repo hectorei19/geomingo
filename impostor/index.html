@@ -83,7 +83,7 @@
 .frow .rn small{color:var(--ink-2);font-size:.85rem}
 .frow .rpts{margin-left:auto;font-family:var(--mono);color:var(--gold);white-space:nowrap}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611120700">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611120720">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -200,7 +200,7 @@ function resultHTML(G){const p=pointsOf(G),v=verdict(G);
     <p class="hint">${rightOf(G)} of 6 caught. Archive games don't count for the ranking or your streak.</p>
     <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
     ${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="archback" style="flex:1">Back to archive</button></div></section>`;
-  return `${Geomingo.doneTicket('impostor',G.num,p+' points','new countries in '+nextIn(),summaryHTML(G))}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
+  return `${Geomingo.doneTicket('impostor',G.num,p+' points','next in '+nextIn(),summaryHTML(G))}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns">${nextGameBtn('impostor')}${SHARE_BTN.replace('Share result','Share')}</div>`}
 // today's ranking (signed-in players, first try of the day): points, then fewer wrong picks, then who finished first
 const rankingHTML=()=>Geomingo.account.rankingHTML('impostor',{what:'game',score:r=>[r.s+' pts',r.m+' wrong']});

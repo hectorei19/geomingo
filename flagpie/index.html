@@ -91,7 +91,7 @@
 .frow .rn small{color:var(--ink-2);font-size:.85rem}
 .frow .rpts{margin-left:auto;font-family:var(--mono);color:var(--gold);white-space:nowrap}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611120700">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611120720">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -255,7 +255,7 @@ function resultHTML(G){const p=pointsOf(G),v=verdict(G);
     <p class="hint">${rightOf(G)} of 5 named. Archive games don't count for the ranking or your streak.</p>
     <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
     ${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="archback" style="flex:1">Back to archive</button></div></section>`;
-  return `${Geomingo.doneTicket('flagpie',G.num,p+' points','next flags in '+nextIn(),summaryHTML(G))}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
+  return `${Geomingo.doneTicket('flagpie',G.num,p+' points','next in '+nextIn(),summaryHTML(G))}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns">${nextGameBtn('flagpie')}${SHARE_BTN.replace('Share result','Share')}</div>`}
 // today's ranking (signed-in players, first try of the day): points, then fewer wrong answers, then who finished first
 const rankingHTML=()=>Geomingo.account.rankingHTML('flagpie',{what:'game',score:r=>[r.s+' pts',r.m+' wrong']});

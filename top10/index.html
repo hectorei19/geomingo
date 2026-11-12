@@ -94,7 +94,7 @@ body.kbon .t10list .mini{width:18px;height:18px}
 body.kbon .kbgu{display:flex;flex-direction:column;align-items:center;gap:14px}
 body.kbon .kbgu #src{align-self:center!important}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611120700">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611120720">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -630,7 +630,7 @@ function verdict(){const f=S.found.length;
   return S.won?(!S.wrong.length?{pose:'happy',t:'Full page. Perfect ten.',s:S.nolives?'Not a single mistake.':'Not a single life lost.'}:{pose:'happy',t:'Visited. All ten.',s:livesTxt()})
     :f>=6?{pose:'think',t:'So close. '+f+' of 10.',s:S.nolives?'The full list is below.':'No lives left. The full list is below.'}:{pose:'sad',t:'Rough crossing, this one.',s:f+' of 10 found. The full list is below.'}}
 function resultHTML(body){const v=verdict();
-  if(S.mode==='daily')return `${Geomingo.doneTicket('top10',S.num,S.found.length+' of 10','next list in '+nextIn(),body)}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
+  if(S.mode==='daily')return `${Geomingo.doneTicket('top10',S.num,S.found.length+' of 10','next in '+nextIn(),body)}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns">${nextGameBtn('top10')}${SHARE_BTN.replace('Share result','Share')}</div>`;
   return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Top 10 #'+S.num:S.mode==='archive'?'Archive · Top 10 #'+S.num:'Solo list'}</span><p class="big">${S.found.length} of 10</p>
     <p class="hint">${S.won?(S.nolives?`You named the whole list with ${S.wrong.length} mistake${S.wrong.length===1?'':'s'}.`:`You named the whole list with ${S.lives} li${S.lives===1?'fe':'ves'} left.`):S.lives?'The full list is below.':'No lives left. The full list is below.'} ${S.mode==='daily'?`Next list in ${nextIn()}.`:S.mode==='archive'?"Archive games don't count for the ranking or your streak.":''}</p>

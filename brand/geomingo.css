@@ -108,6 +108,7 @@ svg.mingo{display:block;flex-shrink:0;overflow:visible}
 .gm-done-c{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px 14px}
 .gm-done-c .big{font-size:30px;margin:0;white-space:nowrap}
 .gm-done-s{margin:0;display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right;color:var(--muted);font-size:13px;min-width:0}
+.gm-done-s span{white-space:nowrap}
 .gm-done-s b{color:var(--gold);font-family:var(--display);font-weight:800;font-size:18px}
 /* the day's answers inside the same ticket, under the tear line: no second box, rows split by thin lines, points green or red */
 .gm-done-a{padding:12px 14px 14px}
