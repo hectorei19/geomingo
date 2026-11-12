@@ -101,7 +101,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611101000"></script>
 <script src="../shared/race.js?v=202611100930"></script>
-<script src="facts.js?v=202611121100"></script>
+<script src="facts.js?v=202611121300"></script>
 <script>
 /* ---- Impostor: six countries, six rounds, find the one that doesn't fit ----
    Since LINK_FROM (facts.js, Héctor 2026-11-12): "What do they have in common?" Five of the six share a hidden link, the
@@ -117,12 +117,12 @@ const SENT=5,ROUNDS=6,MAX=SENT*ROUNDS,FIRST='2026-11-08';
 const flagOf=c=>'../flagpie/flags/'+c+'.svg';
 const nameOf=c=>impByCode[c].n;
 // a link round (Héctor, 2026-11-12, "What do they have in common?"): five clues as before, 6 - k points: the topic,
-// a nudge, two innocent countries crossed out, a third one, then the link itself
+// another fact the five share, two innocent countries crossed out, a third one, then the link itself
 const isLink=q=>q.m==='link';
 const worth=q=>SENT+1-q.k;
 const crossedOf=q=>isLink(q)&&q.x?q.x.slice(0,q.k>=4?3:q.k>=3?2:0):[];
 // the five clues of a link round, as sentences
-const linkClues=q=>[q.f[0].t,q.f[1].t,nameOf(q.x[0])+' and '+nameOf(q.x[1])+' are not the impostor.',nameOf(q.x[2])+' is not the impostor either.','The link: '+q.f[2].t.replace(/^./,ch=>ch.toLowerCase())].map(t=>({t}));
+const linkClues=q=>[q.f[0].t,q.f[1].t,nameOf(q.x[0])+' and '+nameOf(q.x[1])+' are not the impostor.',nameOf(q.x[2])+' is not the impostor either.','The link: '+lcFirst(q.f[2].t)].map(t=>({t}));
 const ptsOf=q=>q.st==='right'?worth(q):0;
 const newGame=(g,o)=>Object.assign({qs:g.rounds.map(r=>({set:r.set,c:r.c,f:r.f,m:r.m,x:r.x,k:1,pick:null,st:'play'})),sel:0,over:false,left:null},o||{});
 // the six countries of a round (games from the first hours of day #1 kept one set for the whole game, in G.set)
@@ -164,7 +164,7 @@ function playHTML(G){let h=deskHTML(G);
 // a round that has just finished: who it was, all five sentences with the impostor's real figures, then Next round
 function leftHTML(G,i){const q=G.qs[i],ok=q.st==='right';
   if(isLink(q))return `<span class="label">Round ${i+1} of ${ROUNDS}</span>${sixHTML(G,q,true)}
-    <div class="verdict${ok?'':' wrong'}"><b>${ok?'Caught! +'+worth(q):'It was '+esc(nameOf(q.c))+'. 0 points'}</b><span>${ok?esc(nameOf(q.c))+' after '+q.k+' clue'+(q.k===1?'':'s')+'.':q.pick?'You said '+esc(nameOf(q.pick))+'.':'Nobody picked.'} The link: ${esc(q.f[2].t.replace(/^./,ch=>ch.toLowerCase()))} True for five of them, not for ${esc(nameOf(q.c))}.</span></div>
+    <div class="verdict${ok?'':' wrong'}"><b>${ok?'Caught! +'+worth(q):'It was '+esc(nameOf(q.c))+'. 0 points'}</b><span>${ok?esc(nameOf(q.c))+' after '+q.k+' clue'+(q.k===1?'':'s')+'.':q.pick?'You said '+esc(nameOf(q.pick))+'.':'Nobody picked.'} The link: ${esc(lcFirst(q.f[2].t))} True for five of them, not for ${esc(nameOf(q.c))}.</span></div>
     ${factsHTML(Object.assign({},q,{f:linkClues(q)}),true)}<button class="primary" id="nexttv">${G.over?'See your result':'Next round →'}</button>`;
   return `<span class="label">Round ${i+1} of ${ROUNDS}</span>${sixHTML(G,q,true)}
     <div class="verdict${ok?'':' wrong'}"><b>${ok?'Caught! +'+worth(q):'It was '+esc(nameOf(q.c))+'. 0 points'}</b><span>${ok?esc(nameOf(q.c))+' after '+q.k+' clue'+(q.k===1?'':'s')+'.':q.pick?'You said '+esc(nameOf(q.pick))+'.':'Nobody picked.'} None of these is true for ${esc(nameOf(q.c))}:</span></div>
@@ -278,8 +278,8 @@ function myStatsHTML(){const h=load('im-hist',{}),so=load('im-solo',null)||{n:0}
 const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Six rounds, six new countries in each. Five of them have something in common: tap the one that doesn't. Clues come out one by one, each a bit clearer. Find it with one clue for 5 points; every new clue lowers the points, and a wrong pick scores 0. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Six rounds, each with six new countries. Five of them have something in common. The one that doesn't is the <b>impostor</b>.</li>
-  <li>Clues come out one by one, each a bit clearer: what to think about, a nudge, two countries that are not the impostor, a third one, and finally the link itself.</li>
-  <li>For example: Bolivia, Paraguay, Austria, Mongolia, Nepal and Portugal. Clue 1: “Think about the sea.” Clue 2: “Their beaches are all on lakes and rivers.” Five of them have no coast at all. Portugal has one: it is the impostor.</li></ul>
+  <li>Clues come out one by one, each a bit clearer: what to think about, another fact the five share, two countries that are not the impostor, a third one, and finally the link itself.</li>
+  <li>For example: Bolivia, Paraguay, Austria, Mongolia, Nepal and Portugal. Clue 1: “Think about the sea.” Five of them have no coast at all. Portugal has one: it is the impostor.</li></ul>
   <h3>Six rounds</h3><ul>
   <li>Tap a country, then <b>… is the impostor</b> to answer. Tap it again to change your mind.</li>
   <li>Not sure yet? Tap <b>Next clue</b> for another one.</li></ul>
