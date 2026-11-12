@@ -95,6 +95,7 @@
 <script src="../shared/data.js?v=202611100900"></script>
 <script src="../shared/games.js?v=202611101000"></script>
 <script src="../shared/minigames.js?v=202611101300"></script>
+<script src="daily.js?v=202611120300"></script>
 <!-- With friends: online rooms in Countries' Firebase Realtime Database -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -185,10 +186,12 @@ prepRule(false);
 const VARY_FROM='2026-11-12';
 const TIER5={region:0,lang:0,money:0,pol:0,flagc:1,flags:1,sea:1,border:1,sport:1,geo2:1,geo:2,people:2,dev:2,geo3:2,misc:2,name:3,cap:3,hist:3,pol2:3,sport2:3};
 let POOLS5=null;
-function pools5(){if(POOLS5)return POOLS5;const P=[{},{},{},{}];
-  GAME.forEach(k=>{if(SKIP.has(k.label))return;const t=TIER0.has(k.label)?0:TIER5[k.fam];if(t==null)return;
+// CX_AVOID (labels) is only used when making the fixed daily list (see daily.js): categories used too recently or too often
+let CX_AVOID=null;
+function pools5(){if(POOLS5&&!CX_AVOID)return POOLS5;const P=[{},{},{},{}];
+  GAME.forEach(k=>{if(SKIP.has(k.label)||CX_AVOID&&CX_AVOID.has(k.label))return;const t=TIER0.has(k.label)?0:TIER5[k.fam];if(t==null)return;
     if(SOV.filter(i=>k.set[i]).length<4)return;const f=TIER0.has(k.label)?'geo0':k.fam;(P[t][f]||(P[t][f]=[])).push(k)});
-  return POOLS5=P.map(t=>Object.values(t))}
+  const out=P.map(t=>Object.values(t));if(!CX_AVOID)POOLS5=out;return out}
 function buildPuzzle(seed,ver){prepRule(ver<4);try{return buildPuzzleAt(seed,ver)}finally{prepRule(false)}}
 function buildPuzzleAt(seed,ver){if(ver===1)return buildPuzzleV1(seed);
   if(ver===2)return buildClean(seed,POOLS2,CHECKED_OF,1500,6)||buildPuzzleV1(seed);
@@ -202,15 +205,24 @@ function buildPuzzleAt(seed,ver){if(ver===1)return buildPuzzleV1(seed);
       pools=[f0,pick(1),pick(2),s<50?f3:pick(3)]}
     const p=buildClean(sd,pools,GAME_OF,V5?250:6000,V5?6:20);if(p)return {...p,seed}}
   // a very rare seed with no version 5 puzzle gets the version 4 one
-  return V5?buildPuzzleAt(seed,4):null}
+  return V5&&!CX_AVOID?buildPuzzleAt(seed,4):null}
 const verOf=(mode,day)=>mode!=='daily'||day>=VARY_FROM?5:day>=NB_FROM?4:day>=UNIQUE_FROM?3:day>=STRICT_FROM?2:1;
 // four countries that share a category which is not one of the groups (the first one found, narrowest first)
 // (version 3 puzzles have none, and broad categories are not groups there: those four are an ordinary mistake)
 function sharedCategory(S,cs){if(S.v>=3)return null;const used=new Set(S.groups.map(g=>g.k)),ids=cs.map(c=>byCode[c].i);
   prepRule(true);try{return NARROW.find(k=>!used.has(k.id)&&ids.every(i=>k.set[i]))}finally{prepRule(false)}}
 // a game: the puzzle plus what happened (groups found in order, every guess, mistakes)
+// Since FIXED_FROM the daily puzzles are made in advance, a year at a time (daily.js, CX_FIXED), so a category never
+// comes back within 7 days and shows up at most 12 times a year; before, each day was made on its own from its date
+// and a few categories (Flag of exactly 2 colours, Independence from Spain…) came up every few days
+const FIXED_FROM='2026-11-13';
+function fixedPuzzle(seed,date){const f=typeof CX_FIXED!=='undefined'&&date>=FIXED_FROM&&CX_FIXED.days[date];if(!f)return null;
+  const groups=f.map((g,t)=>{const k=CATS.find(x=>x.label===CX_FIXED.labels[g[0]]);return k&&g.slice(1).every(c=>byCode[c])?{k:k.id,t,m:g.slice(1)}:null});
+  if(groups.some(g=>!g))return null;
+  return {seed,groups,order:shuffle(groups.flatMap(g=>g.m),rngFrom(seed))}}
 function newGame(mode,seed,day){const date=day||todayKey(),dated=mode==='daily'||mode==='archive';
-  const v=verOf(dated?'daily':mode,date),p=buildPuzzle(seed,v);if(!p)return null;
+  const fx=dated&&fixedPuzzle(seed,date);
+  const v=fx?6:verOf(dated?'daily':mode,date),p=fx||buildPuzzle(seed,v);if(!p)return null;
   const S={v,mode,seed,groups:p.groups,left:p.order,found:[],guesses:[],mistakes:0,over:false,won:false};
   if(dated){S.date=date;S.num=dayNum(S.date,CX_FIRST)}
   // Solo can be played with no lives (training): mistakes are only counted
