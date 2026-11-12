@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611101330"></script>
+<script src="../brand/mingo.js?v=202611120700"></script>
 <script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -91,7 +91,7 @@
 .frow .rn small{color:var(--ink-2);font-size:.85rem}
 .frow .rpts{margin-left:auto;font-family:var(--mono);color:var(--gold);white-space:nowrap}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611110250">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611120720">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -255,7 +255,7 @@ function resultHTML(G){const p=pointsOf(G),v=verdict(G);
     <p class="hint">${rightOf(G)} of 5 named. Archive games don't count for the ranking or your streak.</p>
     <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
     ${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="archback" style="flex:1">Back to archive</button></div></section>`;
-  return `${Geomingo.doneTicket('flagpie',G.num,p+' points','next flags in '+nextIn())}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
+  return `${Geomingo.doneTicket('flagpie',G.num,p+' points','next in '+nextIn(),summaryHTML(G))}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns">${nextGameBtn('flagpie')}${SHARE_BTN.replace('Share result','Share')}</div>`}
 // today's ranking (signed-in players, first try of the day): points, then fewer wrong answers, then who finished first
 const rankingHTML=()=>Geomingo.account.rankingHTML('flagpie',{what:'game',score:r=>[r.s+' pts',r.m+' wrong']});
@@ -270,7 +270,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Flag',(i+1)+'/'+PER)+(mode==='daily'?tk('km',Geomingo.clPts(G.qs.filter(x=>x.st==='right').length,pointsOf(G),PER),'tk-pts'):tk('Points',pointsOf(G),'tk-pts'))+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Flag Pie',(arch?'Archive #':'Daily #')+D.num);
   h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's flags"}</span></div>`;
-  if(D.over&&D.left==null)return h+resultHTML(D)+summaryHTML(D)+(D.mode==='archive'?'':rankingHTML());
+  if(D.over&&D.left==null)return h+resultHTML(D)+(D.mode==='archive'?summaryHTML(D):rankingHTML());
   return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel">${playHTML(D)}</section>`+quickRules()}
 
 /* ---- the archive: past days, one try each on this device ---- */

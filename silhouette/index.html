@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611101330"></script>
+<script src="../brand/mingo.js?v=202611120700"></script>
 <script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -76,7 +76,7 @@
 .ready{display:flex}
 @media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611110250">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611120720">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -254,7 +254,7 @@ function dailyResultHTML(G){const r=rightOf(G),v=verdict(G);
     <p class="hint">${r===9?'Every shape named.':'Tap a shape to see its name.'} Archive games don't count for the ranking or your streak.</p>
     <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
     ${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="archback" style="flex:1">Back to archive</button></div></section>`;
-  return `${Geomingo.doneTicket('silhouette',G.num,r+' of 9','next board in '+nextIn())}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
+  return `${Geomingo.doneTicket('silhouette',G.num,r+' of 9','next in '+nextIn(),`<section class="panel play">${boardHTML(G)}</section>`)}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns">${nextGameBtn('silhouette')}${SHARE_BTN.replace('Share result','Share')}</div>`}
 // today's ranking (signed-in players, first try of the day): shapes named, then fewer wrong tries, then who finished first
 const rankingHTML=()=>Geomingo.account.rankingHTML('sil-'+DAILY_LV,{what:'board',score:r=>[r.s+'/9',r.m+' wrong '+(r.m===1?'try':'tries')]});
@@ -264,7 +264,7 @@ Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&!D.arch&&D.date===
 function openDaily(){D=dailyGame();query='';view='daily';render();window.scrollTo(0,0)}
 function dailyHTML(){let h=header('Silhou<span>ette</span>',(D.arch?'Archive #':'Daily #')+D.num);
   h+=`<div class="backline"><button class="linkbtn" id="${D.arch?'archback':'home'}">← Back</button><span class="ht">${D.arch?'Board #'+D.num:"Today's shapes"}</span></div>`;
-  if(D.over)h+=dailyResultHTML(D)+`<section class="panel play">${boardHTML(D)}</section>`+(D.arch?'':rankingHTML());
+  if(D.over)h+=D.arch?dailyResultHTML(D)+`<section class="panel play">${boardHTML(D)}</section>`:dailyResultHTML(D)+rankingHTML();
   else{const q=D.qs[D.sel];
     h+=Geomingo.ticket(dailyMood(),tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Named',rightOf(D)+'/'+D.qs.length)+(D.arch?tk('Class',DIFF_NAME[DAILY_LV],'tk-pts'):tk('km',Geomingo.pts(rightOf(D)/D.qs.length),'tk-pts'))+tk('Lives',livesHTML(livesLeft(D.qs),LIVES),'tk-gs'),{mode:D.arch?'archive':'daily',num:D.num})+`<section class="panel">${dailyPlayHTML(D,true)}</section>`+quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}
   return h}
