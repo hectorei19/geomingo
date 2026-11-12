@@ -326,7 +326,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 <div id="layer"></div>
 
 <script src="../data/countries.js?v=202611100900"></script>
-<script src="data.js?v=202611121000"></script>
+<script src="data.js?v=202611121400"></script>
 <script>
 const N = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z]/g,'');
 // country names come from the Geomingo country database (../data/countries.js, C): one name per country
@@ -494,7 +494,7 @@ function famsFor(){if(!FAMCACHE[DIFF]){const pool=DIFF==='easy'?POOL.filter(k=>E
 // CATW evens out the search: categories that fit with almost anything were kept far more often than narrow ones
 // (a border, a small sea), so each has a weight (the four categories added on 2026-11-12 were set by hand, from how often they came up) measured over 4,000 Normal 4 × 4 grids (labels missing here weigh 1).
 // Only used up to 4 × 4: 5 × 5 grids need the broad categories to be buildable at all
-const CATW={"100,000 to 1 million people":0.2,"West of Greenwich":0.3,"East of 100°E":0.6,"South of 20°S":1.5,"In Africa":0.53,"In Europe":2.45,"In Asia":0.97,"In Oceania":6,"In North or Central America":2.78,"In South America":6,"On the coast":0.52,"Inland":0.62,"Over 1,000 m above sea level":0.87,"South of the Equator":0.46,"North of 50°N":6,"In the tropics":0.44,"Over 1 million people":0.38,"Under 100,000 people":0.99,"Megacity (10 million+)":4.29,"Not its country's biggest city":0.23,"Hosted the Summer Olympics":6,"On the Mediterranean":6,"Name of 2+ words":0.43,"Name has 5 letters or fewer":0.19,"Name has 10+ letters":0.19,"Name ends in A":0.11,"Same first letter as its country":0.21};
+const CATW={"Has a metro":0.12,"A quarter of the country lives there":0.2,"Another capital less than 100 km away":0.3,"100,000 to 1 million people":0.2,"West of Greenwich":0.3,"East of 100°E":0.6,"South of 20°S":1.5,"In Africa":0.53,"In Europe":2.45,"In Asia":0.97,"In Oceania":6,"In North or Central America":2.78,"In South America":6,"On the coast":0.52,"Inland":0.62,"Over 1,000 m above sea level":0.87,"South of the Equator":0.46,"North of 50°N":6,"In the tropics":0.44,"Over 1 million people":0.38,"Under 100,000 people":0.99,"Megacity (10 million+)":4.29,"Not its country's biggest city":0.23,"Hosted the Summer Olympics":6,"On the Mediterranean":6,"Name of 2+ words":0.43,"Name has 5 letters or fewer":0.19,"Name has 10+ letters":0.19,"Name ends in A":0.11,"Same first letter as its country":0.21};
 let GEN_N=4;
 const catWeight=k=>AVOID&&AVOID.has(k.label)?0:(GEN_N<=4&&DIFF!=='hard'&&CATW[k.label]||1)*(WILD.has(k.label)?0.5:1);
 function pickCat(r){const P=famsFor().pool;let t=0;for(const k of P)t+=catWeight(k);let x=r()*t;
@@ -971,7 +971,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/ci
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202611121000';
+const APP_VERSION='202611121400';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
