@@ -14,6 +14,7 @@ Part of [Geomingo](https://geomingo.com/), daily geography games: [Countries](ht
 
 Files:
 - `index.html` – the game.
+- `daily.js` – the daily puzzles from 2026-11-13 to 2027-11-12, made in advance (`CX_FIXED`: category labels, and for each day four groups `[label number, 4 country codes]`, yellow to purple). Made in a browser console on the game page by drawing each day with the normal puzzle maker while `CX_AVOID` holds the categories of the 7 days before (and, while possible, those already used 18 times); a day can try 12 seeds. A category never comes back within 7 days (before: "Flag of exactly 2 colours" came up 120 days a year). Days not in the list, and every day before 2026-11-13, are made from the date as before. Add the next year before 2027-11-12.
 - `../data/countries.js` and `../data/flags.js` – the Geomingo country database and flags (the one source of country data); `../shared/data.js` – the categories (`CATS`) and their descriptions.
 - `../shared/style.css` – Countries' styles (colours, fonts, dark mode).
 - `../shared/games.js` – the Games menu, one file for Connections, Top 10 and Silhouette.
