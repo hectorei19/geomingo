@@ -1,5 +1,13 @@
 # Impostor (Trip 8)
 
+Since 2026-11-13 (`LINK_FROM` in `facts.js`): **What do they have in common?** Six rounds of six new countries. Five share
+one hidden link (a trait from `../shared/data.js` CATS); the impostor doesn't. Five clues come out one by one, as before (6 − k points,
+best game 30): the topic ("Look at the flags."), another fact the five share and the impostor hasn't (another topic, never a number), two innocent countries
+crossed out, a third one, then the link itself. A set is
+only used when no other trait of the same topic leaves out a different country. Rounds: {set, c, m:'link', f:[topic, shared fact, link], x: three innocents}.
+
+Older daily games keep their rules (below): clue rounds before 2026-11-12, suspect clues on 2026-11-12.
+
 Six rounds, each with six new countries (no country twice in a game). In each round one of the six is the impostor: up to five clues come out. Every clue is false
 for the impostor; since 2026-11-12 (`SUSPECTS_FROM` in `facts.js`) a clue can also be false for one or two other countries
 ("suspects"), and number clues can be a range ("between 1.000 and 4.000 m"). Clues 1-3 cut the suspects down to the
