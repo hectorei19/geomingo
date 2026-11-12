@@ -20,7 +20,7 @@ Files:
 
 `index.html` is Country Grid's game with its data swapped: the city list, the categories, all about the city itself (continent, coast or inland, height, latitude, population, megacity, not its country's biggest city, Olympic and World Cup hosts, Mediterranean, Danube, and the letters of its name), and their explanations. A guessed square shows the city's name in big letters, no flag. Each category's ⓘ in the game gives the exact rule and the doubtful cases.
 
-The daily grids are fixed in advance in `data.js` (`DAILY_FIXED`, one entry per day from 2026-10-22 to 2027-10-22), so changing categories later never changes a day's grid. Days not in the list fall back to generating the grid from the date. A category never comes back within 3 days.
+The daily grids are fixed in advance in `data.js` (`DAILY_FIXED`, one entry per day from 2026-10-22 to 2027-10-22), so changing categories later never changes a day's grid. Days not in the list fall back to generating the grid from the date. A category never comes back within 3 days. Since 2026-11-13 the days were made again (2026-11-13 to 2027-10-22) with four new categories (West of Greenwich, East of 100°E, South of 20°S, 100,000 to 1 million people) and at most one name category per grid: each day allows one name category, picked from the date, and leaves out the others. Before, almost every grid had one or two name categories; now about 1 day in 6. Days before 2026-11-13 are unchanged.
 
 ## Credits
 

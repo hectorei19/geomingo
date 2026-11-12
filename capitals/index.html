@@ -326,7 +326,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 <div id="layer"></div>
 
 <script src="../data/countries.js?v=202611100900"></script>
-<script src="data.js?v=202611081900"></script>
+<script src="data.js?v=202611121000"></script>
 <script>
 const N = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z]/g,'');
 // country names come from the Geomingo country database (../data/countries.js, C): one name per country
@@ -365,6 +365,11 @@ add('name','Name has 10+ letters',c=>c.k.length>=10);
 add('name','Name contains Z',c=>c.k.includes('z'));
 add('name','Name ends in A',c=>c.k.endsWith('a'));
 add('name','Same first letter as its country',c=>c.k[0]===N(c.co.n)[0]);
+// added 2026-11-12 (at the end, so the numbers of the older categories in saved games stay the same)
+add('lon','West of Greenwich',c=>c.lon<0);
+add('lon','East of 100°E',c=>c.lon>100);
+add('lat','South of 20°S',c=>c.lat<-20);
+add('size','100,000 to 1 million people',c=>c.pop>=1e5&&c.pop<1e6);
 // Since ONLY_COUNTRIES_FROM Capitals has all 197 countries of the other Geomingo games: Jerusalem (Israel, Tel Aviv also accepted)
 // and Ramallah (Palestine) were added (nw). Daily grids before that day leave them out (setOld), so those days stay as they were.
 const ONLY_COUNTRIES_FROM='2026-11-10';
@@ -391,6 +396,10 @@ function describe(k){
     'Hosted a men\'s World Cup final':'The final of the men\'s FIFA World Cup was played in the city or a suburb next to it, up to 2026: Saint-Denis and Colombes count for Paris, Solna for Stockholm.',
     'On the Mediterranean':'The city is on the Mediterranean Sea, including the Adriatic and the Aegean.',
     'On the Danube':'The Danube flows through the city.',
+    'West of Greenwich':'The city is west of the Greenwich meridian (0° longitude), like Madrid, Dakar or every capital in the Americas. London is just west of it, and so are Apia (Samoa) and Nukuʻalofa (Tonga), far out in the Pacific. Coordinates from GeoNames.',
+    'East of 100°E':'The city is east of longitude 100°E, roughly the line through Bangkok (just east of it): East and Southeast Asia, Australia and the Pacific. Coordinates from GeoNames.',
+    'South of 20°S':'The city is south of latitude 20°S, like Pretoria, Asunción, Canberra or Wellington. Coordinates from GeoNames.',
+    '100,000 to 1 million people':'Between 100,000 and 1 million people live in the city itself (at least 100,000, fewer than 1 million). Source: GeoNames.',
     'Name of 2+ words':'The city name is made of two or more words, counting words joined by a hyphen, like Mexico City or Port-au-Prince. '+NAMEWORD,
     'Name has 5 letters or fewer':'The city name has 5 letters or fewer, like Rome or Paris. '+NAMEWORD,
     'Name has 10+ letters':'The city name has 10 letters or more, not counting spaces. '+NAMEWORD,
@@ -405,7 +414,7 @@ function describe(k){
 const SHORT={'In North or Central America':'In N. & Central America','Over 1,000 m above sea level':'Over 1,000 m high','Over 2,000 m above sea level':'Over 2,000 m high',
   'Over 1 million people':'Over 1M people','Under 100,000 people':'Under 100K people','Megacity (10 million+)':'Mega­city (10M+)','Not its country\'s biggest city':'Not its country\'s biggest city',
   'Hosted the Summer Olympics':'Summer Olympics host','Hosted a men\'s World Cup final':'World Cup final host','On the Mediterranean':'Medi­terranean',
-  'Name has 5 letters or fewer':'5 letters or fewer','Name has 10+ letters':'10+ letters','Name of 2+ words':'2+ words','Same first letter as its country':'Same letter as country'};
+  'Name has 5 letters or fewer':'5 letters or fewer','Name has 10+ letters':'10+ letters','Name of 2+ words':'2+ words','Same first letter as its country':'Same letter as country','100,000 to 1 million people':'100K to 1M people'};
 CATS.forEach(k=>{k.desc=EUT(describe(k));k.short=EUT(SHORT[k.label]||k.label)});
 const POOL = CATS.filter(k=>k.count>=4);
 
@@ -455,9 +464,9 @@ const FAMCACHE={};
 // "Name starts with…" squares are trivial with the search box, so they only appear in Easy
 function famsFor(){if(!FAMCACHE[DIFF]){const pool=DIFF==='easy'?POOL.filter(k=>EASY_LABELS.has(k.label)):POOL.filter(k=>!/^Name starts with/.test(k.label)&&(DIFF==='hard'||!HARD_ONLY.has(k.label)));const f={};pool.forEach(k=>(f[k.fam]=f[k.fam]||[]).push(k));FAMCACHE[DIFF]={pool,fams:Object.values(f),rare:pool.filter(k=>RARE.has(k.fam))}}return FAMCACHE[DIFF]}
 // CATW evens out the search: categories that fit with almost anything were kept far more often than narrow ones
-// (a border, a small sea), so each has a weight measured over 4,000 Normal 4 × 4 grids (labels missing here weigh 1).
+// (a border, a small sea), so each has a weight (the four categories added on 2026-11-12 were set by hand, from how often they came up) measured over 4,000 Normal 4 × 4 grids (labels missing here weigh 1).
 // Only used up to 4 × 4: 5 × 5 grids need the broad categories to be buildable at all
-const CATW={"In Africa":0.53,"In Europe":2.45,"In Asia":0.97,"In Oceania":6,"In North or Central America":2.78,"In South America":6,"On the coast":0.52,"Inland":0.62,"Over 1,000 m above sea level":0.87,"South of the Equator":0.46,"North of 50°N":6,"In the tropics":0.44,"Over 1 million people":0.38,"Under 100,000 people":0.99,"Megacity (10 million+)":4.29,"Not its country's biggest city":0.23,"Hosted the Summer Olympics":6,"On the Mediterranean":6,"Name of 2+ words":0.43,"Name has 5 letters or fewer":0.19,"Name has 10+ letters":0.19,"Name ends in A":0.11,"Same first letter as its country":0.21};
+const CATW={"100,000 to 1 million people":0.2,"West of Greenwich":0.3,"East of 100°E":0.6,"South of 20°S":1.5,"In Africa":0.53,"In Europe":2.45,"In Asia":0.97,"In Oceania":6,"In North or Central America":2.78,"In South America":6,"On the coast":0.52,"Inland":0.62,"Over 1,000 m above sea level":0.87,"South of the Equator":0.46,"North of 50°N":6,"In the tropics":0.44,"Over 1 million people":0.38,"Under 100,000 people":0.99,"Megacity (10 million+)":4.29,"Not its country's biggest city":0.23,"Hosted the Summer Olympics":6,"On the Mediterranean":6,"Name of 2+ words":0.43,"Name has 5 letters or fewer":0.19,"Name has 10+ letters":0.19,"Name ends in A":0.11,"Same first letter as its country":0.21};
 let GEN_N=4;
 const catWeight=k=>AVOID&&AVOID.has(k.label)?0:(GEN_N<=4&&DIFF!=='hard'&&CATW[k.label]||1)*(WILD.has(k.label)?0.5:1);
 function pickCat(r){const P=famsFor().pool;let t=0;for(const k of P)t+=catWeight(k);let x=r()*t;
@@ -934,7 +943,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/ci
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202611081700';
+const APP_VERSION='202611121000';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
