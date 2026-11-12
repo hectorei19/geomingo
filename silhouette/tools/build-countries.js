@@ -2,9 +2,11 @@
 // Only needed to rebuild that file. Run from this folder:
 //   npm install
 //   node build-countries.js     (reads ../../data/countries.js, the Geomingo country database; the flags come straight from ../../data/flags.js)
-// Borders: world-atlas (Natural Earth 1:10m, public domain); Vatican City from geoBoundaries (public domain). Names and continents: the Geomingo country database (one name per country, no other accepted names).
+// Borders: world-atlas (Natural Earth 1:10m, public domain); Vatican City from geoBoundaries (public domain).
+// Borders are the ones the UN recognises: Crimea is Ukraine and the Golan Heights are Syria (Natural Earth draws both
+// as they are held today, see UN_BORDERS below). Names and continents: the Geomingo country database (one name per country, no other accepted names).
 const fs = require('fs'), path = require('path');
-const d3 = require('d3-geo'), topo = require('topojson-client'), wc = require('world-countries');
+const d3 = require('d3-geo'), topo = require('topojson-client'), wc = require('world-countries'), pc = require('polygon-clipping');
 
 const dataFile = path.join(__dirname, '..', '..', 'data', 'countries.js');
 const C = JSON.parse(fs.readFileSync(dataFile, 'utf8').match(/const C = (\[.*?\]);/s)[1]).filter(c => !c.t);
@@ -44,6 +46,34 @@ atlas.objects.countries.geometries.forEach(g => {
   const code = JOIN[g.properties.name] || (!SKIP.has(g.properties.name) && n2a[g.id]);
   if (code) (parts[code] = parts[code] || []).push(g);
 });
+// UN-recognised borders where Natural Earth draws the line of control instead
+// Crimea (with Sevastopol): Natural Earth puts it in Russia, as its own polygon; it goes back to Ukraine
+// (topo.merge then dissolves the Perekop border, so Ukraine is one clean shape)
+{
+  const ru = parts.RUS[0], inCrimea = [34.1, 45.2];
+  const i = ru.arcs.findIndex(a => d3.geoContains(topo.feature(atlas, { type: 'Polygon', arcs: a }), inCrimea));
+  if (i < 0) { console.error('Crimea not found in Russia'); process.exit(1); }
+  parts.UKR.push({ type: 'Polygon', arcs: ru.arcs[i] });
+  parts.RUS[0] = { ...ru, arcs: ru.arcs.filter((_, k) => k !== i) };
+}
+// Golan Heights: Natural Earth puts them in Israel, joined to it, with no line of their own; world-countries' outline
+// of Syria (thematicmapping world borders) has the pre-1967 line, so the part of Israel inside that outline goes to Syria
+// polygon-clipping winds outer rings anticlockwise, d3 clockwise: turned, or d3 reads a ring as the rest of the world
+const toD3 = polys => polys.map(p => p.map(r => [...r].reverse()));
+const golanOf = isr => {
+  const syr = require('world-countries/data/syr.geo.json').features[0].geometry;
+  const rings = g => g.type === 'Polygon' ? [g.coordinates] : g.coordinates;
+  // keep the one real piece; slivers where the two maps draw the same line slightly apart are dropped
+  const pieces = toD3(pc.intersection(rings(isr), rings(syr))).filter(p => d3.geoContains({ type: 'Polygon', coordinates: p }, [35.75, 33.0]));
+  if (pieces.length !== 1) { console.error('Golan Heights not found in Israel'); process.exit(1); }
+  return pieces;
+};
+const UN_FIX = {
+  ISR: (g, golan) => ({ type: 'MultiPolygon', coordinates: toD3(pc.difference(g.type === 'Polygon' ? [g.coordinates] : g.coordinates, golan)) }),
+  SYR: (g, golan) => ({ type: 'MultiPolygon', coordinates: toD3(pc.union(g.type === 'Polygon' ? [g.coordinates] : g.coordinates, golan)) })
+};
+const GOLAN = golanOf(topo.merge(atlas, parts.ISR));
+
 // Vatican City: at 0.44 km2 its border in world-atlas is a single line, with no shape to draw, so its border comes from
 // geoBoundaries (vatican.geojson, VAT-ADM0, public domain: https://www.geoboundaries.org)
 const VAT = JSON.parse(fs.readFileSync(path.join(__dirname, 'vatican.geojson'), 'utf8')).features[0].geometry;
@@ -51,7 +81,10 @@ const VAT = JSON.parse(fs.readFileSync(path.join(__dirname, 'vatican.geojson'), 
 if (d3.geoArea(VAT) > 2 * Math.PI) VAT.coordinates = VAT.coordinates.map(r => [...r].reverse());
 parts.VAT = parts.VAT || [];
 // one shape per country, with the shared borders of joined pieces dissolved
-const featureOf = code => ({ type: 'Feature', properties: { code }, geometry: code === 'VAT' ? VAT : topo.merge(atlas, parts[code]) });
+const featureOf = code => {
+  const g = code === 'VAT' ? VAT : topo.merge(atlas, parts[code]);
+  return { type: 'Feature', properties: { code }, geometry: UN_FIX[code] ? UN_FIX[code](g, GOLAN) : g };
+};
 
 // keep the main part and what lies near it, so far-off pieces (French Guiana, Hawaii, Easter Island) do not shrink the country
 function keepParts(f, code, nearKm) {
