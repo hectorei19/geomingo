@@ -1527,7 +1527,7 @@ function answersView(){
   if(ui.reveal<0)return `<p class="hint">Tap any square to see every capital that fits it.</p>`;
   const ci=ui.reveal,n=S.n,i=Math.floor(ci/n),j=ci%n;
   const list=S.answers[ci].map(x=>CITIES[x]);
-  return `<section class="panel answers"><p class="hdr"><span>${colRef(j)}${rowRef(i)} · ${esc(EUT(CATS[S.rows[i]].label))} × ${esc(EUT(CATS[S.cols[j]].label))}</span><span class="nsol">${list.length} answer${list.length===1?'':'s'}</span></p><p class="alist">${list.map(c=>`<span>${esc(c.n)}</span>`).join('')}</p></section>`;
+  return `<section class="panel answers"><p class="hdr"><span>${colRef(j)}${rowRef(i)} · ${esc(EUT(CATS[S.rows[i]].label))} × ${esc(EUT(CATS[S.cols[j]].label))}</span><span class="nsol">${list.length} answer${list.length===1?'':'s'}</span></p><p class="alist">${list.map(c=>`<span>${flagSrc(c.k3)?`<img class="mini" src="${flagSrc(c.k3)}" alt="">`:''}${esc(c.n)}</span>`).join('')}</p></section>`;
 }
 
 /* ---- guess sheet ---- */
