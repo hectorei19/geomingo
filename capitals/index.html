@@ -82,6 +82,8 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .hd .ref{font-family:var(--mono);font-size:.62rem;color:var(--sea);font-weight:500;letter-spacing:.05em}
 .hd.col{border-left-width:1px;border-bottom:1.5px solid var(--ink);text-align:center;align-items:center;justify-content:flex-end}
 .hd.rowh{border-top-width:1px;border-right:1.5px solid var(--ink)}
+/* a row title never makes its row taller than the squares: every row the same height, the title shrinks to fit (Héctor 2026-11-12) */
+.board .hd.rowh{contain:size}
 .cbrand{font-family:var(--display);font-weight:900;text-transform:uppercase;line-height:.92;letter-spacing:.02em;color:var(--ink);font-size:1.25rem;display:flex;flex-direction:column;align-items:center}
 .cbrand span{color:var(--sea)}
 .b4 .cbrand{font-size:1.05rem}.b5 .cbrand{font-size:.88rem}
