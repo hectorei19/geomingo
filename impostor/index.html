@@ -50,13 +50,6 @@
 .fact.new{border-color:var(--gold)}
 .six button.x{opacity:.3;position:relative}
 .six button.x::after{content:'✕';position:absolute;top:2px;right:8px;color:var(--bad);font-weight:800;font-size:1.1rem}
-.lbox{display:flex;flex-direction:column;gap:4px;background:var(--sheet);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px}
-.lbox small{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
-.lbox b{font-weight:600;font-size:1.05rem;line-height:1.3}
-.lbox span{font-size:.85rem;color:var(--ink-2)}
-.lbox.link{border-color:var(--gold)}
-.lbox.off{border-style:dashed;opacity:.55}
-.lbox.off b{font-family:var(--mono);letter-spacing:.2em}
 .fact.off{border-style:dashed;opacity:.55}
 .fact.off .ct b{font-family:var(--mono);letter-spacing:.2em}
 .fact .fp{margin-left:auto;align-self:center;font-family:var(--mono);font-size:.8rem;color:var(--ink-2);white-space:nowrap}
@@ -108,7 +101,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611101000"></script>
 <script src="../shared/race.js?v=202611100930"></script>
-<script src="facts.js?v=202611121000"></script>
+<script src="facts.js?v=202611121100"></script>
 <script>
 /* ---- Impostor: six countries, six rounds, find the one that doesn't fit ----
    Since LINK_FROM (facts.js, Héctor 2026-11-12): "What do they have in common?" Five of the six share a hidden link, the
@@ -123,11 +116,13 @@
 const SENT=5,ROUNDS=6,MAX=SENT*ROUNDS,FIRST='2026-11-08';
 const flagOf=c=>'../flagpie/flags/'+c+'.svg';
 const nameOf=c=>impByCode[c].n;
-// a link round (Héctor, 2026-11-12, "What do they have in common?"): k=1 the topic only (5 points), k=2 two innocent
-// countries crossed out (3), k=3 the link shown (1). Older games (clue rounds) keep 5 clues, 6 - k points.
+// a link round (Héctor, 2026-11-12, "What do they have in common?"): five clues as before, 6 - k points: the topic,
+// a nudge, two innocent countries crossed out, a third one, then the link itself
 const isLink=q=>q.m==='link';
-const stepsOf=q=>isLink(q)?3:SENT;
-const worth=q=>isLink(q)?[5,3,1][q.k-1]||1:SENT+1-q.k;
+const worth=q=>SENT+1-q.k;
+const crossedOf=q=>isLink(q)&&q.x?q.x.slice(0,q.k>=4?3:q.k>=3?2:0):[];
+// the five clues of a link round, as sentences
+const linkClues=q=>[q.f[0].t,q.f[1].t,nameOf(q.x[0])+' and '+nameOf(q.x[1])+' are not the impostor.',nameOf(q.x[2])+' is not the impostor either.','The link: '+q.f[2].t.replace(/^./,ch=>ch.toLowerCase())].map(t=>({t}));
 const ptsOf=q=>q.st==='right'?worth(q):0;
 const newGame=(g,o)=>Object.assign({qs:g.rounds.map(r=>({set:r.set,c:r.c,f:r.f,m:r.m,x:r.x,k:1,pick:null,st:'play'})),sel:0,over:false,left:null},o||{});
 // the six countries of a round (games from the first hours of day #1 kept one set for the whole game, in G.set)
@@ -147,7 +142,7 @@ const deskHTML=G=>`<div class="desk" role="group" aria-label="The six rounds">${
 function sixHTML(G,q,done){return `<div class="six" role="group" aria-label="The six countries">${setOf(G,q).map(c=>{
     let cls='',tag='';
     if(done){if(c===q.c){cls='imp';tag='<small>IMPOSTOR</small>'}else if(c===q.pick){cls='miss';tag='<small>YOUR PICK</small>'}else cls='ok'}
-    else if(isLink(q)&&q.k>=2&&q.x&&q.x.includes(c))cls='x';
+    else if(crossedOf(q).includes(c))cls='x';
     else if(c===chosen)cls='sel';
     return `<button data-c="${c}" class="${cls}"${done||cls==='x'?' disabled':''}><img src="${flagOf(c)}" alt=""><span>${esc(nameOf(c))}</span>${tag}</button>`}).join('')}</div>`}
 function factsHTML(q,all){return `<ol class="facts">${q.f.map((f,i)=>{const open=all||i<q.k;
@@ -159,22 +154,18 @@ function playHTML(G){let h=deskHTML(G);
   if(G.over)return `<div class="play">${h}</div>`;
   const q=G.qs[G.sel],more=SENT-q.k;
   if(isLink(q))return `<div class="play">${h}<span class="label">Round ${G.sel+1} of ${ROUNDS} · worth ${worth(q)} point${worth(q)===1?'':'s'}</span>${sixHTML(G,q,false)}
-    <span class="label">Five of them have something in common. Which one doesn't?</span>${linkHTML(q,false)}
-    ${chosen?`<button class="primary go" id="confirm">${esc(nameOf(chosen))} is the impostor</button>`:''}<div class="locked">${chosen?'Not sure? Tap it again to unselect':q.k===1?'Stuck? Help crosses out two countries':q.k===2?'Still stuck? Help shows the link':'The link is open'}<button class="linkbtn" id="nextfact">${q.k<3?'Help':'I don\'t know'}</button></div>
+    <span class="label">Five of them have something in common. Which one doesn't?</span>${factsHTML(Object.assign({},q,{f:linkClues(q)}),false)}
+    ${chosen?`<button class="primary go" id="confirm">${esc(nameOf(chosen))} is the impostor</button>`:''}<div class="locked">${chosen?'Not sure? Tap it again to unselect':more?'🔒 '+more+' more clue'+(more===1?'':'s')+' locked':'All five clues are open'}<button class="linkbtn" id="nextfact">${more?'Next clue':'I don\'t know'}</button></div>
     ${giveUpHTML()}</div>`;
   return `<div class="play">${h}<span class="label">Round ${G.sel+1} of ${ROUNDS} · worth ${worth(q)} point${worth(q)===1?'':'s'}</span>${sixHTML(G,q,false)}
     <span class="label">The impostor fails every clue. Which one is it?</span>${factsHTML(q,false)}
     ${chosen?`<button class="primary go" id="confirm">${esc(nameOf(chosen))} is the impostor</button>`:''}<div class="locked">${chosen?'Not sure? Tap it again to unselect':more?'🔒 '+more+' more clue'+(more===1?'':'s')+' locked':'All five clues are open'}<button class="linkbtn" id="nextfact">${more?'Next clue':'I don\'t know'}</button></div>
     ${giveUpHTML()}</div>`}
-// a link round's boxes: the topic, then (after two helps, or when the round is over) the link itself
-function linkHTML(q,all){const open=all||q.k>=3;
-  return `<div class="lbox"><small>Clue</small><b>${esc(q.f[0].t)}</b></div>`+(open?`<div class="lbox link${!all?' new':''}"><small>The link</small><b>${esc(q.f[1].t)}</b><span>True for five of them${all?', not for '+esc(nameOf(q.c)):''}.</span></div>`
-    :`<div class="lbox off"><small>The link</small><b>? ? ?</b><span>${q.k===1?'Two helps away':'One help away'}</span></div>`)}
 // a round that has just finished: who it was, all five sentences with the impostor's real figures, then Next round
 function leftHTML(G,i){const q=G.qs[i],ok=q.st==='right';
   if(isLink(q))return `<span class="label">Round ${i+1} of ${ROUNDS}</span>${sixHTML(G,q,true)}
-    <div class="verdict${ok?'':' wrong'}"><b>${ok?'Caught! +'+worth(q):'It was '+esc(nameOf(q.c))+'. 0 points'}</b><span>${ok?esc(nameOf(q.c))+(q.k===1?' with no help.':' after '+(q.k-1)+' help'+(q.k>2?'s':'')+'.'):q.pick?'You said '+esc(nameOf(q.pick))+'.':'Nobody picked.'}</span></div>
-    ${linkHTML(q,true)}<button class="primary" id="nexttv">${G.over?'See your result':'Next round →'}</button>`;
+    <div class="verdict${ok?'':' wrong'}"><b>${ok?'Caught! +'+worth(q):'It was '+esc(nameOf(q.c))+'. 0 points'}</b><span>${ok?esc(nameOf(q.c))+' after '+q.k+' clue'+(q.k===1?'':'s')+'.':q.pick?'You said '+esc(nameOf(q.pick))+'.':'Nobody picked.'} The link: ${esc(q.f[2].t.replace(/^./,ch=>ch.toLowerCase()))} True for five of them, not for ${esc(nameOf(q.c))}.</span></div>
+    ${factsHTML(Object.assign({},q,{f:linkClues(q)}),true)}<button class="primary" id="nexttv">${G.over?'See your result':'Next round →'}</button>`;
   return `<span class="label">Round ${i+1} of ${ROUNDS}</span>${sixHTML(G,q,true)}
     <div class="verdict${ok?'':' wrong'}"><b>${ok?'Caught! +'+worth(q):'It was '+esc(nameOf(q.c))+'. 0 points'}</b><span>${ok?esc(nameOf(q.c))+' after '+q.k+' clue'+(q.k===1?'':'s')+'.':q.pick?'You said '+esc(nameOf(q.pick))+'.':'Nobody picked.'} None of these is true for ${esc(nameOf(q.c))}:</span></div>
     ${factsHTML(q,true)}<button class="primary" id="nexttv">${G.over?'See your result':'Next round →'}</button>`}
@@ -182,7 +173,7 @@ function leftHTML(G,i){const q=G.qs[i],ok=q.st==='right';
 // a tap on a country picks it; the big button says it; a wrong one ends the round with 0
 function choose(G,code){const q=G.qs[G.sel];if(!q||q.st!=='play'||G.over)return;chosen=chosen===code?null:code;render()}
 function answer(q,code){q.pick=code;if(code===q.c){q.st='right';return 'right'}q.st='wrong';return 'wrong'}
-function moreFacts(q){if(q.st!=='play')return;if(q.k<stepsOf(q))q.k++;else q.st='wrong'}
+function moreFacts(q){if(q.st!=='play')return;if(q.k<SENT)q.k++;else q.st='wrong'}
 function feedback(q,res){if(res==='right')Geomingo.stamp('impostor',nameOf(q.c),'+'+worth(q),q.c)}
 function advance(G){if(G.qs[G.sel].st==='play')return;G.left=G.sel;const n=G.qs.findIndex(q=>q.st==='play');if(n<0)G.over=true;else G.sel=n}
 function nextRound(G,save){const end=G.over;G.left=null;chosen=null;if(save)save();render();
@@ -190,9 +181,9 @@ function nextRound(G,save){const end=G.over;G.left=null;chosen=null;if(save)save
 function showLeft(){const d=document.querySelector('.desk');if(d&&d.getBoundingClientRect().top<0)window.scrollTo(0,Math.max(0,d.getBoundingClientRect().top+window.scrollY-90))}
 // the summary under a finished game: each round's impostor and the points
 const summaryHTML=G=>`<section class="panel"><span class="label">Today's impostors</span><div class="flist">${G.qs.map((q,i)=>{const ok=q.st==='right';
-  return `<div class="frow${ok?'':' wrong'}"><span class="rno">R${i+1}</span><img src="${flagOf(q.c)}" alt=""><span class="rn"><b>${esc(nameOf(q.c))}</b><small>${ok?(isLink(q)?(q.k===1?'Caught with no help':'Caught after '+(q.k-1)+' help'+(q.k>2?'s':'')):'Caught after '+q.k+' clue'+(q.k===1?'':'s')):q.pick?'You said '+esc(nameOf(q.pick)):'Missed'}</small></span><span class="rpts">${ok?'+'+worth(q):'0'}</span></div>`}).join('')}</div></section>`;
-const sq=q=>q.st==='right'?(q.k===1?'🟩':q.k<=(isLink(q)?2:3)?'🟨':'🟧'):'🟥';
-const sqClass=q=>q.st==='right'?(q.k<=(isLink(q)?1:2)?'on':'mid'):q.st==='wrong'?'bad':'';
+  return `<div class="frow${ok?'':' wrong'}"><span class="rno">R${i+1}</span><img src="${flagOf(q.c)}" alt=""><span class="rn"><b>${esc(nameOf(q.c))}</b><small>${ok?'Caught after '+q.k+' clue'+(q.k===1?'':'s'):q.pick?'You said '+esc(nameOf(q.pick)):'Missed'}</small></span><span class="rpts">${ok?'+'+worth(q):'0'}</span></div>`}).join('')}</div></section>`;
+const sq=q=>q.st==='right'?(q.k===1?'🟩':q.k<=3?'🟨':'🟧'):'🟥';
+const sqClass=q=>q.st==='right'?(q.k<=2?'on':'mid'):q.st==='wrong'?'bad':'';
 const squaresHTML=G=>`<span class="dsq" aria-hidden="true">${G.qs.map(q=>`<i class="${sqClass(q)}"></i>`).join('')}</span>`;
 
 /* ---- Daily: the same six rounds for everyone, new at midnight CET ----
@@ -237,7 +228,7 @@ Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&D.mode==='daily'&&
 function openDaily(){D=dailyGame();chosen=null;view='daily';render();window.scrollTo(0,0)}
 function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
   const m=lf?(q.st==='right'?['happy','Caught.','Tap Next round when you are ready.']:['sad','It got away.','Tap Next round when you are ready.'])
-    :isLink(q)?(q.k>1?['think','Look again.','Five of them share something. Each help lowers the points.']:['pass','One of them doesn\'t belong.','Five of these countries have something in common. Find the one that doesn\'t.'])
+    :isLink(q)?(q.k>1?['think','Look again.','Five of them share something. Each new clue lowers the points.']:['pass','One of them doesn\'t belong.','Five of these countries have something in common. Find the one that doesn\'t.'])
     :q.k>1?['think','Read them again.','Only the impostor fails every clue. Each new one lowers the points.']
     :['pass','One of them is lying.','Each clue is false for the impostor, and maybe for one or two others. Cross the clues to find it.'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
@@ -284,21 +275,21 @@ function myStatsHTML(){const h=load('im-hist',{}),so=load('im-solo',null)||{n:0}
   return statsPageHTML({game:'Impostor',hist:h,unit:'day',avg:imAverage(),lbs:d=>[{path:'lb/impostor',dates:d}],num:k=>'Impostor #'+dayNum(k,FIRST),
     solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'caught']]},
     friends:(fr=>Object.assign(fr,{third:[fr.best||0,'best']}))(friendsOf('im-friends'))})}
-const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Six rounds, six new countries in each. Five of them have something in common: tap the one that doesn't. The clue tells you what to think about. With no help: 5 points. Help crosses out two countries (3 points), then shows the link (1 point). A wrong pick scores 0. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Six rounds, six new countries in each. Five of them have something in common: tap the one that doesn't. Clues come out one by one, each a bit clearer. Find it with one clue for 5 points; every new clue lowers the points, and a wrong pick scores 0. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Six rounds, each with six new countries. Five of them have something in common. The one that doesn't is the <b>impostor</b>.</li>
-  <li>The clue tells you what the link is about, for example “Think about the sea.”</li>
-  <li>For example: Bolivia, Paraguay, Austria, Mongolia, Nepal and Portugal, with “Think about the sea.” Five of them have no coast at all. Portugal has one: it is the impostor.</li></ul>
+  <li>Clues come out one by one, each a bit clearer: what to think about, a nudge, two countries that are not the impostor, a third one, and finally the link itself.</li>
+  <li>For example: Bolivia, Paraguay, Austria, Mongolia, Nepal and Portugal. Clue 1: “Think about the sea.” Clue 2: “Their beaches are all on lakes and rivers.” Five of them have no coast at all. Portugal has one: it is the impostor.</li></ul>
   <h3>Six rounds</h3><ul>
   <li>Tap a country, then <b>… is the impostor</b> to answer. Tap it again to change your mind.</li>
-  <li>Stuck? <b>Help</b> crosses out two countries that are not the impostor. Help again shows the link itself.</li></ul>
+  <li>Not sure yet? Tap <b>Next clue</b> for another one.</li></ul>
   <h3>Points</h3><ul>
-  <li>Right with no help: <b>5 points</b>. After one help: 3. After the link: 1.</li>
-  <li>A wrong country, or <b>I don't know</b> with the link open, ends the round with 0.</li>
+  <li>Right with 1 clue: <b>5 points</b>. With 2: 4. With 3: 3. With 4: 2. With all 5: 1.</li>
+  <li>A wrong country, or <b>I don't know</b> with all five out, ends the round with 0.</li>
   <li>Best game: ${MAX} points. <b>Give up</b> ends the game as it stands.</li></ul>
   <h3>The links</h3><ul>
   <li>They come from the same data as the other Geomingo games: continents, borders, seas, flags, languages, clubs like the EU or NATO, sport and more.</li>
-  <li>Real countries share many things, so six countries can have more than one odd one out. Each round is checked so that, within its clue's topic, only one country is left out.</li>
+  <li>Real countries share many things, so six countries can have more than one odd one out. Each round is checked so that, within the topic of its first clue, only one country is left out.</li>
   <li>Only the ${IMP_COUNTRIES.length} independent countries, never territories.</li></ul>
   <h3>Modes</h3><ul>
   <li><b>Today's impostors</b>: six countries, the same for everyone, new every day at midnight CET. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>

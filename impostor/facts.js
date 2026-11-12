@@ -220,26 +220,31 @@ const SUSPECTS_FROM='2026-11-12';
 
 /* ---- What do they have in common? (Héctor, 2026-11-12: the clue games were confusing; he picked this one) ----
    Five of the six share one hidden thing; the impostor doesn't. You see the six and the topic of the link
-   ("Look at the flags."). Stuck? Help 1 crosses out two innocent countries; help 2 shows the link itself.
+   ("Look at the flags."). Then up to four more clues, one at a time: a nudge ("Count carefully."), two innocent countries
+   crossed out, a third one crossed out, and the link itself. Right after k clues: 6 - k points, as before.
    Real countries share many things, so a set is only used when no other link OF THE SAME TOPIC leaves out a
    different country (one with no star on its flag is fine when the topic is the sea, not when it is the flags).
-   A round: {set, c: the impostor, m: 'link', f: [{t: the topic}, {t: the link}], x: two innocent countries}. */
+   A round: {set, c: the impostor, m: 'link', f: [{t: topic}, {t: nudge}, {t: link}], x: three innocent countries}. */
 const LINK_GROUP={cont:'map',lat:'map',coast:'sea',sea:'sea',nb:'nb',border:'nb',indep:'hist',ussr:'hist',host:'sport',wcwin:'sport',f1:'sport'};
 const LINK_TOPIC={map:'Look at where they are on the map.',sea:'Think about the sea.',nb:'Think about their neighbours.',flag:'Look at the flags.',
   lang:'Think about languages.',club:'Think about the clubs and alliances they belong to.',hist:'Think about history.',sport:'Think about sport.',
   drive:'Think about the roads.',euro:'Think about music.',nuke:'Think about electricity.',nukes:'Think about weapons.',money:'Think about money.',
   metro:'Think about getting around big cities.',king:'Think about who rules.',army:'Think about defence.'};
+// step 2: a nudge for each link, more than the topic and less than the link (Héctor, 2026-11-12: clues that come out one by one)
+const LINK_NUDGE={"Landlocked": "Their beaches are all on lakes and rivers.","Island nation (no land borders)": "You can't drive out of them.","Has 5+ land neighbours": "Busy neighbourhoods: count the fences.","Exactly 1 land neighbour": "Only one door to knock on.","Exactly 2 land neighbours": "Squeezed between a pair.","3 or 4 land neighbours": "Count the neighbours: not too few, not too many.","Centre south of the Equator": "Down under, more or less.","Centre in the tropics": "Somewhere between Cancer and Capricorn.","Centre north of 45°N": "Pack a warm coat.","Crossed by the Equator": "A line that is invisible but famous.","Has nuclear power plants": "Think of power from atoms, not from oil.","Has nuclear weapons": "The most feared club in the world.","Arab League member": "A league founded in Cairo in 1945.","ASEAN member": "Southeast Asian neighbours working together.","APEC member": "Around one ocean, from Chile to China.","Antarctic Treaty party": "They signed something about the coldest continent.","No standing army": "Who needs soldiers?","Independence from the UK": "They said goodbye to London.","Independence from Spain": "They said adiós to Madrid.","Took part in Eurovision": "Douze points!","Has a metro system": "Go underground.","Drives on the left": "Mind which side of the road you are on.","Official language: English": "How do they say hello?","Official language: French": "Bonjour!","Official language: Spanish": "¡Hola!","Official language: Arabic": "Marhaba!","Official language: Portuguese": "Olá!","Uses the euro": "Check their coins.","Currency called \"dollar\"": "What is their money called?","Flag has blue": "Look for one colour in all of them.","Flag has green": "Look for one colour in all of them.","Flag has yellow or gold": "Look for one colour in all of them.","Flag has black": "Look for one colour in all of them.","Flag has orange": "Look for one colour in all of them.","No red on the flag": "One colour is missing from five of them.","Flag of exactly 2 colours": "Count carefully.","Flag of exactly 3 colours": "Count carefully.","Flag has a star": "Look up at night.","Flag has a crescent moon": "Look up at night.","Flag has a sun": "Look up during the day.","Flag has a cross": "Two lines meet.","Flag has the Union Jack": "A flag inside the flag.","Flag has a coat of arms or seal": "Look for something drawn in detail.","Flag has an animal": "Something alive is on it.","Coast on the Mediterranean": "The sea between three continents.","Coast on the Caribbean Sea": "Pirates and palm trees.","Coast on the Baltic Sea": "A cold northern sea.","Coast on the Black Sea": "A sea with a dark name.","Coast on the Red Sea": "A sea with a colourful name.","Coast on the Persian Gulf": "Oil tankers pass by.","Coast on the Caspian Sea": "The biggest lake on Earth, though it is called a sea.","Coast on the North Sea": "Oil rigs and grey waves.","EU member": "Brussels calls them.","NATO member": "An alliance born in 1949.","Commonwealth member": "A family led by the British king.","G20 member": "Twenty of the biggest economies meet.","OPEC member": "Black gold.","Monarchy": "Who wears the crown?","Former Soviet republic": "Before 1991, they shared one red flag.","Hosted the Summer Olympics": "Five rings in summer.","Hosted the Winter Olympics": "Five rings in the snow.","Hosted the men's World Cup": "The whole world came to watch football there.","Won the men's World Cup": "Champions of the world.","Hosts a Formula 1 race (2026)": "Fast cars this year."};
 // a trait's link: {g: topic group, t: the sentence when five have it, e: ease}, or null
 function linkOf(k){let tr=TRAITS[k.label],m;
   if(!tr&&(m=/^Borders (.+)$/.exec(k.label)))tr=['border',BORDER_EASE,'It shares a land border with '+m[1]+'.',null];
-  if(!tr)return null;const g=LINK_GROUP[tr[0]]||tr[0];return LINK_TOPIC[g]?{g,t:tr[2],e:tr[1]}:null}
+  if(!tr)return null;const g=LINK_GROUP[tr[0]]||tr[0];
+  const n=LINK_NUDGE[k.label]||(m?'They all touch the same country.':null);
+  return LINK_TOPIC[g]?{g,t:tr[2],e:tr[1],n}:null}
 const LINK_CATS=CATS.map(k=>({k,l:linkOf(k)})).filter(x=>x.l);
 const hasT=(k,code)=>!!k.set[impIdx[code]];
 // the country a border trait is about ("Borders China" -> CHN), never one of the six of that link
 const borderOf=k=>{const m=/^Borders (.+)$/.exec(k.label);if(!m)return null;const c=C.find(x=>x.n===m[1]);return c?c.c:null};
 // one round from the countries still free; groups: topic groups used already in this game (tried last)
 function buildLinkRound(free,r,groups){
-  const cand=shuffle(LINK_CATS.filter(x=>x.l.t&&x.l.e<.9),r);
+  const cand=shuffle(LINK_CATS.filter(x=>x.l.t&&x.l.n&&x.l.e<.9),r);
   cand.sort((a,b)=>(groups.has(a.l.g)?1:0)-(groups.has(b.l.g)?1:0));
   for(const {k,l} of cand){const bc=borderOf(k),yes=free.filter(c=>hasT(k,c)&&c!==bc),no=free.filter(c=>!hasT(k,c)&&c!==bc);
     if(yes.length<5||!no.length)continue;const same=LINK_CATS.filter(x=>x.l.g===l.g);
@@ -247,7 +252,7 @@ function buildLinkRound(free,r,groups){
       const clash=same.some(({k:q})=>{const h=set.map(c=>hasT(q,c)),n=h.filter(Boolean).length;
         return n===5&&set[h.indexOf(false)]!==odd||n===1&&set[h.indexOf(true)]!==odd});
       if(clash)continue;
-      return {set:shuffle(set,r),c:odd,m:'link',g:l.g,f:[{t:LINK_TOPIC[l.g]},{t:l.t}],x:shuffle(five,r).slice(0,2)}}}
+      return {set:shuffle(set,r),c:odd,m:'link',g:l.g,f:[{t:LINK_TOPIC[l.g]},{t:l.n},{t:l.t}],x:shuffle(five,r).slice(0,3)}}}
   return null}
 
 // a whole game: six rounds, each with six new countries (Héctor, 2026-11-08: the same six all game was boring),

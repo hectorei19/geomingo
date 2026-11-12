@@ -1,9 +1,10 @@
 # Impostor (Trip 8)
 
 Since 2026-11-13 (`LINK_FROM` in `facts.js`): **What do they have in common?** Six rounds of six new countries. Five share
-one hidden link (a trait from `../shared/data.js` CATS); the impostor doesn't. The clue shows the link's topic ("Look at
-the flags."). Help 1 crosses out two innocent countries, Help 2 shows the link: 5, 3 or 1 point (best game 30). A set is
-only used when no other trait of the same topic leaves out a different country. Rounds: {set, c, m:'link', f:[topic, link], x}.
+one hidden link (a trait from `../shared/data.js` CATS); the impostor doesn't. Five clues come out one by one, as before (6 − k points,
+best game 30): the topic ("Look at the flags."), a nudge (`LINK_NUDGE`, "Count carefully."), two innocent countries
+crossed out, a third one, then the link itself. A set is
+only used when no other trait of the same topic leaves out a different country. Rounds: {set, c, m:'link', f:[topic, nudge, link], x: three innocents}.
 
 Older daily games keep their rules (below): clue rounds before 2026-11-12, suspect clues on 2026-11-12.
 
