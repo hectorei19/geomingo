@@ -14,13 +14,17 @@ Files:
 ## Daily grids
 
 The daily grids are fixed in advance in `daily.js` (`DAILY_FIXED`, one entry per day from 2026-10-15 to 2027-10-15), so adding or changing categories never changes a day's grid. Days not in the list fall back to generating the grid from the date. The days from 2026-11-10 on were made again with the recipe below when territories stopped counting. On 2026-11-10 Peru and Costa Rica got their flags with the coat of arms (as in Flag Pie), and five days that no longer passed the check (2027-01-21, 2027-03-25, 2027-03-31, 2027-04-24, 2027-06-01) were made again the same way, avoiding the categories of the three days before and after.
+Since 2026-11-13 the days are made with one more rule, so the same spelling questions do not come back all the time: at most one "spelling" category per grid (the name family, plus "Capital starts with…", "Capital starts with same letter" and "Capital name has 2+ words"), and only if no grid of the two days before had one. The days 2026-11-13 to 2027-10-15 were made again that way (before: a spelling category on about 7 days in 10; now about 3 in 10). Days before 2026-11-13 are unchanged.
 To add more days before the list runs out, open the game in a browser, run this in the console and paste the result into `DAILY_FIXED` (merging `labels` and `days`). A category never comes back within 3 days and appears at most 45 times a year:
 
 ```js
+const SPELL=new Set(CATS.filter(k=>k.fam==='name'||(k.fam==='cap'&&/starts with|2\+ words/.test(k.label))).map(k=>k.label));
 const labels=[...DAILY_FIXED.labels],idx=new Map(labels.map((l,i)=>[l,i])),days={},count={},recent=[];
 for(let d=0;d<366;d++){const key=new Date(Date.parse('2027-10-16T12:00Z')+d*864e5).toISOString().slice(0,10);
   AVOID=new Set(recent.slice(-3).flat());for(const l in count)if(count[l]>=45)AVOID.add(l);
-  let seed=dailySeed(key),g=generate(DAILY_N,seed,DAILY_DIFF),k=0;while(!g&&k++<50){seed=(seed+1)%7962624;g=generate(DAILY_N,seed,DAILY_DIFF)}
+  if(recent.slice(-2).flat().some(l=>SPELL.has(l)))SPELL.forEach(l=>AVOID.add(l));
+  let seed=dailySeed(key),g=null;for(let k=0;k<200;k++){const t=generate(DAILY_N,seed,DAILY_DIFF);
+    if(t&&[...t.rows,...t.cols].filter(i=>SPELL.has(CATS[i].label)).length<=1){g=t;break}seed=(seed+1)%7962624}
   AVOID=null;if(!g)continue;const ls=[...g.rows,...g.cols].map(i=>CATS[i].label);recent.push(ls);ls.forEach(l=>count[l]=(count[l]||0)+1);
   days[key]=ls.map(l=>{if(!idx.has(l)){idx.set(l,labels.length);labels.push(l)}return idx.get(l)})}
 copy(JSON.stringify({labels,days}))
