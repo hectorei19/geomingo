@@ -86,7 +86,7 @@
 <script src="countries.js?v=202611081800"></script>
 <script src="silhouette.js?v=202610230100"></script>
 <script src="../shared/games.js?v=202611101000"></script>
-<script src="../shared/minigames.js?v=202611101300"></script>
+<script src="../shared/minigames.js?v=202611120800"></script>
 <!-- online rooms (With friends): Firebase, loaded after the page so today's board shows at once -->
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -129,7 +129,7 @@ function silBoxHTML(q,big){const cls=q.st==='right'?'right':q.st==='wrong'?'wron
 // the answer box: typing filters the list; a tap or Enter (first match) answers
 function bindAnswer(q,onPick){
   // phones: the button opens the answer sheet, as in Countries; answering closes it with the keyboard
-  if(SHEETS){bindAsk($('askbtn')?{key:q.c+':'+(q.rot||0)+':'+view,back:'Back to shape',
+  if(SHEETS){bindAsk($('askbtn')?{key:q.c+':'+(q.rot||0)+':'+view,back:'Back to shape',fit:true,
     head:`<span class="ssil">${silSVG(q.c,q.rot)}</span><span>Whose shape is this?</span>`,
     sugg:t=>{query=t;return suggHTML(q)},first:t=>{const m=searchCountries(t,null,6).filter(c=>!q.tries.includes(c.c));return m[0]&&m[0].c},
     pick:onPick}:null);return}
