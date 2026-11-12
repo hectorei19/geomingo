@@ -370,6 +370,25 @@ add('lon','West of Greenwich',c=>c.lon<0);
 add('lon','East of 100°E',c=>c.lon>100);
 add('lat','South of 20°S',c=>c.lat<-20);
 add('size','100,000 to 1 million people',c=>c.pop>=1e5&&c.pop<1e6);
+// added 2026-11-13, checked in two sources each (see README): big rivers, oceans, capitals made after 1950, metros
+const SETOF=s=>new Set(s.split(' '));
+const RIVERS={EGY:'Nile',SDN:'Nile',SSD:'Nile',AUT:'Danube',SVK:'Danube',HUN:'Danube',SRB:'Danube',COD:'Congo',COG:'Congo',MLI:'Niger',NER:'Niger',
+  LAO:'Mekong',KHM:'Mekong',IRQ:'Tigris',GBR:'Thames',FRA:'Seine',POL:'Vistula'};
+const OCEAN={atl:SETOF('PRT IRL ISL MAR GHA SEN GAB AGO GMB GIN SLE LBR TGO MRT CPV GNB GNQ STP CUB JAM HTI DOM BHS TTO BRB LCA KNA ATG DMA VCT GRD ARG URY GUY'),
+  pac:SETOF('JPN PHL BRN PAN PER NZL FJI PNG WSM TON SLB VUT KIR MHL NRU PLW TUV'),ind:SETOF('LKA MDV OMN SOM DJI MOZ MUS SYC COM')};
+const NEWCAP=SETOF('BRA NGA PAK KAZ MMR TZA CIV BLZ BDI MWI PLW MRT BWA');
+const METRO=SETOF('DZA ARG ARM AUT AZE BGD BLR BEL BRA BGR CHL CHN CZE DNK DOM ECU EGY FIN FRA GEO DEU GRC HUN IND IRN ITA JPN KAZ PRK KOR MYS MEX NLD NOR PAN PER PHL POL PRT QAT ROU RUS SAU SGP ESP SWE TWN THA TUR UKR GBR USA UZB VEN VNM IDN');
+add('river','On a big river',c=>!!c.cap&&!!RIVERS[c.k3]);
+add('ocean','On the Atlantic Ocean',c=>!!c.cap&&OCEAN.atl.has(c.k3));
+add('ocean','On the Pacific Ocean',c=>!!c.cap&&OCEAN.pac.has(c.k3));
+add('ocean','On the Indian Ocean',c=>!!c.cap&&OCEAN.ind.has(c.k3));
+add('hist','Made capital after 1950',c=>!!c.cap&&NEWCAP.has(c.k3));
+add('metro','Has a metro',c=>!!c.cap&&METRO.has(c.k3));
+// worked out from the data: another country's capital less than 100 km away (great-circle distance between the GeoNames points)
+const KM=(a,b)=>{const r=x=>x*Math.PI/180,h=Math.sin(r(b.lat-a.lat)/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(r(b.lon-a.lon)/2)**2;return 12742*Math.asin(Math.sqrt(h))};
+add('near','Another capital less than 100 km away',c=>!!c.cap&&CITIES.some(d=>d.cap&&d.k3!==c.k3&&KM(c,d)<100));
+// people in the city itself (GeoNames) compared with the whole country (UN, data/countries.js)
+add('share','A quarter of the country lives there',c=>!!c.cap&&!!DATA.pop[c.k3]&&c.pop/DATA.pop[c.k3]>=0.25);
 // Since ONLY_COUNTRIES_FROM Capitals has all 197 countries of the other Geomingo games: Jerusalem (Israel, Tel Aviv also accepted)
 // and Ramallah (Palestine) were added (nw). Daily grids before that day leave them out (setOld), so those days stay as they were.
 const ONLY_COUNTRIES_FROM='2026-11-10';
@@ -399,6 +418,14 @@ function describe(k){
     'West of Greenwich':'The city is west of the Greenwich meridian (0° longitude), like Madrid, Dakar or every capital in the Americas. London is just west of it, and so are Apia (Samoa) and Nukuʻalofa (Tonga), far out in the Pacific. Coordinates from GeoNames.',
     'East of 100°E':'The city is east of longitude 100°E, roughly the line through Bangkok (just east of it): East and Southeast Asia, Australia and the Pacific. Coordinates from GeoNames.',
     'South of 20°S':'The city is south of latitude 20°S, like Pretoria, Asunción, Canberra or Wellington. Coordinates from GeoNames.',
+    'On a big river':'The city is on the banks of one of these big rivers: the Nile (Cairo, Khartoum, Juba), the Danube, the Congo, the Niger, the Mekong, the Tigris, the Thames, the Seine or the Vistula. Checked in Wikipedia and Britannica.',
+    'On the Atlantic Ocean':'The city is on the coast of the Atlantic Ocean or a bay, estuary or sea that is part of it: the Caribbean, the Gulf of Guinea, the Irish Sea, the Río de la Plata. Inland seas (the Mediterranean, the Baltic, the North Sea) do not count.',
+    'On the Pacific Ocean':'The city is on the coast of the Pacific Ocean or a bay or sea that is part of it, like Tokyo Bay, Manila Bay or the Coral Sea. Singapore, Jakarta and Dili lie where the Pacific and Indian Oceans meet and do not count.',
+    'On the Indian Ocean':'The city is on the coast of the Indian Ocean or a sea or gulf that is part of it, like the Arabian Sea or the Gulf of Aden. The Persian Gulf and the Red Sea do not count.',
+    'Made capital after 1950':'The capital was moved to this city in 1950 or later, often a new city built for it: Brasília, Abuja, Islamabad, Astana, Naypyidaw, Dodoma, Yamoussoukro, Belmopan, Gitega, Lilongwe, Ngerulmud, Nouakchott and Gaborone. Checked in Wikipedia and Britannica.',
+    'Has a metro':'The city has a metro (underground or rapid transit) in service, as listed in both Wikipedia, "List of metro systems", and UrbanRail.net. Trams and city trains do not count.',
+    'Another capital less than 100 km away':'The capital of another country is less than 100 km away in a straight line, like Vienna and Bratislava, Kinshasa and Brazzaville, or Rome and Vatican City.',
+    'A quarter of the country lives there':'At least a quarter of the country\'s people live in the city itself, like Montevideo or Yerevan. City from GeoNames, country from the United Nations (2023).',
     '100,000 to 1 million people':'Between 100,000 and 1 million people live in the city itself (at least 100,000, fewer than 1 million). Source: GeoNames.',
     'Name of 2+ words':'The city name is made of two or more words, counting words joined by a hyphen, like Mexico City or Port-au-Prince. '+NAMEWORD,
     'Name has 5 letters or fewer':'The city name has 5 letters or fewer, like Rome or Paris. '+NAMEWORD,
@@ -414,7 +441,8 @@ function describe(k){
 const SHORT={'In North or Central America':'In N. & Central America','Over 1,000 m above sea level':'Over 1,000 m high','Over 2,000 m above sea level':'Over 2,000 m high',
   'Over 1 million people':'Over 1M people','Under 100,000 people':'Under 100K people','Megacity (10 million+)':'Mega­city (10M+)','Not its country\'s biggest city':'Not its country\'s biggest city',
   'Hosted the Summer Olympics':'Summer Olympics host','Hosted a men\'s World Cup final':'World Cup final host','On the Mediterranean':'Medi­terranean',
-  'Name has 5 letters or fewer':'5 letters or fewer','Name has 10+ letters':'10+ letters','Name of 2+ words':'2+ words','Same first letter as its country':'Same letter as country','100,000 to 1 million people':'100K to 1M people'};
+  'Name has 5 letters or fewer':'5 letters or fewer','Name has 10+ letters':'10+ letters','Name of 2+ words':'2+ words','Same first letter as its country':'Same letter as country','100,000 to 1 million people':'100K to 1M people','On the Atlantic Ocean':'On the Atlantic','On the Pacific Ocean':'On the Pacific','On the Indian Ocean':'On the Indian Ocean',
+  'Another capital less than 100 km away':'Another capital within 100 km','A quarter of the country lives there':'¼ of the country lives here'};
 CATS.forEach(k=>{k.desc=EUT(describe(k));k.short=EUT(SHORT[k.label]||k.label)});
 const POOL = CATS.filter(k=>k.count>=4);
 
