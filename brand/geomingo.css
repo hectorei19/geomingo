@@ -109,6 +109,16 @@ svg.mingo{display:block;flex-shrink:0;overflow:visible}
 .gm-done-c .big{font-size:30px;margin:0;white-space:nowrap}
 .gm-done-s{margin:0;display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right;color:var(--muted);font-size:13px;min-width:0}
 .gm-done-s b{color:var(--gold);font-family:var(--display);font-weight:800;font-size:18px}
+/* the day's answers inside the same ticket, under the tear line: no second box, rows split by thin lines, points green or red */
+.gm-done-a{padding:12px 14px 14px}
+.gm-done-a>section,.gm-done-a .panel{background:none;border:0;box-shadow:none;padding:0;margin:0;border-radius:0}
+.gm-done-a>.panel:not(.play){gap:0}
+.gm-done-a .label{margin:0 0 4px}
+.gm-done-a :is(.frow,.reveal){background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:8px 0}
+.gm-done-a :is(.frow,.reveal):last-child{border-bottom:0}
+.gm-done-a :is(.frow,.reveal) .rpts{color:var(--green);font-weight:700}
+.gm-done-a :is(.frow,.reveal).wrong .rpts{color:var(--red)}
+.gm-done-a .flist{gap:0}
 .gm-done-btns{display:flex;gap:8px;align-items:stretch}
 .gm-done-btns>.primary{min-height:50px;margin:0}
 .gm-done-btns>.primary:first-child{flex:1}

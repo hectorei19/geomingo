@@ -309,9 +309,11 @@ function hello(pose,title,sub,o){o=o||{};const key=o.key||'main',txt=pose+title,
    (e.g. 'var(--p1)'); in the last 5 seconds the bar pulses a glow, staying full colour (.tbar.low, set by the game's tick). */
 /* the result of today's daily, when it is over (right after playing, or opening the game again later): the gold ticket with
    the score, the km it earned and when the next one comes; Next trip and Share go under it (Héctor 2026-11-10: less is more) */
-function doneTicket(id,num,score,next){const km=(ledger()[dayKey()]||{})[id];
+/* body: the day's answers, shown inside the same ticket under a tear line (Héctor 2026-11-12: one card, buttons below) */
+function doneTicket(id,num,score,next,body){const km=(ledger()[dayKey()]||{})[id];
   return '<section class="ticket gm-done"><div class="tk-mode daily"><span>★ Daily #'+esc(String(num))+'</span><span>Done</span></div>'+
-    '<div class="gm-done-c"><p class="big">'+esc(String(score))+'</p><p class="gm-done-s">'+(km!=null?'<b>+'+fmt(km)+' km</b>':'')+'<span>'+esc(next)+'</span></p></div></section>'}
+    '<div class="gm-done-c"><p class="big">'+esc(String(score))+'</p><p class="gm-done-s">'+(km!=null?'<b>+'+fmt(km)+' km</b>':'')+'<span>'+esc(next)+'</span></p></div>'+
+    (body?'<div class="tk-tear"></div><div class="gm-done-a">'+body+'</div>':'')+'</section>'}
 function tk(k,v,c){return '<div class="tk-c'+(c?' '+c:'')+'"><i>'+k+'</i><b>'+v+'</b></div>'}
 /* o.mode puts a coloured strip on top so you always know what you are playing:
    'daily' (gold, "★ Daily #N · Counts for ranking"), 'practice' (blue, "Practice") or 'archive' (blue, "Archive #N"); o.num is the number.

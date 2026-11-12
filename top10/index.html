@@ -36,7 +36,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611101330"></script>
+<script src="../brand/mingo.js?v=202611120700"></script>
 <script src="../brand/account.js?v=202611100905"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -94,7 +94,7 @@ body.kbon .t10list .mini{width:18px;height:18px}
 body.kbon .kbgu{display:flex;flex-direction:column;align-items:center;gap:14px}
 body.kbon .kbgu #src{align-self:center!important}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611110250">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611120700">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -616,6 +616,9 @@ function render(){
   if(!S.over&&g&&g.dataset.k===tKey()&&q){const y=q.getBoundingClientRect().top;
     $('t10tk').innerHTML=tk();$('t10ls').innerHTML=listHTML();$('t10wr').innerHTML=wrongsHTML();if(q.value!==query)q.value=query;drawSugg();
     const dy=q.getBoundingClientRect().top-y;if(dy)window.scrollBy(0,dy);return}
+  const card=`<section class="t10card"><div class="t10cq">${askHTML(true)}</div><div id="t10ls" style="display:contents">${listHTML()}</div></section>`;
+  // today's daily done: the list goes inside the result ticket, Next trip and Share under it (Héctor 2026-11-12)
+  if(S.over&&S.mode==='daily'){app.innerHTML=h+resultHTML(card+`<div id="t10wr" style="display:contents">${wrongsHTML()}</div>`)+rankingHTML()+srcHTML;bind();return}
   if(S.over)h+=resultHTML();
   else h+=`<div id="t10tk" style="display:contents">${tk()}</div>`;
   h+=`<section class="t10card"><div class="t10cq">${askHTML(true)}</div><div id="t10ls" style="display:contents">${listHTML()}</div></section>${S.over&&S.mode==='daily'?rankingHTML():''}${controlsHTML()}<div id="t10wr" style="display:contents">${wrongsHTML()}</div>${S.over?'':'<div class="t10gu" style="display:flex;justify-content:center">'+giveUpHTML()+'</div>'}${srcHTML}`;
@@ -626,8 +629,8 @@ function render(){
 function verdict(){const f=S.found.length;
   return S.won?(!S.wrong.length?{pose:'happy',t:'Full page. Perfect ten.',s:S.nolives?'Not a single mistake.':'Not a single life lost.'}:{pose:'happy',t:'Visited. All ten.',s:livesTxt()})
     :f>=6?{pose:'think',t:'So close. '+f+' of 10.',s:S.nolives?'The full list is below.':'No lives left. The full list is below.'}:{pose:'sad',t:'Rough crossing, this one.',s:f+' of 10 found. The full list is below.'}}
-function resultHTML(){const v=verdict();
-  if(S.mode==='daily')return `${Geomingo.doneTicket('top10',S.num,S.found.length+' of 10','next list in '+nextIn())}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
+function resultHTML(body){const v=verdict();
+  if(S.mode==='daily')return `${Geomingo.doneTicket('top10',S.num,S.found.length+' of 10','next list in '+nextIn(),body)}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns">${nextGameBtn('top10')}${SHARE_BTN.replace('Share result','Share')}</div>`;
   return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Top 10 #'+S.num:S.mode==='archive'?'Archive · Top 10 #'+S.num:'Solo list'}</span><p class="big">${S.found.length} of 10</p>
     <p class="hint">${S.won?(S.nolives?`You named the whole list with ${S.wrong.length} mistake${S.wrong.length===1?'':'s'}.`:`You named the whole list with ${S.lives} li${S.lives===1?'fe':'ves'} left.`):S.lives?'The full list is below.':'No lives left. The full list is below.'} ${S.mode==='daily'?`Next list in ${nextIn()}.`:S.mode==='archive'?"Archive games don't count for the ranking or your streak.":''}</p>
