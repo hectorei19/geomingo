@@ -218,10 +218,45 @@ function buildRound(codes,r,old){
   return null}
 const SUSPECTS_FROM='2026-11-12';
 
+/* ---- What do they have in common? (Héctor, 2026-11-12: the clue games were confusing; he picked this one) ----
+   Five of the six share one hidden thing; the impostor doesn't. You see the six and the topic of the link
+   ("Look at the flags."). Stuck? Help 1 crosses out two innocent countries; help 2 shows the link itself.
+   Real countries share many things, so a set is only used when no other link OF THE SAME TOPIC leaves out a
+   different country (one with no star on its flag is fine when the topic is the sea, not when it is the flags).
+   A round: {set, c: the impostor, m: 'link', f: [{t: the topic}, {t: the link}], x: two innocent countries}. */
+const LINK_GROUP={cont:'map',lat:'map',coast:'sea',sea:'sea',nb:'nb',border:'nb',indep:'hist',ussr:'hist',host:'sport',wcwin:'sport',f1:'sport'};
+const LINK_TOPIC={map:'Look at where they are on the map.',sea:'Think about the sea.',nb:'Think about their neighbours.',flag:'Look at the flags.',
+  lang:'Think about languages.',club:'Think about the clubs and alliances they belong to.',hist:'Think about history.',sport:'Think about sport.',
+  drive:'Think about the roads.',euro:'Think about music.',nuke:'Think about electricity.',nukes:'Think about weapons.',money:'Think about money.',
+  metro:'Think about getting around big cities.',king:'Think about who rules.',army:'Think about defence.'};
+// a trait's link: {g: topic group, t: the sentence when five have it, e: ease}, or null
+function linkOf(k){let tr=TRAITS[k.label],m;
+  if(!tr&&(m=/^Borders (.+)$/.exec(k.label)))tr=['border',BORDER_EASE,'It shares a land border with '+m[1]+'.',null];
+  if(!tr)return null;const g=LINK_GROUP[tr[0]]||tr[0];return LINK_TOPIC[g]?{g,t:tr[2],e:tr[1]}:null}
+const LINK_CATS=CATS.map(k=>({k,l:linkOf(k)})).filter(x=>x.l);
+const hasT=(k,code)=>!!k.set[impIdx[code]];
+// the country a border trait is about ("Borders China" -> CHN), never one of the six of that link
+const borderOf=k=>{const m=/^Borders (.+)$/.exec(k.label);if(!m)return null;const c=C.find(x=>x.n===m[1]);return c?c.c:null};
+// one round from the countries still free; groups: topic groups used already in this game (tried last)
+function buildLinkRound(free,r,groups){
+  const cand=shuffle(LINK_CATS.filter(x=>x.l.t&&x.l.e<.9),r);
+  cand.sort((a,b)=>(groups.has(a.l.g)?1:0)-(groups.has(b.l.g)?1:0));
+  for(const {k,l} of cand){const bc=borderOf(k),yes=free.filter(c=>hasT(k,c)&&c!==bc),no=free.filter(c=>!hasT(k,c)&&c!==bc);
+    if(yes.length<5||!no.length)continue;const same=LINK_CATS.filter(x=>x.l.g===l.g);
+    for(let a=0;a<40;a++){const five=shuffle(yes,r).slice(0,5),odd=no[Math.floor(r()*no.length)],set=five.concat(odd);
+      const clash=same.some(({k:q})=>{const h=set.map(c=>hasT(q,c)),n=h.filter(Boolean).length;
+        return n===5&&set[h.indexOf(false)]!==odd||n===1&&set[h.indexOf(true)]!==odd});
+      if(clash)continue;
+      return {set:shuffle(set,r),c:odd,m:'link',g:l.g,f:[{t:LINK_TOPIC[l.g]},{t:l.t}],x:shuffle(five,r).slice(0,2)}}}
+  return null}
+
 // a whole game: six rounds, each with six new countries (Héctor, 2026-11-08: the same six all game was boring),
 // so no country shows up twice in a game. r: a random number function (seeded for the daily).
-function dealGame(pool,r,old){const used=new Set(),rounds=[];
+// mode: 'link' (today's game), 'suspects' (daily games from SUSPECTS_FROM to LINK_FROM) or 'first' (before SUSPECTS_FROM).
+function dealGame(pool,r,mode){const used=new Set(),rounds=[],groups=new Set();mode=mode||'link';
   while(rounds.length<6){let got=null;
-    for(let n=0;n<400&&!got;n++)got=buildRound(shuffle(pool.filter(c=>!used.has(c)),r).slice(0,6),r,old);
-    if(!got)return null;got.set.forEach(c=>used.add(c));rounds.push(got)}
+    if(mode==='link')got=buildLinkRound(pool.filter(c=>!used.has(c)),r,groups);
+    else for(let n=0;n<400&&!got;n++)got=buildRound(shuffle(pool.filter(c=>!used.has(c)),r).slice(0,6),r,mode==='first');
+    if(!got)return null;got.set.forEach(c=>used.add(c));if(got.g)groups.add(got.g);rounds.push(got)}
   return {rounds}}
+const LINK_FROM='2026-11-13';
