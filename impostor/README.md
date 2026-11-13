@@ -1,6 +1,6 @@
 # Impostor (Trip 8)
 
-Since 2026-11-14 (`FACTS_FROM` in `facts.js`): five plain sentences per round, from hard to easy, each true for five of the six
+Since 2026-11-13 (`FACTS_FROM` in `facts.js`): five plain sentences per round, from hard to easy, each true for five of the six
 and false only for the impostor. Only positive sentences (no "It is not…"), no numbers to compare, no continents; the six are
 picked around a random sentence, with one of the five on the impostor's continent. Héctor's rule: never say which countries
 are not the impostor.

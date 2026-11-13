@@ -277,7 +277,7 @@ const LINK_FROM='2026-11-13';
    only positive sentences ("It has a metro system", never "It is not in NATO"), no numbers, no continents, and the six are
    chosen so the impostor doesn't stick out: at least one of the other five is on its continent, and the five share many
    things the impostor hasn't, so each sentence fits several countries and can fool you. */
-const FACTS_FROM='2026-11-14';
+const FACTS_FROM='2026-11-13';
 // more sentences from CATS (the traits of Connections and Countries), "the five HAVE it"
 const EXTRA_FACTS={'Has a peak over 5,000 m':['peak',.35,'It has a mountain higher than 5.000 m.'],
   "Played the men's World Cup":['wc',.4,"It has played at the men's football World Cup."],
