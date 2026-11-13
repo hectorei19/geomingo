@@ -262,11 +262,63 @@ function buildLinkRound(free,r,groups){
 
 // a whole game: six rounds, each with six new countries (Héctor, 2026-11-08: the same six all game was boring),
 // so no country shows up twice in a game. r: a random number function (seeded for the daily).
-// mode: 'link' (today's game), 'suspects' (daily games from SUSPECTS_FROM to LINK_FROM) or 'first' (before SUSPECTS_FROM).
-function dealGame(pool,r,mode){const used=new Set(),rounds=[],groups=new Set();mode=mode||'link';
+// mode: 'facts' (today's game), 'link' (daily games of LINK_FROM), 'suspects' (daily games from SUSPECTS_FROM to LINK_FROM) or 'first' (before SUSPECTS_FROM).
+function dealGame(pool,r,mode){const used=new Set(),rounds=[],groups=new Set();mode=mode||'facts';
   while(rounds.length<6){let got=null;
-    if(mode==='link')got=buildLinkRound(pool.filter(c=>!used.has(c)),r,groups);
+    if(mode==='facts')got=buildFactRound(pool.filter(c=>!used.has(c)),r,groups);
+    else if(mode==='link')got=buildLinkRound(pool.filter(c=>!used.has(c)),r,groups);
     else for(let n=0;n<400&&!got;n++)got=buildRound(shuffle(pool.filter(c=>!used.has(c)),r).slice(0,6),r,mode==='first');
     if(!got)return null;got.set.forEach(c=>used.add(c));if(got.g)groups.add(got.g);rounds.push(got)}
   return {rounds}}
 const LINK_FROM='2026-11-13';
+
+/* ---- Plain sentences (Héctor, 2026-11-13: "Di frases, y uno no cumple") ----
+   Five sentences, from hard to easy, each true for five of the six and false only for the impostor, as at the start, but:
+   only positive sentences ("It has a metro system", never "It is not in NATO"), no numbers, no continents, and the six are
+   chosen so the impostor doesn't stick out: at least one of the other five is on its continent, and the five share many
+   things the impostor hasn't, so each sentence fits several countries and can fool you. */
+const FACTS_FROM='2026-11-13';
+// more sentences from CATS (the traits of Connections and Countries), "the five HAVE it"
+const EXTRA_FACTS={'Has a peak over 5,000 m':['peak',.35,'It has a mountain higher than 5.000 m.'],
+  "Played the men's World Cup":['wc',.4,"It has played at the men's football World Cup."],
+  'Capital is not the largest city':['capbig',.15,'Its biggest city is not its capital.'],
+  'Name ends in "-ia"':['name',.5,'Its name ends in -ia.'],
+  'Name of 2+ words':['name',.55,'Its name has two or more words.'],
+  'Capital starts with same letter':['capname',.3,'Its capital starts with the same letter as the country.'],
+  'Capital name has 2+ words':['capname',.3,"Its capital's name has two or more words."],
+  'Starts and ends with the same letter':['name',.35,'Its name starts and ends with the same letter.'],
+  '100+ Olympic medals':['olymp',.3,'It has won 100 or more Olympic medals.']};
+const isNeg=t=>/\b(not|no|never|doesn't|fewer)\b/.test(t)&&!/^Its biggest city is not its capital/.test(t);
+const POS_FACTS=(()=>{const out=[];for(const k of CATS){let tr=TRAITS[k.label],m;
+    if(!tr&&(m=/^Borders (.+)$/.exec(k.label)))tr=['border',BORDER_EASE,'It shares a land border with '+m[1]+'.',null];
+    // no continents (they show at a glance) and no Antarctic Treaty (too obscure, and it came first in half the rounds)
+    if(tr){if(tr[0]==='cont'||k.label==='Antarctic Treaty party')continue;
+      if(tr[2]&&!isNeg(tr[2]))out.push({k,topic:tr[0],e:tr[1],t:tr[2],has:true});
+      if(tr[3]&&!isNeg(tr[3]))out.push({k,topic:tr[0],e:tr[1],t:tr[3],has:false});continue}
+    const x=EXTRA_FACTS[k.label];if(x)out.push({k,topic:x[0],e:x[1],t:x[2],has:true})}return out})();
+const holds=(f,code)=>!!f.k.set[impIdx[code]]===f.has;
+const contOf=code=>(impByCode[code]||{}).r;
+// one round from the countries still free, or null
+function buildFactRound(free,r,usedT){
+  for(let a=0;a<400;a++){const strict=a<250,u=t=>strict&&usedT.has(t);
+    // an anchor sentence picked at random (not used yet in this game), so every sentence gets its turn, not only the common ones
+    const fresh=POS_FACTS.filter(f=>!u(f.t)),A=fresh[Math.floor(r()*fresh.length)];
+    const yes=free.filter(c=>holds(A,c)),no=free.filter(c=>!holds(A,c));if(yes.length<5||!no.length)continue;
+    const X=no[Math.floor(r()*no.length)];
+    // the first of the five comes from the impostor's continent, so the continent never gives it away
+    const near=yes.filter(y=>contOf(y)===contOf(X));if(!near.length)continue;
+    let five=[near[Math.floor(r()*near.length)]],cand=POS_FACTS.filter(f=>!holds(f,X)&&holds(f,five[0]));
+    const pool=shuffle(yes.filter(y=>y!==five[0]),r).slice(0,40);
+    while(five.length<5){const sc=pool.filter(y=>!five.includes(y)).map(y=>[y,cand.filter(f=>holds(f,y)&&!u(f.t)).length]).sort((p,q)=>q[1]-p[1]);
+      if(!sc.length)break;
+      // one of the three best, so games differ
+      const y=sc[Math.floor(r()*Math.min(3,sc.length))][0];five.push(y);cand=cand.filter(f=>holds(f,y))}
+    if(five.length<5)continue;
+    const set=five.concat(X);
+    // a border sentence never about one of the six; the same sentence twice in a game only when nothing else works
+    cand=cand.filter(f=>!u(f.t)&&(!/^Borders /.test(f.k.label)||!set.some(c=>'Borders '+impByCode[c].n===f.k.label)));
+    // not too obvious: at most two easy sentences (language, Arab League, euro…) set the impostor apart
+    if(cand.filter(x=>x.e>=.6).length>2)continue;
+    const f=pickFive(cand.map(x=>({t:x.t,topic:x.topic,e:x.e,v:''})),r);
+    if(f){f.forEach(x=>usedT.add(x.t));return {set:shuffle(set,r),c:X,f:f.map(x=>({t:x.t,v:''}))}}}
+  return null}
