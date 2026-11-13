@@ -1,5 +1,10 @@
 # Impostor (Trip 8)
 
+Since 2026-11-14 (`FACTS_FROM` in `facts.js`): five plain sentences per round, from hard to easy, each true for five of the six
+and false only for the impostor. Only positive sentences (no "It is not…"), no numbers to compare, no continents; the six are
+picked around a random sentence, with one of the five on the impostor's continent. Héctor's rule: never say which countries
+are not the impostor.
+
 Since 2026-11-13 (`LINK_FROM` in `facts.js`): **What do they have in common?** Six rounds of six new countries. Five share
 one hidden link (a trait from `../shared/data.js` CATS); the impostor doesn't. Five clues come out one by one, as before (6 − k points,
 best game 30): the topic ("Look at the flags."), another fact the five share and the impostor hasn't (another topic, never a number), two innocent countries
