@@ -436,7 +436,7 @@ let turning=false;
 function turnOver(cs,t,done){const els=cs.map(c=>app.querySelector(`.cx-grid [data-c="${c}"]`)).filter(Boolean);
   if(els.length!==4||matchMedia('(prefers-reduced-motion:reduce)').matches){done();return}
   turning=true;els.forEach(e=>{e.classList.remove('on');e.classList.add('turn')});
-  setTimeout(()=>{els.forEach(e=>{const c=e.dataset.c;e.innerHTML=`<img class="tflag" src="../flagpie/flags/${c}.svg" alt=""><span>${esc(byCode[c].n)}</span>`;
+  setTimeout(()=>{els.forEach(e=>{const c=e.dataset.c;e.innerHTML=`${flag32(c,"tfl")}<span class="tn">${esc(byCode[c].n)}</span>`;
     e.classList.remove('turn');e.classList.add('flipped','g'+t)})},230);
   setTimeout(()=>{turning=false;done()},1100)}
 
