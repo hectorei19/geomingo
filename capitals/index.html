@@ -327,7 +327,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .b5 .cell.flag .gm-stamp.wf .pts{font-size:.6rem;padding:0 3px 1px 4px;border-radius:0 0 0 5px}
 .b5 .cell.flag .gm-stamp.wf .cc{font-size:.6rem;padding:1px 4px 0 3px;border-radius:0 5px 0 0}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611142100">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611142200">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -1523,7 +1523,7 @@ function resultsView(body){
   // a finished Solo game: the pink ticket with the grid inside, then New grid and Share (Héctor 2026-11-14)
   if(S.mode==='solo'){const p=S.players[0],n=S.n,d=S.diff||'normal',best=Math.max(p.score||0,...loadGames().filter(g=>g.m==='s'&&g.n===n&&(g.d||'normal')===d).map(g=>g.s||0));
     return `${Geomingo.soloTicket({id:'citygrid',what:d[0].toUpperCase()+d.slice(1)+' · '+n+' × '+n,score:EU(p.score)+' points',best:'Best: '+EU(best),detail:p.cells+' of '+n*n+' squares',body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
-    <div class="gm-done-btns gm-solo-btns"><button class="primary" id="again" style="flex:1">New grid</button>${SHARE_BTN.replace('Share result','Share')}</div><button class="linkbtn gm-solo-more" id="newg">Change settings</button>`}
+    <div class="gm-done-btns gm-solo-btns"><button class="primary" id="again" style="flex:1">New grid</button>${SHARE_BTN.replace('Share result','Share')}</div>`}
   const ranked=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score||b.cells-a.cells);
   const top=ranked[0].score,winners=ranked.filter(p=>p.score===top);
   return `<section class="panel respanel">${verdictHTML()}<p class="big">${winners.length>1?'Draw at '+top+' points':esc(winners[0].name)+' wins'}</p>

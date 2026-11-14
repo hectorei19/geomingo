@@ -81,7 +81,7 @@
 .hcmp .mini{width:52px;height:52px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;color:var(--gold);font-size:1.3rem;background:var(--bg)}
 .hcmp img{width:52px;height:auto;align-self:center;border-radius:3px}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611142100">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611142200">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -265,6 +265,8 @@ function dailyPick(code){const q=D&&D.qs[D.sel];if(!q||q.st!=='play'||D.over)ret
 function dailyNextClue(){const q=D&&D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;nextClue(q);advance(D);dailySave();render();if(q.st!=='play')showLeft()}
 function dailyShareText(G){return `${Geomingo.share('Compass')} #${G.num}${G.mode==='archive'?' (archive)':''} — ${pointsOf(G)} points\n${G.qs.map(sq).join('')}`}
 const dailyShare=G=>dailyShareText(G)+"\n\nPlay today's Compass: "+pageLink();
+// a finished Solo game (Héctor 2026-11-14: Share in every Solo result)
+const soloShare=G=>`${Geomingo.share('Compass')} (practice) — ${pointsOf(G)} points\n${G.qs.map(sq).join('')}\n\nPlay Compass: `+pageLink();
 function verdict(G){const p=pointsOf(G),r=rightOf(G);
   return r===PER&&p>=95?{pose:'happy',t:'A born navigator. '+p+' points.',s:'All five found.'}:r===PER?{pose:'happy',t:'All five stamped.',s:p+' points.'}
     :r>=3?{pose:'happy',t:r+' of 5 stamped.',s:p+' points. Tap a capital to see which it was.'}:r>=1?{pose:'think',t:'Lost in the fog today.',s:r+' of 5, '+p+' points.'}
@@ -325,7 +327,7 @@ function trainHTML(){let h=header('Compass','Solo')+(T.over&&T.left==null?'':`<d
   // a finished Solo game: the pink ticket with the answers inside, then New game (Héctor 2026-11-14)
   if(T.over&&T.left==null){const p=pointsOf(T),s=load('cm-solo',null)||{};
     return h+Geomingo.soloTicket({id:'compass',what:soloDiff()==='hard'?'Hard':'Easy',score:p+' points',best:'Best: '+Math.max(s.best||0,p)+' points',detail:rightOf(T)+' of 5 found',
-      body:summaryHTML(T)})+`<div class="gm-done-btns gm-solo-btns"><button class="primary" id="tagain" style="flex:1">New game</button></div>`}
+      body:summaryHTML(T)})+`<div class="gm-done-btns gm-solo-btns"><button class="primary" id="tagain" style="flex:1">New game</button>${SHARE_BTN.replace('Share result','Share')}</div>`}
   return h+ticketHTML(T,'practice')+`<section class="panel">${playHTML(T)}</section>`+quickRules()}
 
 /* ---- stats, rules, credits ---- */
@@ -401,7 +403,7 @@ function bind(){
   if($('archback'))$('archback').onclick=openArchive;
   if($('start'))$('start').onclick=openTrain;
   if($('tagain'))$('tagain').onclick=openTrain;
-  if($('copy')&&view!=='room')$('copy').onclick=()=>share(dailyShare(D));
+  if($('copy')&&view!=='room')$('copy').onclick=()=>share(view==='train'&&T?soloShare(T):dailyShare(D));
   app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
   const G=TV?T:view==='daily'?D:null;
   app.querySelectorAll('[data-tv]').forEach(b=>b.onclick=()=>{const q=G&&G.qs[+b.dataset.tv];if(q&&q.st!=='play')toast(cityBy[q.c].n+(q.st==='right'?' · +'+show(q.p):''))});

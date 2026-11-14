@@ -78,7 +78,7 @@
 .ready{display:flex}
 @media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611142100">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611142200">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -188,7 +188,7 @@ function trainHTML(){const q=T.q,s=trainStats()[T.diff]||{best:0},done=q.st!=='p
   if(!T.over)h+=`<div class="backline"><button class="linkbtn" id="soloback">← Back</button><span class="ht">Solo</span></div>`;
   // game over (no ← Back line then, as on today's result): the pink ticket with the last shape and its name inside, then New game (Héctor 2026-11-14)
   if(T.over)return h+Geomingo.soloTicket({id:'silhouette',what:DIFF_NAME[T.diff]+(T.nolives?' · No lives':''),score:T.streak+' named',best:'Best: '+Math.max(s.best||0,T.streak)+' named',
-    detail:T.miss+' mistake'+(T.miss===1?'':'s'),body:silBoxHTML(q,done)+revealHTML(q)})+`<div class="gm-done-btns gm-solo-btns"><button class="primary" id="tagain" style="flex:1">New game</button></div>`;
+    detail:T.miss+' mistake'+(T.miss===1?'':'s'),body:silBoxHTML(q,done)+revealHTML(q)})+`<div class="gm-done-btns gm-solo-btns"><button class="primary" id="tagain" style="flex:1">New game</button>${SHARE_BTN.replace('Share result','Share')}</div>`;
   // the ticket, as in every game: Mingo on top, then who is travelling, the level, the shapes named and the lives left
   h+=Geomingo.ticket(moodHTML(silKey(),'pass','Whose shape is this?',T.nolives?'Type its name. No lives: take your time, or skip it.':'Type its name. Your best game at '+DIFF_NAME[T.diff]+': '+(s.best||0)+' named.'),
     tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Named',T.streak)+tk('Class',DIFF_NAME[T.diff],'tk-pts')+(T.nolives?tk('Mistakes',T.miss,'tk-gs'):tk('Lives',livesHTML(trainLeft(),LIVES),'tk-gs')),{mode:'practice'});
@@ -232,6 +232,8 @@ const rightOf=G=>G.qs.filter(q=>q.st==='right').length;
 const sq=q=>q.st==='right'?(q.tries.length?'🟨':'🟩'):'🟥';
 function dailyShareText(G){return `${Geomingo.share('Silhouette')} #${G.num}${G.arch?' (archive)':''} — ${rightOf(G)}/9\n${[0,3,6].map(i=>G.qs.slice(i,i+3).map(sq).join('')).join('\n')}`}
 const dailyShare=G=>dailyShareText(G)+"\n\nPlay today's Silhouette: "+pageLink();
+// a finished Solo game (Héctor 2026-11-14: Share in every Solo result)
+const soloShare=()=>`${Geomingo.share('Silhouette')} (practice) — ${T.streak} named at ${DIFF_NAME[T.diff]}\n\nPlay Silhouette: `+pageLink();
 // the archive: past daily boards, one try each on this device
 const archDay=k=>{const e=load('sil-hist',{})[k];if(!e)return null;const n=Math.max(0,...Object.values(e).filter(x=>typeof x==='number'));return n+'/9'};
 function openArchive(){view='archive';query='';typing=false;render();window.scrollTo(0,0)}
@@ -592,7 +594,7 @@ function bind(){
   app.querySelectorAll('[data-go="friends"]').forEach(b=>b.onclick=()=>{view='friends';render();window.scrollTo(0,0)});
   if(roomCode||view==='friends'){bindOnline();return}
   if($('daily'))$('daily').onclick=()=>openDaily();
-  if($('copy'))$('copy').onclick=()=>share(dailyShare(D));
+  if($('copy'))$('copy').onclick=()=>share(view==='train'&&T?soloShare():dailyShare(D));
   app.querySelectorAll('[data-tile]').forEach(b=>b.onclick=()=>{const i=+b.dataset.tile;
     if(D.over||D.qs[i].st!=='play'){toast(byCode[D.qs[i].c].n);return}
     D.sel=i;query='';typing=true;dailySave();render()});

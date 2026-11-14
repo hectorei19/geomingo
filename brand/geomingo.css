@@ -135,7 +135,6 @@ body:has(.gm-done) .gm-title small{display:none}
 .tk-pink .gm-done-s b{color:var(--coral-text)}
 .gm-solo-btns>.primary:not(.sharebig){background:var(--coral);color:var(--on-coral)}
 .gm-solo-btns>.sharebig{border-color:var(--coral);color:var(--coral-text)}
-.gm-solo-more{align-self:center;margin-top:-4px}
 .tk-mode.daily{background:var(--gold);color:#16202F}
 .tk-mode.practice{background:var(--blue);color:#0C1220}
 .ticket.tk-practice{border-color:var(--blue)}
