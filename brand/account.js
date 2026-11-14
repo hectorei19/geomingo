@@ -208,7 +208,11 @@ function submit(g,k,r){const id=uid();if(!id||!name||TEST||k!==T())return;const 
 function watch(g){if(!ok||TEST)return;const k=T();if(lbRef[g]&&lbRef[g].day===k)return;
   if(lbRef[g])lbRef[g].off();if(!(LB[g]&&LB[g].date===k))LB[g]={date:k,rows:null};lbRef[g]=db.ref('lb/'+g+'/'+k);lbRef[g].day=k;
   lbRef[g].on('value',s=>{LB[g]={date:k,rows:s.val()||{}};keepLB(g);changed()},()=>{LB[g]={date:k,rows:null,off:true};changed()})}
-const sorted=g=>Object.entries((LB[g]&&LB[g].rows)||{}).map(([id,v])=>Object.assign({id},v)).sort((a,b)=>b.s-a.s||(a.m||0)-(b.m||0)||(a.t||0)-(b.t||0));
+// from G.KM_FROM the ranking is by the game's points (the same table as the km), then fewer mistakes, then who finished first
+const PTS={connections:r=>G.cxPts(r.s,r.m),top10:r=>G.KM.top10(r.s,r.m),'sil-easy':r=>G.KM.sil(r.s,r.m),'sil-normal':r=>G.KM.sil(r.s,r.m),'sil-hard':r=>G.KM.sil(r.s,r.m),
+  customs:r=>G.KM.clue(r.r,r.s,5),flagpie:r=>G.KM.clue(r.r,r.s,5),compass:r=>G.KM.clue(r.r,r.s,5),impostor:r=>G.KM.imp(r.r,r.s)};
+const rankPts=(g,r)=>PTS[g]&&G.newKm(T())?PTS[g](r):r.s;
+const sorted=g=>Object.entries((LB[g]&&LB[g].rows)||{}).map(([id,v])=>Object.assign({id},v)).sort((a,b)=>rankPts(g,b)-rankPts(g,a)||b.s-a.s||(a.m||0)-(b.m||0)||(a.t||0)-(b.t||0));
 function mine(g){const me=meId();if(!me)return null;watch(g);const rows=sorted(g),i=rows.findIndex(r=>r.id===me);
   return i<0?null:{rank:i+1,total:rows.length,top:Math.max(1,Math.round((i+1)/rows.length*100))}}
 // one line for the home screen: "#3 of 12 today · top 25%"

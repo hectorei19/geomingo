@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611141100"></script>
-<script src="../brand/account.js?v=202611141200"></script>
+<script src="../brand/mingo.js?v=202611151300"></script>
+<script src="../brand/account.js?v=202611151300"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -469,7 +469,7 @@ function homeHTML(){const key=todayKey(),num=dayNum(key,CX_FIRST),d=dailySaved()
     :Geomingo.hello('pass','GeoPass ready.','Tap a country to start. Every group you find is a stamp. One try, the same 16 for everyone.');
   return header('Connec<span>tions</span>','',true)+`<section class="home">${hi}${Geomingo.account.userHTML()}${daily}${d&&d.over?rankingHTML():''}</section>
     ${rulesPanel()}`}
-const rulesPanel=on=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something: a region, a flag, a language, a name… Each country is in exactly one group, and only one split works for all 16. Pick four and tap <b>Submit</b>. ${on?'With friends there are no lives: play until you find all four groups. Fewer mistakes and speed decide the ranking.':`A wrong four costs one of your ${MAX_MISTAKES} lives.`} Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const rulesPanel=on=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something: a region, a flag, a language, a name… Each country is in exactly one group, and only one split works for all 16. Pick four and tap <b>Submit</b>. ${on?'With friends there are no lives: play until you find all four groups. Fewer mistakes and speed decide the ranking.':`A wrong four costs one of your ${MAX_MISTAKES} lives. 25 points a group, 10 less a mistake, +20 with none.`} Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 // the logo goes home from anywhere; in a room that means leaving it (in the middle of a game, tap twice)
 function goHome(){if(roomRef){if(S&&S.mode==='online'&&!S.over&&!leaveArmed){leaveArmed=true;render();toast('Tap again to leave the room.');return}
     leaveRoom(true);return}
@@ -498,7 +498,7 @@ function render(keepShake){
   else{const cell=Geomingo.tk,left=MAX_MISTAKES-S.mistakes;
     // the ticket, as in every game: Mingo on top, then who is travelling, groups found and mistakes left
     h+=Geomingo.ticket(moodHTML(cxKey(),'pass','4 stamps to win.','Pick four countries that share something, then Submit.'),
-      cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Groups',S.found.length+'/4')+(S.mode==='daily'?cell('km',Geomingo.cxPts(S.found.length,S.mistakes),'tk-pts'):'')+(on||S.nolives?cell('Mistakes',S.mistakes,'tk-gs'):cell('Lives',livesHTML(left,MAX_MISTAKES),'tk-gs')),{mode:S.mode==='free'?'practice':S.mode==='online'?'':S.mode,num:S.num})}
+      cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Groups',S.found.length+'/4')+(S.mode==='daily'?cell(Geomingo.newKm(S.date)?'Points':'km',Geomingo.cxPts(S.found.length,S.mistakes),'tk-pts'):'')+(on||S.nolives?cell('Mistakes',S.mistakes,'tk-gs'):cell('Lives',livesHTML(left,MAX_MISTAKES),'tk-gs')),{mode:S.mode==='free'?'practice':S.mode==='online'?'':S.mode,num:S.num})}
   h+=`<div class="cx-board">`;
   S.found.forEach(g=>h+=groupHTML(S.groups[g]));
   if(S.over)S.groups.forEach((g,i)=>{if(!S.found.includes(i))h+=groupHTML(g,true)});
@@ -556,6 +556,10 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li><b>Shuffle</b> moves the countries around. <b>Deselect all</b> clears your picks.</li>
   <li>Stuck? <b>Show the 4 categories</b> tells you the four group names, but not which country goes where. Your shared result says you used it.</li>
   <li>Groups go from easiest to trickiest: ${TEMOJI.join(' ')} (yellow, green, blue, purple). Tap <span class="ib">i</span> on a found group to see exactly what it means.</li></ul>
+  <h3>Points</h3><ul>
+  <li>25 points for every group you find: all four, 100. Every mistake: 10 points less.</li>
+  <li>A <b>perfect game</b> (all four, not one mistake): +20, so 120.</li>
+  <li>In today's puzzle your points are also your km for the GeoPass.</li></ul>
   <h3>Modes</h3><ul>
   <li><b>Today's puzzle</b>: the same for everyone, new every day at midnight CET. One try. Missed one? Play it in <b>Menu → Archive</b>.</li>
   <li><b>Solo</b>: as many practice puzzles as you like. <b>Share</b> sends a friend a link to the same puzzle. Pick <b>No lives</b> to train: play until the end, mistakes are only counted.</li>
