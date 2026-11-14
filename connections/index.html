@@ -42,6 +42,11 @@
 .tile.flipped{flex-direction:column;gap:4px;background:var(--gc-soft)!important;border:1.5px solid var(--gc)!important;color:var(--ink)!important;transform:none;transition:transform .22s ease-out}
 .tile .tflag{height:28px;width:auto;max-width:58%;object-fit:contain;border-radius:3px;box-shadow:0 0 0 1px var(--rule)}
 .tile.long{font-size:.78rem}
+/* the flag is the tile; the name sits small under it (found groups still flip as before) */
+.cx-grid .tile:not(.flipped){flex-direction:column;gap:3px;padding:6px 4px}
+.tile .tfl{width:100%;height:auto;max-height:62%;object-fit:contain;border-radius:3px;box-shadow:0 0 0 1px var(--rule)}
+.tile .tn{font-size:.62rem;font-weight:700;line-height:1.1;opacity:.85;text-align:center}
+.cx-grid .tile.on .tfl{box-shadow:0 0 0 2px var(--bg)}
 @media (max-width:420px){.tile{font-size:.8rem}.tile.long{font-size:.68rem}.cx-grid,.cx-board{gap:6px}}
 .grp{border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;background:var(--gc-soft);border:1.5px solid var(--gc);text-align:center}
 .grp.new{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}
@@ -446,7 +451,7 @@ const groupHTML=(g,miss)=>{const k=CATS[g.k];
   return `<div class="grp g${g.t}${miss?' miss':''}${g===popped?' new':''}"><span class="gl">${esc(EUT(k.label))}<button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></span>
     <span class="gm">${g.m.map(c=>`<span style="white-space:nowrap"><img class="mini" src="${FLAGS[c]}" alt="">${esc(byCode[c].n)}</span>`).join(' · ')}</span></div>`};
 const tileHTML=(c,attr)=>{const n=byCode[c].n,on=attr==='data-c'&&sel.includes(c);
-  return `<button class="tile${on?' on':''}${n.length>12||n.split(' ').some(w=>w.length>10)?' long':''}" ${attr}="${c}" aria-pressed="${on}" lang="en">${esc(n)}</button>`};
+  return `<button class="tile${on?' on':''}${n.length>12||n.split(' ').some(w=>w.length>10)?' long':''}" ${attr}="${c}" aria-pressed="${on}" lang="en"><img class="tfl" src="../flagpie/flags/${c}.svg" alt="${esc(n)}"><span class="tn">${esc(n)}</span></button>`};
 // the average of groups found (days before the count was kept: solved = 4, otherwise not counted)
 function cxAverage(h){const known=Object.values(h).map(e=>e.w?4:e.f).filter(f=>f!=null);return known.length?EU(known.reduce((a,b)=>a+b,0)/known.length,1)+'/4':'–'}
 function statsHTML(){const h=load('cx-hist',{});return statTiles(Object.keys(h).length,cxAverage(h),streakOf(h))}
