@@ -56,6 +56,8 @@ const ADAPT={
   compass:simple('cm-hist','cm-daily',S=>({s:(S.qs||[]).reduce((n,q)=>n+(q.st==='right'?+q.p||0:0),0),r:(S.qs||[]).filter(q=>q.st==='right').length,m:(S.qs||[]).reduce((n,q)=>n+(q.tries||[]).length,0)}))};
 
 /* ---- Firebase ---- */
+// set further down: a page that was signed in last time waits for the account's game of today (see holdOff)
+let waitFor=new Set();
 let ok=false,failed=false,db=null,user,name='',watchers=[];   // user: undefined until Firebase knows, then null (guest) or the account
 // what this device was last time (gm-acct: {u, n, dn, e} signed in, {guest:1} as a guest): the pages show it at once,
 // so nothing jumps from Guest to your name (or from no ranking to the ranking) while Firebase wakes up
@@ -73,7 +75,7 @@ async function boot(){OWN=typeof window.initAuth==='function';trialCheck();
     if(typeof firebase.database!=='function')await script(SDK+'firebase-database-compat.js');
     if(!firebase.apps.length)firebase.initializeApp(window.FIREBASE_CONFIG&&FIREBASE_CONFIG.apiKey?FIREBASE_CONFIG:CONFIG);
     db=firebase.database();ok=true}
-  catch(e){ok=false;failed=true;changed();return}
+  catch(e){ok=false;failed=true;holdOff();changed();return}
   firebase.auth().onAuthStateChanged(onUser);
   if(!OWN)firebase.auth().getRedirectResult().catch(authError)}
 const TS=()=>firebase.database.ServerValue.TIMESTAMP;
@@ -83,7 +85,7 @@ const uid=()=>user&&user.uid;
 // the stats, today's games, the GeoPass and the name go; the account keeps them for the next sign-in
 const DEVICE_KEYS=['bl-daily','bl-hist','bl-games','bl-arch','bl-user','cc-daily','cc-hist','cc-games','cc-arch','cc-user',
   'cx-daily','cx-hist','t10-daily','t10-hist','sil-daily','sil-hist','sil-miss','sil-train','gm-pass','gm-days','gm-acct','gm-lbc','gm-ranks','cx-solo','cx-friends','t10-solo','t10-friends','sil-friends','gm-feats','cu-daily','cu-hist','cu-arch','cu-solo','cu-diff','fp-daily','fp-hist','fp-arch','fp-solo','fp-solo5','fp-diff','im-daily','im-hist','im-arch','im-solo','im-diff','gm-ms'];
-function onUser(u){const was=user;user=u||null;
+function onUser(u){const was=user;user=u||null;if(!user)holdOff();
   if(was&&!user){DEVICE_KEYS.forEach(k=>ls.set(k,null));ls.set('gm-acct',null);location.reload();return}
   if(user){if(!(LAST&&LAST.u===user.uid))name='';loadName()}
   remember();changed();if(user)setTimeout(scanFeats,2500)}
@@ -130,8 +132,8 @@ function wall(on){let w=document.getElementById('gm-wall');
 function setName(n){name=n;ls.set('bl-user',n);ls.set('cc-user',n);if(user)remember();G.refreshPass()}
 function loadName(){const id=uid();
   db.ref('users/'+id+'/profile').once('value').then(s=>{if(uid()!==id)return;const v=s.val();
-    if(v&&v.name)setName(v.name);else if(!OWN)askName();
-    syncAll();changed()}).catch(()=>{})}
+    if(v&&v.name)setName(v.name);else{holdOff();if(!OWN)askName()}
+    syncAll();changed()}).catch(()=>holdOff())}
 function askName(){const first=((user.displayName||'').trim().split(/\s+/)[0]||'').slice(0,16);
   const box=G.openWindow('<div class="gm-res gm-namebox"><div class="gm-band">'+G.mingo('head',26)+'<b>Welcome aboard</b></div><div class="gm-rbody">'+
     '<label class="gm-lab" for="gm-name">Your name in Geomingo</label><input id="gm-name" class="gm-input" maxlength="16" autocomplete="nickname" placeholder="Your name" value="'+esc(first)+'">'+
@@ -186,13 +188,27 @@ function syncGame(g){const id=uid(),A=ADAPT[g],ref=db.ref('users/'+id+'/hist/'+g
     const r=R[k];
     if(r&&r.j){try{if(A.adopt(JSON.parse(r.j)))moved=true}catch(e){}if(r.r&&r.d)submit(g,k,r.r)}
     else if(!r)record(g);
-    if(moved)changed('adopt')}).catch(()=>{})}
+    if(moved)changed('adopt');holdOff(g)}).catch(()=>holdOff(g))}
 // today's game just ended on this device (each game calls Geomingo.account.done(id))
 function record(g){const id=uid(),A=ADAPT[g],k=T(),t=A&&A.today();if(!id||!db||TEST||!t)return;markToday();
   const e=A.get(k),entry={e:e==null?null:e,j:JSON.stringify(t.j),r:t.r,d:k};
   db.ref('users/'+id+'/hist/'+g+'/'+k).transaction(cur=>cur?undefined:entry)
     .then(x=>{if(x.committed)submit(g,k,t.r);else syncGame(g)}).catch(()=>{})}
 function done(g){if(uid())record(g);else changed()}
+
+/* ---- opening a game on a device that was signed in last time: today's game stays behind "Opening today's game…"
+   until the account's game of today has come (at most 5 s), so an empty game never flashes before the one played
+   on another device (Héctor 2026-11-14). Not when today's game is already finished here, in test mode or from an invite link.
+   Countries and Capitals do the same in their own pages. ---- */
+waitFor=new Set((()=>{const m=location.pathname.match(/\/(connections|top10|silhouette|customs|flagpie|impostor|compass)\//);
+  if(!m||!(LAST&&LAST.u)||TEST||ROOM_LINK)return [];
+  return (m[1]==='silhouette'?['sil-easy','sil-normal','sil-hard']:[m[1]]).filter(g=>!ADAPT[g].today())})());
+function holdOff(g){if(g)waitFor.delete(g);else waitFor.clear();if(!waitFor.size)document.documentElement.classList.remove('gm-wait')}
+if(waitFor.size){document.documentElement.classList.add('gm-wait');
+  const st=document.createElement('style');
+  st.textContent='html.gm-wait #app{position:relative}html.gm-wait #app>:not(.gm-top):not(.gm-bar){visibility:hidden}'+
+    'html.gm-wait #app::after{content:"Opening today\'s game…";position:absolute;left:0;right:0;top:132px;text-align:center;color:var(--muted,#9aa3b8);font-size:15px}';
+  document.head.appendChild(st);setTimeout(()=>holdOff(),5000)}
 
 /* ---- the daily rankings: lb/<game>/<date>/<uid> = {name, s, m, t}; anyone can read them,
    each account writes its own result once (the database rules refuse a second write) ---- */
