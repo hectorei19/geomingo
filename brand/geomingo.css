@@ -83,7 +83,7 @@ svg.mingo{display:block;flex-shrink:0;overflow:visible}
 .gm-title small{font-family:var(--type);font-weight:400;font-size:12px;color:var(--muted);text-transform:none;letter-spacing:0;font-stretch:100%;white-space:nowrap}
 /* the game's Menu button: just the ☰ icon, so the game name and its trip line fit on one line */
 /* today's finished daily: "Trip 1 · Daily #31" is in the ticket's gold strip, so not under the game's name */
-body:has(.gm-done) .gm-title small{display:none}
+body:has(.gm-done:not(.tk-pink)) .gm-title small{display:none}
 .gm-bar #menu{font-size:0;gap:0;padding:0 12px;min-width:46px;justify-content:center}
 
 /* Mingo says something: he appears when something happens */
@@ -127,6 +127,15 @@ body:has(.gm-done) .gm-title small{display:none}
 .gm-done-btns>.sharebig{width:auto;flex:none;padding:0 14px;gap:8px;font-size:15px}
 /* Next trip (or Back to menu) in gold, like the daily ticket: one colour for today's game */
 .gm-done-btns>.primary:not(.sharebig){background:var(--gold);color:#16202F;box-shadow:none}
+/* a finished Solo game: the same ticket and buttons in Mingo pink (soloTicket) */
+.ticket.tk-pink{border-color:var(--coral)}
+.tk-pink .tk-mode{background:var(--coral);color:#16202F}
+.tk-pink .tk-tear{border-top-color:color-mix(in srgb,var(--coral) 45%,transparent)}
+.tk-pink .tk-tear::before,.tk-pink .tk-tear::after{border-color:var(--coral)}
+.tk-pink .gm-done-s b{color:var(--coral-text)}
+.gm-solo-btns>.primary:not(.sharebig){background:var(--coral);color:var(--on-coral)}
+.gm-solo-btns>.sharebig{border-color:var(--coral);color:var(--coral-text)}
+.gm-solo-more{align-self:center;margin-top:-4px}
 .tk-mode.daily{background:var(--gold);color:#16202F}
 .tk-mode.practice{background:var(--blue);color:#0C1220}
 .ticket.tk-practice{border-color:var(--blue)}

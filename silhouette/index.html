@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611151800"></script>
+<script src="../brand/mingo.js?v=202611151900"></script>
 <script src="../brand/account.js?v=202611151800"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -78,7 +78,7 @@
 .ready{display:flex}
 @media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611141900">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611142000">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -186,6 +186,9 @@ function trainSkip(){const q=T.q;if(q.st!=='play'||T.over)return;q.st='wrong';T.
 function trainHTML(){const q=T.q,s=trainStats()[T.diff]||{best:0},done=q.st!=='play';
   let h=header('Silhou<span>ette</span>','Solo');
   h+=`<div class="backline"><button class="linkbtn" id="soloback">← Back</button><span class="ht">Solo</span></div>`;
+  // game over: the pink ticket with the last shape and its name inside, then New game (Héctor 2026-11-14)
+  if(T.over)return h+Geomingo.soloTicket({what:DIFF_NAME[T.diff]+(T.nolives?' · No lives':''),score:T.streak+' named',best:'Best: '+Math.max(s.best||0,T.streak)+' named',
+    detail:T.miss+' mistake'+(T.miss===1?'':'s'),body:silBoxHTML(q,done)+revealHTML(q)})+`<div class="gm-done-btns gm-solo-btns"><button class="primary" id="tagain" style="flex:1">New game</button></div>`;
   // the ticket, as in every game: Mingo on top, then who is travelling, the level, the shapes named and the lives left
   h+=Geomingo.ticket(moodHTML(silKey(),'pass','Whose shape is this?',T.nolives?'Type its name. No lives: take your time, or skip it.':'Type its name. Your best game at '+DIFF_NAME[T.diff]+': '+(s.best||0)+' named.'),
     tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Named',T.streak)+tk('Class',DIFF_NAME[T.diff],'tk-pts')+(T.nolives?tk('Mistakes',T.miss,'tk-gs'):tk('Lives',livesHTML(trainLeft(),LIVES),'tk-gs')),{mode:'practice'});
