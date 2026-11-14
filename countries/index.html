@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611151800"></script>
+<script src="../brand/mingo.js?v=202611152000"></script>
 <script src="../brand/account.js?v=202611151800"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -322,7 +322,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .cell.flag .cc{position:absolute;left:0;bottom:0;z-index:1;background:#0F1626;color:#fff;font-family:var(--display);font-weight:800;font-stretch:75%;font-size:clamp(.66rem,2.8vw,.85rem);letter-spacing:0;padding:2px 5px 1px 4px;border-radius:0 7px 0 0;line-height:1.15}
 .b5 .cell.flag .cc{font-size:.6rem;padding:1px 4px 0 3px;border-radius:0 5px 0 0}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611141900">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611142200">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -1540,14 +1540,14 @@ function setupView(){
 }
 function gameView(){
   // today's daily done: the grid goes inside the result ticket, Next trip and Share under it (Héctor 2026-11-12)
-  const n=S.n,done=S.over&&S.daily&&!S.archive&&!S.dayof;let h='',mark=0;
+  const n=S.n,done=S.over&&S.daily&&!S.archive&&!S.dayof,solo=S.over&&S.mode==='solo';let h='',mark=0;
   // ← Back and the title, as in every game (in a room it leaves the room)
   const title=S.daily?(S.archive?'Grid #'+S.day:"Today's grid"):S.mode==='online'?'With friends':'Solo';
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
-  if(!done)h+=`<div class="backline"><button class="linkbtn" id="gback">← ${S.mode==='online'?'Leave':'Back'}</button><span class="ht">${title}</span></div>`;
+  if(!done&&!solo)h+=`<div class="backline"><button class="linkbtn" id="gback">← ${S.mode==='online'?'Leave':'Back'}</button><span class="ht">${title}</span></div>`;
   if(S.over){
     if(S.mode!=='solo')h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${p.on===false?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${EU(p.score)}</b></span>`).join('')}</div>`;
-    if(!done)h+=resultsView();
+    if(!done&&!solo)h+=resultsView();
   }else{
     // one ticket: Mingo's message on top, the game's numbers on the stub below the tear line
     const m=mood&&mood.g===gameKey()?mood:null,p=S.players[S.turn];
@@ -1582,7 +1582,7 @@ function gameView(){
   h+=`</div></div>`;
   ui.fresh=-1;
   if(!S.over)h+=(S.mode==='solo'||(S.mode==='online'&&S.turn!==S.me)?'':'<div class="actions"><button class="ghost" id="pass">Pass turn</button></div>')+`<button class="linkbtn giveup" id="giveup">${S.mode==='solo'?'Give up':'End game'}</button>`+QRULES;
-  else if(done)h=h.slice(0,mark)+resultsView(h.slice(mark)+answersView())+lbView(null);
+  else if(done||solo)h=h.slice(0,mark)+resultsView(h.slice(mark)+answersView())+(done?lbView(null):'');
   else h+=answersView()+(S.daily&&!S.archive&&!S.dayof?lbView(null):'');
   return h;
 }
@@ -1648,8 +1648,10 @@ function resultsView(body){
     if(!S.archive&&!S.dayof)return `${Geomingo.doneTicket('borderline',S.day,EU(p.score)+' points',`next in ${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min`,body)}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns">${nextGameBtn(next)}${SHARE_BTN.replace('Share result','Share')}</div>`;
     return `<section class="panel respanel">${verdictHTML()}<span class="label">${S.dayof?'':S.archive?'Archive · ':''}Daily grid #${S.day}${S.dayof?' · played on its day':''}</span><p class="big">${EU(p.score)} points</p>${breakdown(p)}<p class="hint">${p.cells} of ${n*n} squares. ${S.wrong} wrong guess${S.wrong===1?'':'es'}. ${S.dayof?'You played this grid on its day, so it can\'t be played again.':S.archive?'Archive games don\'t count for the ranking or your streak.':`Share it: friends play today's grid with their own one try. Next grid in ${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min.`}</p><pre class="sharebox" id="share">${esc(shareText())}</pre>${SHARE_BTN}<div class="row-btns sharerow">${S.archive?`<button class="primary" id="newg" style="flex:1">Back to archive</button>`:nextGameBtn(next)}</div>${S.archive?'':afterNextHTML(next)+`<span class="label">Your daily grids</span>${statTiles(dailyStatsFrom({...loadHist(),[S.daily]:loadHist()[S.daily]||{s:p.score}}))}`}</section>${lbView(S.archive?S.daily:null)}`}
-  if(S.mode==='solo'){const p=S.players[0];const n=S.n;
-    return `<section class="panel respanel">${verdictHTML()}<p class="big">${EU(p.score)} points</p>${breakdown(p)}<p class="hint">${p.cells} of ${n*n} squares. ${S.wrong} wrong guess${S.wrong===1?'':'es'}. Share sends your result with a link: friends who open it play this same grid.</p><pre class="sharebox" id="share">${esc(shareText())}</pre>${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="again" style="flex:1">New grid</button></div><button class="ghost" id="newg">Change settings</button></section>`}
+  // a finished Solo game: the pink ticket with the grid inside, then New grid and Share (Héctor 2026-11-14)
+  if(S.mode==='solo'){const p=S.players[0],n=S.n,d=S.diff||'normal',best=Math.max(p.score||0,...loadGames().filter(g=>g.m==='s'&&g.n===n&&(g.d||'normal')===d).map(g=>g.s||0));
+    return `${Geomingo.soloTicket({id:'borderline',what:d[0].toUpperCase()+d.slice(1)+' · '+n+' × '+n,score:EU(p.score)+' points',best:'Best: '+EU(best),detail:p.cells+' of '+n*n+' squares',body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
+    <div class="gm-done-btns gm-solo-btns"><button class="primary" id="again" style="flex:1">New grid</button>${SHARE_BTN.replace('Share result','Share')}</div>`}
   const ranked=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score||b.cells-a.cells);
   const top=ranked[0].score,winners=ranked.filter(p=>p.score===top);
   return `<section class="panel respanel">${verdictHTML()}<p class="big">${winners.length>1?'Draw at '+top+' points':esc(winners[0].name)+' wins'}</p>

@@ -127,6 +127,14 @@ body:has(.gm-done) .gm-title small{display:none}
 .gm-done-btns>.sharebig{width:auto;flex:none;padding:0 14px;gap:8px;font-size:15px}
 /* Next trip (or Back to menu) in gold, like the daily ticket: one colour for today's game */
 .gm-done-btns>.primary:not(.sharebig){background:var(--gold);color:#16202F;box-shadow:none}
+/* a finished Solo game: the same ticket and buttons in Mingo pink (soloTicket) */
+.ticket.tk-pink{border-color:var(--coral)}
+.tk-pink .tk-mode{background:var(--coral);color:#16202F}
+.tk-pink .tk-tear{border-top-color:color-mix(in srgb,var(--coral) 45%,transparent)}
+.tk-pink .tk-tear::before,.tk-pink .tk-tear::after{border-color:var(--coral)}
+.tk-pink .gm-done-s b{color:var(--coral-text)}
+.gm-solo-btns>.primary:not(.sharebig){background:var(--coral);color:var(--on-coral)}
+.gm-solo-btns>.sharebig{border-color:var(--coral);color:var(--coral-text)}
 .tk-mode.daily{background:var(--gold);color:#16202F}
 .tk-mode.practice{background:var(--blue);color:#0C1220}
 .ticket.tk-practice{border-color:var(--blue)}
