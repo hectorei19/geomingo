@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611141100"></script>
-<script src="../brand/account.js?v=202611141300"></script>
+<script src="../brand/mingo.js?v=202611151300"></script>
+<script src="../brand/account.js?v=202611151700"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -42,13 +42,22 @@
 .tile.flipped{flex-direction:column;gap:4px;background:var(--gc-soft)!important;border:1.5px solid var(--gc)!important;color:var(--ink)!important;transform:none;transition:transform .22s ease-out}
 .tile .tflag{height:28px;width:auto;max-width:58%;object-fit:contain;border-radius:3px;box-shadow:0 0 0 1px var(--rule)}
 .tile.long{font-size:.78rem}
+/* the whole flag sized to one standard 3:2 box (every flag the same size, nothing cut; Héctor's choice) with the name under it, on a plain dark tile (found groups still flip as before); a picked tile turns Mingo coral */
+.cx-grid .tile:not(.flipped){padding:4px 2px;aspect-ratio:1;flex-direction:column;justify-content:center;align-items:center;gap:6px;background:var(--page)}
+.tile .tfl{width:46%;height:auto;aspect-ratio:3/2;flex:none;border-radius:3px;overflow:hidden;box-shadow:0 0 0 1px var(--line)}
+.tile .tn{color:var(--ink);font-size:.64rem;font-weight:800;line-height:1.05;max-width:100%}
+.cx-grid .tile.on:not(.flipped){background:var(--page);border-color:var(--coral);border-width:3px;transform:translateY(-2px)}
+.cx-grid .tile.on .tn{color:var(--coral)}
 @media (max-width:420px){.tile{font-size:.8rem}.tile.long{font-size:.68rem}.cx-grid,.cx-board{gap:6px}}
 .grp{border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;background:var(--gc-soft);border:1.5px solid var(--gc);text-align:center}
 .grp.new{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}
 .grp .gl{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:1.25rem;line-height:1.05;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:2px}
 .grp .gl .ib{font-size:.75rem}
 .grp .gm{font-size:.92rem;font-weight:600}
-.grp .gm img{margin-right:3px}
+.grp .gm{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px 4px;margin-top:4px}
+/* the four countries of a found group: the whole flag in the same 3:2 box on top, name under it, in one row */
+.grp .gi{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;font-size:.74rem;font-weight:700;line-height:1.1}
+.grp .gf{width:36px;height:24px;overflow:hidden;margin:3px 0;border-radius:2px;box-shadow:0 0 0 1px var(--line)}
 .grp.miss{opacity:.8;border-style:dashed}
 .g0{--gc:var(--p2);--gc-soft:var(--p2-soft)}.g1{--gc:var(--p4);--gc-soft:var(--p4-soft)}.g2{--gc:var(--p1);--gc-soft:var(--p1-soft)}.g3{--gc:var(--p3);--gc-soft:var(--p3-soft)}
 .lives{display:flex;align-items:center;justify-content:center;gap:8px;font-size:.95rem;color:var(--ink-2)}
@@ -99,7 +108,7 @@
 <!-- With friends: online rooms in Countries' Firebase Realtime Database -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="../brand/firebase-config.js?v=202611141300"></script>
+<script src="../brand/firebase-config.js?v=202611151700"></script>
 <script>
 /* ---- the puzzle ----
    Four hidden categories from Countries' CATS, four countries each. Every country fits its own category and
@@ -427,7 +436,7 @@ let turning=false;
 function turnOver(cs,t,done){const els=cs.map(c=>app.querySelector(`.cx-grid [data-c="${c}"]`)).filter(Boolean);
   if(els.length!==4||matchMedia('(prefers-reduced-motion:reduce)').matches){done();return}
   turning=true;els.forEach(e=>{e.classList.remove('on');e.classList.add('turn')});
-  setTimeout(()=>{els.forEach(e=>{const c=e.dataset.c;e.innerHTML=`<img class="tflag" src="../flagpie/flags/${c}.svg" alt=""><span>${esc(byCode[c].n)}</span>`;
+  setTimeout(()=>{els.forEach(e=>{const c=e.dataset.c;e.innerHTML=`${flag32(c,"tfl")}<span class="tn">${esc(byCode[c].n)}</span>`;
     e.classList.remove('turn');e.classList.add('flipped','g'+t)})},230);
   setTimeout(()=>{turning=false;done()},1100)}
 
@@ -442,11 +451,13 @@ const shareMessage=()=>shareText()+'\n\n'+(S.mode==='daily'?"Play today's puzzle
 /* ---- render ---- */
 // the group just found pops in once; later renders (every tap) leave the found groups still
 let popped=null;
+// a flag stretched to one standard 3:2 size (an <image> inside an <svg> may ignore the flag's own proportions; an <img> may not)
+const flag32=(c,cls)=>`<svg class="${cls}" viewBox="0 0 3 2" preserveAspectRatio="none" aria-hidden="true"><image href="../flagpie/flags/${c}.svg" width="3" height="2" preserveAspectRatio="none"/></svg>`;
 const groupHTML=(g,miss)=>{const k=CATS[g.k];
   return `<div class="grp g${g.t}${miss?' miss':''}${g===popped?' new':''}"><span class="gl">${esc(EUT(k.label))}<button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></span>
-    <span class="gm">${g.m.map(c=>`<span style="white-space:nowrap"><img class="mini" src="${FLAGS[c]}" alt="">${esc(byCode[c].n)}</span>`).join(' · ')}</span></div>`};
+    <span class="gm">${g.m.map(c=>`<span class="gi">${flag32(c,"gf")}<span>${esc(byCode[c].n)}</span></span>`).join('')}</span></div>`};
 const tileHTML=(c,attr)=>{const n=byCode[c].n,on=attr==='data-c'&&sel.includes(c);
-  return `<button class="tile${on?' on':''}${n.length>12||n.split(' ').some(w=>w.length>10)?' long':''}" ${attr}="${c}" aria-pressed="${on}" lang="en">${esc(n)}</button>`};
+  return `<button class="tile${on?' on':''}${n.length>12||n.split(' ').some(w=>w.length>10)?' long':''}" ${attr}="${c}" aria-pressed="${on}" lang="en">${flag32(c,"tfl")}<span class="tn">${esc(n)}</span></button>`};
 // the average of groups found (days before the count was kept: solved = 4, otherwise not counted)
 function cxAverage(h){const known=Object.values(h).map(e=>e.w?4:e.f).filter(f=>f!=null);return known.length?EU(known.reduce((a,b)=>a+b,0)/known.length,1)+'/4':'–'}
 function statsHTML(){const h=load('cx-hist',{});return statTiles(Object.keys(h).length,cxAverage(h),streakOf(h))}
@@ -469,7 +480,7 @@ function homeHTML(){const key=todayKey(),num=dayNum(key,CX_FIRST),d=dailySaved()
     :Geomingo.hello('pass','GeoPass ready.','Tap a country to start. Every group you find is a stamp. One try, the same 16 for everyone.');
   return header('Connec<span>tions</span>','',true)+`<section class="home">${hi}${Geomingo.account.userHTML()}${daily}${d&&d.over?rankingHTML():''}</section>
     ${rulesPanel()}`}
-const rulesPanel=on=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something: a region, a flag, a language, a name… Each country is in exactly one group, and only one split works for all 16. Pick four and tap <b>Submit</b>. ${on?'With friends there are no lives: play until you find all four groups. Fewer mistakes and speed decide the ranking.':`A wrong four costs one of your ${MAX_MISTAKES} lives.`} Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const rulesPanel=on=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something: a region, a flag, a language, a name… Each country is in exactly one group, and only one split works for all 16. Pick four and tap <b>Submit</b>. ${on?'With friends there are no lives: play until you find all four groups. Fewer mistakes and speed decide the ranking.':`A wrong four costs one of your ${MAX_MISTAKES} lives. 25 points a group, 10 less a mistake, +20 with none.`} Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 // the logo goes home from anywhere; in a room that means leaving it (in the middle of a game, tap twice)
 function goHome(){if(roomRef){if(S&&S.mode==='online'&&!S.over&&!leaveArmed){leaveArmed=true;render();toast('Tap again to leave the room.');return}
     leaveRoom(true);return}
@@ -498,7 +509,7 @@ function render(keepShake){
   else{const cell=Geomingo.tk,left=MAX_MISTAKES-S.mistakes;
     // the ticket, as in every game: Mingo on top, then who is travelling, groups found and mistakes left
     h+=Geomingo.ticket(moodHTML(cxKey(),'pass','4 stamps to win.','Pick four countries that share something, then Submit.'),
-      cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Groups',S.found.length+'/4')+(S.mode==='daily'?cell('km',Geomingo.cxPts(S.found.length,S.mistakes),'tk-pts'):'')+(on||S.nolives?cell('Mistakes',S.mistakes,'tk-gs'):cell('Lives',livesHTML(left,MAX_MISTAKES),'tk-gs')),{mode:S.mode==='free'?'practice':S.mode==='online'?'':S.mode,num:S.num})}
+      cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Groups',S.found.length+'/4')+(S.mode==='daily'?cell(Geomingo.newKm(S.date)?'Points':'km',Geomingo.cxPts(S.found.length,S.mistakes),'tk-pts'):'')+(on||S.nolives?cell('Mistakes',S.mistakes,'tk-gs'):cell('Lives',livesHTML(left,MAX_MISTAKES),'tk-gs')),{mode:S.mode==='free'?'practice':S.mode==='online'?'':S.mode,num:S.num})}
   h+=`<div class="cx-board">`;
   S.found.forEach(g=>h+=groupHTML(S.groups[g]));
   if(S.over)S.groups.forEach((g,i)=>{if(!S.found.includes(i))h+=groupHTML(g,true)});
@@ -556,6 +567,10 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li><b>Shuffle</b> moves the countries around. <b>Deselect all</b> clears your picks.</li>
   <li>Stuck? <b>Show the 4 categories</b> tells you the four group names, but not which country goes where. Your shared result says you used it.</li>
   <li>Groups go from easiest to trickiest: ${TEMOJI.join(' ')} (yellow, green, blue, purple). Tap <span class="ib">i</span> on a found group to see exactly what it means.</li></ul>
+  <h3>Points</h3><ul>
+  <li>25 points for every group you find: all four, 100. Every mistake: 10 points less.</li>
+  <li>A <b>perfect game</b> (all four, not one mistake): +20, so 120.</li>
+  <li>In today's puzzle your points are also your km for the GeoPass.</li></ul>
   <h3>Modes</h3><ul>
   <li><b>Today's puzzle</b>: the same for everyone, new every day at midnight CET. One try. Missed one? Play it in <b>Menu → Archive</b>.</li>
   <li><b>Solo</b>: as many practice puzzles as you like. <b>Share</b> sends a friend a link to the same puzzle. Pick <b>No lives</b> to train: play until the end, mistakes are only counted.</li>

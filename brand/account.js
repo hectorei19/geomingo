@@ -82,7 +82,7 @@ const uid=()=>user&&user.uid;
 // signing out (here, or from Countries' menu) leaves the device clean, as Countries always did:
 // the stats, today's games, the GeoPass and the name go; the account keeps them for the next sign-in
 const DEVICE_KEYS=['bl-daily','bl-hist','bl-games','bl-arch','bl-user','cc-daily','cc-hist','cc-games','cc-arch','cc-user',
-  'cx-daily','cx-hist','t10-daily','t10-hist','sil-daily','sil-hist','sil-train','gm-pass','gm-days','gm-acct','gm-lbc','gm-ranks','cx-solo','cx-friends','t10-solo','t10-friends','sil-friends','gm-feats','cu-daily','cu-hist','cu-arch','cu-solo','cu-diff','fp-daily','fp-hist','fp-arch','fp-solo','fp-solo5','fp-diff','im-daily','im-hist','im-arch','im-solo','im-diff','gm-ms'];
+  'cx-daily','cx-hist','t10-daily','t10-hist','sil-daily','sil-hist','sil-miss','sil-train','gm-pass','gm-days','gm-acct','gm-lbc','gm-ranks','cx-solo','cx-friends','t10-solo','t10-friends','sil-friends','gm-feats','cu-daily','cu-hist','cu-arch','cu-solo','cu-diff','fp-daily','fp-hist','fp-arch','fp-solo','fp-solo5','fp-diff','im-daily','im-hist','im-arch','im-solo','im-diff','gm-ms'];
 function onUser(u){const was=user;user=u||null;
   if(was&&!user){DEVICE_KEYS.forEach(k=>ls.set(k,null));ls.set('gm-acct',null);location.reload();return}
   if(user){if(!(LAST&&LAST.u===user.uid))name='';loadName()}
@@ -208,7 +208,11 @@ function submit(g,k,r){const id=uid();if(!id||!name||TEST||k!==T())return;const 
 function watch(g){if(!ok||TEST)return;const k=T();if(lbRef[g]&&lbRef[g].day===k)return;
   if(lbRef[g])lbRef[g].off();if(!(LB[g]&&LB[g].date===k))LB[g]={date:k,rows:null};lbRef[g]=db.ref('lb/'+g+'/'+k);lbRef[g].day=k;
   lbRef[g].on('value',s=>{LB[g]={date:k,rows:s.val()||{}};keepLB(g);changed()},()=>{LB[g]={date:k,rows:null,off:true};changed()})}
-const sorted=g=>Object.entries((LB[g]&&LB[g].rows)||{}).map(([id,v])=>Object.assign({id},v)).sort((a,b)=>b.s-a.s||(a.m||0)-(b.m||0)||(a.t||0)-(b.t||0));
+// from G.KM_FROM the ranking is by the game's points (the same table as the km), then fewer mistakes, then who finished first
+const PTS={connections:r=>G.cxPts(r.s,r.m),top10:r=>G.KM.top10(r.s,r.m),'sil-easy':r=>G.KM.sil(r.s,r.m),'sil-normal':r=>G.KM.sil(r.s,r.m),'sil-hard':r=>G.KM.sil(r.s,r.m),
+  customs:r=>G.KM.clue(r.r,r.s,5),flagpie:r=>G.KM.clue(r.r,r.s,5),compass:r=>G.KM.clue(r.r,r.s,5),impostor:r=>G.KM.imp(r.r,r.s)};
+const rankPts=(g,r)=>PTS[g]&&G.newKm(T())?PTS[g](r):r.s;
+const sorted=g=>Object.entries((LB[g]&&LB[g].rows)||{}).map(([id,v])=>Object.assign({id},v)).sort((a,b)=>rankPts(g,b)-rankPts(g,a)||b.s-a.s||(a.m||0)-(b.m||0)||(a.t||0)-(b.t||0));
 function mine(g){const me=meId();if(!me)return null;watch(g);const rows=sorted(g),i=rows.findIndex(r=>r.id===me);
   return i<0?null:{rank:i+1,total:rows.length,top:Math.max(1,Math.round((i+1)/rows.length*100))}}
 // one line for the home screen: "#3 of 12 today · top 25%"
