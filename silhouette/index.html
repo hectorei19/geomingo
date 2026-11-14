@@ -216,7 +216,7 @@ function noLives(G){if(!G.over&&!livesLeft(G.qs)){G.qs.forEach(q=>{if(q.st==='pl
 function dailySave(){if(!D)return;
   if(D.arch){const a=load('sil-arch',{});a[D.date]=D;store('sil-arch',a);return}
   const d=dailyAll();d[D.diff]=D;d.over=d.over||D.over;store('sil-daily',d);
-  if(D.over){const h=load('sil-hist',{}),day=h[D.date]||{};if(day[D.diff]==null){day[D.diff]=D.qs.filter(q=>q.st==='right').length;h[D.date]=day;store('sil-hist',h);if(!TESTDAY){Geomingo.clock.stop('silhouette',D.date,rightOf(D)/9);Geomingo.account.done('sil-'+D.diff)}}}}
+  if(D.over){const h=load('sil-hist',{}),day=h[D.date]||{};if(day[D.diff]==null){day[D.diff]=D.qs.filter(q=>q.st==='right').length;h[D.date]=day;store('sil-hist',h);{const mm=load('sil-miss',{});(mm[D.date]=mm[D.date]||{})[D.diff]=D.qs.reduce((n,q)=>n+q.tries.length,0);store('sil-miss',mm)}if(!TESTDAY){Geomingo.clock.stop('silhouette',D.date,rightOf(D)/9);Geomingo.account.done('sil-'+D.diff)}}}}
 function dailyPick(code){const q=D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;
   const res=answer(q,code,livesLeft(D.qs));query='';typing=res==='wrong';
   if(res==='out')noLives(D);

@@ -155,17 +155,34 @@ const pts=f=>{f=Math.max(0,Math.min(1,+f||0));return Math.round(f*100)+(f>=1?20:
 const clPts=(r,p,n)=>{r=+r||0;p=+p||0;n=+n||0;if(!n)return 0;const f=Math.max(0,Math.min(1,(.75*r+.05*p)/n));return Math.round(f*100)+(r>=n?20:0)};
 // f groups found out of 4, m mistakes
 const cxPts=(f,m)=>{f=Math.max(0,Math.min(4,+f||0));m=+m||0;return Math.max(0,25*f-10*m)+(f>=4&&!m?20:0)};
+/* From KM_FROM (Héctor 2026-11-14) every game uses the same table: up to 100 points, +20 for a perfect game (not one
+   mistake), and the daily's points are its km. Days before keep the km they had (the formulas above).
+   Countries, Capitals: 5 a square, +20 for all 16. Connections: 25 a group, -10 a mistake (cxPts). Top 10: 10 an answer.
+   Silhouette: 10 a shape, +10 for all 9. Customs, Flag Pie, Compass: 20 at the first clue, 1 less for each clue more
+   (15 per right answer + its 5-to-1 points). Impostor: 15 caught first time, 1 less for each wrong pick, +10 for all 6.
+   w / m: mistakes (null = not known: counts as none). */
+const KM_FROM='2026-11-15';
+const newKm=d=>d>=KM_FROM;
+const pf=(all,m)=>all&&!(+m)?20:0;
+const KM={
+  grid:(c,n,w)=>{n=(+n||4)*(+n||4);c=Math.min(+c||0,n);const all=c>=n;return Math.round(80*c/n)+(all?20:0)+pf(all,w)},
+  top10:(f,m)=>{f=Math.min(+f||0,10);return 10*f+pf(f>=10,m)},
+  sil:(r,m)=>{r=Math.min(+r||0,9);return 10*r+(r>=9?10:0)+pf(r>=9,m)},
+  clue:(r,p,n)=>{r=+r||0;p=+p||0;n=+n||5;return Math.round((15*r+p)*5/n)+(p>=5*n?20:0)},
+  imp:(r,p)=>{r=+r||0;p=+p||0;return 10*r+p+(r>=6?10:0)+(p>=30?20:0)}};
 // this device's daily games, from each game's own history: {day: {game id: km}}
 function ledger(){const L={},add=(d,id,mi)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))(L[d]=L[d]||{})[id]=mi};
   [['bl-hist','borderline'],['cc-hist','citygrid']].forEach(([k,id])=>{const h=json(k)||{};
-    for(const d in h){const e=h[d];if(e&&e.f!==0){const n=+e.n||3;add(d,id,pts((+e.c||0)/(n*n)))}}});
+    for(const d in h){const e=h[d];if(e&&e.f!==0){const n=+e.n||3;add(d,id,newKm(d)?KM.grid(e.c,n,e.w):pts((+e.c||0)/(n*n)))}}});
   const cx=json('cx-hist')||{};for(const d in cx)if(cx[d])add(d,'connections',cxPts(cx[d].f!=null?cx[d].f:cx[d].w?4:0,cx[d].m));
-  const t=json('t10-hist')||{};for(const d in t)if(t[d])add(d,'top10',pts((+t[d].f||0)/10));
-  const s=json('sil-hist')||{};for(const d in s){const v=Object.values(s[d]||{}).filter(x=>typeof x==='number');if(v.length)add(d,'silhouette',pts(Math.max(...v)/9))}
-  const u=json('cu-hist')||{};for(const d in u)if(u[d])add(d,'customs',clPts(u[d].r,u[d].p,5));
-  const f=json('fp-hist')||{};for(const d in f)if(f[d])add(d,'flagpie',clPts(f[d].r,f[d].p,+f[d].n||5));
-  const im=json('im-hist')||{};for(const d in im)if(im[d])add(d,'impostor',clPts(im[d].r,im[d].p,6));
-  const cm=json('cm-hist')||{};for(const d in cm)if(cm[d])add(d,'compass',clPts(cm[d].r,cm[d].p,5));
+  const t=json('t10-hist')||{};for(const d in t)if(t[d])add(d,'top10',newKm(d)?KM.top10(t[d].f,t[d].l!=null?5-t[d].l:null):pts((+t[d].f||0)/10));
+  const s=json('sil-hist')||{},sm=json('sil-miss')||{};for(const d in s){const day=s[d]||{},k=Object.keys(day).filter(x=>typeof day[x]==='number');
+    if(!k.length)continue;if(!newKm(d)){add(d,'silhouette',pts(Math.max(...k.map(x=>day[x]))/9));continue}
+    add(d,'silhouette',Math.max(...k.map(x=>KM.sil(day[x],(sm[d]||{})[x]))))}
+  const u=json('cu-hist')||{};for(const d in u)if(u[d])add(d,'customs',newKm(d)?KM.clue(u[d].r,u[d].p,5):clPts(u[d].r,u[d].p,5));
+  const f=json('fp-hist')||{};for(const d in f)if(f[d])add(d,'flagpie',newKm(d)?KM.clue(f[d].r,f[d].p,+f[d].n||5):clPts(f[d].r,f[d].p,+f[d].n||5));
+  const im=json('im-hist')||{};for(const d in im)if(im[d])add(d,'impostor',newKm(d)?KM.imp(im[d].r,im[d].p):clPts(im[d].r,im[d].p,6));
+  const cm=json('cm-hist')||{};for(const d in cm)if(cm[d])add(d,'compass',newKm(d)?KM.clue(cm[d].r,cm[d].p,5):clPts(cm[d].r,cm[d].p,5));
   return L}
 const dayTotal=day=>{const v=Object.values(day||{});return v.reduce((a,b)=>a+b,0)+(v.length>=ALLN?ALL5:0)};
 function level(km){let i=0;LEVELS.forEach((l,k)=>{if(km>=l[1])i=k});const next=LEVELS[i+1];
@@ -310,7 +327,8 @@ function hello(pose,title,sub,o){o=o||{};const key=o.key||'main',txt=pose+title,
 /* the result of today's daily, when it is over (right after playing, or opening the game again later): the gold ticket with
    the score, the km it earned and when the next one comes; Next trip and Share go under it (Héctor 2026-11-10: less is more) */
 /* body: the day's answers, shown inside the same ticket under a tear line (Héctor 2026-11-12: one card, buttons below) */
-function doneTicket(id,num,score,next,body){const km=(ledger()[dayKey()]||{})[id];
+// from KM_FROM the big number is the day's points, the same number as its km
+function doneTicket(id,num,score,next,body){const km=(ledger()[dayKey()]||{})[id];if(km!=null&&newKm(dayKey()))score=fmt(km)+' point'+(km===1?'':'s');
   return '<section class="ticket gm-done"><div class="tk-mode daily"><span>★ Daily #'+esc(String(num))+'</span><span>Done</span></div>'+
     '<div class="gm-done-c"><p class="big">'+esc(String(score))+'</p><p class="gm-done-s">'+(km!=null?'<b>+'+fmt(km)+' km</b>':'')+'<span>'+esc(next)+'</span></p></div>'+
     (body?'<div class="tk-tear"></div><div class="gm-done-a">'+body+'</div>':'')+'</section>'}
@@ -378,7 +396,7 @@ function routeHTML(km){const lv=level(km),at=i=>8+i*21,me=lv.next?at(lv.i)+21*lv
     '<span class="me" style="left:'+me+'%">'+mingo('pass',26)+'</span></div>'}
 function howHTML(){return '<ul class="gp-how">'+
   '<li><b>Stamps.</b> Every right answer in any game is one more stamp in your count.</li>'+
-  '<li><b>Km.</b> Every daily game you finish earns up to 100 km for how well it went. A perfect game +20, all '+ALLW+' in one day +'+ALL5+'.</li>'+
+  '<li><b>Km.</b> Every daily game gives up to 100 points for how well it went, +20 for a perfect game (not one mistake). Those points are your km. All '+ALLW+' in one day +'+ALL5+' km.</li>'+
   '<li><b>Levels.</b> Km move you along the route: '+LEVELS.map(l=>l[0]+(l[1]?' ('+fmt(l[1])+')':'')).join(', ')+'.</li>'+
   '<li><b>Countries.</b> A country is yours when you get it right in every game it comes up in: Countries, Capitals, Silhouette, Top 10, Customs and Flag Pie. Finding its capital in Compass counts as Capitals. The dots show which ones you have.</li>'+
   '<li><b>Visas.</b> Special entries for special games, like a week in a row or a perfect grid.</li></ul>'}
@@ -502,6 +520,6 @@ document.addEventListener('visibilitychange',()=>{
 const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,stale:roomStale};
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
-  days,streak,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
+  days,streak,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,KM,KM_FROM,newKm,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
   openWindow,closeWindow,esc,refreshPass,room,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();
