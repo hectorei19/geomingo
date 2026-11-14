@@ -1,4 +1,5 @@
-// Helpers shared by Connections, Top 10 and Silhouette (Countries has its own): page header, toast, info box,
+// Helpers shared by Connections, Top 10, Silhouette, Customs, Flag Pie, Impostor and Compass (Countries and Capitals have
+// their own): page header, toast, info box,
 // daily key and number, seeds, streaks and sharing the result.
 const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 const $=id=>document.getElementById(id);

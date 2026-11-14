@@ -77,9 +77,6 @@ svg.mingo{display:block;flex-shrink:0;overflow:visible}
   font-family:var(--display);font-weight:800;font-stretch:110%;font-size:13px;letter-spacing:.1em;white-space:nowrap}
 .gm-pass i{width:18px;height:24px;border-radius:3px;border:1.5px solid var(--gold);display:grid;place-items:center;font-style:normal;color:var(--gold);font-size:9px;letter-spacing:0}
 .gm-pass b{font-family:var(--type);font-weight:700;letter-spacing:0;color:var(--gold);font-size:13px}
-.gm-icon{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--page);display:grid;place-items:center;cursor:pointer;flex-shrink:0;padding:0;color:var(--ink)}
-.gm-icon svg{stroke:var(--ink);fill:none}
-.gm-icon:hover{border-color:var(--ink)}
 @media (max-width:350px){.gm-pass .gm-pw{display:none}}
 .gm-bar{display:flex;align-items:center;gap:10px;min-height:44px}
 .gm-title{margin:0;font-family:var(--display);font-weight:900;font-stretch:90%;font-size:28px;line-height:1;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;gap:3px;min-width:0}
@@ -155,22 +152,9 @@ svg.mingo{display:block;flex-shrink:0;overflow:visible}
 @media (prefers-reduced-motion:reduce){.ticket.tk-turn .tbar.low{animation:none}}
 @keyframes gm-pop{0%{transform:translateY(4px);opacity:.4}100%{transform:none;opacity:1}}
 
-/* the games list (home page): one line per game, with its trip number */
+/* section heading (home page) */
 .gm-head{display:flex;flex-direction:column;gap:2px}
 .gm-head h2{margin:0;font-family:var(--display);font-weight:800;font-stretch:85%;font-size:30px;line-height:1;text-transform:uppercase}
-.gm-games{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-.gm-card{width:100%;display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px;background:var(--page);border:1px solid var(--line);border-radius:12px;cursor:pointer;text-align:left;color:var(--ink);text-decoration:none;transition:border-color .15s ease}
-a.gm-card:hover{border-color:var(--ink)}
-.gm-card.soon{cursor:default;opacity:.7}
-.gm-gate{font-family:var(--type);font-size:11px;color:var(--muted);display:flex;flex-direction:column;line-height:1.2}
-.gm-gate b{font-family:var(--display);font-weight:900;font-stretch:90%;font-size:24px;color:var(--ink)}
-.gm-ctext{display:flex;flex-direction:column;min-width:0}
-.gm-ctext b{font-family:var(--display);font-weight:800;font-stretch:90%;font-size:20px;text-transform:uppercase;display:flex;align-items:center;gap:8px;line-height:1.1}
-.gm-ctext span{font-size:13px;color:var(--muted)}
-.gm-new{font-family:var(--type);font-weight:700;font-size:10px;padding:1px 5px;border:1.5px solid var(--coral-text);color:var(--coral-text);border-radius:3px;transform:rotate(-4deg);letter-spacing:0;font-stretch:100%}
-.gm-state{font-family:var(--type);font-size:12px;font-weight:700;text-transform:uppercase;white-space:nowrap;color:var(--blue);letter-spacing:.02em}
-.gm-state.done{min-height:0;background:none;color:var(--green);border:2px solid var(--green);padding:2px 6px;border-radius:4px;transform:rotate(-6deg);font-family:var(--type);font-weight:700;font-size:12px;letter-spacing:0;font-stretch:100%}
-.gm-state.soon{color:var(--muted)}
 
 /* buttons: navy (main), coral (action), outline */
 .gm-big{display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:8px 16px;border-radius:10px;border:0;background:var(--cover);color:var(--cover-ink);
@@ -178,7 +162,6 @@ a.gm-card:hover{border-color:var(--ink)}
 .gm-big.pink,.gm-big.coral{background:var(--coral);color:var(--on-coral)}
 .gm-big.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
 .gm-big[disabled]{opacity:.45;cursor:default}
-.gm-dots{display:flex}.gm-dots i{width:12px;height:12px;border-radius:50%;border:1.5px solid currentColor}.gm-dots i+i{margin-left:-4px}
 .gm-note{text-align:center;font-size:12px;color:var(--muted);margin:0}
 .gm-text{background:none;border:0;color:var(--muted);font-weight:600;font-size:14px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:10px;min-height:44px;align-self:center}
 
@@ -189,17 +172,14 @@ a.gm-card:hover{border-color:var(--ink)}
 .gm-stamp.today{animation:gm-thud .3s cubic-bezier(.2,1.6,.4,1) both}
 @keyframes gm-thud{from{transform:scale(1.6) rotate(var(--r,0deg));opacity:0}to{transform:scale(1) rotate(var(--r,0deg));opacity:.9}}
 
-/* dialogs: bottom sheet, result card, the GeoPass booklet */
+/* dialogs: result card, the GeoPass booklet */
 .gm-scrim{position:fixed;inset:0;background:var(--scrim);z-index:45;display:flex;align-items:flex-end;justify-content:center}
 .gm-scrim.center{align-items:center;padding:16px}
-.gm-sheet{width:100%;max-width:520px;background:var(--page);border-radius:18px 18px 0 0;padding:18px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px;animation:gm-up .18s ease}
 @keyframes gm-up{from{transform:translateY(12px);opacity:.5}to{transform:none;opacity:1}}
-.gm-sheet h3{margin:0;font-family:var(--display);font-weight:900;font-stretch:90%;font-size:22px;text-transform:uppercase}
 .gm-res{width:100%;max-width:400px;background:var(--page);border-radius:16px;overflow:hidden;animation:gm-up .2s ease;max-height:100%;overflow-y:auto;box-shadow:var(--shadow)}
 .gm-band{background:var(--cover);color:var(--cover-ink);padding:12px 16px;display:flex;align-items:center;gap:10px}
 .gm-band b{font-family:var(--display);font-weight:800;font-stretch:115%;letter-spacing:.12em;text-transform:uppercase;font-size:14px;color:var(--gold)}
 .gm-rbody{padding:18px;display:flex;flex-direction:column;gap:12px}
-.gm-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--cover);color:var(--cover-ink);padding:10px 16px;border-radius:8px;font-family:var(--type);font-size:14px;max-width:calc(100% - 32px);text-align:center}
 
 /* the GeoPass: a passport. Navy cover, a paper data page, then paper pages (Passport, Countries, Visas) */
 .gp{--paper:#E8DEC3;--paper-2:#DCD0B0;--pink:#1D2B4C;--pmut:#6E6247;width:100%;max-width:520px;max-height:100%;overflow:auto;border-radius:18px;padding:10px 10px 12px;animation:gm-up .2s ease;
@@ -238,14 +218,6 @@ a.gm-card:hover{border-color:var(--ink)}
 .gp-route .p.ok small{color:var(--pink)}
 .gp-route .p em{font:normal 8.5px var(--type);color:var(--pmut)}
 .gp-route .me{position:absolute;top:-32px;transform:translateX(-50%)}
-.gp-day{font:700 11px var(--type);letter-spacing:.12em;text-transform:uppercase;color:var(--pmut);margin-top:2px}
-.gp-sts{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
-.gp-st{border:2.5px solid var(--c);color:var(--c);border-radius:8px;padding:5px 8px;display:flex;flex-direction:column;align-items:center;transform:rotate(var(--r));opacity:.9;max-width:150px}
-.gp-st.round{border-radius:50%;width:70px;height:70px;justify-content:center;padding:0 4px;border-style:double;border-width:4px;box-sizing:border-box;text-align:center}
-.gp-st b{font:900 14px var(--display);letter-spacing:.03em;text-transform:uppercase;line-height:1;text-align:center}
-.gp-st small{font:700 8.5px var(--type);letter-spacing:.04em;margin-top:3px;text-transform:uppercase;text-align:center}
-.gp-st.round b{font-size:12px}
-.gp-more{font:700 11px var(--type);color:var(--pmut)}
 .gp-empty{margin:0;font-size:14px;color:var(--pmut)}
 .gp-entry{border:3px solid var(--pink);border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:6px 10px;transform:rotate(-.8deg)}
 .gp-entry .d{font:900 15px var(--display);letter-spacing:.06em;text-transform:uppercase}
@@ -328,13 +300,12 @@ a.gm-card:hover{border-color:var(--ink)}
   font-family:var(--display);font-weight:800;font-stretch:95%;font-size:17px;letter-spacing:.06em;text-transform:uppercase}
 a.primary{text-decoration:none;text-align:center}
 .primary:disabled,.primary[disabled]{opacity:.45;cursor:default}
-.primary.nextgame{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
 .ghost{min-height:44px;background:var(--page);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-weight:600;color:var(--ink)}
 .ghost:hover:not(:disabled){border-color:var(--ink)}
 .linkbtn{min-height:44px;color:var(--muted);font-weight:600;font-size:14px;padding:8px 4px}
 .helpbtn{min-height:44px;background:var(--page);border:1px solid var(--line);border-radius:10px;padding:6px 14px;font-weight:600;font-size:15px;color:var(--ink)}
 .helpbtn:hover{border-color:var(--ink)}
-.code-in,.prow input,.nameinp,.namecard input,.field #fname,.field input,.t10in input,.ans input,.sheet input{min-height:50px;border:1.5px solid var(--ink);border-radius:8px;background:var(--bg);color:var(--ink);padding:10px 14px;font-family:var(--type);font-size:18px;font-weight:400}
+.code-in,.nameinp,.namecard input,.field #fname,.field input,.t10in input,.ans input,.sheet input{min-height:50px;border:1.5px solid var(--ink);border-radius:8px;background:var(--bg);color:var(--ink);padding:10px 14px;font-family:var(--type);font-size:18px;font-weight:400}
 .code-in{letter-spacing:.18em;font-weight:700}
 /* phones: the button that opens the answer sheet looks like the box you type in (see askBtnHTML in shared/minigames.js) */
 .askbtn{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;border:1.5px solid var(--ink);border-radius:8px;background:var(--bg);color:var(--muted);padding:10px 14px;font-family:var(--type);font-size:18px;font-weight:400;text-align:left;cursor:text;touch-action:manipulation}
@@ -455,8 +426,6 @@ button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
 .infobox .meta{font-family:var(--type);font-weight:400}
 .helpbox h3{font-family:var(--display);font-weight:800;font-stretch:90%;font-size:17px;letter-spacing:.02em;text-transform:uppercase;color:var(--ink)}
 .ptable{font-family:var(--body)}
-.handoff{background:var(--page)}
-.handoff h2{font-family:var(--display);font-weight:900;text-transform:uppercase}
 .menubox .mitem{min-height:48px;background:var(--page);border:1px solid var(--line);border-top-width:0;font-weight:600}
 .menubox .mitem:first-child{border-top-width:1px;border-radius:12px 12px 0 0}
 .menubox .mitem:last-child{border-radius:0 0 12px 12px}

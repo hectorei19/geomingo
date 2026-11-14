@@ -4,7 +4,8 @@
    Signed in, these are kept in the account and follow you to every device:
    - your name, chosen once (users/<uid>/profile, the same one Countries has always used)
    - the GeoPass (users/<uid>/pass) and the days you played (users/<uid>/days), for every game
-   - the daily results of Connections, Top 10, Silhouette and Customs (users/<uid>/hist/<game>/<date>), and each one joins
+   - the daily results of Connections, Top 10, Silhouette, Customs, Flag Pie, Impostor and Compass
+     (users/<uid>/hist/<game>/<date>), and each one joins
      that game's public daily ranking (lb/<game>/<date>/<uid>); only the account's first try of the day counts.
    Countries and Capitals keep their own sign-in code (same account, same name); here they only get the header button,
    the GeoPass and the days. Signing out leaves the device clean: every game's saves go, the account keeps them.
