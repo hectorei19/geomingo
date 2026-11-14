@@ -55,9 +55,9 @@
 .grp .gl .ib{font-size:.75rem}
 .grp .gm{font-size:.92rem;font-weight:600}
 .grp .gm{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px 4px;margin-top:4px}
-/* the four countries of a found group: round flag on top, name under it, in one row */
+/* the four countries of a found group: the real-shape flag on top (same height, its own width), name under it, in one row */
 .grp .gi{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;font-size:.74rem;font-weight:700;line-height:1.1}
-.grp .gf{width:30px;height:30px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px var(--line)}
+.grp .gf{height:24px;width:auto;max-width:100%;margin:3px 0;border-radius:2px;box-shadow:0 0 0 1px var(--line)}
 .grp.miss{opacity:.8;border-style:dashed}
 .g0{--gc:var(--p2);--gc-soft:var(--p2-soft)}.g1{--gc:var(--p4);--gc-soft:var(--p4-soft)}.g2{--gc:var(--p1);--gc-soft:var(--p1-soft)}.g3{--gc:var(--p3);--gc-soft:var(--p3-soft)}
 .lives{display:flex;align-items:center;justify-content:center;gap:8px;font-size:.95rem;color:var(--ink-2)}
@@ -453,7 +453,7 @@ const shareMessage=()=>shareText()+'\n\n'+(S.mode==='daily'?"Play today's puzzle
 let popped=null;
 const groupHTML=(g,miss)=>{const k=CATS[g.k];
   return `<div class="grp g${g.t}${miss?' miss':''}${g===popped?' new':''}"><span class="gl">${esc(EUT(k.label))}<button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></span>
-    <span class="gm">${g.m.map(c=>`<span class="gi"><img class="gf" src="${FLAGS[c]}" alt=""><span>${esc(byCode[c].n)}</span></span>`).join('')}</span></div>`};
+    <span class="gm">${g.m.map(c=>`<span class="gi"><img class="gf" src="../flagpie/flags/${c}.svg" alt=""><span>${esc(byCode[c].n)}</span></span>`).join('')}</span></div>`};
 const tileHTML=(c,attr)=>{const n=byCode[c].n,on=attr==='data-c'&&sel.includes(c);
   return `<button class="tile${on?' on':''}${n.length>12||n.split(' ').some(w=>w.length>10)?' long':''}" ${attr}="${c}" aria-pressed="${on}" lang="en"><img class="tfl" src="${FLAGS[c]}" alt=""><span class="tn">${esc(n)}</span></button>`};
 // the average of groups found (days before the count was kept: solved = 4, otherwise not counted)
