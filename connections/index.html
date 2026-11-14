@@ -42,9 +42,9 @@
 .tile.flipped{flex-direction:column;gap:4px;background:var(--gc-soft)!important;border:1.5px solid var(--gc)!important;color:var(--ink)!important;transform:none;transition:transform .22s ease-out}
 .tile .tflag{height:28px;width:auto;max-width:58%;object-fit:contain;border-radius:3px;box-shadow:0 0 0 1px var(--rule)}
 .tile.long{font-size:.78rem}
-/* the real-shape flag (same height, its own width) with the name under it, on a plain dark tile (found groups still flip as before); a picked tile turns Mingo coral */
+/* the flag in a 3:2 frame (every flag the same size; very wide flags lose a little at the sides) with the name under it, on a plain dark tile (found groups still flip as before); a picked tile turns Mingo coral */
 .cx-grid .tile:not(.flipped){padding:4px 2px;aspect-ratio:1;flex-direction:column;justify-content:center;align-items:center;gap:6px;background:var(--page)}
-.tile .tfl{height:34%;width:auto;max-width:82%;flex:none;border-radius:3px;box-shadow:0 0 0 1px var(--line)}
+.tile .tfl{height:34%;width:auto;aspect-ratio:3/2;flex:none;object-fit:cover;object-position:left center;border-radius:3px;box-shadow:0 0 0 1px var(--line)}
 .tile .tn{color:var(--ink);font-size:.64rem;font-weight:800;line-height:1.05;max-width:100%}
 .cx-grid .tile.on:not(.flipped){background:var(--page);border-color:var(--coral);border-width:3px;transform:translateY(-2px)}
 .cx-grid .tile.on .tn{color:var(--coral)}
@@ -55,9 +55,9 @@
 .grp .gl .ib{font-size:.75rem}
 .grp .gm{font-size:.92rem;font-weight:600}
 .grp .gm{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px 4px;margin-top:4px}
-/* the four countries of a found group: the real-shape flag on top (same height, its own width), name under it, in one row */
+/* the four countries of a found group: the flag in a 3:2 frame on top, name under it, in one row */
 .grp .gi{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;font-size:.74rem;font-weight:700;line-height:1.1}
-.grp .gf{height:24px;width:auto;max-width:100%;margin:3px 0;border-radius:2px;box-shadow:0 0 0 1px var(--line)}
+.grp .gf{height:24px;width:36px;object-fit:cover;object-position:left center;margin:3px 0;border-radius:2px;box-shadow:0 0 0 1px var(--line)}
 .grp.miss{opacity:.8;border-style:dashed}
 .g0{--gc:var(--p2);--gc-soft:var(--p2-soft)}.g1{--gc:var(--p4);--gc-soft:var(--p4-soft)}.g2{--gc:var(--p1);--gc-soft:var(--p1-soft)}.g3{--gc:var(--p3);--gc-soft:var(--p3-soft)}
 .lives{display:flex;align-items:center;justify-content:center;gap:8px;font-size:.95rem;color:var(--ink-2)}
