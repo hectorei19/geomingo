@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611151300"></script>
-<script src="../brand/account.js?v=202611151700"></script>
+<script src="../brand/mingo.js?v=202611151800"></script>
+<script src="../brand/account.js?v=202611151800"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -92,7 +92,7 @@
 .lp.me{border-color:var(--sea)}
 .primary[disabled]{opacity:.5;cursor:default}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611141100">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611141800">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -500,7 +500,8 @@ function render(keepShake){
   const on=S.mode==='online';
   const coord=S.mode==='daily'?'Daily #'+S.num:S.mode==='archive'?'Archive #'+S.num:on?'Room '+roomCode:'Solo';
   let h=header('Connec<span>tions</span>',coord);
-  h+=`<div class="backline">${on?`<button class="linkbtn" id="leave">${leaveArmed?'Tap again to leave':'← Leave'}</button>`:`<button class="linkbtn" id="${S.mode==='archive'?'archback':S.mode==='free'?'soloback':'home'}">← Back</button>`}<span class="ht">${S.mode==='daily'?"Today's puzzle":S.mode==='archive'?'Puzzle #'+S.num:on?'With friends':'Solo'}</span></div>`;
+  // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
+  if(!(S.over&&!on&&S.mode==='daily'))h+=`<div class="backline">${on?`<button class="linkbtn" id="leave">${leaveArmed?'Tap again to leave':'← Leave'}</button>`:`<button class="linkbtn" id="${S.mode==='archive'?'archback':S.mode==='free'?'soloback':'home'}">← Back</button>`}<span class="ht">${S.mode==='daily'?"Today's puzzle":S.mode==='archive'?'Puzzle #'+S.num:on?'With friends':'Solo'}</span></div>`;
   if(on)h+=scoresHTML();
   watchResult(cxKey(),S.over);
   // today's daily done: the four groups go inside the result ticket, Next trip and Share under it (Héctor 2026-11-12)
