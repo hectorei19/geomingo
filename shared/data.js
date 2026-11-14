@@ -1,4 +1,4 @@
-// Category rules and helpers for Connections, Top 10, Customs and Flag Pie (the same categories as Countries).
+// Category rules and helpers for Connections, Top 10, Customs, Flag Pie, Impostor and Compass (the same categories as Countries).
 // The country data itself is NOT here: it comes from the Geomingo country database, ../data/countries.js (C, EXTRA, DATA) and, in games that show flags,
 // ../data/flags.js (FLAGS). Load those first, then this file, with plain <script> tags: everything here is a global.
 

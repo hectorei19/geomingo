@@ -21,12 +21,12 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611120700"></script>
-<script src="../brand/account.js?v=202611100905"></script>
+<script src="../brand/mingo.js?v=202611141100"></script>
+<script src="../brand/account.js?v=202611141100"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="../shared/style.css?v=202611091550">
+<link rel="stylesheet" href="../shared/style.css?v=202611141100">
 <style>
 /* Silhouette: one big shape in a square frame, the answer box under it; the daily nine as a 3 x 3 board of small frames */
 .silbox{position:relative;width:100%;max-width:340px;align-self:center;aspect-ratio:1;background:var(--sheet);border:2px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:14px;
@@ -56,9 +56,11 @@
 .reveal .rpts{margin-left:auto;font-family:var(--mono);font-size:.85rem;white-space:nowrap}
 .streak{display:flex;gap:16px;font-size:.95rem;color:var(--ink-2)}
 .streak b{font-family:var(--display);font-weight:700;font-size:1.3rem;color:var(--ink);margin-right:4px}
-.board9{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:340px;align-self:center}
-.board9 button{aspect-ratio:1;background:var(--sheet);border:2px dashed var(--line);border-radius:14px;padding:6px;position:relative}
-.board9 button .sil{width:100%;height:100%;display:block;color:var(--ink)}
+.board9{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%;max-width:340px;align-self:center}
+.board9 button{display:block;width:100%;min-width:0;height:auto;background:var(--sheet);border:2px dashed var(--line);border-radius:14px;padding:0;position:relative;overflow:hidden}
+/* square tiles without aspect-ratio and the shape out of the flow: iPhone Safari made the tiles bigger than their columns and rows */
+.board9 button::before{content:"";display:block;padding-top:100%}
+.board9 button .sil{position:absolute;top:6px;left:6px;width:calc(100% - 12px);height:calc(100% - 12px);display:block;color:var(--ink)}
 .board9 button.sel{border:2px solid var(--flamingo);box-shadow:0 0 0 3px color-mix(in srgb,var(--flamingo) 30%,transparent)}
 .board9 button.right{border-style:solid;border-color:var(--good);background:var(--p4-soft)}.board9 button.right .sil{color:var(--good)}
 .board9 button.wrong{border-style:solid;border-color:var(--bad);background:var(--p0-soft)}.board9 button.wrong .sil{color:var(--bad)}
@@ -76,7 +78,7 @@
 .ready{display:flex}
 @media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611120720">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611141100">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -84,9 +86,9 @@
 <div id="layer"></div>
 
 <script src="countries.js?v=202611120800"></script>
-<script src="silhouette.js?v=202610230100"></script>
-<script src="../shared/games.js?v=202611101000"></script>
-<script src="../shared/minigames.js?v=202611120800"></script>
+<script src="silhouette.js?v=202611141100"></script>
+<script src="../shared/games.js?v=202611141100"></script>
+<script src="../shared/minigames.js?v=202611141100"></script>
 <!-- online rooms (With friends): Firebase, loaded after the page so today's board shows at once -->
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>

@@ -1,7 +1,9 @@
 # Compass (Trip 9)
 
-Héctor's idea (2026-11-10): the mystery capital is the "?" in the middle of a compass. Clue capitals appear on the rim,
-each in its real direction seen from the mystery capital, with its distance in km. Name the mystery capital.
+Geography quiz: find the mystery capital with a compass. Part of [Geomingo](https://geomingo.com/).
+
+The mystery capital is the "?" in the middle of a compass. Clue capitals appear on the rim, each in its real direction
+seen from the mystery capital, with its distance in km. Name the mystery capital. (Héctor's idea, 2026-11-10.)
 
 - Five capitals per game, one at a time. The first clue is open; **Next clue** opens one more (five in all).
 - Every extra clue and every wrong guess costs 1 point: right = 6 − clues open − wrong guesses (5 down to 1).

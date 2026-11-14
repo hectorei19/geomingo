@@ -1,6 +1,6 @@
 /* Geomingo: Mingo, the GeoPass, the shared header, the result card and the list of games.
-   Every page loads it in its <head> (before its own scripts) from ../brand/mingo.js, so the saved
-   light/dark choice is applied before anything is drawn. Everything lives in window.Geomingo. */
+   Every page loads it in its <head> (before its own scripts) from ../brand/mingo.js.
+   Everything lives in window.Geomingo. */
 /* European number format everywhere (Héctor, 2026-11-02): a dot for thousands and a comma for decimals,
    4.964 km, 83,7 years. EU(n) keeps up to 3 decimals, EU(n,1) always 1. EUT(text) turns '10,000' and '0.9' in a
    written label into '10.000' and '0,9' (only for showing it: the labels stay the same inside the games). */

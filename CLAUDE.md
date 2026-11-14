@@ -16,7 +16,8 @@ Plain static HTML/CSS/JS: no build step, no framework, no tests. Each game is on
   flags from `data/flags.js`; `cities/` only forwards to `capitals/`
 - `connections/`, `top10/`, `silhouette/`, `customs/`, `flagpie/`, `impostor/`, `compass/` – the smaller games
   (Compass loads `capitals/data.js` for the capitals and their coordinates)
-- `shared/` – `style.css`, `games.js`, `minigames.js`, `data.js` (category rules only, no data)
+- `shared/` – used by the seven smaller games (not Countries/Capitals): `style.css`, `games.js`, `minigames.js`,
+  `race.js` (With friends rooms for Customs, Flag Pie, Impostor, Compass), `data.js` (category rules only, no data)
 - Connections, Top 10, Customs, Flag Pie, Impostor load `data/countries.js` before `shared/data.js`; Silhouette's
   `countries.js` is built from `data/` by `silhouette/tools/build-countries.js` (run it after changing `data/`).
 - `silhouette/tools/`, `flagpie/tools/` – Node scripts that regenerate data files
