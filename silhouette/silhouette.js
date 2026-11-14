@@ -49,8 +49,6 @@ function searchCountries(q, pool, max) {
   }
   return [...exact, ...starts, ...inside].slice(0, max || 6);
 }
-// the country a full answer names, or null
-const countryNamed = q => { const k = norm(q); return COUNTRIES.find(c => c.k === k || c.ak.includes(k)) || null; };
 
 // seeded random numbers (mulberry32): the same seed always gives the same picks
 function rng(seed) {

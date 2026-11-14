@@ -20,9 +20,7 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .seg button:last-child{border-right:0}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
 .players{display:flex;flex-direction:column;gap:8px}
-.prow{display:flex;gap:8px;align-items:center}
 .pin{width:14px;height:14px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);flex:none}
-.prow input{flex:1;min-width:0;border:1px solid var(--rule);background:var(--paper);border-radius:4px;padding:9px 10px}
 .row-btns{display:flex;gap:8px}
 .sharebig{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;min-height:54px;margin:4px 0 0}
 .primary.sharebig{background:transparent;color:#F3D98B;border:1.5px solid var(--gold)}
@@ -142,11 +140,6 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .credits dt{font-weight:700}
 .credits dd{margin:2px 0 0;color:var(--ink-2);font-size:.92rem}
 .credits a{color:var(--sea)}
-.handoff{position:fixed;inset:0;z-index:35;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px 16px calc(24px + env(safe-area-inset-bottom,0px));text-align:center}
-.handoff h2{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:2.6rem;line-height:1;margin:0;text-wrap:balance}
-.handoff p{margin:0;color:var(--ink-2);max-width:32ch}
-.handoff .scores{justify-content:center}
-.handoff .primary{min-width:220px}
 .pin.big{width:34px;height:34px}
 .toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:40;background:var(--ink);color:var(--sheet);padding:10px 16px;border-radius:5px;font-weight:600;box-shadow:var(--shadow);max-width:calc(100% - 32px);text-align:center}
 .toast.bad{background:var(--bad);color:#fff}
@@ -264,25 +257,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .b5 .cell.flag{padding:3.5px}
 .c0{--pc:var(--p0);--pc-soft:color-mix(in srgb,var(--p0) 22%,transparent)}.c1{--pc:var(--p1);--pc-soft:color-mix(in srgb,var(--p1) 22%,transparent)}.c2{--pc:var(--p2);--pc-soft:color-mix(in srgb,var(--p2) 22%,transparent)}.c3{--pc:var(--p3);--pc-soft:color-mix(in srgb,var(--p3) 22%,transparent)}
 .mini{width:20px;height:20px;border-radius:3px;object-fit:cover;flex:none;vertical-align:-5px;box-shadow:0 0 0 1px var(--rule)}
-/* games menu (games.js): top-left button with the three daily games, shared by every page */
-.tl{display:flex;align-items:center;gap:10px;min-width:0}
-.gamesbtn{display:inline-flex;align-items:center;gap:6px;align-self:center}
-.gamesbtn .ico{width:16px;height:16px}
-@media (max-width:420px){.gamesbtn{font-size:0;gap:0;padding:6px 8px}.gamesbtn .ico{width:18px;height:18px}.tl{gap:8px}}
-.gmenu{position:fixed;z-index:29;left:max(16px,calc(50% - 264px));width:min(300px,calc(100% - 32px));display:flex;flex-direction:column;background:var(--sheet);border:1px solid var(--rule);border-radius:8px;box-shadow:var(--shadow);overflow:hidden}
-.gmhead{font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);padding:10px 16px 6px}
-.gmitem{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--rule);color:var(--ink);text-decoration:none}
-.gmitem:hover{background:var(--sea-soft)}
-.gmitem.here{box-shadow:inset 3px 0 0 var(--sea)}
-.gmtxt{flex:1;display:flex;flex-direction:column;gap:1px;min-width:0}
-.gmtxt b{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:1.25rem;line-height:1;letter-spacing:.02em}
-.gmtxt small{color:var(--ink-2);font-size:.85rem}
-.gmst{font-family:var(--mono);font-size:.72rem;color:var(--ink-2);white-space:nowrap}
-.gmst.done{color:var(--good)}
 a.primary{display:block;text-align:center;text-decoration:none}
-/* Connections and Top 10 headers: on phones the corner label (Daily #1) is hidden to make room; the result still shows the number */
-.mini-top .brand{font-size:1.9rem}
-@media (max-width:420px){.mini-top .coord{display:none}.mini-top .brand{font-size:1.75rem}}
 /* lives on the ticket: pink dots, used ones empty */
 .tk-dots{display:inline-flex;gap:5px;align-items:center;height:22px}
 .tk-dots i{width:12px;height:12px;border-radius:50%;background:var(--flamingo,var(--coral))}

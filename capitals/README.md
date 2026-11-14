@@ -28,4 +28,4 @@ The daily grids are fixed in advance in `data.js` (`DAILY_FIXED`, one entry per 
 - Capitals and country names: Country Grid's data, from [mledoze/countries](https://github.com/mledoze/countries) (ODbL 1.0, adapted). La Paz and Pretoria for Bolivia and South Africa. "Not its country's biggest city": Wikipedia, "List of countries whose capital is not their largest city", plus China.
 - Coasts, seas, rivers, heights, hosts: compiled by hand from Wikipedia (CC BY-SA 4.0), coasts checked against [Natural Earth](https://www.naturalearthdata.com) (public domain), October 2026.
 - Megacities: UN World Urbanization Prospects 2018 (Wikipedia, "Megacity").
-- Fonts: Big Shoulders Display, Barlow Semi Condensed, JetBrains Mono (Google Fonts, SIL Open Font License).
+- Fonts: Archivo, Public Sans and Courier Prime (Google Fonts, SIL Open Font License), as in every Geomingo game.
