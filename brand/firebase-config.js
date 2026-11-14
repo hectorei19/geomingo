@@ -1,10 +1,10 @@
-// Firebase web config for every Geomingo game (project borderline-90920; not secret: access is controlled by the database rules in countries/database.rules.json).
+// Firebase web config for every Geomingo game (project geomingogames; not secret: access is controlled by the database rules in countries/database.rules.json).
 window.FIREBASE_CONFIG = {
-  apiKey: "AIzaSyBSHPqTRcuA3orK4W5LKbRNTNij48a4hdQ",
+  apiKey: "AIzaSyB5HP4CTb1_lQsz8ACEif8CLtS4lPTpzF8",
   authDomain: "auth.geomingo.com",
-  databaseURL: "https://borderline-90920-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "borderline-90920",
-  storageBucket: "borderline-90920.firebasestorage.app",
-  messagingSenderId: "934438573870",
-  appId: "1:934438573870:web:3461a8b859b9267187ccbf"
+  databaseURL: "https://geomingogames-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "geomingogames",
+  storageBucket: "geomingogames.firebasestorage.app",
+  messagingSenderId: "444503206024",
+  appId: "1:444503206024:web:b04854d7736d5774c1d73d"
 };

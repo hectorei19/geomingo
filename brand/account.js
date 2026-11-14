@@ -1,4 +1,4 @@
-/* Geomingo account: one Google sign-in (Firebase Authentication, project borderline-90920) for the whole site.
+/* Geomingo account: one Google sign-in (Firebase Authentication, project geomingogames) for the whole site.
    Every page loads it in its <head>, right after ../brand/mingo.js, so Geomingo.account is there for the page's own
    scripts; it starts once the page has loaded (and has loaded the Firebase SDK itself when the page did not).
    Signed in, these are kept in the account and follow you to every device:
@@ -15,9 +15,9 @@
 const G=window.Geomingo;if(!G)return;
 const SDK='https://www.gstatic.com/firebasejs/10.12.2/';
 // the Firebase web config (not secret: access is controlled by the database rules), for pages without their own
-const CONFIG={apiKey:'AIzaSyBSHPqTRcuA3orK4W5LKbRNTNij48a4hdQ',authDomain:'auth.geomingo.com',
-  databaseURL:'https://borderline-90920-default-rtdb.europe-west1.firebasedatabase.app',projectId:'borderline-90920',
-  storageBucket:'borderline-90920.firebasestorage.app',messagingSenderId:'934438573870',appId:'1:934438573870:web:3461a8b859b9267187ccbf'};
+const CONFIG={apiKey:'AIzaSyB5HP4CTb1_lQsz8ACEif8CLtS4lPTpzF8',authDomain:'auth.geomingo.com',
+  databaseURL:'https://geomingogames-default-rtdb.europe-west1.firebasedatabase.app',projectId:'geomingogames',
+  storageBucket:'geomingogames.firebasestorage.app',messagingSenderId:'444503206024',appId:'1:444503206024:web:b04854d7736d5774c1d73d'};
 const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}};
 const json=k=>{try{return JSON.parse(ls.get(k)||'null')}catch(e){return null}};
 const put=(k,v)=>ls.set(k,JSON.stringify(v));
