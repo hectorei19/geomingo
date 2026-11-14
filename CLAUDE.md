@@ -11,9 +11,9 @@ Plain static HTML/CSS/JS: no build step, no framework, no tests. Each game is on
   One name per country (`n`); `al` stays empty everywhere. Change country data here, never in a game folder.
 - `countries/` – Countries (old Country Grid / Borderline); its daily grids in `daily.js` (DAILY_FIXED);
   `database.rules.json` = Firebase rules
-- `capitals/` – Capitals (old Cities / City Grid); cities in `data.js` (CITIES, CO_LISTS, DAILY_FIXED;
+- `capitals/` – Capitals (old City Grid); cities in `data.js` (CITIES, CO_LISTS, DAILY_FIXED;
   country names CO are built from `data/countries.js`),
-  flags from `data/flags.js`; `cities/` only forwards to `capitals/`
+  flags from `data/flags.js`
 - `connections/`, `top10/`, `silhouette/`, `customs/`, `flagpie/`, `impostor/`, `compass/` – the smaller games
   (Compass loads `capitals/data.js` for the capitals and their coordinates)
 - `shared/` – used by the seven smaller games (not Countries/Capitals): `style.css`, `games.js`, `minigames.js`,

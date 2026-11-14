@@ -101,7 +101,7 @@ function signOut(){if(ok)firebase.auth().signOut().catch(()=>{})}
    An invite link (?room=) always opens, so a friend can join a room without an account; nor does test mode (?test) show it.
    Signing out keeps gm-trial (it is not in DEVICE_KEYS), so the free days are not given again. */
 const TRIAL=3;
-const GAME_PAGE=/\/(countries|capitals|cities|connections|top10|silhouette|customs|flagpie|impostor|compass)\//.test(location.pathname);
+const GAME_PAGE=/\/(countries|capitals|connections|top10|silhouette|customs|flagpie|impostor|compass)\//.test(location.pathname);
 const ROOM_LINK=(()=>{try{return new URLSearchParams(location.search).has('room')}catch(e){return false}})();
 const trialDays=()=>{const d=json('gm-trial');return Array.isArray(d)?d.filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x)):[]};
 // day: which free day today is (1-3, or the one it would be), left: free days still to come after today, over: no free day left
