@@ -188,9 +188,9 @@ function trainHTML(){const q=T.q,s=trainStats()[T.diff]||{best:0},done=q.st!=='p
   h+=`<div class="backline"><button class="linkbtn" id="soloback">← Back</button><span class="ht">Solo</span></div>`;
   // the ticket, as in every game: Mingo on top, then who is travelling, the level, the shapes named and the lives left
   h+=Geomingo.ticket(moodHTML(silKey(),'pass','Whose shape is this?',T.nolives?'Type its name. No lives: take your time, or skip it.':'Type its name. Your best game at '+DIFF_NAME[T.diff]+': '+(s.best||0)+' named.'),
-    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Named',T.streak)+tk('Class',DIFF_NAME[T.diff],'tk-pts')+(T.nolives?tk('Mistakes',T.miss,'tk-gs'):tk('Lives',livesHTML(trainLeft(),LIVES),'tk-gs')),{mode:'practice'});
+    tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Named',T.streak)+tk('Points',10*T.streak,'tk-pts')+(T.nolives?tk('Mistakes',T.miss,'tk-gs'):tk('Lives',livesHTML(trainLeft(),LIVES),'tk-gs')),{mode:'practice'});
   h+=`<section class="panel play">${silBoxHTML(q,done)}`;
-  if(T.over)h+=revealHTML(q)+`<span class="label">Game over</span><p class="big">${T.streak} named</p><p class="hint">${T.nolives?'Training, no lives. '+T.miss+' mistake'+(T.miss===1?'':'s')+'.':T.streak&&T.streak>=(s.best||0)?'Your best game at '+DIFF_NAME[T.diff]+'.':'Your best at '+DIFF_NAME[T.diff]+': '+(s.best||0)+' named.'}</p><button class="primary" id="tagain">New game</button>`;
+  if(T.over)h+=revealHTML(q)+`<span class="label">Game over</span><p class="big">${10*T.streak} points</p><p class="hint">${T.streak} named, 10 points each.</p><p class="hint">${T.nolives?'Training, no lives. '+T.miss+' mistake'+(T.miss===1?'':'s')+'.':T.streak&&T.streak>=(s.best||0)?'Your best game at '+DIFF_NAME[T.diff]+'.':'Your best at '+DIFF_NAME[T.diff]+': '+(s.best||0)+' named.'}</p><button class="primary" id="tagain">New game</button>`;
   else if(done)h+=revealHTML(q)+`<button class="primary" id="tnext">Next shape</button>`;
   else h+=triesHTML(q,true)+answerBoxHTML(q,(T.nolives?'<button class="ghost" id="tshow">Skip this shape</button>':'')+giveUpHTML());
   return h+`</section>`+(done?'':quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.'))}
@@ -310,8 +310,8 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Today's shapes are always <b>Normal</b>. In Solo and With friends you choose the level.</li></ul>
   <h3>Modes</h3><ul>
   <li><b>Today's shapes</b>: nine shapes on a 3 × 3 board, the same for everyone, new every day at midnight CET. Tap a shape to answer it, in any order. If your ${LIVES} lives run out, the shapes you have not named count as missed. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>
-  <li><b>Solo</b>: shape after shape at the level you choose, until your ${LIVES} lives are gone. Your score is how many you named. No country comes back until you have seen them all. Pick <b>No lives</b> to train: no game over, skip a shape you can't name, and <b>Give up</b> when you want to stop.</li>
-  <li><b>With friends</b>: 2 to 6 players online, each on their own phone. The host chooses <b>Getting harder</b> (3 Easy, 4 Normal, 3 Hard) or a continent and a level. Everyone gets the same ten shapes at the same time, ${SECS} seconds each. There are no lives: you can try as many countries as you like until you name it or the time runs out. A right answer scores 500 points, plus up to 500 more for speed. The ranking shows after every shape and at the end.</li></ul>`}
+  <li><b>Solo</b>: shape after shape at the level you choose, until your ${LIVES} lives are gone. Every shape you name is 10 points. No country comes back until you have seen them all. Pick <b>No lives</b> to train: no game over, skip a shape you can't name, and <b>Give up</b> when you want to stop.</li>
+  <li><b>With friends</b>: 2 to 6 players online, each on their own phone. The host chooses <b>Getting harder</b> (3 Easy, 4 Normal, 3 Hard) or a continent and a level. Everyone gets the same ten shapes at the same time, ${SECS} seconds each. There are no lives: you can try as many countries as you like until you name it or the time runs out. A right answer scores 10 points, so ten shapes make 100. Level on points, the faster one ranks first. The ranking shows after every shape and at the end.</li></ul>`}
 function creditsHTML(){return `<ul style="padding-left:18px">
   <li>Borders: <a href="https://github.com/topojson/world-atlas" target="_blank" rel="noopener">world-atlas</a>, from <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> 1:10m (public domain); Vatican City from <a href="https://www.geoboundaries.org" target="_blank" rel="noopener">geoBoundaries</a> (public domain). Each country is drawn on its own map centred on itself, so no shape is stretched or cut by the date line.</li>
   <li>Country names and continents: Countries' data, from <a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a> (ODbL 1.0).</li>
@@ -321,8 +321,8 @@ function creditsHTML(){return `<ul style="padding-left:18px">
 /* ---- With friends: online rooms on Countries' Firebase Realtime Database ----
    A room lives at rooms/ABCD like Countries', marked game:'silhouette' so games never open each other's rooms.
    Everyone sees the same shape at the same time (the host deals all of them at the start, in qs); each round lasts
-   SECS seconds and ends early once everyone has named it or used their tries. A right answer scores 500, plus up to
-   500 for speed. Each phone writes only its own answer (ans/<round>/<player>); whoever is online moves the room on. */
+   SECS seconds and ends early once everyone has named it or used their tries. A right answer scores 10 (a level total
+   goes to the faster one). Each phone writes only its own answer (ans/<round>/<player>); whoever is online moves the room on. */
 const FB_OK=()=>typeof firebase!=='undefined'&&typeof firebase.database==='function'&&!!(window.FIREBASE_CONFIG&&/^https:\/\//.test(FIREBASE_CONFIG.databaseURL||''));
 const ROOM_V='sil-202611020600',MAXP=6,ROUNDS=10,SECS=20,READY_MS=3000,REVEAL_MS=6000;
 const CONTS=[['all','The whole world'],['EU','Europe'],['AS','Asia'],['AF','Africa'],['NA','North and Central America'],['SA','South America'],['OC','Oceania']];
@@ -412,9 +412,9 @@ function syncRoom(){const r=room;const prev=O;
   if(r.status==='lobby'||!r.qs){O=null;clearInterval(tick);render();return}
   const order=r.order||lobbyOrder(r),ans=r.ans||{};
   const players=order.map((pid,i)=>{const p=r.players[pid]||{};let total=0;
-    for(let k=0;k<r.qs.length;k++){const a=(ans[k]||{})[pid];if(a&&a.ok&&(k<r.round||r.status!=='round'||k!==r.round))total+=a.pts||0}
+    let ms=0;for(let k=0;k<r.qs.length;k++){const a=(ans[k]||{})[pid];if(a&&a.ok&&(k<r.round||r.status!=='round'||k!==r.round)){total+=10;ms+=a.ms||0}}
     const cur=(ans[r.round]||{})[pid]||{};
-    return {pid,i,name:p.name||'Gone',on:p.on!==false,total,cur}});
+    return {pid,i,name:p.name||'Gone',on:p.on!==false,total,ms,cur}});
   const q=r.qs[r.round],mine=(ans[r.round]||{})[ME]||{};
   O={round:r.round,status:r.status,q:{c:q.c,rot:q.rot,d:q.d,tries:mine.tries||[],st:mine.ok?'right':'play'},mine,
      players,me:order.indexOf(ME),host:r.host===ME,start:r.start,end:r.end,revealEnd:r.revealEnd,n:r.qs.length,cfg:r.cfg};
@@ -424,8 +424,8 @@ function syncRoom(){const r=room;const prev=O;
   O.key=[O.status,O.round,JSON.stringify(O.mine),r.host].join('|');
   if(prev&&prev.key===O.key&&$('ochips')){$('ochips').innerHTML=chipsHTML();return}
   render()}
-// a right answer: 500 points, plus up to 500 for speed (all of it when instant, none at the last second)
-const pointsFor=ms=>500+Math.round(500*Math.max(0,1-ms/(SECS*1000)));
+// a right answer: 10 points (Héctor 2026-11-14, the same table as every game); a level total goes to the faster one
+const pointsFor=()=>10;
 async function onlinePick(code){if(!O||O.status!=='round'||O.q.st!=='play')return;
   const t=now();if(t<O.start)return;
   if(t>O.end){toast("Time's up.",'bad');return}
@@ -467,7 +467,7 @@ async function onlineAct(kind){
     if(kind==='end'){if(r.host!==ME||r.status==='lobby')return;r.status='over';return r}
     if(kind==='lobby'){if(r.host!==ME)return;r.status='lobby';r.order=null;r.qs=null;r.ans=null;r.round=0;return r}
   })}catch(e){console.error(e);toast('That did not go through. Check the connection.','bad')}}
-const ranked=()=>[...O.players].sort((a,b)=>b.total-a.total||a.i-b.i);
+const ranked=()=>[...O.players].sort((a,b)=>b.total-a.total||a.ms-b.ms||a.i-b.i);
 function friendsHTML(){
   return header('Silhou<span>ette</span>','')+`<section class="panel">
     <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">With friends</span></div>
@@ -476,7 +476,7 @@ function friendsHTML(){
     <div class="field">${FB_OK()?'':'<p class="hint">Online play needs a connection: reload the page when you are online.</p>'}<button class="primary" id="create" ${FB_OK()?'':'disabled style="opacity:.5"'}>Create room</button></div>
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK()?'':'disabled'}>Join</button></div></div>
   </section>
-  <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Everyone gets the same shape at the same time, ${SECS} seconds each. No lives: try as many countries as you like until the time runs out. A right answer scores 500 points plus up to 500 for speed: the sooner, the more. Ten shapes, most points wins.</p></section>`}
+  <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Everyone gets the same shape at the same time, ${SECS} seconds each. No lives: try as many countries as you like until the time runs out. A right answer scores 10 points. Ten shapes, most points wins; if level, the faster one.</p></section>`}
 function lobbyHTML(){const r=room,order=lobbyOrder(r),link=pageLink('?room='+roomCode),host=r.host===ME;
   const c=host?setup:r.cfg;
   return header('Silhou<span>ette</span>','room '+roomCode)+`<section class="panel namecard"><span class="label">Room code</span><p class="roomcode">${roomCode}</p>
@@ -502,7 +502,7 @@ function onlineHTML(){const q=O.q,t=now(),ready=O.status==='round'&&t<O.start;
     h+=`<section class="panel"><span class="label">Room ${roomCode} · final ranking</span><p class="big">${tie?"It's a tie":esc(best.name)+' wins'}</p>${boardRowsHTML(false)}
       ${O.host?`<div class="row-btns"><button class="primary" id="orematch" style="flex:1">Rematch</button><button class="ghost" id="olobby" style="flex:1">Back to room</button></div>`:'<p class="hint">Waiting for the host to start a rematch.</p>'}</section>
       <div class="row-btns"><button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;return h}
-  const say=Geomingo.hello('pass','Shape '+(O.round+1)+' of '+O.n+'.',(DIFF_NAME[q.d]||'')+' level. '+'No lives: keep trying. The sooner, the more points.');
+  const say=Geomingo.hello('pass','Shape '+(O.round+1)+' of '+O.n+'.',(DIFF_NAME[q.d]||'')+' level. '+'No lives: keep trying. If points are level, the faster one wins.');
   h+=Geomingo.ticket(say,`<div id="ochips" style="display:contents">${chipsHTML()}</div>`+tk('Time',`<span id="tleft">${ready?'Get ready…':O.status==='reveal'?'':Math.max(0,Math.ceil((O.end-t)/1000))+' s'}</span>`,'tk-name'),{timer:O.status==='round'&&!ready});
   h+=`<section class="panel play">`;
   if(ready)h+=`<div class="silbox ready"><p class="big" style="margin:auto;text-align:center;align-self:center">Get ready</p></div>`;
