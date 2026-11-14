@@ -166,6 +166,25 @@ main{display:flex;flex-direction:column;gap:18px}
 .duel .dn{margin-top:8px;font-size:12px;color:var(--muted)}
 .duel .dr{margin:8px 0 0;text-align:center;font-weight:800;font-size:14px;color:var(--ink)}
 .week p{margin:0;font-size:14px;color:var(--muted)}
+/* the same look as today's ranking in the games: card with a gold edge, gold/silver/bronze medals, your row in gold, "You: #N of M" (Héctor 2026-11-14) */
+.week{background:#1F2B45;border:1.5px solid color-mix(in srgb,var(--gold) 35%,transparent);border-radius:14px}
+.week h3{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font:700 12px var(--type);letter-spacing:.12em;color:var(--muted)}
+.week h3 b{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.02em;color:var(--gold);white-space:nowrap}
+.week ol{gap:0}
+.week li[data-who]{min-height:48px;padding:0 6px;margin:0;border-bottom:1px solid var(--line);border-radius:0}
+.week li[data-who]:last-child{border-bottom:0}
+.week li.me{background:color-mix(in srgb,var(--gold) 13%,transparent);border-radius:10px;border-bottom-color:transparent}
+.week .av{display:none}
+.week .rk{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:14px;color:var(--muted);border:1.5px solid var(--line)}
+.week :is(li.m1,li.m2,li.m3) .rk{border:0;color:#16202F}
+.week li.m1 .rk{background:var(--gold)}
+.week li.m2 .rk{background:#B9C2CF}
+.week li.m3 .rk{background:#C98B5A}
+.week .nm{font-weight:700;font-size:16px}
+.week li.me .nm{color:var(--ink)}
+.week .pt{font:900 17px var(--display)}
+.week li.open{background:var(--page);border:1px solid #F3D98B;border-bottom:0;border-radius:10px 10px 0 0}
+.week li.duel{margin:0 0 6px}
 .rtabs{display:flex;gap:4px;padding:3px;border-radius:12px;background:var(--page);border:1px solid var(--line)}
 .rtabs button{flex:1;min-height:36px;border:0;border-radius:9px;background:none;color:var(--muted);font:800 12px var(--display);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;padding:0 4px}
 .rtabs button[aria-selected="true"]{background:var(--guil);color:#F3D98B;box-shadow:0 0 0 1.5px #F3D98B inset}
@@ -408,12 +427,12 @@ function rankRows(t){const ds=tabDays(t);
 function drawWeek(){const el=document.getElementById('week'),acc=A();loadRank();
   if(!acc||!acc.ready||!RANK){el.hidden=true;return}
   const me=acc.user&&acc.user.uid,rows=rankRows(TAB),i=rows.findIndex(r=>r.id===me),tab=TABS.find(x=>x[0]===TAB);
-  const row=(r,k)=>{const o=r.id===OPEN;return '<li class="'+(r.id===me?'me':'')+(o?' open':'')+'" data-who="'+esc(r.id)+'" role="button" tabindex="0" aria-expanded="'+o+'"><span class="rk">'+(k+1)+'</span><span class="av" style="--c:'+AV[k%AV.length]+'">'+esc((r.name.trim()[0]||'·').toUpperCase())+'</span><span class="nm">'+esc(r.id===me?r.name+' (you)':r.name)+'</span><span class="pt">'+fmt(r.mi)+' km</span><span class="chev" aria-hidden="true">'+(o?'▲':'▼')+'</span></li>'+(o?duelHTML(r,me):'')};
+  const row=(r,k)=>{const o=r.id===OPEN;return '<li class="'+(r.id===me?'me':'')+(k<3?' m'+(k+1):'')+(o?' open':'')+'" data-who="'+esc(r.id)+'" role="button" tabindex="0" aria-expanded="'+o+'"><span class="rk">'+(k+1)+'</span><span class="av" style="--c:'+AV[k%AV.length]+'">'+esc((r.name.trim()[0]||'·').toUpperCase())+'</span><span class="nm">'+esc(r.id===me?r.name+' (you)':r.name)+'</span><span class="pt">'+fmt(r.mi)+' km</span><span class="chev" aria-hidden="true">'+(o?'▲':'▼')+'</span></li>'+(o?duelHTML(r,me):'')};
   const list=rows.slice(0,10).map(row).join('')+(i>=10?'<li class="gap">…</li>'+row(rows[i],i):'');
   const foot=!me?'<p>Sign in and play to join the ranking.</p>':i<0&&rows.length?'<p>Finish a daily game signed in to join this ranking.</p>':'';
   const tabs='<div class="rtabs" role="tablist">'+TABS.map(([k,l])=>'<button type="button" role="tab" data-rtab="'+k+'" aria-selected="'+(k===TAB)+'">'+l+'</button>').join('')+'</div>';
   el.hidden=false;
-  const h='<h3>Ranking</h3>'+tabs+(rows.length?'<ol>'+list+'</ol>':'<p>'+tab[2]+'</p>')+foot;
+  const h='<h3>Ranking'+(i>=0?'<b>You: #'+(i+1)+' of '+rows.length+'</b>':'')+'</h3>'+tabs+(rows.length?'<ol>'+list+'</ol>':'<p>'+tab[2]+'</p>')+foot;
   if(el.innerHTML!==h)el.innerHTML=h}
 document.getElementById('week').addEventListener('keydown',e=>{const w=e.target.closest('li[data-who]');
   if(w&&(e.key==='Enter'||e.key===' ')){e.preventDefault();OPEN=OPEN===w.dataset.who?null:w.dataset.who;drawWeek();const n=document.querySelector('#week li[data-who="'+CSS.escape(w.dataset.who)+'"]');if(n)n.focus()}});
