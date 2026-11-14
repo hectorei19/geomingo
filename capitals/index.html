@@ -1196,7 +1196,10 @@ const toHub=()=>{location.href='../'};
 let AUTO=1;
 // signed in on this phone before: wait up to 4 s for the sign-in, showing only "Opening today's grid…" (not the old screen)
 let AUTH_WAIT=1;setTimeout(()=>{if(AUTH_WAIT){AUTH_WAIT=0;if(!S&&screen==='home')render()}},4000);
-function autoDaily(){if(!AUTO||S||screen!=='home'||editingUser||roomCode||MAYBE_IN()&&AUTH_WAIT||(USER&&NEEDNAME))return false;
+// today's grid already finished (here, or taken from another device of the account a moment later):
+// always show its result ticket, never the old summary card (Héctor 2026-11-14)
+const dailyOver=()=>{const d=loadDaily();return !!(d&&d.S&&d.S.over)};
+function autoDaily(){if(!AUTO&&!dailyOver()||S||screen!=='home'||editingUser||roomCode||MAYBE_IN()&&AUTH_WAIT||(USER&&NEEDNAME))return false;
   AUTO=0;if(USER)adoptDaily(ACCT_TODAY);const d=loadDaily();
   if(USER&&otherDevice(ACCT_TODAY)&&!(d&&d.S.over))return false;
   if(!d&&!dailyGrid())return false;
