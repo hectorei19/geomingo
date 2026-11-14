@@ -36,8 +36,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611141100"></script>
-<script src="../brand/account.js?v=202611141200"></script>
+<script src="../brand/mingo.js?v=202611151300"></script>
+<script src="../brand/account.js?v=202611151300"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -530,7 +530,7 @@ function wrongsHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntri
   if(S.wrong.length){const ws=S.wrong.map(c=>({c,p:placeOf(l,c)})).sort((a,b)=>(a.p||1e9)-(b.p||1e9));
     h+=`<div class="wrongs">Not in the top 10:<div class="wl">${ws.map(({c,p})=>`<span class="w"${on?` style="${pc(c)}" title="${esc(who(c))}"`:''}><b class="wr">${p?'#'+p:'–'}</b><img src="${FLAGS[c]}" alt=""><span class="wn">${esc(byCode[c].n)}</span><small>${p?esc(shortFig(l.fmt(val[c]))):noFigure(l,c)}</small></span>`).join('')}</div></div>`}
   return h}
-const quickRules=extra=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name the ten countries of the ranking, in any order. A country outside the top 10 costs one of your ${LIVES} lives. Only independent countries count.${extra||''}</p></section>`;
+const quickRules=extra=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name the ten countries of the ranking, in any order. A country outside the top 10 costs one of your ${LIVES} lives. Only independent countries count. 10 points a country, +20 with no life lost.${extra||''}</p></section>`;
 function homeHTML(){const key=todayKey(),num=dayNum(key,T10_FIRST),d=dailySaved(),h=load('t10-hist',{}),days=Object.keys(h);
   let daily;
   if(d&&d.over)
@@ -609,7 +609,7 @@ function render(){
   h+=`<div class="backline"><button class="linkbtn" id="${S.mode==='archive'?'archback':S.mode==='free'?'soloback':'home'}">← Back</button><span class="ht">${S.mode==='daily'?"Today's list":S.mode==='archive'?'List #'+S.num:'Solo'}</span></div>`;
   // the ticket, as in every game: Mingo on top, then who is travelling, countries found and lives left
   const cell=Geomingo.tk,tk=()=>Geomingo.ticket(moodHTML(tKey(),'pass','10 stamps to win.',S.nolives?'In any order. No lives: play until you find them all.':'In any order. A country outside the top 10 costs a life.'),
-    cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Found',S.found.length+'/10')+(S.mode==='daily'?cell('km',Geomingo.pts(S.found.length/10),'tk-pts'):'')+(S.nolives?cell('Mistakes',S.wrong.length,'tk-gs'):cell('Lives',livesHTML(S.lives,LIVES),'tk-gs')),{mode:S.mode==='free'?'practice':S.mode,num:S.num});
+    cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Found',S.found.length+'/10')+(S.mode==='daily'?(Geomingo.newKm(S.date)?cell('Points',Geomingo.KM.top10(S.found.length,S.wrong.length),'tk-pts'):cell('km',Geomingo.pts(S.found.length/10),'tk-pts')):'')+(S.nolives?cell('Mistakes',S.wrong.length,'tk-gs'):cell('Lives',livesHTML(S.lives,LIVES),'tk-gs')),{mode:S.mode==='free'?'practice':S.mode,num:S.num});
   // a guess while this list is on screen: only the ticket and the list change. The box you type in stays
   // where it is, so the phone keeps its keyboard open and the page does not jump up and down
   const g=$('t10game'),q=$('q');
@@ -656,6 +656,10 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>In the top 10: it appears in its place.</li>
   <li>Not in the top 10: you lose one of your <b>${LIVES} lives</b>, and you see where it ranks.</li>
   <li>The game ends when you find all ten or run out of lives. Then the full list is shown. <b>Give up</b> ends it early.</li></ul>
+  <h3>Points</h3><ul>
+  <li>10 points for every country you find: all ten, 100.</li>
+  <li>A <b>perfect game</b> (all ten, not one life lost): +20, so 120.</li>
+  <li>In today's list your points are also your km for the GeoPass.</li></ul>
   <h3>Modes</h3><ul>
   <li><b>Today's list</b>: the same for everyone, new every day at midnight CET. One try. Missed one? Play it in <b>Menu → Archive</b>.</li>
   <li><b>Solo</b>: as many practice lists as you like, a new one each time until you have played them all. <b>Share</b> sends a friend a link to the same list. Pick <b>No lives</b> to train: play until the end, mistakes are only counted.</li>

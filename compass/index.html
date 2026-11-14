@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611141100"></script>
-<script src="../brand/account.js?v=202611141200"></script>
+<script src="../brand/mingo.js?v=202611151300"></script>
+<script src="../brand/account.js?v=202611151300"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -124,6 +124,9 @@ function nextOf(q){const t=cityBy[q.c],have=shown(q),pre=have.map(x=>x.c),last=h
     .filter(x=>x.d>=40&&(!last||x.d<last.d)).sort((a,b)=>b.d-a.d);return R[0]||null}
 const worth=q=>CLUES+1-q.k-q.tries.length;
 const ptsOf=q=>q.st==='right'?(q.p||0):0;
+// points shown (Héctor 2026-11-14, the same table in every game): 15 + the 5-to-1 points, so 20 with the first clue down to 16,
+// +20 for a perfect game (all five with the first clue, no wrong guess). q.p and the history keep the old 5-to-1 points
+const show=x=>15+x;
 const newQ=c=>({c,k:1,tries:[],st:'play',p:0});
 const newGame=(codes,o)=>Object.assign({qs:codes.map(newQ),sel:0,over:false,left:null},o||{});
 const km=d=>EU(Math.round(d))+' km';
@@ -188,7 +191,7 @@ function answerBoxHTML(q){
   return `<div class="ans"><input id="q" placeholder="Type a capital city…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(query)}" aria-label="Type a capital city"><ul class="sugg" id="sugg"></ul></div>`}
 function bindAnswer(G,onPick){const q=G.qs[G.sel];
   if(SHEETS){bindAsk($('askbtn')?{key:q.c+':'+q.k+':'+q.tries.length+':'+view+':'+G.sel,back:'Back to the compass',
-    head:`<span>Which capital is in the middle? <i>${worth(q)} point${worth(q)===1?'':'s'}</i></span>`,
+    head:`<span>Which capital is in the middle? <i>${show(worth(q))} points</i></span>`,
     sugg:t=>{query=t;return suggHTML(q)},first:t=>{const m=matches(t).filter(x=>!onCompass(q,x.c));return m[0]&&m[0].c},pick:onPick}:null);return}
   const box=$('q');if(!box)return;
   const draw=()=>{const u=$('sugg');if(u){u.innerHTML=suggHTML(q);u.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>onPick(b.dataset.g))}};
@@ -200,28 +203,28 @@ function answer(q,code){if(code===q.c){q.p=worth(q);q.st='right';return 'right'}
   if(onCompass(q,code))return 'same';q.tries.push(code);q.last={bad:1,c:code};if(worth(q)<=0){q.st='wrong';return 'out'}return 'wrong'}
 // the next clue (1 point less); with 1 point left, "I don't know" lets the capital go
 function nextClue(q){if(q.st!=='play')return;if(q.k<CLUES&&worth(q)>1){const n=nextOf(q);if(!n){q.st='wrong';return}q.cl=shown(q).concat(n);q.k++;q.last=null}else q.st='wrong'}
-function feedback(q,res){if(res==='right')Geomingo.stamp('compass',cityBy[q.c].n,'+'+q.p,cityBy[q.c].k3)}
+function feedback(q,res){if(res==='right')Geomingo.stamp('compass',cityBy[q.c].n,'+'+show(q.p),cityBy[q.c].k3)}
 const tk=Geomingo.tk;
-const pointsOf=G=>G.qs.reduce((n,q)=>n+ptsOf(q),0);
+const rawOf=G=>G.qs.reduce((n,q)=>n+ptsOf(q),0),pointsOf=G=>Geomingo.KM.clue(rightOf(G),rawOf(G),PER);
 const rightOf=G=>G.qs.filter(q=>q.st==='right').length;
 const wrongOf=G=>G.qs.reduce((n,q)=>n+q.tries.length,0);
 const firstOf=G=>G.qs.filter(q=>q.st==='right'&&q.p===CLUES).length;
 // the five capitals of the game in a row: the one on screen in flamingo, the finished ones with their flag and points
 const deskHTML=G=>`<div class="desk" role="group" aria-label="The five capitals">${G.qs.map((q,i)=>{const now=i===G.sel&&!G.over&&G.left==null,cls=[now?'sel':'',q.st==='right'?'right':q.st==='wrong'?'wrong':''].join(' ');
-  return `<button data-tv="${i}" class="${cls}" aria-label="Capital ${i+1}${q.st==='play'?'':': '+esc(cityBy[q.c].n)}"${now?' aria-current="step"':''}>${q.st!=='play'?`<img src="${realFlag(cityBy[q.c].k3)}" alt=""><b>${q.st==='right'?'+'+q.p:'0'}</b>`:now?`NOW<b>${i+1}</b>`:`#${i+1}<b>–</b>`}</button>`}).join('')}</div>`;
+  return `<button data-tv="${i}" class="${cls}" aria-label="Capital ${i+1}${q.st==='play'?'':': '+esc(cityBy[q.c].n)}"${now?' aria-current="step"':''}>${q.st!=='play'?`<img src="${realFlag(cityBy[q.c].k3)}" alt=""><b>${q.st==='right'?'+'+show(q.p):'0'}</b>`:now?`NOW<b>${i+1}</b>`:`#${i+1}<b>–</b>`}</button>`}).join('')}</div>`;
 const cluesText=q=>q.k+' clue'+(q.k===1?'':'s')+(q.tries.length?', '+q.tries.length+' wrong':'');
 // a capital that has just finished: the compass with its name in the middle, then Next city
 function leftHTML(G,i){const q=G.qs[i],t=cityBy[q.c],ok=q.st==='right';
   return `<div class="reveal${ok?'':' wrong'}"><span class="label">City ${i+1} of ${PER}</span>${compassHTML(q,{done:1})}<b class="ln">${esc(t.n)}</b><span class="ls">Capital of ${esc(coName(t))}</span><span class="lst">${ok?'STAMPED':'MISSED'}</span>
-    <span class="ls">${ok?'+'+q.p+' point'+(q.p===1?'':'s')+' · '+cluesText(q):'0 points'+(q.tries.length?' · you said '+q.tries.map(x=>esc(cityBy[x].n)).join(', '):'')}</span>
+    <span class="ls">${ok?'+'+show(q.p)+' points · '+cluesText(q):'0 points'+(q.tries.length?' · you said '+q.tries.map(x=>esc(cityBy[x].n)).join(', '):'')}</span>
     <button class="primary" id="nexttv">${G.over?'See your result':'Next city →'}</button></div>`}
 // the play area: the five capitals, the compass, the latest news, the next-clue line, the answer box
 function playHTML(G){let h=deskHTML(G);
   if(G.left!=null)return `<div class="play">${h}${leftHTML(G,G.left)}</div>`;
   if(G.over)return `<div class="play">${h}</div>`;
   const q=G.qs[G.sel],w=worth(q),more=CLUES-q.k,can=more>0&&w>1;
-  return `<div class="play">${h}<div class="cmpcard"><span class="label">City ${G.sel+1} of ${PER} · worth ${w} point${w===1?'':'s'}</span>${compassHTML(q)}${newsHTML(q,q.last)}</div>
-    <div class="locked">${can?'🔒 '+more+' more clue'+(more===1?'':'s')+' locked':w===1?'Last point: one more try':'All five clues are open'}<button class="linkbtn" id="nextclue">${can?'Next clue':'I don\'t know'}</button></div>
+  return `<div class="play">${h}<div class="cmpcard"><span class="label">City ${G.sel+1} of ${PER} · worth ${show(w)} points</span>${compassHTML(q)}${newsHTML(q,q.last)}</div>
+    <div class="locked">${can?'🔒 '+more+' more clue'+(more===1?'':'s')+' locked':w===1?'Last chance: one more try':'All five clues are open'}<button class="linkbtn" id="nextclue">${can?'Next clue':'I don\'t know'}</button></div>
     ${answerBoxHTML(q)}${giveUpHTML()}</div>`}
 // after a capital finishes: show it, then the next one still to play, or the game is over
 function advance(G){if(G.qs[G.sel].st==='play')return;G.left=G.sel;const n=G.qs.findIndex(q=>q.st==='play');if(n<0)G.over=true;else G.sel=n}
@@ -230,7 +233,7 @@ function nextCity(G,save){const end=G.over;G.left=null;if(save)save();render();
 function showLeft(){const d=document.querySelector('.desk');if(d&&d.getBoundingClientRect().top<0)window.scrollTo(0,Math.max(0,d.getBoundingClientRect().top+window.scrollY-90))}
 // the summary under a finished game: each capital, its flag and the points
 const summaryHTML=G=>`<section class="panel"><span class="label">The five capitals</span><div class="flist">${G.qs.map(q=>{const t=cityBy[q.c],ok=q.st==='right';
-  return `<div class="frow${ok?'':' wrong'}"><img src="${realFlag(t.k3)}" alt=""><span class="rn"><b>${esc(t.n)}</b><small>${esc(coName(t))} · ${ok?'right with '+cluesText(q):'missed'}</small></span><span class="rpts">${ok?'+'+q.p:'0'}</span></div>`}).join('')}</div></section>`;
+  return `<div class="frow${ok?'':' wrong'}"><img src="${realFlag(t.k3)}" alt=""><span class="rn"><b>${esc(t.n)}</b><small>${esc(coName(t))} · ${ok?'right with '+cluesText(q):'missed'}</small></span><span class="rpts">${ok?'+'+show(q.p):'0'}</span></div>`}).join('')}</div></section>`;
 const sq=q=>q.st==='right'?(q.p>=4?'🟩':q.p>=2?'🟨':'🟧'):'🟥';
 const sqClass=q=>q.st==='right'?(q.p>=4?'on':'mid'):q.st==='wrong'?'bad':'';
 const squaresHTML=G=>`<span class="dsq" aria-hidden="true">${G.qs.map(q=>`<i class="${sqClass(q)}"></i>`).join('')}</span>`;
@@ -253,20 +256,20 @@ function dailyGame(){const d=dailySaved();if(d){if(d.S&&d.S.over)d.S.left=null;r
 function dailySave(){if(!D)return;
   if(D.mode==='archive'){const a=load('cm-arch',{});a[D.date]=D;store('cm-arch',a);if(D.over)logHist(D);return}
   store('cm-daily',{date:D.date,over:D.over,S:D});
-  if(D.over&&logHist(D)&&!TESTDAY){Geomingo.clock.stop('compass',D.date,pointsOf(D)/MAX);Geomingo.account.done('compass')}}
+  if(D.over&&logHist(D)&&!TESTDAY){Geomingo.clock.stop('compass',D.date,rightOf(D)/PER);Geomingo.account.done('compass')}}
 // a finished daily (on its day) goes into the history once: {p points, r capitals named, a with the first clue alone, m wrong guesses}
 function logHist(G){if(G.mode!=='daily')return false;const h=load('cm-hist',{});if(h[G.date])return false;
-  h[G.date]={p:pointsOf(G),r:rightOf(G),a:firstOf(G),m:wrongOf(G)};store('cm-hist',h);return true}
+  h[G.date]={p:rawOf(G),r:rightOf(G),a:firstOf(G),m:wrongOf(G)};store('cm-hist',h);return true}
 function dailyPick(code){const q=D&&D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;
   const res=answer(q,code);if(res==='same')return;query='';typing=res==='wrong';feedback(q,res);advance(D);dailySave();render();if(res!=='wrong')showLeft()}
 function dailyNextClue(){const q=D&&D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;nextClue(q);advance(D);dailySave();render();if(q.st!=='play')showLeft()}
-function dailyShareText(G){return `${Geomingo.share('Compass')} #${G.num}${G.mode==='archive'?' (archive)':''} — ${pointsOf(G)}/${MAX}\n${G.qs.map(sq).join('')}`}
+function dailyShareText(G){return `${Geomingo.share('Compass')} #${G.num}${G.mode==='archive'?' (archive)':''} — ${pointsOf(G)} points\n${G.qs.map(sq).join('')}`}
 const dailyShare=G=>dailyShareText(G)+"\n\nPlay today's Compass: "+pageLink();
 function verdict(G){const p=pointsOf(G),r=rightOf(G);
-  return r===PER&&p>=20?{pose:'happy',t:'A born navigator. '+p+' points.',s:'All five found.'}:r===PER?{pose:'happy',t:'All five stamped.',s:p+' of '+MAX+' points.'}
+  return r===PER&&p>=95?{pose:'happy',t:'A born navigator. '+p+' points.',s:'All five found.'}:r===PER?{pose:'happy',t:'All five stamped.',s:p+' points.'}
     :r>=3?{pose:'happy',t:r+' of 5 stamped.',s:p+' points. Tap a capital to see which it was.'}:r>=1?{pose:'think',t:'Lost in the fog today.',s:r+' of 5, '+p+' points.'}
     :{pose:'sad',t:'No capital today.',s:'Solo helps: unlimited capitals.'}};
-const cmAverage=()=>{const v=Object.values(load('cm-hist',{}));return v.length?EU(v.reduce((a,e)=>a+(+e.p||0),0)/v.length,1):'–'};
+const cmAverage=()=>{const v=Object.values(load('cm-hist',{}));return v.length?EU(v.reduce((a,e)=>a+Geomingo.KM.clue(e.r,e.p,PER),0)/v.length,1):'–'};
 function resultHTML(G){const p=pointsOf(G),v=verdict(G);
   if(G.mode==='archive')return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Archive · Compass #${G.num}</span><p class="big">${p} points</p>
     <p class="hint">${rightOf(G)} of 5 found. Archive games don't count for the ranking or your streak.</p>
@@ -275,7 +278,7 @@ function resultHTML(G){const p=pointsOf(G),v=verdict(G);
   return `${Geomingo.doneTicket('compass',G.num,p+' points','next in '+nextIn(),summaryHTML(G))}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns">${nextGameBtn('compass')}${SHARE_BTN.replace('Share result','Share')}</div>`}
 // today's ranking (signed-in players, first try of the day): points, then fewer wrong guesses, then who finished first
-const rankingHTML=()=>Geomingo.account.rankingHTML('compass',{what:'game',score:r=>[r.s+' pts',r.m+' wrong']});
+const rankingHTML=()=>Geomingo.account.rankingHTML('compass',{what:'game',score:r=>[Geomingo.KM.clue(r.r,r.s,PER)+' pts',r.m+' wrong']});
 Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&D.mode==='daily'&&D.date===todayKey()){D=dailyGame();liveKey=''}
   if(!typing&&(view==='home'||view==='daily'&&D&&D.over))render()});
 function openDaily(){D=dailyGame();query='';view='daily';render();window.scrollTo(0,0)}
@@ -285,14 +288,14 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     :q.k>1?['think','A new capital on the compass.','Every clue lowers the points. Which capital sits in the middle?']
     :['pass','Where am I?','The mystery capital is in the middle. The city on the rim shows how far it is, and which way.'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
-    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('City',(i+1)+'/'+PER)+(mode==='daily'?tk('km',Geomingo.clPts(G.qs.filter(x=>x.st==='right').length,pointsOf(G),PER),'tk-pts'):tk('Points',pointsOf(G),'tk-pts'))+tk('Worth',lf?(q.st==='right'?'+'+q.p:'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
+    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('City',(i+1)+'/'+PER)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+show(q.p):'0'):'+'+show(worth(q)),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Compass',(arch?'Archive #':'Daily #')+D.num);
   h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's capitals"}</span></div>`;
   if(D.over&&D.left==null)return h+resultHTML(D)+(D.mode==='archive'?summaryHTML(D):rankingHTML());
   return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel">${playHTML(D)}</section>`+quickRules()}
 
 /* ---- the archive: past days, one try each on this device ---- */
-const archDay=k=>{const e=load('cm-hist',{})[k];return e?e.p+' pts':null};
+const archDay=k=>{const e=load('cm-hist',{})[k];return e?Geomingo.KM.clue(e.r,e.p,PER)+' pts':null};
 function openArchive(){view='archive';query='';typing=false;render();window.scrollTo(0,0)}
 function playArchive(k){if(archDay(k)){toast('You played this day already.');return}
   const a=load('cm-arch',{});D=isGame(a[k])?a[k]:dailyNew(k,{mode:'archive',date:k,num:dayNum(k,FIRST)});
@@ -309,7 +312,7 @@ const soloPool=()=>soloDiff()==='easy'?DECK.filter(c=>cityBy[c]):CITIES.map(x=>x
 function openSolo(){view='solo';query='';typing=false;render();window.scrollTo(0,0)}
 function soloHTML(){return header('Compass','Solo')+`<section class="panel">
   <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Solo</span></div>
-  <p class="hint">Five capitals, a new set every game. Up to ${MAX} points.</p>
+  <p class="hint">Five capitals, a new set every game. Up to 100 points, 120 for a perfect game.</p>
   <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['hard','Hard']],soloDiff())}<p class="hint">${soloDiff()==='easy'?'Capitals most people know: the same ones as the daily game':'Any of the '+CITIES.length+' capitals, the tiny islands too'}.</p></div>
   <button class="primary" id="start">Start game</button></section>${quickRules()}`}
 function openTrain(){T=newGame(shuffle(soloPool(),Math.random).slice(0,PER),{mode:'solo'});mood=null;view='train';query='';typing=false;render();window.scrollTo(0,0)}
@@ -319,7 +322,7 @@ function trainPick(code){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)ret
 function trainNextClue(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;nextClue(q);advance(T);if(T.over)trainEnd();render();if(q.st!=='play')showLeft()}
 function trainHTML(){let h=header('Compass','Solo')+`<div class="backline"><button class="linkbtn" id="soloback">← Back</button><span class="ht">Solo</span></div>`;
   if(T.over&&T.left==null){const p=pointsOf(T),s=load('cm-solo',null)||{};
-    return h+`<section class="panel">${Geomingo.hello(p>=15?'happy':'think',p+' points.',rightOf(T)+' of 5 found. Your best Solo game: '+(s.best||p)+'.',{key:'res'})}<span class="label">Solo</span><p class="big">${p} points</p>
+    return h+`<section class="panel">${Geomingo.hello(p>=75?'happy':'think',p+' points.',rightOf(T)+' of 5 found. Your best Solo game: '+(s.best||p)+'.',{key:'res'})}<span class="label">Solo</span><p class="big">${p} points</p>
       <button class="primary" id="tagain">New game</button></section>`+summaryHTML(T)}
   return h+ticketHTML(T,'practice')+`<section class="panel">${playHTML(T)}</section>`+quickRules()}
 
@@ -328,7 +331,7 @@ function myStatsHTML(){const h=load('cm-hist',{}),so=load('cm-solo',null)||{n:0}
   return statsPageHTML({game:'Compass',hist:h,unit:'day',avg:cmAverage(),lbs:d=>[{path:'lb/compass',dates:d}],num:k=>'Compass #'+dayNum(k,FIRST),
     solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'found']]},
     friends:(fr=>Object.assign(fr,{third:[fr.best||0,'best']}))(friendsOf('cm-friends'))})}
-const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">The mystery capital is in the middle of the compass. Capitals appear round it, each in its real direction and with its distance. Name it with one clue for 5 points; every new clue and every wrong guess costs 1 point. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">The mystery capital is in the middle of the compass. Capitals appear round it, each in its real direction and with its distance. Name it with one clue for 20 points; every new clue and every wrong guess costs 1 point. All five with one clue: +20. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Five capitals, one at a time. Each one is hidden in the middle of a compass: the <b>?</b>.</li>
   <li>Other capitals appear on the rim of the compass, in their real direction seen from the mystery capital, with the distance in km. Example: <b>Rome · 765 km</b> at the bottom left means Rome is 765 km south-west of it.</li>
@@ -338,9 +341,11 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Tap <b>Next clue</b> for one more capital on the compass.</li>
   <li>A wrong guess lands on the compass too, in red, with its distance and direction: it helps you, but it costs a point.</li></ul>
   <h3>Points</h3><ul>
-  <li>Right with the first clue alone: <b>5 points</b>. Every extra clue and every wrong guess: 1 point less.</li>
-  <li>When no points are left, or you tap <b>I don't know</b>, the capital goes with 0.</li>
-  <li>Best game: ${MAX} points. <b>Give up</b> ends the game as it stands.</li></ul>
+  <li>Right with the first clue alone: <b>20 points</b>. Every extra clue and every wrong guess: 1 point less, down to 16.</li>
+  <li>One more after 16, or <b>I don't know</b>, and the capital goes with 0.</li>
+  <li>All five right: up to 100 points. A <b>perfect game</b> (all five with the first clue, not one wrong guess): +20, so 120.</li>
+  <li>In today's capitals your points are also your km for the GeoPass.</li>
+  <li><b>Give up</b> ends the game as it stands.</li></ul>
   <h3>How to answer</h3><ul>
   <li>Tap <b>Type a capital city…</b>, start typing and tap the capital in the list (its country is shown next to it).</li>
   <li>Names are in English. Accents, capitals and spaces don't matter. Some other names work too (Kiev for Kyiv, La Paz for Sucre).</li></ul>
@@ -397,7 +402,7 @@ function bind(){
   if($('copy')&&view!=='room')$('copy').onclick=()=>share(dailyShare(D));
   app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
   const G=TV?T:view==='daily'?D:null;
-  app.querySelectorAll('[data-tv]').forEach(b=>b.onclick=()=>{const q=G&&G.qs[+b.dataset.tv];if(q&&q.st!=='play')toast(cityBy[q.c].n+(q.st==='right'?' · +'+q.p:''))});
+  app.querySelectorAll('[data-tv]').forEach(b=>b.onclick=()=>{const q=G&&G.qs[+b.dataset.tv];if(q&&q.st!=='play')toast(cityBy[q.c].n+(q.st==='right'?' · +'+show(q.p):''))});
   if($('nextclue'))$('nextclue').onclick=TV?trainNextClue:dailyNextClue;
   if($('nexttv'))$('nexttv').onclick=()=>TV?nextCity(T):nextCity(D,dailySave);
   app.querySelectorAll('[data-seg="diff"]').forEach(b=>b.onclick=()=>{store('cm-diff',b.dataset.v);render()});

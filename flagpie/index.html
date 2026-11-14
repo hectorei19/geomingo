@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611141100"></script>
-<script src="../brand/account.js?v=202611141200"></script>
+<script src="../brand/mingo.js?v=202611151300"></script>
+<script src="../brand/account.js?v=202611151300"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -121,8 +121,10 @@ const SOV=C.filter(c=>!c.t&&PIE[c.c]);
 const cByCode=Object.fromEntries(SOV.map(c=>[c.c,c]));
 const realFlag=c=>'flags/'+c+'.svg';
 const contName={EU:'Europe',AS:'Asia',AF:'Africa',NA:'North or Central America',SA:'South America',OC:'Oceania'};
-const worth=q=>CLUES+1-q.k;
-const ptsOf=q=>q.st==='right'?worth(q):0;
+// points (Héctor 2026-11-14, the same table in every game): 20 with the pie alone, 1 less for each clue more (20 to 16),
+// +20 for a perfect game (all five with the pie alone). raw: the old 5-to-1 points, still what the history and ranking keep
+const raw=q=>CLUES+1-q.k,worth=q=>15+raw(q);
+const ptsOf=q=>q.st==='right'?raw(q):0;
 const newQ=c=>({c,k:1,tries:[],st:'play',alt:null});
 const newGame=(codes,o)=>Object.assign({qs:codes.map(newQ),sel:0,over:false,left:null},o||{});
 let query='',typing=false;
@@ -182,7 +184,7 @@ function answer(q,code){if(code===q.c||(SAME[q.c]||[]).includes(code)){q.st='rig
 function nextClue(q){if(q.st!=='play')return;if(q.k<CLUES)q.k++;else q.st='wrong'}
 function feedback(q,res){if(res==='right')Geomingo.stamp('flagpie',cByCode[q.c].n,'+'+worth(q),q.c)}
 const tk=Geomingo.tk;
-const pointsOf=G=>G.qs.reduce((n,q)=>n+ptsOf(q),0);
+const rawOf=G=>G.qs.reduce((n,q)=>n+ptsOf(q),0),pointsOf=G=>Geomingo.KM.clue(rightOf(G),rawOf(G),PER);
 const rightOf=G=>G.qs.filter(q=>q.st==='right').length;
 const wrongOf=G=>G.qs.reduce((n,q)=>n+q.tries.length,0);
 const pieOnlyOf=G=>G.qs.filter(q=>q.st==='right'&&q.k===1).length;
@@ -233,22 +235,22 @@ function dailyGame(){const d=dailySaved();if(d){if(d.S&&d.S.over)d.S.left=null;r
 function dailySave(){if(!D)return;
   if(D.mode==='archive'){const a=load('fp-arch',{});a[D.date]=D;store('fp-arch',a);if(D.over)logHist(D);return}
   store('fp-daily',{date:D.date,over:D.over,S:D});
-  if(D.over&&logHist(D)&&!TESTDAY){Geomingo.clock.stop('flagpie',D.date,pointsOf(D)/MAX);Geomingo.account.done('flagpie')}}
+  if(D.over&&logHist(D)&&!TESTDAY){Geomingo.clock.stop('flagpie',D.date,rightOf(D)/PER);Geomingo.account.done('flagpie')}}
 // a finished daily (on its day) goes into the history once: {p points, r flags named, a from the pie alone, m wrong answers, n: 5}
 function logHist(G){if(G.mode!=='daily')return false;const h=load('fp-hist',{});
   // the first day was played as one flag: that entry (no n) gives way to the five-flag game
   if(h[G.date]&&!(G.date===FIRST&&!h[G.date].n))return false;
-  h[G.date]={p:pointsOf(G),r:rightOf(G),a:pieOnlyOf(G),m:wrongOf(G),n:PER};store('fp-hist',h);return true}
+  h[G.date]={p:rawOf(G),r:rightOf(G),a:pieOnlyOf(G),m:wrongOf(G),n:PER};store('fp-hist',h);return true}
 function dailyPick(code){const q=D&&D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;
   const res=answer(q,code);query='';typing=res==='wrong';feedback(q,res);advance(D);dailySave();render();if(res!=='wrong')showLeft()}
 function dailyNextClue(){const q=D&&D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;nextClue(q);advance(D);dailySave();render();if(q.st!=='play')showLeft()}
-function dailyShareText(G){return `${Geomingo.share('Flag Pie')} #${G.num}${G.mode==='archive'?' (archive)':''} — ${pointsOf(G)}/${MAX}\n${G.qs.map(sq).join('')}`}
+function dailyShareText(G){return `${Geomingo.share('Flag Pie')} #${G.num}${G.mode==='archive'?' (archive)':''} — ${pointsOf(G)} points\n${G.qs.map(sq).join('')}`}
 const dailyShare=G=>dailyShareText(G)+"\n\nPlay today's Flag Pie: "+pageLink();
 function verdict(G){const p=pointsOf(G),r=rightOf(G);
-  return r===PER&&p>=20?{pose:'happy',t:'A flag expert. '+p+' points.',s:'All five named.'}:r===PER?{pose:'happy',t:'All five stamped.',s:p+' of '+MAX+' points.'}
+  return r===PER&&p>=95?{pose:'happy',t:'A flag expert. '+p+' points.',s:'All five named.'}:r===PER?{pose:'happy',t:'All five stamped.',s:p+' points.'}
     :r>=3?{pose:'happy',t:r+' of 5 stamped.',s:p+' points. Tap a flag to see which it was.'}:r>=1?{pose:'think',t:'Tricky colours today.',s:r+' of 5, '+p+' points.'}
     :{pose:'sad',t:'No flag today.',s:'Solo helps: unlimited flags.'}}
-const fpAverage=()=>{const v=Object.values(load('fp-hist',{})).filter(e=>(+e.n||1)===PER);return v.length?EU(v.reduce((a,e)=>a+(+e.p||0),0)/v.length,1):'–'};
+const fpAverage=()=>{const v=Object.values(load('fp-hist',{})).filter(e=>(+e.n||1)===PER);return v.length?EU(v.reduce((a,e)=>a+Geomingo.KM.clue(e.r,e.p,PER),0)/v.length,1):'–'};
 // the result, on top of the page, as in every game
 function resultHTML(G){const p=pointsOf(G),v=verdict(G);
   if(G.mode==='archive')return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Archive · Flag Pie #${G.num}</span><p class="big">${p} points</p>
@@ -258,7 +260,7 @@ function resultHTML(G){const p=pointsOf(G),v=verdict(G);
   return `${Geomingo.doneTicket('flagpie',G.num,p+' points','next in '+nextIn(),summaryHTML(G))}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns">${nextGameBtn('flagpie')}${SHARE_BTN.replace('Share result','Share')}</div>`}
 // today's ranking (signed-in players, first try of the day): points, then fewer wrong answers, then who finished first
-const rankingHTML=()=>Geomingo.account.rankingHTML('flagpie',{what:'game',score:r=>[r.s+' pts',r.m+' wrong']});
+const rankingHTML=()=>Geomingo.account.rankingHTML('flagpie',{what:'game',score:r=>[Geomingo.KM.clue(r.r,r.s,PER)+' pts',r.m+' wrong']});
 Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&D.mode==='daily'&&D.date===todayKey()){D=dailyGame();liveKey=''}
   if(!typing&&(view==='home'||view==='daily'&&D&&D.over))render()});
 function openDaily(){D=dailyGame();query='';view='daily';render();window.scrollTo(0,0)}
@@ -267,14 +269,14 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     :q.k>1||q.tries.length?['think','Look again.','A new clue is open. Every clue lowers the points.']
     :['pass','A flag in pieces.','These are its colours and how much of it each one covers. Whose flag is it?'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
-    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Flag',(i+1)+'/'+PER)+(mode==='daily'?tk('km',Geomingo.clPts(G.qs.filter(x=>x.st==='right').length,pointsOf(G),PER),'tk-pts'):tk('Points',pointsOf(G),'tk-pts'))+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
+    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Flag',(i+1)+'/'+PER)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Flag Pie',(arch?'Archive #':'Daily #')+D.num);
   h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's flags"}</span></div>`;
   if(D.over&&D.left==null)return h+resultHTML(D)+(D.mode==='archive'?summaryHTML(D):rankingHTML());
   return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel">${playHTML(D)}</section>`+quickRules()}
 
 /* ---- the archive: past days, one try each on this device ---- */
-const archDay=k=>{const e=load('fp-hist',{})[k];return e?e.p+' pts':null};
+const archDay=k=>{const e=load('fp-hist',{})[k];return e?Geomingo.KM.clue(e.r,e.p,+e.n||PER)+' pts':null};
 function openArchive(){view='archive';query='';typing=false;render();window.scrollTo(0,0)}
 function playArchive(k){if(archDay(k)){toast('You played this day already.');return}
   const a=load('fp-arch',{});D=isGame(a[k])?a[k]:newGame(dailyCodes(k),{mode:'archive',date:k,num:dayNum(k,FIRST)});
@@ -291,7 +293,7 @@ const soloPool=()=>soloDiff()==='easy'?UNIQ.filter(c=>cByCode[c]&&(DATA.pop[c]||
 function openSolo(){view='solo';query='';typing=false;render();window.scrollTo(0,0)}
 function soloHTML(){return header('Flag Pie','Solo')+`<section class="panel">
   <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Solo</span></div>
-  <p class="hint">Five flags, a new set every game. Up to ${MAX} points.</p>
+  <p class="hint">Five flags, a new set every game. Up to 100 points, 120 for a perfect game.</p>
   <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['hard','Hard']],soloDiff())}<p class="hint">${soloDiff()==='easy'?'Well-known countries, with 10 million people or more, and no two pies alike':'Any of the '+SOV.length+' countries. Some flags share the same pie: any of them counts'}.</p></div>
   <button class="primary" id="start">Start game</button></section>${quickRules()}`}
 function openTrain(){T=newGame(shuffle(soloPool(),Math.random).slice(0,PER),{mode:'solo'});mood=null;view='train';query='';typing=false;render();window.scrollTo(0,0)}
@@ -301,7 +303,7 @@ function trainPick(code){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)ret
 function trainNextClue(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;nextClue(q);advance(T);if(T.over)trainEnd();render();if(q.st!=='play')showLeft()}
 function trainHTML(){let h=header('Flag Pie','Solo')+`<div class="backline"><button class="linkbtn" id="soloback">← Back</button><span class="ht">Solo</span></div>`;
   if(T.over&&T.left==null){const p=pointsOf(T),s=load('fp-solo5',null)||{};
-    return h+`<section class="panel">${Geomingo.hello(p>=15?'happy':'think',p+' points.',rightOf(T)+' of 5 named. Your best Solo game: '+(s.best||p)+'.',{key:'res'})}<span class="label">Solo</span><p class="big">${p} points</p>
+    return h+`<section class="panel">${Geomingo.hello(p>=75?'happy':'think',p+' points.',rightOf(T)+' of 5 named. Your best Solo game: '+(s.best||p)+'.',{key:'res'})}<span class="label">Solo</span><p class="big">${p} points</p>
       <button class="primary" id="tagain">New game</button></section>`+summaryHTML(T)}
   return h+ticketHTML(T,'practice')+`<section class="panel">${playHTML(T)}</section>`+quickRules()}
 
@@ -310,7 +312,7 @@ function myStatsHTML(){const h=load('fp-hist',{}),so=load('fp-solo5',null)||{n:0
   return statsPageHTML({game:'Flag Pie',hist:h,unit:'day',avg:fpAverage(),lbs:d=>[{path:'lb/flagpie',dates:d}],num:k=>'Flag Pie #'+dayNum(k,FIRST),
     solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'named']]},
     friends:(fr=>Object.assign(fr,{third:[fr.best||0,'best']}))(friendsOf('fp-friends'))})}
-const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Five flags, each one as a pie of its colours. Name the country with the pie alone for 5 points; every wrong answer opens one more clue and lowers the points. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Five flags, each one as a pie of its colours. Name the country with the pie alone for 20 points; every wrong answer opens one more clue and costs 1 point. All five with the pie alone: +20. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Five flags, one at a time. Each one is shown as a pie chart: its colours and how much of the flag each one covers, coat of arms and all. Name the country.</li>
   <li>Only the ${SOV.length} independent countries, never territories.</li></ul>
@@ -322,9 +324,11 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li><b>5 The flag, blurred</b>.</li>
   <li>A wrong answer opens the next clue. You can also tap <b>Next clue</b>.</li></ul>
   <h3>Points</h3><ul>
-  <li>Right with the pie alone: <b>5 points</b>. With 2 clues: 4. With 3: 3. With 4: 2. With all 5: 1.</li>
+  <li>Right with the pie alone: <b>20 points</b>. With 2 clues: 19. With 3: 18. With 4: 17. With all 5: 16.</li>
   <li>A wrong answer with all five clues open, or <b>I don't know</b>, lets the flag go with 0.</li>
-  <li>Best game: ${MAX} points. <b>Give up</b> ends the game as it stands.</li>
+  <li>All five right: up to 100 points. A <b>perfect game</b> (all five with the pie alone, not one wrong answer): +20, so 120.</li>
+  <li>In today's flags your points are also your km for the GeoPass.</li>
+  <li><b>Give up</b> ends the game as it stands.</li>
   <li>Some flags have the same pie (France, the Netherlands and Russia, for example). Any of them counts as right.</li></ul>
   <h3>How the pie is measured</h3><ul>
   <li>Each flag is drawn in its official shape and every pixel is counted (1.500 across), so the percentages are exact to one decimal.</li>

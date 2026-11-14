@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611141100"></script>
-<script src="../brand/account.js?v=202611141200"></script>
+<script src="../brand/mingo.js?v=202611151300"></script>
+<script src="../brand/account.js?v=202611151300"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -113,8 +113,10 @@ const SOV=C.filter(c=>!c.t);
 const cByCode=Object.fromEntries(SOV.map(c=>[c.c,c]));
 const flagSrc=c=>'../flagpie/flags/'+c+'.svg';
 const contName={EU:'Europe',AS:'Asia',AF:'Africa',NA:'North or Central America',SA:'South America',OC:'Oceania'};
-const worth=q=>CLUES+1-q.k;
-const ptsOf=q=>q.st==='right'?worth(q):0;
+// points (Héctor 2026-11-14, the same table in every game): 20 with the first clue, 1 less for each clue more (20 to 16),
+// +20 for a perfect game (all five with one clue). raw: the old 5-to-1 points, still what the history and ranking keep
+const raw=q=>CLUES+1-q.k,worth=q=>15+raw(q);
+const ptsOf=q=>q.st==='right'?raw(q):0;
 // v: which clue of each group this traveller gives (picked once, so a saved game keeps its clues)
 const newQ=(c,rand)=>{rand=rand||Math.random;return {c,k:1,tries:[],st:'play',v:GROUPS.map(()=>Math.floor(rand()*1e6))}};
 let query='',typing=false;
@@ -228,7 +230,7 @@ function revealHTML(q){const c=cByCode[q.c],ok=q.st==='right';
 // the five at the desk: the ones gone show their flag and points, the one at the desk now is filled in
 const deskHTML=G=>`<div class="desk" role="group" aria-label="The five travellers">${G.qs.map((q,i)=>{const now=i===G.sel&&!G.over&&G.left==null,cls=[now?'sel':'',q.st==='right'?'right':q.st==='wrong'?'wrong':''].join(' ');
   return `<button data-tv="${i}" class="${cls}" aria-label="Traveller ${i+1}${q.st==='play'?'':': '+esc(cByCode[q.c].n)}"${now?' aria-current="step"':''}>${q.st!=='play'?`<img src="${flagSrc(q.c)}" alt=""><b>${q.st==='right'?'+'+worth(q):'0'}</b>`:now?`NOW<b>${i+1}</b>`:`#${i+1}<b>–</b>`}</button>`}).join('')}</div>`;
-const pointsOf=G=>G.qs.reduce((n,q)=>n+ptsOf(q),0);
+const rawOf=G=>G.qs.reduce((n,q)=>n+ptsOf(q),0),pointsOf=G=>Geomingo.KM.clue(rightOf(G),rawOf(G),PER);
 const rightOf=G=>G.qs.filter(q=>q.st==='right').length;
 const wrongOf=G=>G.qs.reduce((n,q)=>n+q.tries.length,0);
 // the game's play area: the five at the desk, the clues of the one at the desk, the answer box
@@ -273,19 +275,19 @@ function dailyGame(){const d=dailySaved();if(d&&d.S){if(d.S.over)d.S.left=null;r
 function dailySave(){if(!D)return;
   if(D.mode==='archive'){const a=load('cu-arch',{});a[D.date]=D;store('cu-arch',a);if(D.over)logHist(D);return}
   store('cu-daily',{date:D.date,over:D.over,S:D});
-  if(D.over&&logHist(D)&&!TESTDAY){Geomingo.clock.stop('customs',D.date,pointsOf(D)/MAX);Geomingo.account.done('customs')}}
+  if(D.over&&logHist(D)&&!TESTDAY){Geomingo.clock.stop('customs',D.date,rightOf(D)/PER);Geomingo.account.done('customs')}}
 // a finished daily (on its day) goes into the history once: {p points, r travellers named, m wrong answers}
 function logHist(G){if(G.mode!=='daily')return false;const h=load('cu-hist',{});if(h[G.date])return false;
-  h[G.date]={p:pointsOf(G),r:rightOf(G),m:wrongOf(G)};store('cu-hist',h);return true}
+  h[G.date]={p:rawOf(G),r:rightOf(G),m:wrongOf(G)};store('cu-hist',h);return true}
 function dailyPick(code){const q=D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;
   const res=answer(q,code);query='';typing=res==='wrong';
   feedback(q,res);advance(D);dailySave();render();if(res!=='wrong')showLeft()}
 function dailyNextClue(){const q=D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;nextClue(q);
   advance(D);dailySave();render();if(q.st!=='play')showLeft()}
-function dailyShareText(G){return `${Geomingo.share('Customs')} #${G.num}${G.mode==='archive'?' (archive)':''} — ${pointsOf(G)}/${MAX}\n${G.qs.map(sq).join('')}`}
+function dailyShareText(G){return `${Geomingo.share('Customs')} #${G.num}${G.mode==='archive'?' (archive)':''} — ${pointsOf(G)} points\n${G.qs.map(sq).join('')}`}
 const dailyShare=G=>dailyShareText(G)+"\n\nPlay today's Customs: "+pageLink();
 function verdict(G){const p=pointsOf(G),r=rightOf(G);
-  return r===PER&&p>=20?{pose:'happy',t:'Waved through. '+p+' points.',s:'All five named.'}:r===PER?{pose:'happy',t:'All five stamped.',s:p+' of '+MAX+' points.'}
+  return r===PER&&p>=95?{pose:'happy',t:'Waved through. '+p+' points.',s:'All five named.'}:r===PER?{pose:'happy',t:'All five stamped.',s:p+' points.'}
     :r>=3?{pose:'happy',t:r+' of 5 stamped.',s:p+' points. Tap a traveller to see who it was.'}:r>=1?{pose:'think',t:'A long queue today.',s:r+' of 5, '+p+' points.'}
     :{pose:'sad',t:'Nobody got through today.',s:'Solo helps.'}}
 // the result, on top of the page, as in every game
@@ -299,7 +301,7 @@ function resultHTML(G){const p=pointsOf(G),v=verdict(G);
 // the summary under a finished game: who each traveller was
 const summaryHTML=G=>`<section class="panel"><span class="label">The travellers</span>${G.qs.map(revealHTML).join('')}</section>`;
 // today's ranking (signed-in players, first try of the day): points, then fewer wrong answers, then who finished first
-const rankingHTML=()=>Geomingo.account.rankingHTML('customs',{what:'game',score:r=>[r.s+' pts',r.m+' wrong']});
+const rankingHTML=()=>Geomingo.account.rankingHTML('customs',{what:'game',score:r=>[Geomingo.KM.clue(r.r,r.s,PER)+' pts',r.m+' wrong']});
 Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&D.mode==='daily'&&D.date===todayKey()){D=dailyGame();liveKey=''}
   if(!typing&&(view==='home'||view==='daily'&&D&&D.over))render()});
 function openDaily(){D=dailyGame();query='';view='daily';render();window.scrollTo(0,0)}
@@ -307,15 +309,15 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
   const m=lf?(q.st==='right'?['happy','Stamped.','Tap Next traveller when you are ready.']:['sad','Not this time.','Tap Next traveller when you are ready.'])
     :[G.qs.some(x=>x.st!=='play')||q.k>1?'think':'pass','A traveller at the desk.','Read the clues and name the country. Every new clue lowers the points.'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
-    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Desk',(i+1)+'/'+PER)+(mode==='daily'?tk('km',Geomingo.clPts(G.qs.filter(x=>x.st==='right').length,pointsOf(G),PER),'tk-pts'):tk('Points',pointsOf(G),'tk-pts'))+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
+    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Desk',(i+1)+'/'+PER)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Customs',(arch?'Archive #':'Daily #')+D.num);
   h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's travellers"}</span></div>`;
   if(D.over&&D.left==null)return h+resultHTML(D)+(D.mode==='archive'?summaryHTML(D):rankingHTML());
   return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel">${playHTML(D)}</section>`+quickRules()}
-const cuAverage=()=>{const h=load('cu-hist',{}),v=Object.values(h);return v.length?EU(v.reduce((a,e)=>a+(+e.p||0),0)/v.length,1):'–'};
+const cuAverage=()=>{const h=load('cu-hist',{}),v=Object.values(h);return v.length?EU(v.reduce((a,e)=>a+Geomingo.KM.clue(e.r,e.p,PER),0)/v.length,1):'–'};
 
 /* ---- the archive: past days, one try each on this device ---- */
-const archDay=k=>{const e=load('cu-hist',{})[k];return e?e.p+' pts':null};
+const archDay=k=>{const e=load('cu-hist',{})[k];return e?Geomingo.KM.clue(e.r,e.p,PER)+' pts':null};
 function openArchive(){view='archive';query='';typing=false;render();window.scrollTo(0,0)}
 function playArchive(k){if(archDay(k)){toast('You played this day already.');return}
   const a=load('cu-arch',{});D=a[k]||{mode:'archive',date:k,num:dayNum(k,FIRST),qs:dailyQs(k),sel:0,over:false};
@@ -328,7 +330,7 @@ let T=null;
 function openSolo(){view='solo';query='';typing=false;render();window.scrollTo(0,0)}
 function soloHTML(){return header('Customs','Solo')+`<section class="panel">
   <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Solo</span></div>
-  <p class="hint">Five travellers, a new set every game. Up to ${MAX} points.</p>
+  <p class="hint">Five travellers, a new set every game. Up to 100 points, 120 for a perfect game.</p>
   <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['hard','Hard']],soloDiff())}<p class="hint">${soloDiff()==='easy'?'Well-known countries, with 10 million people or more':'Any of the 197 countries'}.</p></div>
   <button class="primary" id="start">Start game</button></section>${quickRules()}`}
 const soloDiff=()=>load('cu-diff','easy')==='hard'?'hard':'easy';
@@ -342,7 +344,7 @@ function trainNextClue(){const q=T.qs[T.sel];if(!q||q.st!=='play'||T.over)return
   advance(T);if(T.over)trainEnd();render();if(q.st!=='play')showLeft()}
 function trainHTML(){let h=header('Customs','Solo')+`<div class="backline"><button class="linkbtn" id="soloback">← Back</button><span class="ht">Solo</span></div>`;
   if(T.over&&T.left==null){const p=pointsOf(T),s=load('cu-solo',null)||{};
-    return h+`<section class="panel">${Geomingo.hello(p>=15?'happy':'think',p+' points.',rightOf(T)+' of 5 named. Your best Solo game: '+(s.best||p)+'.',{key:'res'})}<span class="label">Solo</span><p class="big">${p} points</p>
+    return h+`<section class="panel">${Geomingo.hello(p>=75?'happy':'think',p+' points.',rightOf(T)+' of 5 named. Your best Solo game: '+(s.best||p)+'.',{key:'res'})}<span class="label">Solo</span><p class="big">${p} points</p>
       <button class="primary" id="tagain">New game</button></section>`+summaryHTML(T)}
   return h+ticketHTML(T,'practice')+`<section class="panel">${playHTML(T)}</section>`+quickRules()}
 
@@ -351,7 +353,7 @@ function myStatsHTML(){const h=load('cu-hist',{}),so=load('cu-solo',null)||{n:0}
   return statsPageHTML({game:'Customs',hist:h,unit:'day',avg:cuAverage(),lbs:d=>[{path:'lb/customs',dates:d}],num:k=>'Customs #'+dayNum(k,FIRST),
     solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'named']]},
     friends:(fr=>Object.assign(fr,{third:[fr.best||0,'best']}))(friendsOf('cu-friends'))})}
-const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Five travellers, five clues each, from not obvious to obvious. Name the country with 1 clue for 5 points, with 2 for 4, down to 1 point with all five. A wrong answer opens the next clue. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Five travellers, five clues each, from not obvious to obvious. Name the country with 1 clue for 20 points, with 2 for 19, down to 16 with all five. A wrong answer opens the next clue. All five with 1 clue: +20. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Five travellers come to the customs desk, one at a time. Work out which country each one comes from.</li>
   <li>Only the 197 independent countries, never territories.</li></ul>
@@ -365,9 +367,11 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Which clue of each group you get is random, so a country can come back with other clues.</li>
   <li>You start with clue 1. Tap <b>Next clue</b> to open another one.</li></ul>
   <h3>Points</h3><ul>
-  <li>Name the country with 1 clue open: <b>5 points</b>. With 2: 4. With 3: 3. With 4: 2. With all 5: 1.</li>
-  <li>A wrong answer opens the next clue, so it costs a point. A wrong answer with all five clues open, or <b>I don't know</b>, lets the traveller go with 0.</li>
-  <li>Best game: ${MAX} points. <b>Give up</b> ends the game as it stands.</li></ul>
+  <li>Name the country with 1 clue open: <b>20 points</b>. With 2: 19. With 3: 18. With 4: 17. With all 5: 16.</li>
+  <li>A wrong answer opens the next clue, so it costs 1 point. A wrong answer with all five clues open, or <b>I don't know</b>, lets the traveller go with 0.</li>
+  <li>All five right: up to 100 points. A <b>perfect game</b> (all five with 1 clue, not one wrong answer): +20, so 120.</li>
+  <li>In today's travellers your points are also your km for the GeoPass.</li>
+  <li><b>Give up</b> ends the game as it stands.</li></ul>
   <h3>How to answer</h3><ul>
   <li>Tap <b>Type a country…</b>, start typing and tap the country in the list.</li>
   <li>Names are in English. Accents, capitals and spaces don't matter. Each country has one name only, the one shown in the list as you type (United Kingdom, not UK).</li></ul>

@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611141100"></script>
-<script src="../brand/account.js?v=202611141200"></script>
+<script src="../brand/mingo.js?v=202611151300"></script>
+<script src="../brand/account.js?v=202611151300"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -216,7 +216,7 @@ function noLives(G){if(!G.over&&!livesLeft(G.qs)){G.qs.forEach(q=>{if(q.st==='pl
 function dailySave(){if(!D)return;
   if(D.arch){const a=load('sil-arch',{});a[D.date]=D;store('sil-arch',a);return}
   const d=dailyAll();d[D.diff]=D;d.over=d.over||D.over;store('sil-daily',d);
-  if(D.over){const h=load('sil-hist',{}),day=h[D.date]||{};if(day[D.diff]==null){day[D.diff]=D.qs.filter(q=>q.st==='right').length;h[D.date]=day;store('sil-hist',h);if(!TESTDAY){Geomingo.clock.stop('silhouette',D.date,rightOf(D)/9);Geomingo.account.done('sil-'+D.diff)}}}}
+  if(D.over){const h=load('sil-hist',{}),day=h[D.date]||{};if(day[D.diff]==null){day[D.diff]=D.qs.filter(q=>q.st==='right').length;h[D.date]=day;store('sil-hist',h);{const mm=load('sil-miss',{});(mm[D.date]=mm[D.date]||{})[D.diff]=D.qs.reduce((n,q)=>n+q.tries.length,0);store('sil-miss',mm)}if(!TESTDAY){Geomingo.clock.stop('silhouette',D.date,rightOf(D)/9);Geomingo.account.done('sil-'+D.diff)}}}}
 function dailyPick(code){const q=D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;
   const res=answer(q,code,livesLeft(D.qs));query='';typing=res==='wrong';
   if(res==='out')noLives(D);
@@ -268,7 +268,7 @@ function dailyHTML(){let h=header('Silhou<span>ette</span>',(D.arch?'Archive #':
   h+=`<div class="backline"><button class="linkbtn" id="${D.arch?'archback':'home'}">← Back</button><span class="ht">${D.arch?'Board #'+D.num:"Today's shapes"}</span></div>`;
   if(D.over)h+=D.arch?dailyResultHTML(D)+`<section class="panel play">${boardHTML(D)}</section>`:dailyResultHTML(D)+rankingHTML();
   else{const q=D.qs[D.sel];
-    h+=Geomingo.ticket(dailyMood(),tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Named',rightOf(D)+'/'+D.qs.length)+(D.arch?tk('Class',DIFF_NAME[DAILY_LV],'tk-pts'):tk('km',Geomingo.pts(rightOf(D)/D.qs.length),'tk-pts'))+tk('Lives',livesHTML(livesLeft(D.qs),LIVES),'tk-gs'),{mode:D.arch?'archive':'daily',num:D.num})+`<section class="panel">${dailyPlayHTML(D,true)}</section>`+quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}
+    h+=Geomingo.ticket(dailyMood(),tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Named',rightOf(D)+'/'+D.qs.length)+(D.arch?tk('Class',DIFF_NAME[DAILY_LV],'tk-pts'):(Geomingo.newKm(D.date)?tk('Points',Geomingo.KM.sil(rightOf(D),D.qs.reduce((n,q)=>n+q.tries.length,0)),'tk-pts'):tk('km',Geomingo.pts(rightOf(D)/D.qs.length),'tk-pts')))+tk('Lives',livesHTML(livesLeft(D.qs),LIVES),'tk-gs'),{mode:D.arch?'archive':'daily',num:D.num})+`<section class="panel">${dailyPlayHTML(D,true)}</section>`+quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}
   return h}
 function dailyMood(){const started=D.qs.some(q=>q.st!=='play');
   return moodHTML(silKey(),started?'think':'pass',started?'Keep going: '+rightOf(D)+' of 9 so far.':'GeoPass ready.',started?'Tap any shape to jump to it.':'Nine shapes, nine stamps to win, the same for everyone. '+LIVES+' lives for the whole board.')}
@@ -289,7 +289,7 @@ function statsHTML(short){const h=load('sil-hist',{}),days=Object.keys(h);
   const tr=load('sil-train',{});
   return statTiles(days.length,silAverage(h),streakOf(h))+(short?'':`
     <table class="sttab"><tr><th>Solo</th><th>Shapes</th><th>Right</th><th>Best game</th></tr>${['easy','normal','hard'].map(v=>{const s=tr[v]||{n:0,ok:0,best:0};return `<tr><td>${DIFF_NAME[v]}</td><td>${s.n}</td><td>${s.n?Math.round(s.ok/s.n*100)+'%':'–'}</td><td>${s.best}</td></tr>`}).join('')}</table>`)}
-const quickRules=extra=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name the country from its shape. Every shape fills the same frame, so size is no clue. You have ${LIVES} lives for the whole game, not per shape.${extra||''}</p></section>`;
+const quickRules=extra=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name the country from its shape. Every shape fills the same frame, so size is no clue. You have ${LIVES} lives for the whole game, not per shape. Today's shapes: 10 points a shape, +10 for all nine, +20 with no wrong answer.${extra||''}</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Each shape is the outline of a country. Guess which one it is.</li>
   <li>Every shape is drawn to fill the same frame, so a big country and a small one look the same size.</li>
@@ -299,6 +299,10 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Names are in English. Accents, capitals and spaces don't matter. Each country has one name only, the one shown in the list as you type (United Kingdom, not UK).</li>
   <li>You have <b>${LIVES} lives</b> for the whole game, not for each shape. Every wrong answer, on any shape, costs one. Your wrong answers are listed under the shape.</li>
   <li>With no lives left, the game is over. <b>Give up</b> ends it early.</li></ul>
+  <h3>Points in today's shapes</h3><ul>
+  <li>10 points for every shape you name. All nine: +10, so 100.</li>
+  <li>A <b>perfect game</b> (all nine, not one wrong answer): +20, so 120.</li>
+  <li>Your points are also your km for the GeoPass.</li></ul>
   <h3>Levels</h3><ul>
   <li><b>Easy</b>: 54 countries most people know from maps, news and travel, north up.</li>
   <li><b>Normal</b>: all 197 countries, north up.</li>
