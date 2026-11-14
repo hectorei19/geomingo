@@ -4,7 +4,7 @@ Geography quiz: six countries each say something about themselves, and one of th
 
 ## How to play
 
-**Who's lying?** (since 2026-11-15, `LIES_FROM` in `lies.js`; Solo and With friends too). Six rounds per game, each with six new countries (no country twice in a game). Every country says one sentence about itself: five are true, one is a lie that sounds true. Tap the liar: right first time 5 points; a wrong pick shows that sentence was true and leaves one more try for 2 points; wrong again 0. Best game 30. After each round every sentence shows a short note.
+**Who's lying?** (since 2026-11-15, `LIES_FROM` in `lies.js`; Solo and With friends too). Six rounds per game, each with six new countries (no country twice in a game). Every country says one sentence about itself: five are true, one is a lie that sounds true. Tap the liar: right first time 5 points, then 4, 3, 2, 1 (each wrong pick shows that sentence is true); five wrong picks score 0. Best game 30. After each round every sentence shows a short note.
 
 - The sentences are hand-written in `lies.js` (`LIES_BANK`): `[code, kind, topic, sentence, note, first day]`, kind 0 = true, 1–3 = lie (easy to hard). Two sentences of the same topic never meet in a round, and the six lies of a day all have different topics.
 - Never about what you can see on the flag; nothing that can change soon (no "won the World Cup N times").

@@ -114,7 +114,7 @@
 <script src="../brand/firebase-config.js?v=202611101000"></script>
 <script src="../shared/race.js?v=202611100930"></script>
 <script src="facts.js?v=202611141130"></script>
-<script src="lies.js?v=202611141200"></script>
+<script src="lies.js?v=202611141230"></script>
 <script>
 /* ---- Impostor: six countries, six rounds, find the one that doesn't fit ----
    Héctor, 2026-11-08: six new countries every round (first version kept the same six all game: boring); up to five sentences come out, from hard to easy,
@@ -127,12 +127,13 @@ const SENT=5,ROUNDS=6,MAX=SENT*ROUNDS,FIRST='2026-11-08';
 const flagOf=c=>'../flagpie/flags/'+c+'.svg';
 const nameOf=c=>impByCode[c].n;
 /* Since LIES_FROM (lies.js, Héctor 2026-11-14): "Who's lying?" Each round six countries say one sentence each; five are
-   true, the impostor's is a lie that sounds true. Tap the liar: right first time 5 points, after one wrong pick 2, else 0.
-   A round of this kind has m:'lie', s: the six sentences, n: their notes, w: the first wrong pick. */
+   true, the impostor's is a lie that sounds true. Tap the liar: right first time 5 points, then 4, 3, 2, 1 (each wrong pick
+   shows that sentence is true); a fifth wrong pick scores 0. A round of this kind has m:'lie', s: the six sentences,
+   n: their notes, w: the wrong picks so far. */
 const isLie=q=>q.m==='lie';
-const worth=q=>isLie(q)?(q.k===1?5:2):SENT+1-q.k;
+const worth=q=>SENT+1-q.k;
 const ptsOf=q=>q.st==='right'?worth(q):0;
-const newGame=(g,o)=>Object.assign({qs:g.rounds.map(r=>Object.assign({set:r.set,c:r.c,f:r.f,k:1,pick:null,st:'play'},r.m==='lie'?{m:'lie',s:r.s,n:r.n,w:null}:{})),sel:0,over:false,left:null},o||{});
+const newGame=(g,o)=>Object.assign({qs:g.rounds.map(r=>Object.assign({set:r.set,c:r.c,f:r.f,k:1,pick:null,st:'play'},r.m==='lie'?{m:'lie',s:r.s,n:r.n,w:[]}:{})),sel:0,over:false,left:null},o||{});
 // the six countries of a round (games from the first hours of day #1 kept one set for the whole game, in G.set)
 const setOf=(G,q)=>q.set||G.set;
 let chosen=null;   // the country tapped, waiting for "That's the impostor"
@@ -159,10 +160,10 @@ function factsHTML(q,all){return `<ol class="facts">${q.f.map((f,i)=>{const open
 function claimsHTML(q,done){return `<div class="claims" role="group" aria-label="The six sentences">${q.set.map((c,i)=>{
     let cls='',tag=esc(nameOf(c)),note='';
     if(done){if(c===q.c){cls='imp';tag+=' · the impostor'}else{cls='ok';tag+=' · true'}note=q.n[i]}
-    else if(c===q.w){cls='tried';tag+=' · true';note=q.n[i]}
+    else if(q.w.includes(c)){cls='tried';tag+=' · true';note=q.n[i]}
     else if(c===chosen)cls='sel';
-    return `<button data-c="${c}" class="claim ${cls}"${done||c===q.w?' disabled':''}><img src="${flagOf(c)}" alt=""><span class="cw"><span class="cn">${tag}</span><span class="cs">“${esc(q.s[i])}”</span>${note?`<span class="cx">${esc(note)}</span>`:''}</span></button>`}).join('')}</div>`}
-const tryText=q=>q.k===1?'first time':'on the second try';
+    return `<button data-c="${c}" class="claim ${cls}"${done||q.w.includes(c)?' disabled':''}><img src="${flagOf(c)}" alt=""><span class="cw"><span class="cn">${tag}</span><span class="cs">“${esc(q.s[i])}”</span>${note?`<span class="cx">${esc(note)}</span>`:''}</span></button>`}).join('')}</div>`}
+const tryText=q=>q.k===1?'first time':'on try '+q.k;
 // the play area: the rounds, the six countries, the sentences open so far, then the buttons
 function playHTML(G){let h=deskHTML(G);
   if(G.left!=null)return `<div class="play">${h}${leftHTML(G,G.left)}</div>`;
@@ -170,7 +171,7 @@ function playHTML(G){let h=deskHTML(G);
   const q=G.qs[G.sel],more=SENT-q.k;
   if(isLie(q))return `<div class="play">${h}<span class="label">Round ${G.sel+1} of ${ROUNDS} · worth ${worth(q)} points</span>
     <span class="label">Five tell the truth. Who is lying?</span>${claimsHTML(q,false)}
-    ${chosen?`<button class="primary go" id="confirm">${esc(nameOf(chosen))} is lying</button>`:''}<div class="locked">${chosen?'Not sure? Tap it again to unselect':q.k===1?'Right first time: 5 points. Second try: 2.':'Not that one. Last try, for 2 points.'}</div>
+    ${chosen?`<button class="primary go" id="confirm">${esc(nameOf(chosen))} is lying</button>`:''}<div class="locked">${chosen?'Not sure? Tap it again to unselect':q.k===1?'Right first time: 5 points. Every wrong pick takes one off.':'Not that one. Now worth '+worth(q)+' point'+(worth(q)===1?'':'s')+'.'}</div>
     ${giveUpHTML()}</div>`;
   return `<div class="play">${h}<span class="label">Round ${G.sel+1} of ${ROUNDS} · worth ${worth(q)} point${worth(q)===1?'':'s'}</span>${sixHTML(G,q,false)}
     <span class="label">One of them doesn't fit the sentences. Which one?</span>${factsHTML(q,false)}
@@ -188,8 +189,8 @@ function leftHTML(G,i){const q=G.qs[i],ok=q.st==='right';
 // a tap on a country picks it; the big button says it; a wrong one ends the round with 0
 function choose(G,code){const q=G.qs[G.sel];if(!q||q.st!=='play'||G.over)return;chosen=chosen===code?null:code;render()}
 function answer(q,code){q.pick=code;if(code===q.c){q.st='right';return 'right'}
-  // "Who's lying?": a first wrong pick shows that sentence is true and leaves one more try, for 2 points
-  if(isLie(q)&&q.k===1){q.k=2;q.w=code;q.pick=null;return 'again'}q.st='wrong';return 'wrong'}
+  // "Who's lying?": a wrong pick shows that sentence is true and the round goes on, one point less (5 down to 1)
+  if(isLie(q)&&q.k<SENT){q.k++;q.w.push(code);q.pick=null;return 'again'}q.st='wrong';return 'wrong'}
 function moreFacts(q){if(q.st!=='play')return;if(q.k<SENT)q.k++;else q.st='wrong'}
 function feedback(q,res){if(res==='right')Geomingo.stamp('impostor',nameOf(q.c),'+'+worth(q),q.c)}
 function advance(G){if(G.qs[G.sel].st==='play')return;G.left=G.sel;const n=G.qs.findIndex(q=>q.st==='play');if(n<0)G.over=true;else G.sel=n}
@@ -245,7 +246,7 @@ Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&D.mode==='daily'&&
 function openDaily(){D=dailyGame();chosen=null;view='daily';render();window.scrollTo(0,0)}
 function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
   const m=lf?(q.st==='right'?['happy','Caught.','Tap Next round when you are ready.']:['sad','It got away.','Tap Next round when you are ready.'])
-    :isLie(q)?(q.k>1?['think','Not that one.','That sentence was true. One more try, for 2 points.']:['pass','One of them is lying.','Five sentences are true. One sounds true but isn\'t: find the impostor.'])
+    :isLie(q)?(q.k>1?['think','Not that one.','That sentence was true. Keep going: '+worth(q)+' point'+(worth(q)===1?'':'s')+' now.']:['pass','One of them is lying.','Five sentences are true. One sounds true but isn\'t: find the impostor.'])
     :q.k>1?['think','Read them again.','Only the impostor fails every clue. Each new one lowers the points.']
     :['pass','One of them is lying.','Every sentence fits all of these countries but one. Find the one it doesn\'t fit.'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
@@ -292,7 +293,7 @@ function myStatsHTML(){const h=load('im-hist',{}),so=load('im-solo',null)||{n:0}
     solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'caught']]},
     friends:(fr=>Object.assign(fr,{third:[fr.best||0,'best']}))(friendsOf('im-friends'))})}
 const quickRules=()=>{const G=view==='daily'?D:view==='train'||view==='room'?T:null,old=G&&G.qs&&G.qs[0]&&!isLie(G.qs[0]);
-  if(!old)return `<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Six rounds, six new countries in each. Every country says one sentence about itself: five are true, one is a lie that sounds true. Find the liar first time for 5 points; a wrong pick shows that sentence was true and gives you one more try, for 2 points. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+  if(!old)return `<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Six rounds, six new countries in each. Every country says one sentence about itself: five are true, one is a lie that sounds true. Find the liar first time for 5 points. A wrong pick shows that sentence was true and the round goes on, one point less each time (5, 4, 3, 2, 1). Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
   return `<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Six rounds, six new countries in each. Sentences come out one by one, from hard to easy. Each one is true for all of them but one: the impostor. Find it with one sentence for 5 points; every new sentence lowers the points, and a wrong pick scores 0. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`};
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Six rounds, each with six new countries. Every country says one sentence about itself.</li>
@@ -304,7 +305,8 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>After each round, every sentence shows a short note, so you see why it was true or false.</li></ul>
   <h3>Points</h3><ul>
   <li>Right first time: <b>5 points</b>.</li>
-  <li>A wrong pick shows that sentence was true, and you get one more try, for <b>2 points</b>. Wrong again: 0.</li>
+  <li>A wrong pick shows that sentence was true, and you keep going for one point less: 5, 4, 3, 2, 1.</li>
+  <li>Five wrong picks: 0 for the round.</li>
   <li>Best game: ${MAX} points. <b>Give up</b> ends the game as it stands.</li></ul>
   <h3>The sentences</h3><ul>
   <li>Written for Geomingo and checked one by one: records, history, borders, languages, sport, nature.</li>
