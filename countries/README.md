@@ -1,6 +1,6 @@
 # Countries (Geomingo)
 
-Part of [Geomingo](https://geomingo.com/), daily geography games. The game was called Country Grid (and Borderline before that); the saved data keep those names (`bl-` keys, Firebase project borderline-90920).
+Part of [Geomingo](https://geomingo.com/), daily geography games. The game was called Country Grid (and Borderline before that); the saved data keep those names (`bl-` keys, game id `borderline`).
 
 Geography grid game: name a country that matches each row and column (197 to choose from: the 193 UN members plus Vatican City, Palestine, Kosovo and Taiwan, the same list as every Geomingo game). Territories such as Hong Kong or Greenland are still in the data, so old games show them, but since 2026-11-10 they are never answers (daily grids before that day keep them, so those days stay as they were; see `ONLY_COUNTRIES_FROM` in `index.html`). Land neighbours count only countries too. Every grid is checked so it can always be completed, whatever answers are given.
 Today's grid (one 4×4 Normal grid a day for everyone), Solo (unlimited grids), or With friends (online rooms, up to 4 phones) via Firebase Realtime Database.

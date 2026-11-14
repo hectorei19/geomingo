@@ -41,7 +41,7 @@ Plain static HTML/CSS/JS: no build step, no framework, no tests. Each game is on
 - Travel words, not airport words (Trip, Visited, km, Traveller; no Gate/Boarding/Landed/miles).
 - Never rename localStorage keys (`bl-*`, `cc-*`, `gm-*`…), game ids in `GAMES`
   (`borderline`, `citygrid`…) or Firebase paths: saves and rankings depend on them.
-  Firebase project is `borderline-90920`. (Capitals' Firebase paths were moved once, on Héctor's request, from
+  Firebase project is `geomingogames` (moved from the old `borderline-90920` on 14 Nov 2026; the old one is kept only as a backup). (Capitals' Firebase paths were moved once, on Héctor's request, from
   `users/<uid>/cities`, `lb/citygrid`, `gprofiles/citygrid` to `…/capitals` by `capitals/tools/move-to-capitals.js`.)
 - After changing a shared file (`brand/`, `shared/`, a game's `.js`), bump its `?v=` number in
   every page that loads it, so phones pick up the new file.

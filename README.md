@@ -62,7 +62,7 @@ Guests (not signed in) can play on 3 different days (`gm-trial`); after that a s
 
 ## The account (Firebase Realtime Database)
 
-Firebase project `borderline-90920` (the name comes from the first version of Countries). With an account, everything below follows you to every device; signing out leaves the device clean (the account keeps it all):
+Firebase project `geomingogames` (until Nov 2026 the old project `borderline-90920`, kept as a backup). With an account, everything below follows you to every device; signing out leaves the device clean (the account keeps it all):
 
 - `users/<uid>/profile` – your name, chosen once, shown in every ranking
 - `users/<uid>/pass`, `users/<uid>/days` – the GeoPass and the days played (the streak), for every game
