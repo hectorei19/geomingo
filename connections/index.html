@@ -42,9 +42,9 @@
 .tile.flipped{flex-direction:column;gap:4px;background:var(--gc-soft)!important;border:1.5px solid var(--gc)!important;color:var(--ink)!important;transform:none;transition:transform .22s ease-out}
 .tile .tflag{height:28px;width:auto;max-width:58%;object-fit:contain;border-radius:3px;box-shadow:0 0 0 1px var(--rule)}
 .tile.long{font-size:.78rem}
-/* a round flag with the name under it, on a plain dark tile (found groups still flip as before); a picked tile turns Mingo coral */
+/* the real-shape flag (same height, its own width) with the name under it, on a plain dark tile (found groups still flip as before); a picked tile turns Mingo coral */
 .cx-grid .tile:not(.flipped){padding:4px 2px;aspect-ratio:1;flex-direction:column;justify-content:center;align-items:center;gap:6px;background:var(--page)}
-.tile .tfl{width:48%;height:auto;aspect-ratio:1;flex:none;object-fit:cover;border-radius:50%;box-shadow:0 0 0 1.5px var(--line)}
+.tile .tfl{height:34%;width:auto;max-width:82%;flex:none;border-radius:3px;box-shadow:0 0 0 1px var(--line)}
 .tile .tn{color:var(--ink);font-size:.64rem;font-weight:800;line-height:1.05;max-width:100%}
 .cx-grid .tile.on:not(.flipped){background:var(--page);border-color:var(--coral);border-width:3px;transform:translateY(-2px)}
 .cx-grid .tile.on .tn{color:var(--coral)}
@@ -455,7 +455,7 @@ const groupHTML=(g,miss)=>{const k=CATS[g.k];
   return `<div class="grp g${g.t}${miss?' miss':''}${g===popped?' new':''}"><span class="gl">${esc(EUT(k.label))}<button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></span>
     <span class="gm">${g.m.map(c=>`<span class="gi"><img class="gf" src="../flagpie/flags/${c}.svg" alt=""><span>${esc(byCode[c].n)}</span></span>`).join('')}</span></div>`};
 const tileHTML=(c,attr)=>{const n=byCode[c].n,on=attr==='data-c'&&sel.includes(c);
-  return `<button class="tile${on?' on':''}${n.length>12||n.split(' ').some(w=>w.length>10)?' long':''}" ${attr}="${c}" aria-pressed="${on}" lang="en"><img class="tfl" src="${FLAGS[c]}" alt=""><span class="tn">${esc(n)}</span></button>`};
+  return `<button class="tile${on?' on':''}${n.length>12||n.split(' ').some(w=>w.length>10)?' long':''}" ${attr}="${c}" aria-pressed="${on}" lang="en"><img class="tfl" src="../flagpie/flags/${c}.svg" alt=""><span class="tn">${esc(n)}</span></button>`};
 // the average of groups found (days before the count was kept: solved = 4, otherwise not counted)
 function cxAverage(h){const known=Object.values(h).map(e=>e.w?4:e.f).filter(f=>f!=null);return known.length?EU(known.reduce((a,b)=>a+b,0)/known.length,1)+'/4':'–'}
 function statsHTML(){const h=load('cx-hist',{});return statTiles(Object.keys(h).length,cxAverage(h),streakOf(h))}
