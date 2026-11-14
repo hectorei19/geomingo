@@ -330,7 +330,9 @@ function hello(pose,title,sub,o){o=o||{};const key=o.key||'main',txt=pose+title,
 /* body: the day's answers, shown inside the same ticket under a tear line (Héctor 2026-11-12: one card, buttons below) */
 // from KM_FROM the big number is the day's points, the same number as its km (Countries and Capitals keep their own points)
 function doneTicket(id,num,score,next,body){const km=(ledger()[dayKey()]||{})[id];if(km!=null&&newKm(dayKey())&&id!=='borderline'&&id!=='citygrid')score=fmt(km)+' point'+(km===1?'':'s');
-  return '<section class="ticket gm-done"><div class="tk-mode daily"><span>★ Daily #'+esc(String(num))+'</span><span>Done</span></div>'+
+  // the trip and daily number sit in the gold strip (not under the game's name: geomingo.css hides it there) (Héctor 2026-11-14)
+  const g=GAMES.find(x=>x.id===id);
+  return '<section class="ticket gm-done"><div class="tk-mode daily"><span>★ '+(g?'Trip '+g.gate+' · ':'')+'Daily #'+esc(String(num))+'</span><span>Done</span></div>'+
     '<div class="gm-done-c"><p class="big">'+esc(String(score))+'</p><p class="gm-done-s">'+(km!=null?'<b>+'+fmt(km)+' km</b>':'')+'<span>'+esc(next)+'</span></p></div>'+
     (body?'<div class="tk-tear"></div><div class="gm-done-a">'+body+'</div>':'')+'</section>'}
 function tk(k,v,c){return '<div class="tk-c'+(c?' '+c:'')+'"><i>'+k+'</i><b>'+v+'</b></div>'}

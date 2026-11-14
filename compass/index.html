@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611151300"></script>
-<script src="../brand/account.js?v=202611151700"></script>
+<script src="../brand/mingo.js?v=202611151800"></script>
+<script src="../brand/account.js?v=202611151800"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -81,7 +81,7 @@
 .hcmp .mini{width:52px;height:52px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;color:var(--gold);font-size:1.3rem;background:var(--bg)}
 .hcmp img{width:52px;height:auto;align-self:center;border-radius:3px}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611141100">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611141800">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -290,7 +290,8 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
     tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('City',(i+1)+'/'+PER)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+show(q.p):'0'):'+'+show(worth(q)),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Compass',(arch?'Archive #':'Daily #')+D.num);
-  h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's capitals"}</span></div>`;
+  // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
+  if(!(D.over&&D.left==null&&!arch))h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's capitals"}</span></div>`;
   if(D.over&&D.left==null)return h+resultHTML(D)+(D.mode==='archive'?summaryHTML(D):rankingHTML());
   return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel">${playHTML(D)}</section>`+quickRules()}
 
