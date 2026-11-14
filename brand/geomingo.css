@@ -348,12 +348,13 @@ button.hcard:hover,button.hcard:active{border-color:var(--ink);background:var(--
 .place .pt,.lbl .pt,.lbl .sq{font-family:var(--type);font-weight:700}
 .lbl li.me{background:var(--pink-soft);border-radius:6px}
 /* today's ranking: its own card, gold, silver and bronze medals for the first three, your row in gold */
-.panel.lb{background:#1F2B45;border:1.5px solid color-mix(in srgb,var(--gold) 35%,transparent);gap:8px}
+.panel.lb{background:#1F2B45;border:1.5px solid var(--gold);gap:8px}
 .lb>.label{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-weight:700;letter-spacing:.12em}
 .lb>.label b{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.02em;color:var(--gold);white-space:nowrap}
 .lb .lbl li{gap:12px;padding:9px 6px;border-bottom:1px solid var(--line)}
 .lb .lbl li:last-child{border-bottom:0}
-.lb .lbl li.me{background:color-mix(in srgb,var(--gold) 13%,transparent);border-radius:10px}
+.lb .lbl li.me{background:none}
+.lb .lbl li.me .nm{color:#F3D98B}
 .lb .lbl .rk{width:28px;height:28px;flex:none;border-radius:50%;display:grid;place-items:center;font:900 14px var(--display);color:var(--muted);border:1.5px solid var(--line)}
 .lb .lbl li:nth-child(-n+3) .rk{border:0;color:#16202F}
 .lb .lbl li:nth-child(1) .rk{background:var(--gold)}
