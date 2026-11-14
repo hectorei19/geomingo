@@ -105,7 +105,7 @@
 <script src="../shared/data.js?v=202611141100"></script>
 <script src="../shared/games.js?v=202611141100"></script>
 <script src="../shared/minigames.js?v=202611141100"></script>
-<script src="daily.js?v=202611120300"></script>
+<script src="daily.js?v=202611142300"></script>
 <!-- With friends: online rooms in Countries' Firebase Realtime Database -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -126,7 +126,7 @@ const SOV=C.filter(c=>!c.t).map(c=>c.i);
 // neighbour rule (see neighbourRule in shared/data.js): dailies before NB_FROM (versions 1-3) keep the old count
 let POOLS,CHECKED,CHECKED_OF,POOLS2,MEMBERS,GAME,GAME_OF,POOLS3,NARROW;
 function poolsNow(){const P=[[],[],[],[]];
-  CATS.forEach(k=>{if(SKIP.has(k.label))return;const t=TIER0.has(k.label)?0:TIER_OF[k.fam];if(t==null)return;
+  CATS.forEach(k=>{if(k.v7||SKIP.has(k.label))return;const t=TIER0.has(k.label)?0:TIER_OF[k.fam];if(t==null)return;
     if(SOV.filter(i=>k.set[i]).length>=4)P[t].push(k)});return P}
 function buildPuzzleV1(seed){const r=rngFrom(seed);
   for(let a=0;a<3000;a++){
@@ -179,14 +179,67 @@ const UNIQUE_FROM='2026-10-26';
 const RULES={};
 function prepRule(old){neighbourRule(old);const key=old?'old':'new';
   const R=RULES[key]||(RULES[key]=(()=>{const P=poolsNow();
-    const CK=CATS.filter(k=>!SKIP.has(k.label)&&(sizeOf(k)<=CHECK_MAX||CHECK_ALSO.has(k.label)));
-    const GM=CATS.filter(k=>!SKIP.has(k.label)&&(sizeOf(k)<=CHECK_MAX||CHECK_ALSO.has(k.label)||k.label==='In Asia'));
+    const CK=CATS.filter(k=>!k.v7&&!SKIP.has(k.label)&&(sizeOf(k)<=CHECK_MAX||CHECK_ALSO.has(k.label)));
+    const GM=CATS.filter(k=>!k.v7&&!SKIP.has(k.label)&&(sizeOf(k)<=CHECK_MAX||CHECK_ALSO.has(k.label)||k.label==='In Asia'));
     return {POOLS:P,CHECKED:CK,CHECKED_OF:new Map(SOV.map(i=>[i,CK.filter(k=>k.set[i])])),
       POOLS2:P.map(p=>p.filter(k=>sizeOf(k)<=CHECK_MAX||k.label==='Landlocked')),
       MEMBERS:new Map(CATS.map(k=>[k,SOV.filter(i=>k.set[i])])),GAME:GM,GAME_OF:new Map(SOV.map(i=>[i,GM.filter(k=>k.set[i])])),
-      POOLS3:P.map(p=>p.filter(k=>GM.includes(k))),NARROW:CATS.filter(k=>!SKIP.has(k.label)).sort((a,b)=>sizeOf(a)-sizeOf(b))}})());
+      POOLS3:P.map(p=>p.filter(k=>GM.includes(k))),NARROW:CATS.filter(k=>!k.v7&&!SKIP.has(k.label)).sort((a,b)=>sizeOf(a)-sizeOf(b))}})());
   ({POOLS,CHECKED,CHECKED_OF,POOLS2,MEMBERS,GAME,GAME_OF,POOLS3,NARROW}=R)}
 prepRule(false);
+/* ---- version 7 (dailies from EASY_FROM, and every Solo / With friends puzzle): easier, better-known categories ----
+   Players found Connections too hard. Version 7 only uses categories most people know or can see on the flag, plus a
+   few new ones made from lists the database already has (no new data). Yellow is always one of the easiest. The
+   obscure ones (highest point, forest, coastline, corruption, HDI, median age…) no longer make groups. As before, no
+   other four of the 16 share any category the game knows, so there is exactly one solution.
+   The new categories are only for version 7 (k.v7): older puzzles and archive days stay exactly as they were. */
+const EASY_FROM='2026-11-15';
+const inCat=(label,c)=>{const k=CATS.find(x=>x.label===label);return !!(k&&k.set[c.i])};
+const addV7=(fam,label,test,desc)=>{const k={id:CATS.length,fam,label,test,v7:1,desc,short:label};CATS.push(k);
+  k.setNew=C.map(c=>!!test(c));k.setOld=k.setNew;k.set=k.setNew;k.count=k.set.filter(Boolean).length;return k};
+addV7('flag7','Flag is only red and white',c=>inCat('Flag of exactly 2 colours',c)&&!inCat('No red on the flag',c)
+  &&!['Flag has blue','Flag has green','Flag has yellow or gold','Flag has black','Flag has orange'].some(l=>inCat(l,c)),
+  'The flag uses only red (or dark red) and white, like Japan, Poland, Canada or Switzerland.');
+addV7('mon7','Monarchy in Europe',c=>c.r==='EU'&&inCat('Monarchy',c),
+  'A European country whose head of state is a monarch: a king, queen, grand duke, prince or the Pope (Andorra\'s co-princes count).');
+addV7('mon7','Monarchy in Asia',c=>c.r==='AS'&&inCat('Monarchy',c),
+  'An Asian country whose head of state is a monarch: a king, emperor, emir or sultan.');
+addV7('cw7','Commonwealth member in Africa',c=>c.r==='AF'&&inCat('Commonwealth member',c),
+  'An African member of the Commonwealth of Nations, like Kenya, Nigeria or South Africa.');
+addV7('name7','Name has North, South or Central',c=>/\b(North|South|East|West|Central)\b/.test(c.n),
+  'The country name contains a direction word: North, South, East, West or Central.');
+addV7('name7','Name contains "Guinea"',c=>/Guinea/.test(c.n),'The country name contains the word "Guinea".');
+addV7('name7','Name starts with Saint or San',c=>/^(Saint|San|São) /.test(c.n),'The country name starts with Saint, San or São.');
+// the categories version 7 uses: yellow (the easiest) and the rest, by label
+const EASY0=new Set(['In Europe','In Africa','In Asia','In South America','In Oceania','In North or Central America',
+  'Flag is only red and white','Name contains "Guinea"','Name has North, South or Central','Name ends in "-stan"',
+  'Uses the euro','Island nation (no land borders)','Landlocked','Flag has the Union Jack',
+  'Official language: Spanish','Official language: French','Official language: Portuguese']);
+const EASY=new Set([...EASY0,
+  ...CATS.filter(k=>/^Borders |^Coast on /.test(k.label)).map(k=>k.label),
+  'EU member','NATO member','Arab League member','ASEAN member','Former Soviet republic','OPEC member','G20 member',
+  'Has nuclear weapons','Monarchy in Europe','Monarchy in Asia','Commonwealth member in Africa',
+  'Flag has a cross','Flag has a crescent moon','Flag has a sun','Flag has an animal','Flag has a coat of arms or seal',
+  'Flag has orange','Flag of exactly 2 colours','Official language: Arabic','Currency called "dollar"',
+  'Hosted the men\'s World Cup','Won the men\'s World Cup','Hosted the Summer Olympics','Hosted the Winter Olympics',
+  'Hosts a Formula 1 race (2026)','500+ Olympic medals','Population over 100 million','Population over 50 million',
+  'Population under 100,000','Area over 2 million km²','Area over 1 million km²','Area under 1,000 km²',
+  'Crossed by the Equator',...CATS.filter(k=>/^Name starts with [A-Z]$/.test(k.label)).map(k=>k.label),
+  'Name ends in "-ia"','Name ends in "-land"','Name starts with Saint or San','Name of 2+ words','Name contains Z',
+  'Name has 5 letters or fewer','Starts and ends with the same letter','Capital starts with same letter','Capital name has 2+ words']);
+// colours: yellow = EASY0; green = flags, seas, borders, languages; blue = politics, size, people, sport; purple = names, capitals
+const TIER7={flagc:1,flags:1,flag7:1,sea:1,border:1,lang:1,money:1,region:1,geo:2,geo2:2,pol:2,pol2:2,mon7:2,cw7:2,people:2,sport:2,sport2:2,name:3,name7:3,cap:3};
+// the categories checked for "no other four share one": everything the game knows (old GAME) plus the new ones
+const CHECK7=[...GAME,...CATS.filter(k=>k.v7)],CHECK7_OF=new Map(SOV.map(i=>[i,CHECK7.filter(k=>k.set[i])]));
+CATS.filter(k=>k.v7).forEach(k=>MEMBERS.set(k,SOV.filter(i=>k.set[i])));
+function pools7(){const P=[{},{},{},{}];
+  CATS.forEach(k=>{if(!EASY.has(k.label)||CX_AVOID&&CX_AVOID.has(k.label))return;if(SOV.filter(i=>k.set[i]).length<4)return;
+    const t=EASY0.has(k.label)?0:TIER7[k.fam];if(t==null)return;(P[t][k.fam]||(P[t][k.fam]=[])).push(k)});
+  return P.map(t=>Object.values(t))}
+function buildPuzzle7(seed){const P=pools7();
+  for(let s=0;s<200;s++){const r=rngFrom(((seed+s*104729)>>>0)^0x7ea5e),pick=t=>P[t][Math.floor(r()*P[t].length)];
+    const p=buildClean((seed+s*7919)>>>0,[pick(0),pick(1),pick(2),pick(3)],CHECK7_OF,250,6);if(p)return {...p,seed}}
+  return null}
 // ver: 1 (dailies before 2026-10-25), 2 (the daily of 2026-10-25), 3 (dailies 2026-10-26 to NB_FROM) or 4 (everything
 // since: the same puzzle maker as 3 with today's neighbour rule)
 // Since VARY_FROM (version 5): the same puzzle maker as 4, but each colour first draws one family of categories
@@ -204,6 +257,7 @@ function pools5(){if(POOLS5&&!CX_AVOID)return POOLS5;const P=[{},{},{},{}];
   const out=P.map(t=>Object.values(t));if(!CX_AVOID)POOLS5=out;return out}
 function buildPuzzle(seed,ver){prepRule(ver<4);try{return buildPuzzleAt(seed,ver)}finally{prepRule(false)}}
 function buildPuzzleAt(seed,ver){if(ver===1)return buildPuzzleV1(seed);
+  if(ver===7)return buildPuzzle7(seed)||buildPuzzleAt(seed,5);
   if(ver===2)return buildClean(seed,POOLS2,CHECKED_OF,1500,6)||buildPuzzleV1(seed);
   // a rare seed with no clean puzzle moves on to the next one, so every seed still gives the same puzzle
   // (version 5: the yellow family is fixed by the seed, and so is the purple one for the first 50 tries; the same four
@@ -216,7 +270,7 @@ function buildPuzzleAt(seed,ver){if(ver===1)return buildPuzzleV1(seed);
     const p=buildClean(sd,pools,GAME_OF,V5?250:6000,V5?6:20);if(p)return {...p,seed}}
   // a very rare seed with no version 5 puzzle gets the version 4 one
   return V5&&!CX_AVOID?buildPuzzleAt(seed,4):null}
-const verOf=(mode,day)=>mode!=='daily'||day>=VARY_FROM?5:day>=NB_FROM?4:day>=UNIQUE_FROM?3:day>=STRICT_FROM?2:1;
+const verOf=(mode,day)=>mode!=='daily'||day>=EASY_FROM?7:day>=VARY_FROM?5:day>=NB_FROM?4:day>=UNIQUE_FROM?3:day>=STRICT_FROM?2:1;
 // four countries that share a category which is not one of the groups (the first one found, narrowest first)
 // (version 3 puzzles have none, and broad categories are not groups there: those four are an ordinary mistake)
 function sharedCategory(S,cs){if(S.v>=3)return null;const used=new Set(S.groups.map(g=>g.k)),ids=cs.map(c=>byCode[c].i);
