@@ -157,7 +157,8 @@ const clPts=(r,p,n)=>{r=+r||0;p=+p||0;n=+n||0;if(!n)return 0;const f=Math.max(0,
 const cxPts=(f,m)=>{f=Math.max(0,Math.min(4,+f||0));m=+m||0;return Math.max(0,25*f-10*m)+(f>=4&&!m?20:0)};
 /* From KM_FROM (Héctor 2026-11-14) every game uses the same table: up to 100 points, +20 for a perfect game (not one
    mistake), and the daily's points are its km. Days before keep the km they had (the formulas above).
-   Countries, Capitals: 5 a square, +20 for all 16. Connections: 25 a group, -10 a mistake (cxPts). Top 10: 10 an answer.
+   Countries, Capitals: 2 to 8 a square by how hard it is (all 16 = 80), +20 for all 16; the game sends these points as s
+   with k:1 (KM.grid, 5 a square, only for a row without them). Connections: 25 a group, -10 a mistake (cxPts). Top 10: 10 an answer.
    Silhouette: 10 a shape, +10 for all 9. Customs, Flag Pie, Compass: 20 at the first clue, 1 less for each clue more
    (15 per right answer + its 5-to-1 points). Impostor: 15 caught first time, 1 less for each wrong pick, +10 for all 6.
    w / m: mistakes (null = not known: counts as none). */
@@ -173,7 +174,7 @@ const KM={
 // this device's daily games, from each game's own history: {day: {game id: km}}
 function ledger(){const L={},add=(d,id,mi)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))(L[d]=L[d]||{})[id]=mi};
   [['bl-hist','borderline'],['cc-hist','citygrid']].forEach(([k,id])=>{const h=json(k)||{};
-    for(const d in h){const e=h[d];if(e&&e.f!==0){const n=+e.n||3;add(d,id,newKm(d)?KM.grid(e.c,n,e.w):pts((+e.c||0)/(n*n)))}}});
+    for(const d in h){const e=h[d];if(e&&e.f!==0){const n=+e.n||3;add(d,id,newKm(d)?(e.k?Math.max(0,Math.min(120,+e.s||0)):KM.grid(e.c,n,e.w)):pts((+e.c||0)/(n*n)))}}});
   const cx=json('cx-hist')||{};for(const d in cx)if(cx[d])add(d,'connections',cxPts(cx[d].f!=null?cx[d].f:cx[d].w?4:0,cx[d].m));
   const t=json('t10-hist')||{};for(const d in t)if(t[d])add(d,'top10',newKm(d)?KM.top10(t[d].f,t[d].l!=null?5-t[d].l:null):pts((+t[d].f||0)/10));
   const s=json('sil-hist')||{},sm=json('sil-miss')||{};for(const d in s){const day=s[d]||{},k=Object.keys(day).filter(x=>typeof day[x]==='number');

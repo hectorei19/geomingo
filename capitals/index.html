@@ -592,8 +592,8 @@ function saveDaily(){if(S&&S.dayof)return; // a grid played on its day, opened f
 function loadHist(){try{return JSON.parse(localStorage.getItem('cc-hist')||'{}')||{}}catch(e){return {}}}
 function saveHist(h){try{localStorage.setItem('cc-hist',JSON.stringify(h))}catch(e){}}
 // entry: s points, c squares, n grid size, g squares got ("1" or "0" each), d device that played it, f 1 when finished
-// w: lives lost (wrong answers and timed-out turns), for the perfect game (+20 km, from 2026-11-15)
-const dailyEntry=(s,f)=>({s:s.players[0].score||0,c:s.players[0].cells||0,n:s.n,g:s.cells.map(c=>c.o>=0?'1':'0').join(''),d:ME,f,w:s.lives!=null?Math.max(0,LIVES-s.lives):(s.wrong||0)});
+// w: lives lost (wrong answers and timed-out turns); k: 1 when s is already in the points table every game uses (from 2026-11-15)
+const dailyEntry=(s,f)=>Object.assign({s:s.players[0].score||0,c:s.players[0].cells||0,n:s.n,g:s.cells.map(c=>c.o>=0?'1':'0').join(''),d:ME,f,w:s.lives!=null?Math.max(0,LIVES-s.lives):(s.wrong||0)},newGrid(s)?{k:1}:{});
 // with an account, today's try belongs to the first device that started it (ACCT_TODAY is the account's entry for today)
 // an entry with no device (saved by an old version of the game) belongs to nobody: any device may replace it
 const otherDevice=e=>!!e&&!!e.d&&e.d!==ME;
@@ -624,15 +624,15 @@ let LB=null,lbRef=null,lbDate=null,lbSent='';
 function submitLB(date,e){if(!USER||!db||TESTDAY||date!==todayKey()||e.f!==1||e.d!==ME)return;
   if(LB&&LB[USER.uid]||lbSent===USER.uid+date)return;lbSent=USER.uid+date;
   const sec=Geomingo.clock.secs('citygrid',date);
-  db.ref('lb/capitals/'+date+'/'+USER.uid).set(Object.assign({name:(PROFILE||setup.user||'Player').slice(0,16),s:e.s,c:e.c,t:TS()},e.w!=null?{w:e.w}:{},sec?{sec}:{})).catch(()=>{})}
+  db.ref('lb/capitals/'+date+'/'+USER.uid).set(Object.assign({name:(PROFILE||setup.user||'Player').slice(0,16),s:e.s,c:e.c,t:TS()},e.w!=null?{w:e.w}:{},e.k?{k:1}:{},sec?{sec}:{})).catch(()=>{})}
 // the last rows seen of today's ranking show at once, until the live ones come
 function lbCached(k){try{const c=JSON.parse(localStorage.getItem('cc-lbc')||'null');return c&&c.date===k&&c.rows||null}catch(e){return null}}
 function watchLB(){if(!FB_OK||TESTDAY||!initFB())return;const k=todayKey();if(lbDate===k)return;
   if(lbRef)lbRef.off();lbDate=k;LB=lbCached(k);lbRef=db.ref('lb/capitals/'+k);
   lbRef.on('value',s=>{LB=s.val()||{};try{localStorage.setItem('cc-lbc',JSON.stringify({date:k,rows:LB}))}catch(e){}if(!S||S.daily)render()},()=>{})}
 // ranking order: more points first, then more squares, then whoever finished first
-// from 2026-11-15 a row's points are the same table as the km: 5 a square, +20 for all 16, +20 more with no life lost
-function lbRows(src,d){const nw=Geomingo.newKm(d||todayKey());return Object.entries(src||LB||{}).map(([uid,v])=>({uid,...v,s:nw?Geomingo.KM.grid(v.c,DAILY_N,v.w):v.s})).sort((a,b)=>b.s-a.s||b.c-a.c||(a.t||0)-(b.t||0))}
+// from 2026-11-15 a row's points are the same table as the km (k: sent in it; a row without k, from an older page, counts 5 a square)
+function lbRows(src,d){const nw=Geomingo.newKm(d||todayKey());return Object.entries(src||LB||{}).map(([uid,v])=>({uid,...v,s:nw&&!v.k?Geomingo.KM.grid(v.c,DAILY_N,v.w):v.s})).sort((a,b)=>b.s-a.s||b.c-a.c||(a.t||0)-(b.t||0))}
 // a past day's ranking (archive games): read once, only to look at it
 const LBD={};
 function pastLB(date){if(LBD[date]===undefined&&initFB()){LBD[date]=null;db.ref('lb/capitals/'+date).once('value').then(s=>{LBD[date]=s.val()||{};if(S&&S.daily===date)render()}).catch(()=>{})}return LBD[date]}
@@ -655,7 +655,7 @@ function dailyStatsFrom(h){const days=Object.keys(h).sort(),day=k=>Math.round(Da
   const set=new Set(days.map(day));while(set.has(d)){streak++;d--}
   return {played:days.length,streak,best:days.length?Math.max(...days.map(k=>dayPts(h[k]))):0,avg:days.length?Math.round(days.reduce((t,k)=>t+dayPts(h[k]),0)/days.length)+' pts':'–'}}
 // a daily's points in the table every game uses (old days too, so the stats compare like with like)
-function dayPts(e){return Geomingo.KM.grid(e&&e.c,(e&&e.n)||DAILY_N,e&&e.w)}
+function dayPts(e){return e&&e.k?+e.s||0:Geomingo.KM.grid(e&&e.c,(e&&e.n)||DAILY_N,e&&e.w)}
 // the three numbers under today's result, as in every game
 const statTiles=st=>`<div class="stgrid"><div class="st"><b>${st.played}</b><span>played</span></div><div class="st"><b>${st.avg}</b><span>average</span></div><div class="st"><b>${st.streak}</b><span>streak</span></div></div>`;
 /* ---- Solo and With friends games: one entry per finished game, kept on the device and, when signed in,
@@ -885,8 +885,9 @@ function computeScores(){
   S.players.forEach((p,i)=>{const mine=S.cells.filter(c=>c.o===i);
     p.cells=mine.length;p.base=mine.reduce((a,c)=>a+(c.p||0),0);p.speed=mine.reduce((a,c)=>a+(c.sb||0),0);
     p.lines=lc[i];p.bonus=lc[i]*LINE_BONUS;p.score=p.base+p.speed+p.bonus;
-    // daily grids from 2026-11-15 (Héctor 2026-11-14, the same table in every game): 5 a square, +20 for all 16, +20 more with no life lost
-    if(S.daily&&Geomingo.newKm(S.daily))p.score=Geomingo.KM.grid(p.cells,S.n,LIVES-livesLeft())});
+    // daily grids from 2026-11-15 (Héctor 2026-11-14, the same table in every game): a square is worth 2 (easiest) to 8 (hardest),
+    // 5 on average, so all 16 make 80; +20 for all 16, +20 more with no life lost
+    if(newGrid(S)){const all=mine.length>=S.n*S.n;p.score=(all?80:Math.min(79,mine.reduce((a,c)=>a+Math.round(sqPts(c)),0)))+(all?20:0)+(all&&LIVES-livesLeft()===0?20:0)}});
 }
 function liveScore(i){const lc=lineCounts();return S.cells.filter(c=>c.o===i).reduce((a,c)=>a+(c.p||0)+(c.sb||0),0)+lc[i]*LINE_BONUS}
 function endGame(){
@@ -907,7 +908,7 @@ function guess(ci,cid){
     S.cells[ci]={o:S.turn,c:cid,p:pts,sb};S.used.push(cid);S.passes=0;ui.fresh=ci;
     const nl=lineCounts()[S.turn]-before;
     Geomingo.stamp('citygrid',c.n,'',c.k3);
-    say('happy','Stamped: '+c.n+'.',newGrid(S)?'+5 points.':'+'+pts+' pts'+(sb?' · +'+sb+' speed':'')+(nl?' · +'+nl*LINE_BONUS+' for the line':'')+(S.mode==='solo'?'':' for '+p.name+'.'));
+    say('happy','Stamped: '+c.n+'.',newGrid(S)?'+'+Math.round(sqPts(S.cells[ci]))+' points.':'+'+pts+' pts'+(sb?' · +'+sb+' speed':'')+(nl?' · +'+nl*LINE_BONUS+' for the line':'')+(S.mode==='solo'?'':' for '+p.name+'.'));
   }else{
     S.wrong++;loseLife();
     const left=S.mode==='solo'?livesLeft():0;
@@ -1332,11 +1333,12 @@ const cornerHTML=day=>day?`<div class="corner dnum" aria-label="Grid number ${da
 const flagSrc=k=>typeof FLAGS!=='undefined'&&FLAGS[k]||'';
 // a right answer on the grid: a passport stamp with the city's name in the centre over its country's flag,
 // its points in the top right corner and the country's code in the bottom left (as in Countries)
-// a daily grid from 2026-11-15 gives 5 points a square (the same table in every game)
+// a daily grid from 2026-11-15: each square 2 (easiest) to 8 points (hardest), from its 0-100 value
+const sqPts=cell=>2+6*(cell.p||0)/SQ_MAX;
 const newGrid=s=>!!(s&&s.daily&&Geomingo.newKm(s.daily));
 const stampCell=(c,cell,cls,nw)=>{const f=flagSrc(c.k3),h=Geomingo.stampHTML(c.n,'',cls+' wf');
   return h.replace('<b class="sn"',(f?'<i class="wm" style="background-image:url(&quot;'+f+'&quot;)"></i>':'')+'<b class="sn"')
-    .replace(/<\/span>$/,'<span class="pts">+'+((nw==null?newGrid(S):nw)?5:(cell.p||0)+(cell.sb||0))+'</span><span class="cc">'+c.k3+'</span></span>')};
+    .replace(/<\/span>$/,'<span class="pts">+'+((nw==null?newGrid(S):nw)?Math.round(sqPts(cell)):(cell.p||0)+(cell.sb||0))+'</span><span class="cc">'+c.k3+'</span></span>')};
 // once the flags arrive, draw the stamps already on screen again with them
 addEventListener('DOMContentLoaded',()=>{if(typeof FLAGS!=='undefined'&&document.querySelector('.cell.flag .gm-stamp:not(:has(.wm))'))render()});
 // today's grid shown open on the home screen: tapping a square starts (or continues) the daily game there
@@ -1387,7 +1389,7 @@ function homeView(){
   </section>
   ${QRULES}`;
 }
-const QRULES=`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name a capital that fits its row and its column, each capital once per grid. Tap <span class="ib">i</span> to see what a category means. Today's grid: 5 points a square, +20 for all ${DAILY_N*DAILY_N}, +20 more with no life lost. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const QRULES=`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name a capital that fits its row and its column, each capital once per grid. Tap <span class="ib">i</span> to see what a category means. Today's grid: 2 to 8 points a square (harder, more), +20 for all ${DAILY_N*DAILY_N}, +20 more with no life lost. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function setupView(){
   if(screen==='home')return homeView();
   const fr=screen==='friends';
@@ -1434,7 +1436,7 @@ function gameView(){
     const stub=S.mode==='solo'
       ?cell('Traveller',esc(S.players[0].name),'tk-name')+cell('Stamps',S.cells.filter(c=>c.o===0).length+'/'+S.n*S.n)
         // the same four boxes in every game (Héctor, 2026-11-10): today's km in the daily, the class in Practice and the archive
-        +(S.daily&&!S.archive?(Geomingo.newKm(S.daily)?cell('Points',Geomingo.KM.grid(S.cells.filter(c=>c.o===0).length,S.n,LIVES-livesLeft()),'tk-pts'):cell('km',Geomingo.pts(S.cells.filter(c=>c.o===0).length/(S.n*S.n)),'tk-pts')):cell('Class',DLABEL[S.diff||'normal'],'tk-pts'))+(S.nolives?cell('Mistakes',S.wrong,'tk-gs'):cell('Lives',livesDots(livesLeft(),LIVES),'tk-gs'))+time
+        +(S.daily&&!S.archive?(Geomingo.newKm(S.daily)?cell('Points',S.players[0].score||0,'tk-pts'):cell('km',Geomingo.pts(S.cells.filter(c=>c.o===0).length/(S.n*S.n)),'tk-pts')):cell('Class',DLABEL[S.diff||'normal'],'tk-pts'))+(S.nolives?cell('Mistakes',S.wrong,'tk-gs'):cell('Lives',livesDots(livesLeft(),LIVES),'tk-gs'))+time
       :S.players.map((q,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${q.on===false?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(q.name)}</i><b>${liveScore(i)}</b></div>`).join('')+time;
     h+=Geomingo.ticket(say,stub,{timer:S.timer,color:S.mode==='solo'?'':`var(--p${S.turn})`,mode:S.daily?(S.archive?'archive':'daily'):S.mode==='solo'?'practice':'',num:S.day});
   }
@@ -1627,7 +1629,8 @@ function drawLayer(){
       <li><b>Normal</b>: ${DHINT.normal} The list only finds names from their first letters, so you need to know the answer. <i>Example: ${DEXAMPLE.normal}.</i></li>
       <li><b>Hard</b>: ${DHINT.hard} The list works as in Normal. <i>Example: ${DEXAMPLE.hard}.</i></li></ul>
       <h3>Points in today's grid</h3><ul>
-      <li>5 points for every square you fill, up to 80. All ${DAILY_N*DAILY_N} squares: +20, so 100.</li>
+      <li>Every square you fill: 2 to 8 points. The harder the square (few countries fit), the more it is worth. You see its points when you fill it.</li>
+      <li>All ${DAILY_N*DAILY_N} squares make 80, +20 for filling them all, so 100.</li>
       <li>A <b>perfect grid</b> (all ${DAILY_N*DAILY_N} squares, not one life lost): +20 more, so 120.</li>
       <li>Your points are also your km for the GeoPass.</li></ul>
       <h3>Points in Practice and With friends</h3><ul>
