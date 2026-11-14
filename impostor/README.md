@@ -16,8 +16,7 @@ Each daily game uses the rules of the day it was made, so the archive keeps old 
 ## Older daily games
 
 - Before 2026-11-12: every clue is false only for the impostor.
-- 2026-11-12 (`SUSPECTS_FROM` in `facts.js`): a clue can also be false for one or two other countries ("suspects"), and number clues can be a range ("between 1.000 and 4.000 m"). Clues 1–3 cut the suspects down to the impostor, clues 4–5 are easy ones false only for it.
-- **What do they have in common?** (`LINK_FROM` in `facts.js`, `buildLinkRound`): five of the six share one hidden link (a trait from `../shared/data.js` CATS); the impostor doesn't. The five clues: the topic ("Look at the flags."), another fact the five share and the impostor hasn't, two innocent countries crossed out, a third one, then the link itself. Rounds: `{set, c, m:'link', f:[topic, shared fact, link], x: three innocents}`. It was replaced the same day by the plain sentences: `LINK_FROM` and `FACTS_FROM` are the same date, so no daily game uses it now. The code is kept.
+- 2026-11-12 (`SUSPECTS_FROM` to `FACTS_FROM` in `facts.js`): a clue can also be false for one or two other countries ("suspects"), and number clues can be a range ("between 1.000 and 4.000 m"). Clues 1–3 cut the suspects down to the impostor, clues 4–5 are easy ones false only for it.
 
 ## Files and data
 
