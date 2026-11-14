@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611151800"></script>
+<script src="../brand/mingo.js?v=202611152000"></script>
 <script src="../brand/account.js?v=202611151800"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -93,7 +93,7 @@
 .lp.me{border-color:var(--sea)}
 .primary[disabled]{opacity:.5;cursor:default}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611141900">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611142200">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -503,11 +503,11 @@ function render(keepShake){
   const coord=S.mode==='daily'?'Daily #'+S.num:S.mode==='archive'?'Archive #'+S.num:on?'Room '+roomCode:'Solo';
   let h=header('Connec<span>tions</span>',coord);
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
-  if(!(S.over&&!on&&S.mode==='daily'))h+=`<div class="backline">${on?`<button class="linkbtn" id="leave">${leaveArmed?'Tap again to leave':'← Leave'}</button>`:`<button class="linkbtn" id="${S.mode==='archive'?'archback':S.mode==='free'?'soloback':'home'}">← Back</button>`}<span class="ht">${S.mode==='daily'?"Today's puzzle":S.mode==='archive'?'Puzzle #'+S.num:on?'With friends':'Solo'}</span></div>`;
+  if(!(S.over&&!on&&(S.mode==='daily'||S.mode==='free')))h+=`<div class="backline">${on?`<button class="linkbtn" id="leave">${leaveArmed?'Tap again to leave':'← Leave'}</button>`:`<button class="linkbtn" id="${S.mode==='archive'?'archback':S.mode==='free'?'soloback':'home'}">← Back</button>`}<span class="ht">${S.mode==='daily'?"Today's puzzle":S.mode==='archive'?'Puzzle #'+S.num:on?'With friends':'Solo'}</span></div>`;
   if(on)h+=scoresHTML();
   watchResult(cxKey(),S.over);
   // today's daily done: the four groups go inside the result ticket, Next trip and Share under it (Héctor 2026-11-12)
-  if(S.over&&!on&&S.mode==='daily'){app.innerHTML=h+resultHTML(`<div class="cx-board">${S.found.map(g=>groupHTML(S.groups[g])).join('')}${S.groups.map((g,i)=>S.found.includes(i)?'':groupHTML(g,true)).join('')}</div>`)+rankingHTML();bind();return}
+  if(S.over&&!on&&(S.mode==='daily'||S.mode==='free')){app.innerHTML=h+resultHTML(`<div class="cx-board">${S.found.map(g=>groupHTML(S.groups[g])).join('')}${S.groups.map((g,i)=>S.found.includes(i)?'':groupHTML(g,true)).join('')}</div>`)+(S.mode==='daily'?rankingHTML():'');bind();return}
   if(S.over)h+=on?roomResultHTML():resultHTML();
   else{const cell=Geomingo.tk,left=MAX_MISTAKES-S.mistakes;
     // the ticket, as in every game: Mingo on top, then who is travelling, groups found and mistakes left
@@ -535,6 +535,10 @@ function verdict(){const n=S.mistakes;
 function resultHTML(body){const v=verdict(),dated=S.mode==='daily'||S.mode==='archive';
   if(S.mode==='daily')return `${Geomingo.doneTicket('connections',S.num,S.found.length+' of 4','next in '+nextIn(),body)}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns">${nextGameBtn('connections')}${SHARE_BTN.replace('Share result','Share')}</div>`;
+  // a finished Solo puzzle: the pink ticket with the four groups inside, then New puzzle and Share (Héctor 2026-11-14)
+  if(S.mode==='free'){const st=load('cx-solo',{n:0}),m=S.mistakes;
+    return `${Geomingo.soloTicket({id:'connections',what:S.nolives?'No lives':MAX_MISTAKES+' lives',score:S.found.length+' of 4',best:'Solved '+(st.w||0)+' of '+(st.n||0),detail:m+' mistake'+(m===1?'':'s'),body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
+    <div class="gm-done-btns gm-solo-btns"><button class="primary" id="again" style="flex:1">New puzzle</button>${SHARE_BTN.replace('Share result','Share')}</div>`}
   return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Connections #'+S.num:S.mode==='archive'?'Archive · Connections #'+S.num:'Solo puzzle'}</span><p class="big">${S.found.length} of 4</p>
     <p class="hint">${S.won?(S.mistakes?`All four groups, ${S.mistakes} mistake${S.mistakes===1?'':'s'}.`:'All four groups, not a single mistake.'):`You found ${S.found.length} of 4 groups.`} ${S.mode==='daily'?`Next puzzle in ${nextIn()}.`:S.mode==='archive'?"Archive games don't count for the ranking or your streak.":''}</p>
     <pre class="sharebox" id="share">${esc(shareText())}</pre>
