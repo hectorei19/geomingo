@@ -1117,7 +1117,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/da
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202611121400';
+const APP_VERSION='202611140900';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
@@ -1851,9 +1851,9 @@ function bind(){
   app.querySelectorAll('[data-info]').forEach(b=>{b.onclick=()=>{ui.info=+b.dataset.info;drawLayer()};b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();b.click()}}});
   app.querySelectorAll('[data-cell]').forEach(b=>b.onclick=()=>{
     const ci=+b.dataset.cell;
-    // a filled square: once the game is over, tapping it shows every country that fits it
-    if(S.cells[ci].o>=0){if(S.over&&ui.reveal!==ci){ui.reveal=ci;render()}return}
-    if(S.over){ui.reveal=ci;render();return}
+    // once the game is over, tapping a square shows every country that fits it; tapping it again hides them
+    if(S.over){ui.reveal=ui.reveal===ci?-1:ci;render();return}
+    if(S.cells[ci].o>=0)return
     if(S.mode==='online'&&S.turn!==S.me){toast('Wait for your turn. It is '+S.players[S.turn].name+"'s go.");return}
     ui.sel=ci;ui.query='';render();
   });
