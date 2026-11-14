@@ -157,8 +157,8 @@ const clPts=(r,p,n)=>{r=+r||0;p=+p||0;n=+n||0;if(!n)return 0;const f=Math.max(0,
 const cxPts=(f,m)=>{f=Math.max(0,Math.min(4,+f||0));m=+m||0;return Math.max(0,25*f-10*m)+(f>=4&&!m?20:0)};
 /* From KM_FROM (Héctor 2026-11-14) every game uses the same table: up to 100 points, +20 for a perfect game (not one
    mistake), and the daily's points are its km. Days before keep the km they had (the formulas above).
-   Countries, Capitals: 2 to 8 a square by how hard it is (all 16 = 80), +20 for all 16; the game sends these points as s
-   with k:1 (KM.grid, 5 a square, only for a row without them). Connections: 25 a group, -10 a mistake (cxPts). Top 10: 10 an answer.
+   Countries, Capitals keep their own points (hard squares, speed, lines): 1 km for every 15 points, up to 100, +20 for
+   all 16 squares with no life lost. Connections: 25 a group, -10 a mistake (cxPts). Top 10: 10 an answer.
    Silhouette: 10 a shape, +10 for all 9. Customs, Flag Pie, Compass: 20 at the first clue, 1 less for each clue more
    (15 per right answer + its 5-to-1 points). Impostor: 15 caught first time, 1 less for each wrong pick, +10 for all 6.
    w / m: mistakes (null = not known: counts as none). */
@@ -166,7 +166,7 @@ const KM_FROM='2026-11-15';
 const newKm=d=>d>=KM_FROM;
 const pf=(all,m)=>all&&!(+m)?20:0;
 const KM={
-  grid:(c,n,w)=>{n=(+n||4)*(+n||4);c=Math.min(+c||0,n);const all=c>=n;return Math.round(80*c/n)+(all?20:0)+pf(all,w)},
+  grid:(s,c,n,w)=>{n=(+n||4)*(+n||4);return Math.min(100,Math.round((+s||0)/15))+pf((+c||0)>=n,w)},
   top10:(f,m)=>{f=Math.min(+f||0,10);return 10*f+pf(f>=10,m)},
   sil:(r,m)=>{r=Math.min(+r||0,9);return 10*r+(r>=9?10:0)+pf(r>=9,m)},
   clue:(r,p,n)=>{r=+r||0;p=+p||0;n=+n||5;return Math.round((15*r+p)*5/n)+(p>=5*n?20:0)},
@@ -174,7 +174,7 @@ const KM={
 // this device's daily games, from each game's own history: {day: {game id: km}}
 function ledger(){const L={},add=(d,id,mi)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))(L[d]=L[d]||{})[id]=mi};
   [['bl-hist','borderline'],['cc-hist','citygrid']].forEach(([k,id])=>{const h=json(k)||{};
-    for(const d in h){const e=h[d];if(e&&e.f!==0){const n=+e.n||3;add(d,id,newKm(d)?(e.k?Math.max(0,Math.min(120,+e.s||0)):KM.grid(e.c,n,e.w)):pts((+e.c||0)/(n*n)))}}});
+    for(const d in h){const e=h[d];if(e&&e.f!==0){const n=+e.n||3;add(d,id,newKm(d)?KM.grid(e.s,e.c,n,e.w):pts((+e.c||0)/(n*n)))}}});
   const cx=json('cx-hist')||{};for(const d in cx)if(cx[d])add(d,'connections',cxPts(cx[d].f!=null?cx[d].f:cx[d].w?4:0,cx[d].m));
   const t=json('t10-hist')||{};for(const d in t)if(t[d])add(d,'top10',newKm(d)?KM.top10(t[d].f,t[d].l!=null?5-t[d].l:null):pts((+t[d].f||0)/10));
   const s=json('sil-hist')||{},sm=json('sil-miss')||{};for(const d in s){const day=s[d]||{},k=Object.keys(day).filter(x=>typeof day[x]==='number');
@@ -328,8 +328,8 @@ function hello(pose,title,sub,o){o=o||{};const key=o.key||'main',txt=pose+title,
 /* the result of today's daily, when it is over (right after playing, or opening the game again later): the gold ticket with
    the score, the km it earned and when the next one comes; Next trip and Share go under it (Héctor 2026-11-10: less is more) */
 /* body: the day's answers, shown inside the same ticket under a tear line (Héctor 2026-11-12: one card, buttons below) */
-// from KM_FROM the big number is the day's points, the same number as its km
-function doneTicket(id,num,score,next,body){const km=(ledger()[dayKey()]||{})[id];if(km!=null&&newKm(dayKey()))score=fmt(km)+' point'+(km===1?'':'s');
+// from KM_FROM the big number is the day's points, the same number as its km (Countries and Capitals keep their own points)
+function doneTicket(id,num,score,next,body){const km=(ledger()[dayKey()]||{})[id];if(km!=null&&newKm(dayKey())&&id!=='borderline'&&id!=='citygrid')score=fmt(km)+' point'+(km===1?'':'s');
   return '<section class="ticket gm-done"><div class="tk-mode daily"><span>★ Daily #'+esc(String(num))+'</span><span>Done</span></div>'+
     '<div class="gm-done-c"><p class="big">'+esc(String(score))+'</p><p class="gm-done-s">'+(km!=null?'<b>+'+fmt(km)+' km</b>':'')+'<span>'+esc(next)+'</span></p></div>'+
     (body?'<div class="tk-tear"></div><div class="gm-done-a">'+body+'</div>':'')+'</section>'}

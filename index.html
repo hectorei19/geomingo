@@ -340,7 +340,7 @@ function draw(){const P=geo();
    Countries and Capitals: the daily grid is 4 x 4, so km come from right answers out of 16 (like GeoPass) */
 // from G.KM_FROM every game uses the same table (G.KM, as the GeoPass); days before keep their old km
 const N=G.newKm,K=G.KM;
-const GR=(r,d)=>N(d)?(r.k?Math.max(0,Math.min(120,+r.s||0)):K.grid(r.c,4,r.w)):pts((+r.c||0)/16);
+const GR=(r,d)=>N(d)?K.grid(r.s,r.c,4,r.w):pts((+r.c||0)/16);
 const LB=[['leaderboard','borderline',GR],['lb/capitals','citygrid',GR],
   ['lb/connections','connections',r=>cxPts(r.s,r.m)],['lb/top10','top10',(r,d)=>N(d)?K.top10(r.s,r.m):pts((+r.s||0)/10)],
   ...['easy','normal','hard'].map(x=>['lb/sil-'+x,'silhouette',(r,d)=>N(d)?K.sil(r.s,r.m):pts((+r.s||0)/9)]),
