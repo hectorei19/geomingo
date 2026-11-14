@@ -11,16 +11,16 @@ Plain static HTML/CSS/JS: no build step, no framework, no tests. Each game is on
   One name per country (`n`); `al` stays empty everywhere. Change country data here, never in a game folder.
 - `countries/` – Countries (old Country Grid / Borderline); its daily grids in `daily.js` (DAILY_FIXED);
   `database.rules.json` = Firebase rules
-- `capitals/` – Capitals (old Cities / City Grid); cities in `data.js` (CITIES, CO_LISTS, DAILY_FIXED;
+- `capitals/` – Capitals (old City Grid); cities in `data.js` (CITIES, CO_LISTS, DAILY_FIXED;
   country names CO are built from `data/countries.js`),
-  flags from `data/flags.js`; `cities/` only forwards to `capitals/`
+  flags from `data/flags.js`
 - `connections/`, `top10/`, `silhouette/`, `customs/`, `flagpie/`, `impostor/`, `compass/` – the smaller games
   (Compass loads `capitals/data.js` for the capitals and their coordinates)
 - `shared/` – used by the seven smaller games (not Countries/Capitals): `style.css`, `games.js`, `minigames.js`,
   `race.js` (With friends rooms for Customs, Flag Pie, Impostor, Compass), `data.js` (category rules only, no data)
 - Connections, Top 10, Customs, Flag Pie, Impostor load `data/countries.js` before `shared/data.js`; Silhouette's
   `countries.js` is built from `data/` by `silhouette/tools/build-countries.js` (run it after changing `data/`).
-- `silhouette/tools/`, `flagpie/tools/` – Node scripts that regenerate data files
+- `silhouette/tools/`, `flagpie/tools/` – Node scripts that regenerate data files; `capitals/tools/` – the one-off Firebase move
 - `README.md` – longer description (brand, account, Firebase paths)
 
 ## Big data files: do not read them whole
@@ -41,7 +41,8 @@ Plain static HTML/CSS/JS: no build step, no framework, no tests. Each game is on
 - Travel words, not airport words (Trip, Visited, km, Traveller; no Gate/Boarding/Landed/miles).
 - Never rename localStorage keys (`bl-*`, `cc-*`, `gm-*`…), game ids in `GAMES`
   (`borderline`, `citygrid`…) or Firebase paths: saves and rankings depend on them.
-  Firebase project is `borderline-90920`.
+  Firebase project is `borderline-90920`. (Capitals' Firebase paths were moved once, on Héctor's request, from
+  `users/<uid>/cities`, `lb/citygrid`, `gprofiles/citygrid` to `…/capitals` by `capitals/tools/move-to-capitals.js`.)
 - After changing a shared file (`brand/`, `shared/`, a game's `.js`), bump its `?v=` number in
   every page that loads it, so phones pick up the new file.
 - If Firebase rules change, say so: they must be pasted by hand in the Firebase console.

@@ -4,7 +4,7 @@ Part of [Geomingo](https://geomingo.com/), daily geography games: the colours, f
 
 Geography grid game with cities: name a city that matches each row and column (the national capitals of the 197 countries used in every Geomingo game, one per country). A sister of [Countries](https://geomingo.com/countries/), same game and same look, with cities instead of countries. Every grid is checked so it can always be completed, whatever answers are given.
 
-Live at https://geomingo.com/capitals/ (formerly Cities, at /cities/, which still forwards here) · all the games: https://geomingo.com/
+Live at https://geomingo.com/capitals/ · all the games: https://geomingo.com/
 
 - Today's grid: one 4×4 Normal grid a day for everyone, new at midnight CET, one try.
 - Solo: unlimited grids (Easy, Normal, Hard; 3×3 or 4×4: 197 capitals are too few for 5×5). A shared result link (`?grid=4-KQPMT`) opens the same grid.
@@ -13,6 +13,7 @@ Live at https://geomingo.com/capitals/ (formerly Cities, at /cities/, which stil
 
 Files:
 - `index.html` – the whole game (categories and game logic).
+- `tools/move-to-capitals.js` – moved Capitals' Firebase data from its old names (`users/<uid>/cities`, `lb/citygrid`, `gprofiles/citygrid`) to `capitals` (instructions inside).
 - `data.js` – the data: capitals (`CITIES`), country lists (`CO_LISTS`) and the fixed daily grids (`DAILY_FIXED`). Country names (`CO`) come from the Geomingo country database, `../data/countries.js`.
 - Flags: the Geomingo flags, `../data/flags.js`.
 
