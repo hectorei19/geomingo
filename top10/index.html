@@ -422,7 +422,7 @@ function syncRoom(){const r=room;
   if(r.status==='lobby'||!listById(r.list)){S=null;clearInterval(tick);render();return}
   const order=r.order||lobbyOrder(r),fd=r.found||{},wr=r.wrong||{},byK=o=>Object.keys(o).sort((a,b)=>o[a].k-o[b].k);
   const players=order.map((pid,i)=>{const p=r.players[pid]||{};
-    return {pid,name:p.name||'Gone',on:p.on!==false,score:Object.values(fd).filter(x=>x.o===i).length,miss:Object.values(wr).filter(x=>x.o===i).length}});
+    return {pid,name:p.name||'Gone',on:p.on!==false,n:Object.values(fd).filter(x=>x.o===i).length,score:10*Object.values(fd).filter(x=>x.o===i).length,miss:Object.values(wr).filter(x=>x.o===i).length}});
   const me=order.indexOf(ME);
   S={mode:'online',list:r.list,top:topOf(r.list),found:byK(fd),wrong:byK(wr),by:Object.fromEntries([...Object.entries(fd),...Object.entries(wr)].map(([c,x])=>[c,x.o])),
      players,turn:r.turn||0,timer:r.cfg.timer||0,deadline:r.deadline||0,over:r.status==='over',me,host:r.host===ME};
@@ -558,7 +558,7 @@ function friendsHTML(){
     <div class="field">${FB_OK()?'':'<p class="hint">Online play needs a connection: reload the page when you are online.</p>'}<button class="primary" id="create" ${FB_OK()?'':'disabled style="opacity:.5"'}>Create room</button></div>
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK()?'':'disabled'}>Join</button></div></div>
   </section>
-  <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Everyone plays the same ranking and takes turns naming one country. A country in the top 10 scores a point for you; one outside just passes the turn. No lives: you play until the ten are found. Most countries found wins; if level, fewer wrong answers, then the higher places found.</p></section>`}
+  <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Everyone plays the same ranking and takes turns naming one country. A country in the top 10 scores 10 points for you; one outside just passes the turn. No lives: you play until the ten are found. Most points win; if level, fewer wrong answers, then the higher places found.</p></section>`}
 function lobbyHTML(){const r=room,order=lobbyOrder(r),link=pageLink('?room='+roomCode);
   return header('Top <span>10</span>','room '+roomCode)+`<section class="panel namecard"><span class="label">Room code</span><p class="roomcode">${roomCode}</p>
     <p class="hint">Friends open Top 10, choose <b>With friends</b>, then type this code under Join. Or send them the link:</p>
@@ -577,11 +577,11 @@ function onlineHTML(){const cur=S.players[S.turn]||{};
     h+=Geomingo.ticket(say,stub,{timer:S.timer,color:`var(--p${S.turn%6})`})}
   else h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${!p.on?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${p.score}</b></span>`).join('')}</div>`;
   if(S.over){const l=listById(S.list),mineOf=i=>S.found.filter(c=>S.by[c]===i);
-    // who wins: most countries found; if level, fewer wrong answers; then higher places found (lower sum of places); then who found a country first
+    // who wins: most points (10 a country found, the same table as every game); if level, fewer wrong answers; then higher places found (lower sum of places); then who found a country first
     const rk=S.players.map((p,i)=>{const f=mineOf(i),fi=S.found.findIndex(c=>S.by[c]===i);return {...p,i,pl:f.reduce((t,c)=>t+placeOf(l,c),0),first:fi<0?1e9:fi}})
       .sort((a,b)=>b.score-a.score||a.miss-b.miss||a.pl-b.pl||a.first-b.first),best=rk[0],nx=rk[1];
-    const why=!nx||nx.score!==best.score?'':nx.miss!==best.miss?`Level on ${best.score}, so fewer wrong answers wins: ${best.miss} against ${nx.miss}.`
-      :nx.pl!==best.pl?`Level on ${best.score} found and ${best.miss} wrong, so the higher places win: ${esc(best.name)}'s countries add up to ${best.pl} (places ${mineOf(best.i).map(c=>'#'+placeOf(l,c)).join(', ')}), ${esc(nx.name)}'s to ${nx.pl}.`
+    const why=!nx||nx.score!==best.score?'':nx.miss!==best.miss?`Level on ${best.score} points, so fewer wrong answers wins: ${best.miss} against ${nx.miss}.`
+      :nx.pl!==best.pl?`Level on ${best.score} points and ${best.miss} wrong, so the higher places win: ${esc(best.name)}'s countries add up to ${best.pl} (places ${mineOf(best.i).map(c=>'#'+placeOf(l,c)).join(', ')}), ${esc(nx.name)}'s to ${nx.pl}.`
       :nx.first!==best.first?`Level on everything else, so the first to find a country wins.`:'',tie=!!nx&&nx.score===best.score&&!why;
     const mine=S.players[S.me];if(mine)logFriends('t10-friends',roomCode+':'+S.list+':'+(room&&room.created||''),1+rk.findIndex(p=>p.i===S.me),mine.score);
     h+=`<section class="panel"><span class="label">Room ${roomCode}</span><p class="big">${tie?"It's a tie":esc(best.name)+' wins'}</p>
@@ -610,7 +610,7 @@ function render(){
   if(!(S.over&&S.mode==='daily'))h+=`<div class="backline"><button class="linkbtn" id="${S.mode==='archive'?'archback':S.mode==='free'?'soloback':'home'}">← Back</button><span class="ht">${S.mode==='daily'?"Today's list":S.mode==='archive'?'List #'+S.num:'Solo'}</span></div>`;
   // the ticket, as in every game: Mingo on top, then who is travelling, countries found and lives left
   const cell=Geomingo.tk,tk=()=>Geomingo.ticket(moodHTML(tKey(),'pass','10 stamps to win.',S.nolives?'In any order. No lives: play until you find them all.':'In any order. A country outside the top 10 costs a life.'),
-    cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Found',S.found.length+'/10')+(S.mode==='daily'?(Geomingo.newKm(S.date)?cell('Points',Geomingo.KM.top10(S.found.length,S.wrong.length),'tk-pts'):cell('km',Geomingo.pts(S.found.length/10),'tk-pts')):'')+(S.nolives?cell('Mistakes',S.wrong.length,'tk-gs'):cell('Lives',livesHTML(S.lives,LIVES),'tk-gs')),{mode:S.mode==='free'?'practice':S.mode,num:S.num});
+    cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Found',S.found.length+'/10')+(S.mode==='daily'?(Geomingo.newKm(S.date)?cell('Points',Geomingo.KM.top10(S.found.length,S.wrong.length),'tk-pts'):cell('km',Geomingo.pts(S.found.length/10),'tk-pts')):cell('Points',Geomingo.KM.top10(S.found.length,S.wrong.length),'tk-pts'))+(S.nolives?cell('Mistakes',S.wrong.length,'tk-gs'):cell('Lives',livesHTML(S.lives,LIVES),'tk-gs')),{mode:S.mode==='free'?'practice':S.mode,num:S.num});
   // a guess while this list is on screen: only the ticket and the list change. The box you type in stays
   // where it is, so the phone keeps its keyboard open and the page does not jump up and down
   const g=$('t10game'),q=$('q');
@@ -664,7 +664,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Today's list</b>: the same for everyone, new every day at midnight CET. One try. Missed one? Play it in <b>Menu → Archive</b>.</li>
   <li><b>Solo</b>: as many practice lists as you like, a new one each time until you have played them all. <b>Share</b> sends a friend a link to the same list. Pick <b>No lives</b> to train: play until the end, mistakes are only counted.</li>
-  <li><b>With friends</b>: 2 to ${MAXP} players online, each on their own phone. The host creates a room and shares its code or link, and can set a time per turn (Off, 15 s or 30 s). You take turns naming a country: one in the top 10 scores a point, one outside passes the turn. There are no lives. You can also tap <b>Pass</b>, and running out of time passes too. The game ends when the ten are found or everyone passes in a row. Most points wins. If level: fewer wrong answers wins, then the higher places found (the lower your places add up), then whoever found a country first.</li></ul>`}
+  <li><b>With friends</b>: 2 to ${MAXP} players online, each on their own phone. The host creates a room and shares its code or link, and can set a time per turn (Off, 15 s or 30 s). You take turns naming a country: one in the top 10 scores 10 points, one outside passes the turn. There are no lives. You can also tap <b>Pass</b>, and running out of time passes too. The game ends when the ten are found or everyone passes in a row. Most points wins. If level: fewer wrong answers wins, then the higher places found (the lower your places add up), then whoever found a country first.</li></ul>`}
 // tapping a suggestion does not take the focus from the box, so the phone keyboard stays open
 function drawSugg(){const u=$('sugg');if(u){u.innerHTML=suggHTML();u.querySelectorAll('[data-g]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>guess(b.dataset.g)})}}
 function bind(){
