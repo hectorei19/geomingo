@@ -42,9 +42,9 @@
 .tile.flipped{flex-direction:column;gap:4px;background:var(--gc-soft)!important;border:1.5px solid var(--gc)!important;color:var(--ink)!important;transform:none;transition:transform .22s ease-out}
 .tile .tflag{height:28px;width:auto;max-width:58%;object-fit:contain;border-radius:3px;box-shadow:0 0 0 1px var(--rule)}
 .tile.long{font-size:.78rem}
-/* the whole flag, every flag the same width (wide flags are a little shorter, nothing is cut) with the name under it, on a plain dark tile (found groups still flip as before); a picked tile turns Mingo coral */
+/* the whole flag sized to one standard 3:2 box (every flag the same size, nothing cut; Héctor's choice) with the name under it, on a plain dark tile (found groups still flip as before); a picked tile turns Mingo coral */
 .cx-grid .tile:not(.flipped){padding:4px 2px;aspect-ratio:1;flex-direction:column;justify-content:center;align-items:center;gap:6px;background:var(--page)}
-.tile .tfl{width:46%;height:auto;aspect-ratio:3/2;flex:none;object-fit:contain}
+.tile .tfl{width:46%;height:auto;aspect-ratio:3/2;flex:none;border-radius:3px;overflow:hidden;box-shadow:0 0 0 1px var(--line)}
 .tile .tn{color:var(--ink);font-size:.64rem;font-weight:800;line-height:1.05;max-width:100%}
 .cx-grid .tile.on:not(.flipped){background:var(--page);border-color:var(--coral);border-width:3px;transform:translateY(-2px)}
 .cx-grid .tile.on .tn{color:var(--coral)}
@@ -55,9 +55,9 @@
 .grp .gl .ib{font-size:.75rem}
 .grp .gm{font-size:.92rem;font-weight:600}
 .grp .gm{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px 4px;margin-top:4px}
-/* the four countries of a found group: the whole flag on top, all the same width, name under it, in one row */
+/* the four countries of a found group: the whole flag in the same 3:2 box on top, name under it, in one row */
 .grp .gi{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;font-size:.74rem;font-weight:700;line-height:1.1}
-.grp .gf{width:36px;height:24px;object-fit:contain;margin:3px 0}
+.grp .gf{width:36px;height:24px;overflow:hidden;margin:3px 0;border-radius:2px;box-shadow:0 0 0 1px var(--line)}
 .grp.miss{opacity:.8;border-style:dashed}
 .g0{--gc:var(--p2);--gc-soft:var(--p2-soft)}.g1{--gc:var(--p4);--gc-soft:var(--p4-soft)}.g2{--gc:var(--p1);--gc-soft:var(--p1-soft)}.g3{--gc:var(--p3);--gc-soft:var(--p3-soft)}
 .lives{display:flex;align-items:center;justify-content:center;gap:8px;font-size:.95rem;color:var(--ink-2)}
@@ -451,11 +451,13 @@ const shareMessage=()=>shareText()+'\n\n'+(S.mode==='daily'?"Play today's puzzle
 /* ---- render ---- */
 // the group just found pops in once; later renders (every tap) leave the found groups still
 let popped=null;
+// a flag stretched to one standard 3:2 size (an <image> inside an <svg> may ignore the flag's own proportions; an <img> may not)
+const flag32=(c,cls)=>`<svg class="${cls}" viewBox="0 0 3 2" preserveAspectRatio="none" aria-hidden="true"><image href="../flagpie/flags/${c}.svg" width="3" height="2" preserveAspectRatio="none"/></svg>`;
 const groupHTML=(g,miss)=>{const k=CATS[g.k];
   return `<div class="grp g${g.t}${miss?' miss':''}${g===popped?' new':''}"><span class="gl">${esc(EUT(k.label))}<button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></span>
-    <span class="gm">${g.m.map(c=>`<span class="gi"><img class="gf" src="../flagpie/flags/${c}.svg" alt=""><span>${esc(byCode[c].n)}</span></span>`).join('')}</span></div>`};
+    <span class="gm">${g.m.map(c=>`<span class="gi">${flag32(c,"gf")}<span>${esc(byCode[c].n)}</span></span>`).join('')}</span></div>`};
 const tileHTML=(c,attr)=>{const n=byCode[c].n,on=attr==='data-c'&&sel.includes(c);
-  return `<button class="tile${on?' on':''}${n.length>12||n.split(' ').some(w=>w.length>10)?' long':''}" ${attr}="${c}" aria-pressed="${on}" lang="en"><img class="tfl" src="../flagpie/flags/${c}.svg" alt=""><span class="tn">${esc(n)}</span></button>`};
+  return `<button class="tile${on?' on':''}${n.length>12||n.split(' ').some(w=>w.length>10)?' long':''}" ${attr}="${c}" aria-pressed="${on}" lang="en">${flag32(c,"tfl")}<span class="tn">${esc(n)}</span></button>`};
 // the average of groups found (days before the count was kept: solved = 4, otherwise not counted)
 function cxAverage(h){const known=Object.values(h).map(e=>e.w?4:e.f).filter(f=>f!=null);return known.length?EU(known.reduce((a,b)=>a+b,0)/known.length,1)+'/4':'–'}
 function statsHTML(){const h=load('cx-hist',{});return statTiles(Object.keys(h).length,cxAverage(h),streakOf(h))}
