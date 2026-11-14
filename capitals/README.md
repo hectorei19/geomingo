@@ -13,6 +13,7 @@ Live at https://geomingo.com/capitals/ · all the games: https://geomingo.com/
 
 Files:
 - `index.html` – the whole game (categories and game logic).
+- `tools/move-to-capitals.js` – moved Capitals' Firebase data from its old names (`users/<uid>/cities`, `lb/citygrid`, `gprofiles/citygrid`) to `capitals` (instructions inside).
 - `data.js` – the data: capitals (`CITIES`), country lists (`CO_LISTS`) and the fixed daily grids (`DAILY_FIXED`). Country names (`CO`) come from the Geomingo country database, `../data/countries.js`.
 - Flags: the Geomingo flags, `../data/flags.js`.
 

@@ -25,7 +25,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
 <link rel="stylesheet" href="brand/geomingo.css?v=202611141100">
 <script src="brand/mingo.js?v=202611141100"></script>
-<script src="brand/account.js?v=202611141140"></script>
+<script src="brand/account.js?v=202611141200"></script>
 <style>
 /* Home page: Sign in and Menu on top, today's games as colour tiles, Practice and With friends, then the GeoPass
    (km, level, today's stamps) and the ranking by km (today, this week, this month) */
@@ -314,7 +314,7 @@ function draw(){const P=geo();
    Today, This week (Monday to today) and This month (the 1st to today).
    only signed-in games count there (one try a day per account), so it can differ from your own GeoPass
    Countries and Capitals: the daily grid is 4 x 4, so km come from right answers out of 16 (like GeoPass) */
-const LB=[['leaderboard','borderline',r=>pts((+r.c||0)/16)],['lb/citygrid','citygrid',r=>pts((+r.c||0)/16)],
+const LB=[['leaderboard','borderline',r=>pts((+r.c||0)/16)],['lb/capitals','citygrid',r=>pts((+r.c||0)/16)],
   ['lb/connections','connections',r=>cxPts(r.s,r.m)],['lb/top10','top10',r=>pts((+r.s||0)/10)],
   ['lb/sil-easy','silhouette',r=>pts((+r.s||0)/9)],['lb/sil-normal','silhouette',r=>pts((+r.s||0)/9)],['lb/sil-hard','silhouette',r=>pts((+r.s||0)/9)],['lb/customs','customs',r=>r.r!=null?clPts(r.r,r.s,5):pts((+r.s||0)/25)],['lb/flagpie','flagpie',r=>r.r!=null?clPts(r.r,r.s,5):pts((+r.s||0)/25)],['lb/impostor','impostor',r=>r.r!=null?clPts(r.r,r.s,6):pts((+r.s||0)/30)],['lb/compass','compass',r=>clPts(r.r,r.s,5)]];
 const AV=['#7FA2F0','#F07884','#5FC28F','#D4AD4B','#A98BE0','#C99B78'];
