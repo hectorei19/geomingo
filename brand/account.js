@@ -101,7 +101,7 @@ function signOut(){if(ok)firebase.auth().signOut().catch(()=>{})}
    An invite link (?room=) always opens, so a friend can join a room without an account; nor does test mode (?test) show it.
    Signing out keeps gm-trial (it is not in DEVICE_KEYS), so the free days are not given again. */
 const TRIAL=3;
-const GAME_PAGE=/\/(countries|capitals|cities|connections|top10|silhouette|customs|flagpie|impostor|compass)\//.test(location.pathname);
+const GAME_PAGE=/\/(countries|capitals|connections|top10|silhouette|customs|flagpie|impostor|compass)\//.test(location.pathname);
 const ROOM_LINK=(()=>{try{return new URLSearchParams(location.search).has('room')}catch(e){return false}})();
 const trialDays=()=>{const d=json('gm-trial');return Array.isArray(d)?d.filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x)):[]};
 // day: which free day today is (1-3, or the one it would be), left: free days still to come after today, over: no free day left
@@ -145,8 +145,8 @@ function saveName(v){const n=String(v||'').trim().slice(0,16);if(!n){say('Type a
     if(x){setName(x);G.closeWindow();if(!OWN)Object.keys(ADAPT).forEach(syncGame);changed()}}).catch(()=>say('Could not save your name. Try again.'))}
 
 /* ---- keeping the account and this device in step ---- */
-function syncAll(){if(!uid()||!db)return;syncPass();syncDays();if(!OWN){Object.keys(ADAPT).forEach(syncGame);syncGrid('daily','bl-hist');syncGrid('cities/daily','cc-hist')}}
-// Countries and Capitals keep their days in the account themselves (users/<uid>/daily, users/<uid>/cities/daily), but only
+function syncAll(){if(!uid()||!db)return;syncPass();syncDays();if(!OWN){Object.keys(ADAPT).forEach(syncGame);syncGrid('daily','bl-hist');syncGrid('capitals/daily','cc-hist')}}
+// Countries and Capitals keep their days in the account themselves (users/<uid>/daily, users/<uid>/capitals/daily), but only
 // when you open them: here (the home page, the other games) the account's days are copied to this device too,
 // so a grid played on another device shows as played everywhere at once. Only the stats line, never the whole game (j).
 function syncGrid(path,key){const id=uid();
@@ -231,7 +231,7 @@ function rankingHTML(g,o){const u=who();if(TEST||u===undefined)return '';o=o||{}
    on this device: gm-feats {u, r: {game: {day: [place, players, first to finish, fastest, your finish time]}}}.
    First, Fastest and the finish time only count a result with at least half right; Fastest compares the rows that carry
    the seconds the game took (sec, sent from 2026-11 on). mingo.js visas() reads it. */
-const FEATS=[['borderline','leaderboard','bl-hist',r=>(+r.c||0)>=8,e=>e&&e.f!==0],['citygrid','lb/citygrid','cc-hist',r=>(+r.c||0)>=8,e=>e&&e.f!==0],
+const FEATS=[['borderline','leaderboard','bl-hist',r=>(+r.c||0)>=8,e=>e&&e.f!==0],['citygrid','lb/capitals','cc-hist',r=>(+r.c||0)>=8,e=>e&&e.f!==0],
   ['connections','lb/connections','cx-hist',r=>(+r.s||0)>=2,e=>!!e],['top10','lb/top10','t10-hist',r=>(+r.s||0)>=5,e=>!!e],
   ['silhouette','lb/sil-normal','sil-hist',r=>(+r.s||0)>=5,e=>e&&e.normal!=null],['customs','lb/customs','cu-hist',r=>(+r.s||0)>=13,e=>!!e],
   ['flagpie','lb/flagpie','fp-hist',r=>(+r.s||0)>=13,e=>!!e],['impostor','lb/impostor','im-hist',r=>(+r.s||0)>=15,e=>!!e],
@@ -255,7 +255,7 @@ function scanFeats(){const me=uid();if(!me||!db||TEST||featBusy)return;const c=f
 
 /* ---- My stats: one card per way to play (statsPage below) ----
    The Daily card's cup is your best place in a daily ranking. The places come from the public rankings of the days you played
-   (lbs[].path: lb/<game>, Countries' leaderboard, Capitals' lb/citygrid), read once a day is over and kept here (gm-ranks);
+   (lbs[].path: lb/<game>, Countries' leaderboard, Capitals' lb/capitals), read once a day is over and kept here (gm-ranks);
    today's place counts too, but can still change until midnight. */
 const RK={};
 function ranksStore(){const id=meId(),c=json('gm-ranks');return c&&c.u===id&&c.r?c:{u:id,r:{}}}

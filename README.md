@@ -5,7 +5,7 @@ Daily geography games. Better with friends. Live at https://geomingo.com/
 | Trip | Game | What you do | Address |
 |---|---|---|---|
 | 1 | Countries | Fill a grid with countries | https://geomingo.com/countries/ |
-| 2 | Capitals | Fill a grid with capitals | https://geomingo.com/capitals/ (the old address `/cities/` forwards here) |
+| 2 | Capitals | Fill a grid with capitals | https://geomingo.com/capitals/ |
 | 3 | Connections | Find 4 hidden groups of 4 countries | https://geomingo.com/connections/ |
 | 4 | Top 10 | Name the 10 countries of a ranking | https://geomingo.com/top10/ |
 | 5 | Silhouette | Guess the country from its shape | https://geomingo.com/silhouette/ |
@@ -32,8 +32,7 @@ Everything is one website and one repository, published with GitHub Pages from `
 - `brand/` – the shared Geomingo look and logic (below)
 - `data/` – the Geomingo country database, the one source of country data for every game: `countries.js` (the 197 countries, one name each, figures and lists) and `flags.js` (the flags, loaded only by games that show flags)
 - `countries/` – Countries (formerly Country Grid / Borderline): `daily.js` (the daily grids), `database.rules.json` (the Firebase rules for the whole site) and `version.json`
-- `capitals/` – Capitals (formerly Cities / City Grid): `data.js` (the cities and the daily grids) and `version.json`
-- `cities/` – only forwards old links to `capitals/`
+- `capitals/` – Capitals (formerly City Grid): `data.js` (the cities and the daily grids) and `version.json`
 - `connections/`, `top10/`, `silhouette/`, `customs/`, `flagpie/`, `impostor/`, `compass/` – the other seven games, each with its own `index.html` and data files. Compass also loads `capitals/data.js` (capitals and their coordinates); Impostor also loads `top10/extra-data.js`.
 - `shared/` – files used by those seven games (not by Countries and Capitals):
   - `style.css` – the common game styles
@@ -69,7 +68,7 @@ Firebase project `borderline-90920` (the name comes from the first version of Co
 - `users/<uid>/pass`, `users/<uid>/days` – the GeoPass and the days played (the streak), for every game
 - `users/<uid>/hist/<game>/<date>` – the daily results of Connections (`connections`), Top 10 (`top10`), Silhouette (`sil-easy`, `sil-normal`, `sil-hard`), Customs (`customs`), Flag Pie (`flagpie`), Impostor (`impostor`) and Compass (`compass`), with today's whole game, so another device shows the same one (one try per account)
 - `lb/<game>/<date>/<uid>` – each game's public daily ranking; each account writes its result once
-- Countries keeps its own paths: `leaderboard/…`, `users/<uid>/daily…` and `profiles/…`. Capitals uses `lb/citygrid/…`, `users/<uid>/cities/…` and `gprofiles/citygrid/…`.
+- Countries keeps its own paths: `leaderboard/…`, `users/<uid>/daily…` and `profiles/…`. Capitals uses `lb/capitals/…`, `users/<uid>/capitals/…` and `gprofiles/capitals/…` (until 2026-11-14 they were `lb/citygrid`, `users/<uid>/cities` and `gprofiles/citygrid`, moved by `capitals/tools/move-to-capitals.js`).
 - `rooms/<code>` – the With friends rooms of every game (each room is tagged with its game)
 
 The rules are in `countries/database.rules.json`. After changing them, paste them by hand in the Firebase console → Realtime Database → Rules, and Publish.
