@@ -304,7 +304,7 @@ window.addEventListener('popstate',()=>{const h=location.hash.slice(1);setMode(h
 // Practice's one choice, for every game with lives: 5 lives, or Unlimited (play to the end, mistakes are only counted)
 const livesHTML=lv=>'<div class="pklives"><div class="seg" role="group" aria-label="Lives">'+
   [['5','5 lives'],['unl','Unlimited']].map(([v,l])=>'<button type="button" data-lives="'+v+'" aria-pressed="'+(v===lv)+'">'+l+'</button>').join('')+'</div></div>';
-const PKHEAD={practice:['Practice','Unlimited games at your pace. They don\'t count for the ranking.'],friends:['With friends','One room, all 9 games. 2 to 6 players, each on their own phone.']};
+const PKHEAD={practice:['Practice','Play as much as you like. No ranking.'],friends:['With friends','One room, all 9 games. 2 to 6 players, each on their own phone.']};
 // Practice opens the game's Solo screen, Friends its With friends screen (greyed when the game has none yet)
 function modeTile(g){const lk=look(g.id),pr=MODE==='practice',off=!pr&&g.nofriends;
   const state=pr?'PRACTICE':off?'SOON':'ONLINE',hint=pr?'Random game':off?'Coming soon':'Create or join a room';
