@@ -551,10 +551,11 @@ function render(keepShake){
     app.innerHTML=room?lobbyHTML():header('Connec<span>tions</span>','')+`<section class="panel"><p class="hint">Connecting to the room…</p></section>`;bind();return}
   if(!S){app.innerHTML=header('Connections','')+`<section class="panel"><p class="hint">Could not build a puzzle. Try again later.</p></section>`;bind();return}
   const on=S.mode==='online';
-  const coord=S.mode==='daily'?'Daily #'+S.num:S.mode==='archive'?'Archive #'+S.num:on?'Room '+roomCode:'Practice';
+  const coord=S.mode==='daily'?'Daily #'+S.num:S.mode==='archive'?'Archive #'+S.num:on?'Room '+roomCode:'';
   let h=header('Connec<span>tions</span>',coord);
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
-  if(!(S.over&&!on&&(S.mode==='daily'||S.mode==='free')))h+=`<div class="backline">${on?`<button class="linkbtn" id="leave">${leaveArmed?'Tap again to leave':'← Leave'}</button>`:``}<span class="ht">${S.mode==='daily'?"Today's puzzle":S.mode==='archive'?'Puzzle #'+S.num:on?'With friends':'Practice'}</span></div>`;
+  // Practice is said once, on the coral ticket (Héctor 2026-11-15)
+  if(S.mode!=='free'&&!(S.over&&!on&&S.mode==='daily'))h+=`<div class="backline">${on?`<button class="linkbtn" id="leave">${leaveArmed?'Tap again to leave':'← Leave'}</button>`:``}<span class="ht">${S.mode==='daily'?"Today's puzzle":S.mode==='archive'?'Puzzle #'+S.num:on?'With friends':'Practice'}</span></div>`;
   if(on)h+=scoresHTML();
   watchResult(cxKey(),S.over);
   // today's daily done: the four groups go inside the result ticket, Next trip and Share under it (Héctor 2026-11-12)

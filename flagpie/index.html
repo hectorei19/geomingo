@@ -303,7 +303,7 @@ function trainEnd(){if(view==='room'||T.logged)return;T.logged=1;logSolo('fp-sol
 function trainPick(code){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;
   const res=answer(q,code);query='';typing=res==='wrong';feedback(q,res);advance(T);if(T.over)trainEnd();render();if(res!=='wrong')showLeft()}
 function trainNextClue(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;nextClue(q);advance(T);if(T.over)trainEnd();render();if(q.st!=='play')showLeft()}
-function trainHTML(){let h=header('Flag Pie','Practice')+(T.over&&T.left==null?'':`<div class="backline"><span class="ht">Practice</span></div>`);
+function trainHTML(){let h=header('Flag Pie','');  // Practice is said once, on the coral ticket (Héctor 2026-11-15)
   // a finished Solo game: the pink ticket with the answers inside, then New game (Héctor 2026-11-14)
   if(T.over&&T.left==null){const p=pointsOf(T),s=load('fp-solo5',null)||{};
     return h+Geomingo.soloTicket({id:'flagpie',what:'',score:p+' points',best:'Best: '+Math.max(s.best||0,p)+' points',detail:rightOf(T)+' of 5 named',

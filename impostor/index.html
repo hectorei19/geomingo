@@ -286,7 +286,7 @@ function trainEnd(){if(view==='room'||T.logged)return;T.logged=1;logSolo('im-sol
 function trainPick(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over||!chosen)return;
   const res=answer(q,chosen);chosen=null;feedback(q,res);advance(T);if(T.over)trainEnd();render();showLeft()}
 function trainMore(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;chosen=null;moreFacts(q);advance(T);if(T.over)trainEnd();render();if(q.st!=='play')showLeft()}
-function trainHTML(){let h=header('Impostor','Practice')+(T.over&&T.left==null?'':`<div class="backline"><span class="ht">Practice</span></div>`);
+function trainHTML(){let h=header('Impostor','');  // Practice is said once, on the coral ticket (Héctor 2026-11-15)
   // a finished Solo game: the pink ticket with the answers inside, then New game (Héctor 2026-11-14)
   if(T.over&&T.left==null){const p=pointsOf(T),s=load('im-solo',null)||{};
     return h+Geomingo.soloTicket({id:'impostor',what:'',score:p+' points',best:'Best: '+Math.max(s.best||0,p)+' points',detail:rightOf(T)+' of 6 caught',

@@ -181,8 +181,7 @@ function trainShow(){const q=T.q;if(q.st!=='play'||T.over)return;q.st='wrong';qu
 function trainSkip(){const q=T.q;if(q.st!=='play'||T.over)return;q.st='wrong';T.over=true;
   const st=trainStats(),s=st[T.diff]||{n:0,ok:0,best:0};s.n++;st[T.diff]=s;store('sil-train',st);render()}
 function trainHTML(){const q=T.q,s=trainStats()[T.diff]||{best:0},done=q.st!=='play';
-  let h=header('Silhou<span>ette</span>','Practice');
-  if(!T.over)h+=`<div class="backline"><span class="ht">Practice</span></div>`;
+  let h=header('Silhou<span>ette</span>','');  // Practice is said once, on the coral ticket (Héctor 2026-11-15)
   // game over (no ← Back line then, as on today's result): the pink ticket with the last shape and its name inside, then New game (Héctor 2026-11-14)
   if(T.over)return h+Geomingo.soloTicket({id:'silhouette',what:T.nolives?'Unlimited':LIVES+' lives',score:T.streak+' named',best:'Best: '+Math.max(s.best||0,T.streak)+' named',
     detail:T.miss+' mistake'+(T.miss===1?'':'s'),body:silBoxHTML(q,done)+revealHTML(q)})+`<div class="gm-done-btns gm-solo-btns"><button class="primary" id="tagain" style="flex:1">New game</button>${SHARE_BTN.replace('Share result','Share')}</div>`;
