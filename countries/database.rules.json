@@ -3,7 +3,7 @@
     ".read": false,
     ".write": false,
     "st": {
-      ".read": "auth != null && auth.uid === 'ADMIN_UID'",
+      ".read": "auth != null && auth.uid === 'WjzTvjoYtjcshmTn4P7Lg5yKsdE3'",
       "$date": {
         "$page": {
           "$k": {
