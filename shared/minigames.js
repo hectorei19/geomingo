@@ -94,7 +94,7 @@ function archiveHTML(o){const items=archDates(o.first,o.played(todayKey())).map(
     else if(p)st=`<span class="as done">${esc(p)}</span>`;
     else st=`<span class="as">${g?'In progress':'Play'}</span>`;
     return `<li><button data-arch="${k}"><span class="an">#${n}</span><span class="ad"><b>${o.label} #${n}</b><small>${date}</small></span>${sq}${st}</button></li>`}).join('');
-  return `<section class="panel"><div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Archive</span></div>
+  return `<section class="panel"><div class="backline"><span class="ht">Archive</span></div>
     <p class="hint">Play the daily ${o.label.toLowerCase()}s you missed. The ones you played on their day are already done. One try each, on this device. Archive games don't count for the daily ranking or your streak.</p>
     ${items?`<ul class="arch">${items}</ul>`:`<p class="hint">No past ${o.label.toLowerCase()}s yet. Come back tomorrow.</p>`}</section>`}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#menu,#brand');if(!t)return;

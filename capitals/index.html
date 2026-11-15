@@ -769,7 +769,7 @@ function archiveView(){const a=loadArch(),rem=ARCH_REMOTE||{};
     else if(USER&&r&&otherDevice(r))st=`<span class="as">${r.f===1?'Played on another device':'Started on another device'}</span>`;
     else st=`<span class="as">${g?'In progress':'Play'}</span>`;
     return `<li><button data-arch="${k}"><span class="an">#${n}</span><span class="ad"><b>Grid #${n}</b><small>${date}</small></span>${sq}${st}</button></li>`}).join('');
-  return `<section class="panel"><div class="backline"><button class="linkbtn" id="aback">← Back</button><span class="ht">Archive</span></div>
+  return `<section class="panel"><div class="backline"><span class="ht">Archive</span></div>
     <p class="hint">Play the daily grids you missed. Grids you played on their day are already done. One try per grid${USER?' with your account':' on this device'}. Archive games don't count for the daily ranking or your streak.</p>
     ${items?`<ul class="arch">${items}</ul>`:'<p class="hint">No past grids yet. Come back tomorrow.</p>'}</section>`}
 function playArchive(k){const a=loadArch(),r=(ARCH_REMOTE||{})[k];
@@ -1288,7 +1288,7 @@ function openStats(uid){STATS_UID=uid||null;if(screen!=='stats')statsBack=screen
   render();window.scrollTo(0,0)}
 function statsView(){
   const mine=!STATS_UID||(USER&&STATS_UID===USER.uid);let st,name;
-  const back=`<div class="backline"><button class="linkbtn" id="sback">← Back</button><span class="ht">${'%NAME%'}</span></div>`;
+  const back=`<div class="backline"><span class="ht">${'%NAME%'}</span></div>`;
   if(mine){st=computeStats(loadHist(),loadGames());name=PROFILE||setup.user||'You'}
   else{const p=statsCache[STATS_UID];
     if(p===undefined)return `<section class="panel">${back.replace('%NAME%','Player')}<p class="hint">Loading…</p></section>`;
@@ -1398,7 +1398,7 @@ function setupView(){
   if(![0,15,30].includes(setup.timer))setup.timer=0;
   const on=setup.mode==='online',pc=parseCode(setup.code),fg=pc&&{...pc,code:setup.code.trim().toUpperCase()};
   return `<section class="panel">
-    <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">${fr?'With friends':'Solo'}</span></div>
+    <div class="backline"><span class="ht">${fr?'With friends':'Solo'}</span></div>
     ${fr?`<p class="hint">${MHINT.online} The host creates a room and shares its link or code.</p>`:''}
     ${on&&!USER&&!MAYBE_IN()?`<div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||(setup.user==='Guest'?'':setup.user))}"></div>`:''}
     ${fg&&!on?`<div class="field"><span class="label">Friend's grid</span><p class="hint" style="color:var(--ink);font-size:1rem"><b>${esc(fg.code)}</b> · ${fg.n} × ${fg.n} · ${fg.diff[0].toUpperCase()+fg.diff.slice(1)}. You play exactly the squares your friend played.</p><button class="ghost" id="nofg">Play a random grid instead</button></div>`:`
@@ -1420,10 +1420,10 @@ function setupView(){
 function gameView(){
   // today's daily done: the grid goes inside the result ticket, Next trip and Share under it (Héctor 2026-11-12)
   const n=S.n,done=S.over&&S.daily&&!S.archive&&!S.dayof,solo=S.over&&S.mode==='solo';let h='',mark=0;
-  // ← Back and the title, as in every game (in a room it leaves the room)
+  // the title (in a room also ← Leave); the back is the "‹ geomingo" on top, as in every game (Héctor 2026-11-15)
   const title=S.daily?(S.archive?'Grid #'+S.day:"Today's grid"):S.mode==='online'?'With friends':'Solo';
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
-  if(!done&&!solo)h+=`<div class="backline"><button class="linkbtn" id="gback">← ${S.mode==='online'?'Leave':'Back'}</button><span class="ht">${title}</span></div>`;
+  if(!done&&!solo)h+=`<div class="backline">${S.mode==='online'?'<button class="linkbtn" id="gback">← Leave</button>':''}<span class="ht">${title}</span></div>`;
   if(S.over){
     if(S.mode!=='solo')h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${p.on===false?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${EU(p.score)}</b></span>`).join('')}</div>`;
     if(!done&&!solo)h+=resultsView();

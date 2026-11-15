@@ -93,11 +93,11 @@
 <script src="../capitals/data.js?v=202611121400"></script>
 <script src="clues.js?v=202611100915"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611141100"></script>
+<script src="../shared/minigames.js?v=202611150600"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
-<script src="../shared/race.js?v=202611100930"></script>
+<script src="../shared/race.js?v=202611150600"></script>
 <script>
 /* ---- Compass: find the mystery capital from the capitals round it (Héctor's idea, 2026-11-10) ----
    The mystery capital is the "?" in the middle of a compass. Clue capitals appear on the rim, each in its real direction
@@ -302,7 +302,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('City',(i+1)+'/'+PER)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+show(q.p,q):'0'):'+'+show(worth(q),q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Compass',(arch?'Archive #':'Daily #')+D.num);
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
-  if(!(D.over&&D.left==null&&!arch))h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's capitals"}</span></div>`;
+  if(!(D.over&&D.left==null&&!arch))h+=`<div class="backline"><span class="ht">${arch?'Archive #'+D.num:"Today's capitals"}</span></div>`;
   if(D.over&&D.left==null)return h+resultHTML(D)+(D.mode==='archive'?summaryHTML(D):rankingHTML());
   return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel">${playHTML(D)}</section>`+quickRules()}
 
@@ -323,7 +323,7 @@ const seg=(name,opts,val)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<
 const soloPool=()=>soloDiff()==='easy'?DECK.filter(c=>cityBy[c]):CITIES.map(x=>x.c);
 function openSolo(){view='solo';query='';typing=false;render();window.scrollTo(0,0)}
 function soloHTML(){return header('Compass','Solo')+`<section class="panel">
-  <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Solo</span></div>
+  <div class="backline"><span class="ht">Solo</span></div>
   <p class="hint">Five capitals, a new set every game. Up to 100 points, 120 for a perfect game.</p>
   <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['hard','Hard']],soloDiff())}<p class="hint">${soloDiff()==='easy'?'Capitals most people know: the same ones as the daily game':'Any of the '+CITIES.length+' capitals, the tiny islands too'}.</p></div>
   <button class="primary" id="start">Start game</button></section>${quickRules()}`}
@@ -332,7 +332,7 @@ function trainEnd(){if(view==='room'||T.logged)return;T.logged=1;logSolo('cm-sol
 function trainPick(code){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;
   const res=answer(q,code);if(res==='same')return;query='';typing=res==='wrong';feedback(q,res);advance(T);if(T.over)trainEnd();render();if(res!=='wrong')showLeft()}
 function trainNextClue(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;nextClue(q);advance(T);if(T.over)trainEnd();render();if(q.st!=='play')showLeft()}
-function trainHTML(){let h=header('Compass','Solo')+(T.over&&T.left==null?'':`<div class="backline"><button class="linkbtn" id="soloback">← Back</button><span class="ht">Solo</span></div>`);
+function trainHTML(){let h=header('Compass','Solo')+(T.over&&T.left==null?'':`<div class="backline"><span class="ht">Solo</span></div>`);
   // a finished Solo game: the pink ticket with the answers inside, then New game (Héctor 2026-11-14)
   if(T.over&&T.left==null){const p=pointsOf(T),s=load('cm-solo',null)||{};
     return h+Geomingo.soloTicket({id:'compass',what:soloDiff()==='hard'?'Hard':'Easy',score:p+' points',best:'Best: '+Math.max(s.best||0,p)+' points',detail:rightOf(T)+' of 5 found',
