@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611160700"></script>
+<script src="../brand/mingo.js?v=202611160800"></script>
 <script src="../brand/account.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1818,6 +1818,8 @@ function bindSugg(){layer.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>
 
 /* ---- bindings ---- */
 function bind(){
+  // the address says Practice (?solo) or With friends (?friends), so F5 keeps you there
+  Geomingo.where(S?(S.daily?'':S.mode==='solo'?'solo':'friends'):roomCode||screen==='friends'?'friends':screen==='solo'?'solo':'');
   app.querySelectorAll('[data-seg]').forEach(b=>b.onclick=()=>{const k=b.dataset.seg,v=b.dataset.v;
     setup[k]=(k==='mode'||k==='diff')?v:+v;render()});
   const $=id=>document.getElementById(id);

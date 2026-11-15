@@ -36,7 +36,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611160700"></script>
+<script src="../brand/mingo.js?v=202611160800"></script>
 <script src="../brand/account.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -672,6 +672,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
 // tapping a suggestion does not take the focus from the box, so the phone keyboard stays open
 function drawSugg(){const u=$('sugg');if(u){u.innerHTML=suggHTML();u.querySelectorAll('[data-g]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>guess(b.dataset.g)})}}
 function bind(){
+  Geomingo.where(roomCode||view==='friends'?'friends':view==='solo'||view==='game'&&S&&S.mode==='free'?'solo':''); // F5 keeps Practice / With friends
   if($('daily'))$('daily').onclick=openDaily;
   app.querySelectorAll('[data-go="free"]').forEach(b=>b.onclick=openSolo);
   if($('start'))$('start').onclick=()=>openFree(null,true);
