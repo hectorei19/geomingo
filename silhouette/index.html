@@ -23,7 +23,7 @@
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611161230"></script>
 <script src="../brand/account.js?v=202611161200"></script>
-<script src="../brand/party.js?v=202611151100"></script>
+<script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -482,7 +482,7 @@ async function onlineAct(kind){
     if(kind==='lobby'){if(r.host!==ME)return;r.status='lobby';r.order=null;r.qs=null;r.ans=null;r.round=0;return r}
   })}catch(e){console.error(e);toast('That did not go through. Check the connection.','bad')}}
 const ranked=()=>[...O.players].sort((a,b)=>b.total-a.total||a.ms-b.ms||a.i-b.i);
-function friendsHTML(){
+function friendsHTML(){if(Geomingo.party&&Geomingo.party.on())return header('Silhou<span>ette</span>','');
   return header('Silhou<span>ette</span>','')+`<section class="panel">
     <div class="backline"><span class="ht">With friends</span></div>
     <p class="hint">2 to ${MAXP} players, each on their own phone. The host creates a room and shares its link or code.</p>
@@ -494,7 +494,7 @@ function friendsHTML(){
 // the one room for all nine games (../brand/party.js) drives this game's room
 if(Geomingo.party)Geomingo.party.game({room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
   count:()=>room?lobbyOrder(room).length:0,names:()=>room?lobbyOrder(room).map(k=>room.players[k].name):[],create:createRoom,join:joinRoom,start:()=>onlineAct('start')});
-function lobbyHTML(){const r=room,order=lobbyOrder(r),link=pageLink('?room='+roomCode),host=r.host===ME;
+function lobbyHTML(){if(Geomingo.party&&Geomingo.party.on())return header('Silhou<span>ette</span>','');const r=room,order=lobbyOrder(r),link=pageLink('?room='+roomCode),host=r.host===ME;
   const c=host?setup:r.cfg;
   return header('Silhou<span>ette</span>','room '+roomCode)+`<section class="panel namecard"><span class="label">Room code</span><p class="roomcode">${roomCode}</p>
     <p class="hint">Friends open Silhouette, choose <b>With friends</b>, then type this code under Join. Or send them the link:</p>

@@ -23,7 +23,7 @@
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611161230"></script>
 <script src="../brand/account.js?v=202611161200"></script>
-<script src="../brand/party.js?v=202611151100"></script>
+<script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -1363,7 +1363,7 @@ function render(){
   // the clock of the visas starts when today's grid is first on screen (home or game), unless it is already over
   if(!TESTDAY&&!roomCode){const k=todayKey(),dd=loadDaily(),hh=loadHist()[k];
     if(S?S.daily===k&&!S.archive&&S.mode==='solo'&&!S.over:screen==='home'&&!(dd&&dd.S.over)&&!(hh&&hh.f===1))Geomingo.clock.start('borderline',k)}
-  const body=screen==='stats'?statsView():screen==='archive'?archiveView():S?gameView():((editingUser||(USER&&NEEDNAME))?nameView():(roomCode&&room?lobbyView():setupView()));
+  const body=screen==='stats'?statsView():screen==='archive'?archiveView():S?gameView():((editingUser||(USER&&NEEDNAME))?nameView():((Geomingo.party&&Geomingo.party.on())&&(screen==='friends'||roomCode)?'':roomCode&&room?lobbyView():setupView()));
   watchResult();
   app.innerHTML=Geomingo.header({game:GAME_NAME,coord:S?(S.daily?'Daily #'+S.day:S.code)+(S.mode==='online'?' · room '+roomCode:''):(roomCode?'Room '+roomCode:''),menu:menuBtn()})+(newVersion?`<div class="status" style="border-color:var(--sea)"><span class="who" style="white-space:normal">A new version of the game is available.</span><button class="primary" id="reload" style="padding:8px 12px;font-size:.9rem">Reload</button></div>`:'')+body;
   bind();drawLayer();fitHeaders();saveDaily();recordGame();
