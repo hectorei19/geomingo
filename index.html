@@ -26,6 +26,7 @@
 <link rel="stylesheet" href="brand/geomingo.css?v=202611161000">
 <script src="brand/mingo.js?v=202611161230"></script>
 <script src="brand/account.js?v=202611161200"></script>
+<script src="brand/party.js?v=202611151000"></script>
 <style>
 /* Home page: Sign in and Menu on top, today's games as colour tiles, Practice and With friends, then the GeoPass
    (km, level, today's stamps) and the ranking by km (today, this week, this month) */
@@ -234,6 +235,7 @@ footer{display:flex;flex-direction:column;gap:4px;align-items:center;padding-top
     <div class="hrow" id="todayhead"><span class="hmingo"></span><div class="gm-head"><span class="gm-lab" id="dep">Today</span><h2>Today's itinerary</h2></div><button class="mypass" id="mypass" type="button" aria-label="Open my GeoPass"></button></div>
     <div class="pkhead" id="pkhead" hidden></div>
     <ul class="tiles c3" id="games"></ul>
+    <section id="party" aria-label="With friends room" hidden></section>
     <div class="two" id="two">
       <button type="button" data-mode="practice"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg>Practice<small>Unlimited games</small></button>
       <button type="button" data-mode="friends"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20c1-3.5 3.5-5.5 6.5-5.5s5.5 2 6.5 5.5M15 14.6c2.6-.4 5 1.2 6 4.4"/></svg>With friends<small>Online, 2 to 6 players</small></button>
@@ -279,18 +281,24 @@ const HINT3={borderline:'Fill a country grid',citygrid:'Fill a capital grid',con
 // Practice / With friends: a screen of the games (kept while the visit lasts, so Back from a game comes back to it);
 // it has its own history step, so the phone's back gesture returns to today's games
 let MODE='today';try{const t=sessionStorage.getItem('gm-tab');if(t==='practice'||t==='friends')MODE=t}catch(e){}
+// an invite to a With friends room (?party=ABCD), or back from a game to the room (#friends): the room screen
+try{if(/[?&]party=/.test(location.search)||location.hash==='#friends'){MODE='friends';sessionStorage.setItem('gm-tab','friends')}}catch(e){}
 function setMode(t,push){MODE=t;try{sessionStorage.setItem('gm-tab',t)}catch(e){}
   try{if(push&&t!=='today')history.pushState({gm:t},'','#'+t);else if(t==='today'&&location.hash)history.replaceState(null,'',location.pathname)}catch(e){}
   draw();window.scrollTo(0,0)}
 if(MODE!=='today')try{history.replaceState(null,'',location.pathname);history.pushState({gm:MODE},'','#'+MODE)}catch(e){}
 window.addEventListener('popstate',()=>{const h=location.hash.slice(1);setMode(h==='practice'||h==='friends'?h:'today')});
-const PKHEAD={practice:['Practice','Unlimited games at your pace. They don\'t count for the ranking.'],friends:['With friends','Pick a game, then create a room and send the code to your friends. Or join with a code.']};
+const PKHEAD={practice:['Practice','Unlimited games at your pace. They don\'t count for the ranking.'],friends:['With friends','One room, all 9 games. 2 to 6 players, each on their own phone.']};
 // Practice opens the game's Solo screen, Friends its With friends screen (greyed when the game has none yet)
 function modeTile(g){const lk=look(g.id),pr=MODE==='practice',off=!pr&&g.nofriends;
   const state=pr?'PRACTICE':off?'SOON':'ONLINE',hint=pr?'Unlimited, any time':off?'Coming soon':'Create or join a room';
   const top='<span class="tt"><span>TRIP '+g.gate+'</span><span class="s2">'+state+'</span></span>'+lk.svg+'<b>'+esc(g.name)+'</b><small>'+hint+'</small><span class="s3">'+state+'</span>';
   if(off)return '<li><div class="tile off'+(lk.ctr?' ctr':'')+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+': with friends coming soon">'+top+'</div></li>';
   return '<li><a class="tile'+(lk.ctr?' ctr':'')+'" href="'+g.href+(pr?'?solo':'?friends')+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+', '+(pr?'practice':'play with friends')+'">'+top+'</a></li>'}
+// With friends: one room for all 9 games (brand/party.js); the organiser taps a game, the others see it
+function partyTile(g,o){const lk=look(g.id),st=o.played?'PLAYED':'',inner='<span class="tt"><span>TRIP '+g.gate+'</span><span class="s2">'+st+'</span></span>'+lk.svg+'<b>'+esc(g.name)+'</b><small>'+(o.played?'Played':esc(HINT3[g.id]||g.hint))+'</small><span class="s3">'+st+'</span>';
+  const cls='tile'+(lk.ctr?' ctr':'')+(o.played?' played':'');
+  return '<li>'+(o.click?'<button type="button" class="'+cls+'" data-pick="'+g.id+'" style="--c:'+lk.c+'" aria-label="Play '+esc(g.name)+' with the room">'+inner+'</button>':'<div class="'+cls+'" style="--c:'+lk.c+'">'+inner+'</div>')+'</li>'}
 function tile(g,P){if(MODE!=='today')return modeTile(g);const r=G.result(g.id),lk=look(g.id),mi=P.today[g.id];
   const state=r.done?'✓ '+(mi!=null?'+'+mi+' KM':esc(r.label)):'TO VISIT',hint=r.done?doneLine(g.id,r.label):esc(HINT3[g.id]||g.hint);
   const lab='aria-label="'+esc(g.name)+', trip '+g.gate+': '+(r.done?'played today, '+esc(r.label):'play')+'"';
@@ -343,7 +351,8 @@ function draw(){const P=geo();
   document.querySelectorAll('[data-gm-acctslot]').forEach(el=>{const h=G.acctHTML?G.acctHTML():'';if(el.innerHTML!==h)el.innerHTML=h});
   set('dep',esc(G.dateText(G.dayKey(),{weekday:'short',day:'numeric',month:'short'})));
   const nl=G.live().length;let soon='';for(let n=nl+1;n<=Math.max(9,Math.ceil(nl/3)*3);n++)soon+=SOON(n);
-  set('games',G.live().map(g=>tile(g,P)).join('')+(MODE==='today'?soon:''));
+  const fr=MODE==='friends';document.getElementById('games').hidden=fr;document.getElementById('party').hidden=!fr;
+  if(!fr)set('games',G.live().map(g=>tile(g,P)).join('')+(MODE==='today'?soon:''));
   const pk=document.getElementById('pkhead'),on=MODE!=='today';pk.hidden=!on;
   if(on&&pk.dataset.m!==MODE){pk.dataset.m=MODE;pk.innerHTML='<h2>'+PKHEAD[MODE][0]+'</h2><p>'+PKHEAD[MODE][1]+'</p>'}
   // the back is the "‹ geomingo" on top, as in every game (no separate ← Back line)
@@ -478,6 +487,7 @@ document.getElementById('pkback').onclick=()=>{if(history.state&&history.state.g
 document.querySelectorAll('#two [data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode,true));
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#openpass,#mypass'))G.openPass('passport')});
 draw();
+if(G.party)G.party.home({el:document.getElementById('party'),tile:partyTile});
 if(G.account)G.account.onChange((why,typing)=>{if(!typing)draw()});
 setInterval(draw,30000);
 // coming back from a game in the same tab, or a new day while the page is open
