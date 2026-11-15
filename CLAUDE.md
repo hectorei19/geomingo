@@ -5,7 +5,8 @@ Plain static HTML/CSS/JS: no build step, no framework, no tests. Each game is on
 
 ## Layout
 - `index.html` – home page (game tiles, GeoPass card, ranking)
-- `brand/` – shared look and logic: `geomingo.css`, `mingo.js` (`window.Geomingo`, list of games `GAMES`, GeoPass, header), `account.js` (Google sign-in, rankings), `firebase-config.js` (one Firebase config for every game), `icons/`, `og.png`
+- `brand/` – shared look and logic: `geomingo.css`, `mingo.js` (`window.Geomingo`, list of games `GAMES`, GeoPass, header), `account.js` (Google sign-in, rankings), `firebase-config.js` (one Firebase config for every game), `icons/`, `og.png`,
+  `party.js` (With friends: ONE room for all 9 games at rooms/ABCD with game:'party'; drives each game's own room through `Geomingo.party.game({...})`, points back with `Geomingo.party.result()`)
 - `data/` – THE GEOMINGO COUNTRY DATABASE, the one source of country data for every game:
   `countries.js` (C, EXTRA, DATA) and `flags.js` (FLAG_SVG as SVG text; `FLAGS[code]` gives the image address; loaded only by games that show flags).
   One name per country (`n`); `al` stays empty everywhere. Change country data here, never in a game folder.

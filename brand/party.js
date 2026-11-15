@@ -222,7 +222,7 @@ html.gm-party body{padding-bottom:84px}
 #party .tile{cursor:default}#party button.tile{border:0;font:inherit;text-align:inherit;cursor:pointer;width:100%}
 #party .tile.played{opacity:.45}`;
 function addCSS(){if(document.getElementById('pt-css'))return;const s=document.createElement('style');s.id='pt-css';s.textContent=css;document.head.appendChild(s)}
-let ov=null,bar=null,started=0,created=false,joined='',hadRoom=false,tickT=null,stamp=0;
+let ov=null,bar=null,started=0,created=false,joined='',hadRoom=false,tickT=null,before='',made='';
 function overlay(html){if(!document.body)return;if(!html){if(ov){ov.remove();ov=null}return}
   if(!ov){ov=document.createElement('div');ov.className='pt-ov';document.body.appendChild(ov)}
   if(ov.dataset.h!==html){ov.dataset.h=html;ov.innerHTML='<div>'+html+'</div>';
@@ -231,23 +231,26 @@ function overlay(html){if(!document.body)return;if(!html){if(ov){ov.remove();ov=
 function backBar(on){if(!document.body)return;if(!on){if(bar){bar.remove();bar=null}return}
   if(!bar){bar=document.createElement('div');bar.className='pt-bar';bar.innerHTML='<a class="pt-btn" href="'+homeURL()+'">Back to the room</a>';document.body.appendChild(bar)}}
 // every half second: make the game's room, join it, start it when everyone is in, then step out of the way
-function drive(){if(!PG||!A||!R)return;const c=R.cur||{},g=gameOf(c.g),rc=A.room&&A.room();
-  if(rc)hadRoom=true;
+function drive(){if(!PG||!A||!R)return;const c=R.cur||{},g=gameOf(c.g),rc=(A.room&&A.room())||'';
   // the organiser moved on to another game: follow
   if(c.n>PG.n){if(c.g){ss.set('gm-pg',null);location.href=gameURL(c.g,c.n)}return}
   if(c.n!==PG.n){overlay('');backBar(true);return}
-  const ok=G.account&&G.account.ready;
+  const ok=G.account&&G.account.ready,mineRoom=!!rc&&(rc===c.room||rc===made);
+  if(mineRoom&&rc===c.room)hadRoom=true;
   if(!rc&&hadRoom){location.href=homeURL();return}   // left the game's room: back to our room
-  if(!rc&&ok){
-    if(c.room&&joined!==c.room){joined=c.room;PG.room=c.room;ss.set('gm-pg',PG);A.join(c.room)}
-    else if(!c.room&&R.host===PID&&!created){created=true;A.create()}}
-  if(rc&&!c.room&&R.host===PID)ref.child('cur').transaction(x=>{if(!x||x.n!==PG.n||x.room)return;x.room=rc;return x}).catch(()=>{});
-  const inLobby=!rc||(A.lobby&&A.lobby());
-  if(inLobby){const n=rc&&A.count?A.count():0,exp=Math.max(2,c.exp||2),host=rc&&A.host&&A.host();
+  if(ok){
+    // the game's room is known: everyone joins it (a room this phone was in before is left behind)
+    if(c.room){if(rc!==c.room&&joined!==c.room){joined=c.room;PG.room=c.room;ss.set('gm-pg',PG);A.join(c.room)}}
+    // the organiser makes it, with the daily's rules
+    else if(R.host===PID&&!created){created=true;before=rc;A.create()}}
+  if(created&&rc&&rc!==before&&!made){made=rc}
+  if(made&&!c.room&&R.host===PID)ref.child('cur').transaction(x=>{if(!x||x.n!==PG.n||x.room)return;x.room=made;return x}).catch(()=>{});
+  const inLobby=!mineRoom||(A.lobby&&A.lobby());
+  if(inLobby){const n=mineRoom&&A.count?A.count():0,exp=Math.max(2,c.exp||2),host=mineRoom&&A.host&&A.host();
     if(host&&n>=exp&&Date.now()-started>4000){started=Date.now();A.start()}
-    const names=order(R).map(k=>R.players[k].name),inn=A.names?A.names():[];
+    const names=order(R).map(k=>R.players[k].name),inn=mineRoom&&A.names?A.names():[];
     overlay('<span class="lab">Room '+esc(PG.code)+' · game '+PG.n+'</span><h2>'+esc(g?g.name:'')+'</h2>'+
-      '<p><span class="pt-dot"></span>'+(rc?'Getting everyone in… '+n+' of '+exp:'Opening the game…')+'</p>'+
+      '<p><span class="pt-dot"></span>'+(mineRoom?'Getting everyone in… '+n+' of '+exp:'Opening the game…')+'</p>'+
       '<div class="ppl">'+names.map(x=>'<span class="'+(inn.includes(x)?'in':'')+'">'+esc(x)+'</span>').join('')+'</div>'+
       (host?'<button class="pt-btn" data-pstart '+(n<2?'disabled':'')+'>Start now</button>':'')+
       '<button class="pt-ghost" data-pback>Back to the room</button>');backBar(false)}

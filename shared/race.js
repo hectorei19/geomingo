@@ -41,7 +41,7 @@ window.GeoRace=function(cfg){
     catch(e){console.error(e);return false}
     return true}
   const order=r=>Object.keys((r&&r.players)||{}).filter(k=>r.players[k].name).sort((a,b)=>(r.players[a].t||0)-(r.players[b].t||0));
-  const ACN=()=>{const a=window.Geomingo&&Geomingo.account;return a&&a.user&&a.name?String(a.name).trim().slice(0,16):''};
+  const ACN=()=>{const a=window.Geomingo&&Geomingo.account;return a&&a.user&&a.name?String(a.name).trim().slice(0,16):(Geomingo.party&&Geomingo.party.name())||''};
   function needName(){const an=ACN();if(an){myName=an;return false}const el=$('fname');if(el)myName=el.value.trim().slice(0,16);
     if(!myName){toast('Type your name first.','bad');if(el)el.focus();return true}
     ls.set(K+'-name',myName);return false}
@@ -150,6 +150,7 @@ window.GeoRace=function(cfg){
   // the room's ranking, live while the others finish; the next game starts when everyone still here is done
   R.resultHTML=()=>{const G=R.G,list=ranked(),cur=list.filter(p=>p.cur),pos=cur.findIndex(p=>p.pid===ME)+1;
     const waiting=cur.some(p=>!p.done&&p.on!==false);
+    if(G.over&&!waiting&&Geomingo.party)Geomingo.party.result(cur.map(p=>({n:p.name,p:p.s||0})));
     if(G.over&&!waiting)logFriends(K+'-friends',R.code+':'+G.round+':'+((R.room&&R.room.startAt)||''),pos,cfg.points(G),pos===1?G.ms:0);
     const win=pos===1&&!waiting;
     return `<section class="panel">${Geomingo.hello(win?'happy':'think',win?'You win.':waiting?cfg.points(G)+' points. Now wait for the others.':'Everyone has finished.',waiting?'Some players are still playing.':win?'Most points in the room.':'You came '+pos+(pos===2?'nd':pos===3?'rd':'th')+'.',{key:'res'})}
@@ -182,5 +183,9 @@ window.GeoRace=function(cfg){
   R.leaveHome=()=>{if(R.code){leave();return true}R.screen=null;return false};
   // back from another app with a finished room still on screen a long time: leave it
   document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(R.code&&R.room&&Geomingo.room.stale(myDone(R.room)))leave()});
+  // the one room for all nine games (../brand/party.js) drives this game's room
+  if(Geomingo.party)Geomingo.party.game({room:()=>R.code,host:()=>!!R.room&&R.room.host===ME,lobby:()=>!!R.room&&R.room.status==='lobby',
+    count:()=>R.room?order(R.room).length:0,names:()=>R.room?order(R.room).map(k=>R.room.players[k].name):[],
+    create:()=>{if(initFB())create()},join:c=>{if(initFB())join(c)},start});
   return R};
 })();
