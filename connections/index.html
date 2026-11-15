@@ -44,9 +44,11 @@
 .tile .tflag{height:28px;width:auto;max-width:58%;object-fit:contain;border-radius:3px;box-shadow:0 0 0 1px var(--rule)}
 .tile.long{font-size:.78rem}
 /* the whole flag sized to one standard 3:2 box (every flag the same size, nothing cut; Héctor's choice) with the name under it, on a plain dark tile (found groups still flip as before); a picked tile turns Mingo coral */
-.cx-grid .tile:not(.flipped){padding:4px 2px;aspect-ratio:1;flex-direction:column;justify-content:center;align-items:center;gap:6px;background:var(--page)}
-.tile .tfl{width:46%;height:auto;aspect-ratio:3/2;flex:none;border-radius:3px;overflow:hidden;box-shadow:0 0 0 1px var(--line)}
-.tile .tn{color:var(--ink);font-size:.64rem;font-weight:800;line-height:1.05;max-width:100%}
+.cx-grid .tile:not(.flipped){padding:4px 2px;aspect-ratio:1;flex-direction:column;justify-content:center;align-items:center;gap:5px;background:var(--page)}
+.tile .tfl{width:60%;height:auto;aspect-ratio:3/2;flex:none;border-radius:3px;overflow:hidden;box-shadow:0 0 0 1px var(--line)}
+.tile .tn{color:var(--ink);font-size:.78rem;font-weight:800;line-height:1.06;max-width:100%;overflow-wrap:normal;hyphens:manual;-webkit-hyphens:manual}
+/* names with a word of 10+ letters or over 12 letters a bit smaller, very long names (over 20 letters) smaller still, so no word is ever cut */
+.tile.long .tn{font-size:.68rem}.tile.xl .tn{font-size:.6rem}
 .cx-grid .tile.on:not(.flipped){background:var(--page);border-color:var(--coral);border-width:3px;transform:translateY(-2px)}
 .cx-grid .tile.on .tn{color:var(--coral)}
 @media (max-width:420px){.tile{font-size:.8rem}.tile.long{font-size:.68rem}.cx-grid,.cx-board{gap:6px}}
@@ -510,7 +512,7 @@ const groupHTML=(g,miss)=>{const k=CATS[g.k];
   return `<div class="grp g${g.t}${miss?' miss':''}${g===popped?' new':''}"><span class="gl">${esc(EUT(k.label))}<button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></span>
     <span class="gm">${g.m.map(c=>`<span class="gi">${flag32(c,"gf")}<span>${esc(byCode[c].n)}</span></span>`).join('')}</span></div>`};
 const tileHTML=(c,attr)=>{const n=byCode[c].n,on=attr==='data-c'&&sel.includes(c);
-  return `<button class="tile${on?' on':''}${n.length>12||n.split(' ').some(w=>w.length>10)?' long':''}" ${attr}="${c}" aria-pressed="${on}" lang="en">${flag32(c,"tfl")}<span class="tn">${esc(n)}</span></button>`};
+  return `<button class="tile${on?' on':''}${n.length>12||n.split(' ').some(w=>w.length>=10)?' long':''}${n.length>20?' xl':''}" ${attr}="${c}" aria-pressed="${on}" lang="en">${flag32(c,"tfl")}<span class="tn">${esc(n)}</span></button>`};
 // the average of groups found (days before the count was kept: solved = 4, otherwise not counted)
 function cxAverage(h){const known=Object.values(h).map(e=>e.w?4:e.f).filter(f=>f!=null);return known.length?EU(known.reduce((a,b)=>a+b,0)/known.length,1)+'/4':'–'}
 function statsHTML(){const h=load('cx-hist',{});return statTiles(Object.keys(h).length,cxAverage(h),streakOf(h))}
