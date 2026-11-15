@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611161230"></script>
-<script src="../brand/account.js?v=202611161200"></script>
+<script src="../brand/mingo.js?v=202611171000"></script>
+<script src="../brand/account.js?v=202611171000"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -316,6 +316,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .gm-hello+.board-wrap{margin-top:-4px}
 .respanel .gm-hello{margin:-4px 0 -6px}
 .corner .mingo{width:auto;height:88%}
+.corner.dnum .dn.code{font-size:clamp(.56rem,2.5vw,.8rem);letter-spacing:0;white-space:nowrap;line-height:1.05}
 /* a right answer: the country's flag, darkened and blurred, behind the city's name in the centre (the stamp border keeps the player's colour);
    points in a tab in the top right corner and the country's code in the bottom left, as in Countries */
 .cell.flag .gm-stamp.wf{background:#0b1220;padding:clamp(14px,4.6vw,19px) 2px}
@@ -328,7 +329,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .b5 .cell.flag .gm-stamp.wf .pts{font-size:.6rem;padding:0 3px 1px 4px;border-radius:0 0 0 5px}
 .b5 .cell.flag .gm-stamp.wf .cc{font-size:.6rem;padding:1px 4px 0 3px;border-radius:0 5px 0 0}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611161000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611161400">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -549,7 +550,7 @@ const randSeed=()=>Math.floor(Math.random()*7962624);
 
 /* ---- state ---- */
 let S = null;
-let setup = {mode:'solo',n:4,timer:0,diff:'normal',nolives:0,code:'',user:''};
+let setup = {mode:'solo',n:4,timer:0,diff:'normal',code:'',user:''};
 try{const s=JSON.parse(localStorage.getItem('cc-setup')||'null');if(s&&typeof s==='object'){setup={...setup,...s,code:''};delete setup.names;if(setup.mode!=='online')setup.mode='solo';if(setup.diff==='easy')setup.diff='normal'}}catch(e){}
 // 3 × 3 grids were dropped: an old saved choice of 3 becomes 4 × 4, the only size left
 setup.n=4;
@@ -797,25 +798,29 @@ function showOnDay(k){const e=onDay(k),open=g=>{if(!g||g.daily!==k){toast(e.f===
   if(USER&&db)db.ref('users/'+USER.uid+'/capitals/daily/'+k+'/j').once('value').then(v=>{let g=null;try{g=JSON.parse(v.val())}catch(x){}open(g)}).catch(()=>open(null));
   else open(null)}
 // big or hard grids can take a second to build: show a note first so the screen does not look frozen
-function buildThenStart(){if(setup.n===5||setup.diff!=='normal')toast('Building a grid that can always be completed…');setTimeout(startGame,40)}
+function buildThenStart(){const pc=parseCode(setup.code);if(pc&&(pc.n===5||pc.diff!=='normal'))toast('Building a grid that can always be completed…');setTimeout(startGame,40)}
 function startGame(){
-  let n=setup.n,seed=randSeed();
+  // Practice has no setup screen (Héctor 2026-11-15): always a grid like the daily one (4 × 4, Easy), with the lives
+  // chosen on the home page's Practice screen; a friend's shared grid (?grid=) is played as it was
+  const solo=setup.mode==='solo';
+  let n=solo?DAILY_N:setup.n,seed=randSeed();
   const pc=parseCode(setup.code);
-  let diff=setup.diff||'normal';
-  if(setup.code.trim()){if(!pc){toast('That code is not valid. It looks like 4-KQPMT or 4H-KQPMT.','bad');return}n=pc.n;seed=pc.seed;diff=pc.diff}
+  let diff=solo?DAILY_DIFF:setup.diff||'normal';
+  if(setup.code.trim()){if(!pc){toast('That code is not valid. It looks like 4-KQPMT or 4H-KQPMT.','bad');return false}n=pc.n;seed=pc.seed;diff=pc.diff}
   let g=generate(n,seed,diff),tries=0;
   while(!g&&!pc&&tries++<20){seed=randSeed();g=generate(n,seed,diff)}
-  if(!g){toast('Could not build a grid from that code. Try another.','bad');return}
+  if(!g){toast('Could not build a grid from that code. Try another.','bad');return false}
   try{localStorage.setItem('cc-setup',JSON.stringify({...setup,code:''}))}catch(e){}
   clearGridParam();
   const players=[{name:setup.user||'You',score:0}];
   S={mode:setup.mode,n,seed,diff,code:makeCode(n,seed,diff),rows:g.rows,cols:g.cols,answers:g.answers,
      cells:g.answers.map(()=>({o:-1,c:null})),used:[],players,turn:0,
-     lives:setup.mode==='solo'?LIVES:null,nolives:setup.mode==='solo'&&setup.nolives?1:0,timer:setup.mode==='solo'?0:setup.timer,deadline:0,passes:0,over:false,wrong:0,
+     lives:solo?LIVES:null,nolives:solo&&!Geomingo.lives()?1:0,timer:setup.mode==='solo'?0:setup.timer,deadline:0,passes:0,over:false,wrong:0,
      gid:'s-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7)};
   ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};
   startTurn(true);
   render();
+  return true;
 }
 function startTurn(first){
   if(!S||S.over)return;
@@ -1226,9 +1231,11 @@ function render(){
   // the clock of the visas starts when today's grid is first on screen (home or game), unless it is already over
   if(!TESTDAY&&!roomCode){const k=todayKey(),dd=loadDaily(),hh=loadHist()[k];
     if(S?S.daily===k&&!S.archive&&S.mode==='solo'&&!S.over:screen==='home'&&!(dd&&dd.S.over)&&!(hh&&hh.f===1))Geomingo.clock.start('citygrid',k)}
+  // Practice (?solo, Play Solo, a shared grid): no setup screen, a grid starts at once
+  if(!S&&screen==='solo'&&!roomCode&&!editingUser&&!(USER&&NEEDNAME)){setup.mode='solo';if(startGame())return;screen='home';setup.code=''}
   const body=screen==='stats'?statsView():screen==='archive'?archiveView():S?gameView():((editingUser||(USER&&NEEDNAME))?nameView():((Geomingo.party&&Geomingo.party.on())&&(screen==='friends'||roomCode)?'':roomCode&&room?lobbyView():setupView()));
   watchResult();
-  app.innerHTML=Geomingo.header({game:GAME_NAME,coord:S?(S.daily?'Daily #'+S.day:S.code)+(S.mode==='online'?' · room '+roomCode:''):(roomCode?'Room '+roomCode:''),menu:menuBtn()})+(newVersion?`<div class="status" style="border-color:var(--sea)"><span class="who" style="white-space:normal">A new version of the game is available.</span><button class="primary" id="reload" style="padding:8px 12px;font-size:.9rem">Reload</button></div>`:'')+body;
+  app.innerHTML=Geomingo.header({game:GAME_NAME,practice:!!(S&&S.mode==='solo'&&!S.daily),coord:S?(S.daily?'Daily #'+S.day:S.code)+(S.mode==='online'?' · room '+roomCode:''):(roomCode?'Room '+roomCode:''),menu:menuBtn()})+(newVersion?`<div class="status" style="border-color:var(--sea)"><span class="who" style="white-space:normal">A new version of the game is available.</span><button class="primary" id="reload" style="padding:8px 12px;font-size:.9rem">Reload</button></div>`:'')+body;
   bind();drawLayer();fitHeaders();saveDaily();recordGame();
   if(S&&!S.over&&S.timer)onTickVisual();
 }
@@ -1310,12 +1317,12 @@ function statsView(){
     daily:{n:D.played,unit:'grid',streak:D.streak,avg:D.avg},
     solo:{n:So.played,unit:'game',medal:So.best,stats:[[So.best,'best'],[(So.acc||0)+'%','accuracy'],[So.perfect,'perfect']]},
     friends:{n:F.played,w:F.wins,place:(F.place||0)*F.played,third:[F.best,'best']},
-    extra:A.levelBars('Solo by level',['normal','hard'].map((k,i)=>[DLABEL[k],(bd[k]||{}).acc||0,(bd[k]||{}).played||0,['green','coral'][i]]))})}</section>`;
+    extra:A.levelBars('Practice by level',['normal','hard'].map((k,i)=>[DLABEL[k],(bd[k]||{}).acc||0,(bd[k]||{}).played||0,['green','coral'][i]]))})}</section>`;
   const row=k=>{const x=bd[k]||{played:0,best:0,avg:0};return `<tr><td>${DLABEL[k]}</td><td>${x.played}</td><td>${x.best}</td><td>${x.avg}</td></tr>`};
   return `<section class="panel stats">${back.replace('%NAME%',esc(name))}
     <span class="label">Today's grid</span>
     <div class="stgrid">${tile(D.played,'played')}${tile(D.streak,'streak')}${tile(D.max,'best streak')}${tile(D.best,'best score')}${tile(D.avg,'average')}${tile(D.perfect,'perfect grids')}</div>
-    <span class="label">Solo</span>
+    <span class="label">Practice</span>
     <div class="stgrid">${tile(So.played,'games')}${tile(So.best,'best score')}${tile(So.avg,'average')}${tile(So.perfect,'perfect grids')}${tile(So.acc===undefined?'–':So.acc+'%','accuracy')}${tile(So.squares===undefined?'–':So.squares,'squares')}</div>
     ${So.played?`<table class="sttab"><tr><th></th><th>Games</th><th>Best</th><th>Average</th></tr>${row('normal')}${row('hard')}</table>`:''}
     <span class="label">With friends</span>
@@ -1339,9 +1346,9 @@ function nameView(){
 // home: three ways to play. 'solo' and 'friends' are the settings screens behind two of them
 let screen='home';
 const screenFor=s=>!s?'home':s.archive?'archive':s.daily?'home':s.mode==='solo'?'solo':'friends';
-// top-left corner of a board: the daily grid shows its number (GRID #3), other games Mingo's head
-const cornerHTML=day=>day?`<div class="corner dnum" aria-label="Grid number ${day}"><span class="dl">Grid</span><span class="dn${day>=100?' long':''}">#${day}</span></div>`
-  :`<div class="corner" aria-hidden="true">${Geomingo.mingo('head',30)}</div>`;
+// top-left corner of a board: the daily grid shows its number (GRID #10), other games their grid code, as in Countries
+const cornerHTML=(day,code)=>day?`<div class="corner dnum" aria-label="Grid number ${day}"><span class="dl">Grid</span><span class="dn${day>=100?' long':''}">#${day}</span></div>`
+  :`<div class="corner dnum" aria-label="Grid ${esc(code||'')}"><span class="dl">Grid</span><span class="dn code">${esc(code||'')}</span></div>`;
 // flags of the countries: the Geomingo flags, ../data/flags.js (loaded after the page, so the game never waits for it)
 const flagSrc=k=>typeof FLAGS!=='undefined'&&FLAGS[k]||'';
 // a right answer on the grid: a passport stamp with the city's name in the centre over its country's flag,
@@ -1400,26 +1407,22 @@ function homeView(){
   ${QRULES}`;
 }
 const QRULES=`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name a capital that fits its row and its column, each capital once per grid. Tap <span class="ib">i</span> to see what a category means. Harder squares, quick answers and full lines score more; today's grid gives 1 km every 15 points, +20 km if perfect. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+// the With friends screen (Practice has none: it starts a grid at once)
 function setupView(){
-  if(screen==='home')return homeView();
-  const fr=screen==='friends';
-  setup.mode=fr?'online':'solo';
-  const on=setup.mode==='online',pc=parseCode(setup.code),fg=pc&&{...pc,code:setup.code.trim().toUpperCase()};
+  if(screen!=='friends')return homeView();
+  setup.mode='online';
   return `<section class="panel">
-    <div class="backline"><span class="ht">${fr?'With friends':'Solo'}</span></div>
-    ${fr?`<p class="hint">${MHINT.online} The host creates a room and shares its link or code.</p>`:''}
-    ${on&&!USER&&!MAYBE_IN()?`<div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||(setup.user==='Guest'?'':setup.user))}"></div>`:''}
-    ${fg&&!on?`<div class="field"><span class="label">Friend's grid</span><p class="hint" style="color:var(--ink);font-size:1rem"><b>${esc(fg.code)}</b> · ${fg.n} × ${fg.n} · ${DLABEL[fg.diff]}. You play exactly the squares your friend played.</p><button class="ghost" id="nofg">Play a random grid instead</button></div>`:`
-    <div class="field"><span class="label">Difficulty</span>${seg('diff',[['normal','Easy'],['hard','Hard']],lvOf(setup.diff))}<p class="hint">${DHINT[lvOf(setup.diff)]}</p></div>`}
-    ${on?'':`<div class="field"><span class="label">Lives</span>${seg('nolives',[[0,LIVES+' lives'],[1,'No lives']],setup.nolives?1:0)}<p class="hint">${setup.nolives?'Training: play until the grid is full. Mistakes are only counted.':'A wrong answer costs one. The game ends when they are gone.'}</p></div>`}
-    ${on?`<div class="field">${FB_OK?'':'<p class="hint">Online play only works on the published site with Firebase connected.</p>'}${SIGNED()?'':'<p class="hint">To create a room, sign in. Friends can join with your code or link without an account.</p>'}<button class="primary" id="create" ${FB_OK?'':'disabled style="opacity:.5"'}>${SIGNED()?'Create room':'Sign in to create a room'}</button></div>
-    <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK?'':'disabled'}>Join</button></div></div>`:`
-    <button class="primary" id="start">Start game</button>`}
+    <div class="backline"><span class="ht">With friends</span></div>
+    <p class="hint">${MHINT.online} The host creates a room and shares its link or code.</p>
+    ${!USER&&!MAYBE_IN()?`<div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||(setup.user==='Guest'?'':setup.user))}"></div>`:''}
+    <div class="field"><span class="label">Difficulty</span>${seg('diff',[['normal','Easy'],['hard','Hard']],lvOf(setup.diff))}<p class="hint">${DHINT[lvOf(setup.diff)]}</p></div>
+    <div class="field">${FB_OK?'':'<p class="hint">Online play only works on the published site with Firebase connected.</p>'}${SIGNED()?'':'<p class="hint">To create a room, sign in. Friends can join with your code or link without an account.</p>'}<button class="primary" id="create" ${FB_OK?'':'disabled style="opacity:.5"'}>${SIGNED()?'Create room':'Sign in to create a room'}</button></div>
+    <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK?'':'disabled'}>Join</button></div></div>
   </section>
   <section class="panel"><span class="label">Quick rules</span><ul class="rules">
     <li>Fill each square with a capital that matches its row and its column.</li>
     <li>Each capital once per grid. Tap <span class="ib">i</span> to see what a category means.</li>
-    ${on?'<li>Everyone on their own phone: the host creates a room and shares the code.</li>':setup.nolives?'<li>No lives: play until the grid is full. Mistakes are only counted.</li>':'<li>You have 5 lives: a wrong answer costs one.</li>'}
+    <li>Everyone on their own phone: the host creates a room and shares the code.</li>
     <li>Harder squares, quick answers and full lines score more.</li>
     <li>Full rules in <button type="button" class="qhelp">How to play</button>.</li>
   </ul></section>`;
@@ -1428,9 +1431,10 @@ function gameView(){
   // today's daily done: the grid goes inside the result ticket, Next trip and Share under it (Héctor 2026-11-12)
   const n=S.n,done=S.over&&S.daily&&!S.archive&&!S.dayof,solo=S.over&&S.mode==='solo';let h='',mark=0;
   // the title (in a room also ← Leave); the back is the "‹ geomingo" on top, as in every game (Héctor 2026-11-15)
-  const title=S.daily?(S.archive?'Grid #'+S.day:"Today's grid"):S.mode==='online'?'With friends':'Solo';
+  const title=S.daily?(S.archive?'Grid #'+S.day:"Today's grid"):S.mode==='online'?'With friends':'Practice';
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
-  if(!done&&!solo)h+=`<div class="backline">${S.mode==='online'?'<button class="linkbtn" id="gback">← Leave</button>':''}<span class="ht">${title}</span></div>`;
+  // only a room has a title line (← Leave); today's grid, the archive and Practice say it in the ticket's strip (Héctor 2026-11-15)
+  if(S.mode==='online')h+=`<div class="backline">${S.mode==='online'?'<button class="linkbtn" id="gback">← Leave</button>':''}<span class="ht">${title}</span></div>`;
   if(S.over){
     if(S.mode!=='solo')h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${p.on===false?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${EU(p.score)}</b></span>`).join('')}</div>`;
     if(!done&&!solo)h+=resultsView();
@@ -1447,11 +1451,11 @@ function gameView(){
         // the same four boxes in every game (Héctor, 2026-11-10): today's km in the daily, the class in Practice and the archive
         +(S.daily&&!S.archive?cell('km',Geomingo.newKm(S.daily)?Geomingo.KM.grid(S.players[0].score,S.cells.filter(c=>c.o===0).length,S.n,LIVES-livesLeft()):Geomingo.pts(S.cells.filter(c=>c.o===0).length/(S.n*S.n)),'tk-pts'):cell('Class',DLABEL[S.diff||'normal'],'tk-pts'))+(S.nolives?cell('Mistakes',S.wrong,'tk-gs'):cell('Lives',livesDots(livesLeft(),LIVES),'tk-gs'))+time
       :S.players.map((q,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${q.on===false?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(q.name)}</i><b>${liveScore(i)}</b></div>`).join('')+time;
-    h+=Geomingo.ticket(say,stub,{timer:S.timer,color:S.mode==='solo'?'':`var(--p${S.turn})`,mode:S.daily?(S.archive?'archive':'daily'):S.mode==='solo'?'practice':'friends',num:S.day});
+    h+=Geomingo.ticket(say,stub,{code:S.mode==='solo'&&!S.daily?S.code:'',timer:S.timer,color:S.mode==='solo'?'':`var(--p${S.turn})`,mode:S.daily?(S.archive?'archive':'daily'):S.mode==='solo'?'practice':'friends',num:S.day});
   }
   mark=h.length;
   h+=`<div class="board-wrap"><div class="board b${n}" lang="en" style="grid-template-columns:minmax(0,1.25fr) repeat(${n},minmax(0,1fr))">`;
-  h+=cornerHTML(S.daily?S.day:0);
+  h+=cornerHTML(S.daily?S.day:0,S.code);
   S.cols.forEach((k,j)=>h+=`<div class="hd col" data-info="${k}" role="button" tabindex="0" aria-label="${esc(EUT(CATS[k].label))}: explain"><span class="ref">${colRef(j)}</span><span class="ht">${titleWithInfo(CATS[k].short)}</span></div>`);
   S.rows.forEach((rk,i)=>{
     h+=`<div class="hd rowh" data-info="${rk}" role="button" tabindex="0" aria-label="${esc(EUT(CATS[rk].label))}: explain"><span class="ref">${rowRef(i)}</span><span class="ht">${titleWithInfo(CATS[rk].short)}</span></div>`;
@@ -1522,7 +1526,7 @@ const verdictHTML=()=>{const v=verdict();return Geomingo.hello(v.pose,v.t,v.s,{k
 const SHARE_BTN='<button class="primary sharebig" id="copy"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Share result</button>';
 const TRIP_STYLE='flex:1;display:flex;align-items:center;justify-content:center;min-width:0;white-space:nowrap;font-size:clamp(10px,calc((100vw - 170px)/15.5),14px);letter-spacing:.03em;padding:13.5px 8px 10.5px';
 const nextGameBtn=g=>g?`<a class="primary" href="${g.href}" style="${TRIP_STYLE}">Next trip: ${esc(g.name)} →</a>`:`<button class="primary" id="newg" style="flex:1">Back to menu</button>`;
-const afterNextHTML=g=>`<button class="ghost" id="playsolo">Play Solo</button>`+(g?'':`<p class="hint">You have played all of today's games. New ones at midnight CET.</p>`);
+const afterNextHTML=g=>`<button class="ghost" id="playsolo">Practice</button>`+(g?'':`<p class="hint">You have played all of today's games. New ones at midnight CET.</p>`);
 // when a game you were playing ends: straight to the summary at the top of the page (no window over it)
 let liveKey='';
 function watchResult(){if(!S){liveKey='';return}const k=gameKey();
@@ -1536,7 +1540,7 @@ function resultsView(body){
     return `<section class="panel respanel">${verdictHTML()}<span class="label">${S.dayof?'':S.archive?'Archive · ':''}Daily grid #${S.day}${S.dayof?' · played on its day':''}</span><p class="big">${EU(p.score)} points</p>${breakdown(p)}<p class="hint">${p.cells} of ${n*n} squares. ${S.wrong} wrong guess${S.wrong===1?'':'es'}. ${S.dayof?'You played this grid on its day, so it can\'t be played again.':S.archive?'Archive games don\'t count for the ranking or your streak.':`Share it: friends play today's grid with their own one try. Next grid in ${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min.`}</p><pre class="sharebox" id="share">${esc(shareText())}</pre>${SHARE_BTN}<div class="row-btns sharerow">${S.archive?`<button class="primary" id="newg" style="flex:1">Back to archive</button>`:nextGameBtn(next)}</div>${S.archive?'':afterNextHTML(next)+`<span class="label">Your daily grids</span>${statTiles(dailyStatsFrom({...loadHist(),[S.daily]:loadHist()[S.daily]||{s:p.score}}))}`}</section>${lbView(S.archive?S.daily:null)}`}
   // a finished Solo game: the pink ticket with the grid inside, then New grid and Share (Héctor 2026-11-14)
   if(S.mode==='solo'){const p=S.players[0],n=S.n,d=lvOf(S.diff),best=Math.max(p.score||0,...loadGames().filter(g=>g.m==='s'&&g.n===n&&lvOf(g.d)===d).map(g=>g.s||0));
-    return `${Geomingo.soloTicket({id:'citygrid',what:d[0].toUpperCase()+d.slice(1)+' · '+n+' × '+n,score:EU(p.score)+' points',best:'Best: '+EU(best),detail:p.cells+' of '+n*n+' squares',body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
+    return `${Geomingo.soloTicket({id:'citygrid',what:S.nolives?'Unlimited':LIVES+' lives',code:S.code,score:EU(p.score)+' points',best:'Best: '+EU(best),detail:p.cells+' of '+n*n+' squares',body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns gm-solo-btns"><button class="primary" id="again" style="flex:1">New grid</button>${SHARE_BTN.replace('Share result','Share')}</div>`}
   const ranked=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score||b.cells-a.cells);
   // the one room for all nine games: these points as km (15 points = 1 km, up to 100, as in the daily)
@@ -1634,7 +1638,7 @@ function drawLayer(){
       <li>The game ends when the grid is full or you run out of lives. <b>Give up</b> ends it early.</li></ul>
       <h3>Modes</h3><ul>
       <li><b>Today's grid</b>: one ${DAILY_N} × ${DAILY_N} grid at Easy level, the same for everyone, new every day at midnight CET. One try; if you leave, you carry on where you stopped. Sign in with Google to appear in the daily ranking. Missed a day? Play it in <b>Menu → Archive</b>.</li>
-      <li><b>Solo</b>: as many grids as you like. You choose the level. Pick <b>No lives</b> to train: play until the end, mistakes are only counted.</li>
+      <li><b>Practice</b>: as many grids as you like, ${DAILY_N} × ${DAILY_N} at Easy level like today's. With <b>Unlimited</b> (chosen on the Geomingo home page, under Practice) you play until the grid is full and mistakes are only counted.</li>
       <li><b>With friends</b>: 2 to 6 players online, each on their own phone. The host creates a room and shares its 4-letter code or link. You take turns, 30 s each: a right answer scores for you, a wrong one or running out of time passes the turn. You can also tap <b>Pass turn</b>. The game ends when the grid is full or everyone passes one after another.</li>
       <li><b>Share</b>: at the end, send your result with a link. Friends who open it play exactly your grid.</li></ul>
       <h3>Levels</h3><ul>
@@ -1697,8 +1701,6 @@ function bind(){
   app.querySelectorAll('[data-seg]').forEach(b=>b.onclick=()=>{const k=b.dataset.seg,v=b.dataset.v;
     setup[k]=(k==='mode'||k==='diff')?v:+v;render()});
   const $=id=>document.getElementById(id);
-  if($('nofg'))$('nofg').onclick=()=>{setup.code='';clearGridParam();render()};
-  if($('start'))$('start').onclick=buildThenStart;
   if($('uname')){const u=$('uname');setTimeout(()=>u.focus(),30);u.onkeydown=e=>{if(e.key==='Enter')saveUser(u.value)};$('savename').onclick=()=>saveUser(u.value)}
   if($('bsignin'))$('bsignin').onclick=signIn;
   if($('bclose'))$('bclose').onclick=()=>{try{localStorage.setItem('cc-nobanner','1')}catch(e){}render()};
@@ -1721,7 +1723,9 @@ function bind(){
     toast('Today\'s grid reset (test mode).','good');render()};
   app.querySelectorAll('[data-dcell]').forEach(b=>b.onclick=()=>{const ci=+b.dataset.dcell;playDaily();
     if(S&&S.daily&&!S.over&&S.cells[ci].o<0){ui.sel=ci;ui.query='';render()}});
-  if($('brand')){$('brand').onclick=goHome;$('brand').onkeydown=e=>{if(e.key==='Enter')goHome()}}
+  // the title: in Practice and With friends you stay where you are (the game is kept), else today's grid
+  const titleTap=()=>{const m=Geomingo.mode();if(m==='solo'||m==='friends')window.scrollTo(0,0);else goHome()};
+  if($('brand')){$('brand').onclick=titleTap;$('brand').onkeydown=e=>{if(e.key==='Enter')titleTap()}}
   if($('home'))$('home').onclick=toHub;
   if($('pass'))$('pass').onclick=pass;
   if($('giveup'))$('giveup').onclick=()=>{const b=$('giveup');if(b.dataset.armed){Geomingo.stat('giveup');endGame()}else{b.dataset.armed='1';b.textContent='Tap again to '+(S&&S.mode==='solo'?'give up':'end the game')}};
@@ -1764,10 +1768,10 @@ function start(data){
   if(editingUser||(S&&S.mode==='online'))S=null;
   if(S&&!S.over)startTurn();
   try{if(new URLSearchParams(location.search).has('friends')&&!S){screen='friends';history.replaceState(null,'',location.pathname)}}catch(e){}
-  // ?solo (from Practice on the Geomingo home page) opens the Solo screen
+  // ?solo (from Practice on the Geomingo home page) starts a practice grid
   try{if(new URLSearchParams(location.search).has('solo')&&!S){screen='solo';history.replaceState(null,'',location.pathname)}}catch(e){}
   try{const q=new URLSearchParams(location.search).get('room');if(q&&/^[A-Za-z]{4}$/.test(q)){setup.mode='online';setup.join=q.toUpperCase();screen='friends'}}catch(e){}
-  // a shared result link (?grid=4E-KQPMT) opens the setup screen ready to play that same grid
+  // a shared result link (?grid=4E-KQPMT) starts that same grid
   try{const g=new URLSearchParams(location.search).get('grid');if(g&&parseCode(g)){setup.code=g.trim().toUpperCase();if(setup.mode==='online')setup.mode='solo';screen='solo';if(S&&S.mode!=='online')S=null}}catch(e){}
   initAuth();watchLB();
   // back in the room after a reload, unless it is an old or finished one (or an invite link to another room was opened)

@@ -84,6 +84,8 @@ svg.mingo{display:block;flex-shrink:0;overflow:visible}
 /* the game's Menu button: just the ☰ icon, so the game name and its trip line fit on one line */
 /* today's finished daily: "Trip 1 · Daily #31" is in the ticket's gold strip, so not under the game's name */
 body:has(.gm-done) .gm-title small{display:none}
+/* today's game, the archive and Practice: the trip and number are in the ticket's strip, not under the name (Héctor 2026-11-15) */
+body:has(.ticket .tk-mode.daily,.ticket .tk-mode.practice) .gm-title small{display:none}
 .gm-bar #menu{font-size:0;gap:0;padding:0 12px;min-width:46px;justify-content:center}
 
 /* Mingo says something: he appears when something happens */
@@ -105,6 +107,8 @@ body:has(.gm-done) .gm-title small{display:none}
 /* the mode strip on top of the ticket: gold for the daily (it counts), Mingo pink (coral) for practice and the archive, like the Solo result */
 .tk-mode{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 14px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden}
 .tk-mode span{overflow:hidden;text-overflow:ellipsis}
+/* the strip also holds the trip now: a little tighter on narrow phones so it fits on one line */
+@media (max-width:400px){.tk-mode{letter-spacing:.05em;padding:6px 12px}}
 /* today's result: the gold ticket with the score (doneTicket), then Next trip and Share */
 .gm-done-c{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px 14px}
 .gm-done-c .big{font-size:30px;margin:0;white-space:nowrap}

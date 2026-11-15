@@ -264,7 +264,7 @@ function rankingHTML(g,o){const u=who();if(TEST||u===undefined)return '';o=o||{}
 const FEATS=[['borderline','leaderboard','bl-hist',r=>(+r.c||0)>=8,e=>e&&e.f!==0],['citygrid','lb/capitals','cc-hist',r=>(+r.c||0)>=8,e=>e&&e.f!==0],
   ['connections','lb/connections','cx-hist',r=>(+r.s||0)>=2,e=>!!e],['top10','lb/top10','t10-hist',r=>(+r.s||0)>=5,e=>!!e],
   ['silhouette','lb/sil-normal','sil-hist',r=>(+r.s||0)>=5,e=>e&&e.normal!=null],['customs','lb/customs','cu-hist',(r,d)=>(+r.s||0)>=(G.clNew(d,r.x3)?50:13),e=>!!e],
-  ['flagpie','lb/flagpie','fp-hist',(r,d)=>(+r.s||0)>=(G.clNew(d,r.x3)?50:13),e=>!!e],['impostor','lb/impostor','im-hist',(r,d)=>(+r.s||0)>=(G.impNew(d,r.x3)?45:15),e=>!!e],
+  ['flagpie','lb/flagpie','fp-hist',(r,d)=>(+r.s||0)>=(G.clNew(d,r.x3)?50:13),e=>!!e],['impostor','lb/impostor','im-hist',(r,d)=>(+r.s||0)>=(G.imp5(d)?50:G.impNew(d,r.x3)?45:15),e=>!!e],
   ['compass','lb/compass','cm-hist',(r,d)=>(+r.s||0)>=(G.clNew(d,r.x3)?50:13),e=>!!e]];
 let featBusy=false;
 const featStore=me=>{const c=json('gm-feats');return c&&c.u===me&&c.r?c:{u:me,r:{}}};
@@ -344,7 +344,7 @@ function statsPage(o){const id='c'+(++cardN);CARDS[id]=o;const s=o.solo,f=o.frie
   const all=o.daily.n+s.n+f.n,first=o.dates.slice().sort()[0],nm=(u&&name)||G.traveller();
   const me='<div class="gm-me"><span class="gm-av">'+esc((nm.trim()[0]||'·').toUpperCase())+'</span><div class="gm-mett"><b>'+esc(nm)+'</b><small>'+esc(o.game)+' · '+all+' game'+(all===1?'':'s')+(first?'<br>since '+shortDate(first):'')+'</small></div>'+
     '<div class="gm-mest"><b>'+EU((G.pass&&G.pass().n)||0)+'</b><small>stamps</small></div></div>';
-  const solo=modeCard(medalSVG(s.n?s.medal:null,64),'Solo',s.n+' '+s.unit+(s.n===1?'':'s'),s.n?nums(s.stats):'<span class="gm-mfoot">Practice at your pace: your best and your accuracy show here.</span>');
+  const solo=modeCard(medalSVG(s.n?s.medal:null,64),'Practice',s.n+' '+s.unit+(s.n===1?'':'s'),s.n?nums(s.stats):'<span class="gm-mfoot">Practice at your pace: your best and your accuracy show here.</span>');
   const fr=modeCard(ringSVG(f.n?Math.round(f.w/f.n*100):null,64),'With friends',f.n+' game'+(f.n===1?'':'s'),
     f.n?nums([[f.w,f.w===1?'win':'wins'],[EU(f.place/f.n,1),'avg place'],f.third]):'<span class="gm-mfoot">Play online with 2 to 6 friends: your wins show here.</span>');
   return '<div class="gm-stats">'+me+'<div data-gm-card="'+id+'">'+dailyCard(o)+'</div>'+solo+fr+(o.extra||'')+'</div>'}

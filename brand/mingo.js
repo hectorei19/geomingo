@@ -169,7 +169,10 @@ const newKm=d=>d>=KM_FROM;
 const IMP3_FROM='2026-11-15',imp3=d=>!d||d>=IMP3_FROM;   // no day (Practice, With friends): the new table
 // a saved result (history entry, ranking row) has the new points from the day after IMP3_FROM, and on that day only if it says x3
 const impNew=(d,x)=>!d||d>IMP3_FROM||d===IMP3_FROM&&!!x;
-const IMP3=[15,10,5,3,1],impRound=q=>q.st!=='right'?0:q.x3?IMP3[q.k-1]||0:6-q.k;   // a round's stored points (x3: a game from IMP3_FROM)
+// from IMP5_FROM (Héctor 2026-11-15, starts the next day): five rounds like Customs, Flag Pie and Compass, 20, 15, 10, 5, 3
+// a round (CL3, x5 on the round), no +10 for all caught; 5 x 20 = 100, +20 perfect. No day (Practice, With friends): five rounds
+const IMP5_FROM='2026-11-16',imp5=d=>!d||d>=IMP5_FROM;
+const IMP3=[15,10,5,3,1],impRound=q=>q.st!=='right'?0:q.x5?[20,15,10,5,3][q.k-1]||0:q.x3?IMP3[q.k-1]||0:6-q.k;   // a round's stored points (x3: a game from IMP3_FROM, x5: from IMP5_FROM)
 // Flag Pie, Customs, Compass from CL3_FROM (Héctor 2026-11-15: +16 with all five clues was far too much, "like Impostor"):
 // 20, 15, 10, 5, 3 an answer by clues open (Compass: by clues and wrong guesses; x3 on the answer), so five still make 100;
 // the history and the ranking keep these points (p / s, 0-100). clFlag: an answer's stored points by clues open
@@ -182,7 +185,7 @@ const KM={
   top10:(f,m)=>{f=Math.min(+f||0,10);return 10*f+pf(f>=10,m)},
   sil:(r,m)=>{r=Math.min(+r||0,9);return 10*r+(r>=9?10:0)+pf(r>=9,m)},
   clue:(r,p,n)=>{r=+r||0;p=+p||0;n=+n||5;return Math.round((15*r+p)*5/n)+(p>=5*n?20:0)},
-  imp:(r,p,d,x)=>{r=+r||0;p=+p||0;const n=impNew(d,x);return (n?p:10*r+p)+(r>=6?10:0)+(p>=(n?90:30)?20:0)},
+  imp:(r,p,d,x,x5)=>{r=+r||0;p=+p||0;if(d?d>=IMP5_FROM:x5)return p+(p>=100?20:0);const n=impNew(d,x);return (n?p:10*r+p)+(r>=6?10:0)+(p>=(n?90:30)?20:0)},
   cl3:(r,p,d,x,n)=>{if(!clNew(d,x))return KM.clue(r,p,n);p=+p||0;return p+(p>=100?20:0)}};
 // this device's daily games, from each game's own history: {day: {game id: km}}
 function ledger(){const L={},add=(d,id,mi)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))(L[d]=L[d]||{})[id]=mi};
@@ -351,17 +354,18 @@ function doneTicket(id,num,score,next,body){const km=(ledger()[dayKey()]||{})[id
 /* a finished Solo (Practice) game: the same ticket as today's result, in Mingo pink (Héctor 2026-11-14).
    soloTicket({id:'borderline', what:'Normal · 4 × 4', score:'804 points', best:'Best: 1.040', detail:'8 of 16 squares', body:'…answers…'}) */
 function soloTicket(o){o=o||{};const g=GAMES.find(x=>x.id===o.id);
-  return '<section class="ticket gm-done tk-pink"><div class="tk-mode"><span>'+(g?'Trip '+g.gate+' · ':'')+'Practice'+(o.what?' · '+esc(o.what):'')+'</span><span>Done</span></div>'+
+  return '<section class="ticket gm-done tk-pink"><div class="tk-mode"><span>'+(g?'Trip '+g.gate+' · ':'')+'Practice'+(o.what?' · '+esc(o.what):'')+(o.code?' · '+esc(String(o.code)):'')+'</span><span>Done</span></div>'+
     '<div class="gm-done-c"><p class="big">'+esc(String(o.score))+'</p><p class="gm-done-s">'+(o.best?'<b>'+esc(o.best)+'</b>':'')+(o.detail?'<span>'+esc(o.detail)+'</span>':'')+'</p></div>'+
     (o.body?'<div class="tk-tear"></div><div class="gm-done-a">'+o.body+'</div>':'')+'</section>'}
 function tk(k,v,c){return '<div class="tk-c'+(c?' '+c:'')+'"><i>'+k+'</i><b>'+v+'</b></div>'}
 /* o.mode puts a coloured strip on top so you always know what you are playing:
    'daily' (gold, "★ Daily #N · Counts for ranking"), 'practice' (Mingo pink, "Practice") or 'archive' (Mingo pink, "Archive #N"); o.num is the number.
    Practice and archive also turn the ticket's edge Mingo pink. 'friends' (or 'online'): blue strip "With friends" and blue edge (games with turns too: whose turn it is shows only in that player's box and the time bar). */
-function ticket(say,stub,o){o=o||{};const m=o.mode,n=o.num!=null?' #'+o.num:'';
-  const strip=m==='daily'?'<div class="tk-mode daily"><span>★ Daily'+n+'</span><span>Counts for ranking</span></div>'
-    :m==='practice'?'<div class="tk-mode practice"><span>Practice</span></div>'
-    :m==='archive'?'<div class="tk-mode practice"><span>Archive'+n+'</span></div>'
+function ticket(say,stub,o){o=o||{};const m=o.mode,n=o.num!=null?' #'+o.num:'',pg=GAMES.find(x=>x.path===PAGE+'/');
+  const tr=pg?'Trip '+pg.gate+' · ':'';
+  const strip=m==='daily'?'<div class="tk-mode daily"><span>★ '+tr+'Daily'+n+'</span><span>Counts for ranking</span></div>'
+    :m==='practice'?'<div class="tk-mode practice"><span>'+tr+'Practice</span>'+(o.code?'<span>'+esc(String(o.code))+'</span>':'')+'</div>'
+    :m==='archive'?'<div class="tk-mode practice"><span>'+tr+'Archive'+n+'</span></div>'
     :m==='friends'||m==='online'?'<div class="tk-mode friends"><span>With friends</span></div>':'';
   // o.color (a game with turns): the whole ticket takes the colour of the player whose turn it is (.tk-turn, --pc)
   return '<section class="ticket'+(m==='practice'||m==='archive'?' tk-practice':m==='friends'||m==='online'?' tk-friends':'')+(o.color?' tk-turn" style="--pc:'+o.color:'')+'">'+strip+say+'<div class="tk-tear" aria-hidden="true"></div><div class="tk-stub">'+stub+'</div>'+(o.timer?'<span class="tbar" style="width:100%'+(o.color?';background:'+o.color:'')+'"></span>':'')+'</section>'}
@@ -379,7 +383,8 @@ const passBtn=()=>{const n=stamps();return '<button class="gm-pass" data-gm-pass
 const acctSlot=()=>'<span class="gm-acctslot" data-gm-acctslot>'+(window.Geomingo&&Geomingo.acctHTML?Geomingo.acctHTML():'')+'</span>';
 function header(o){o=o||{};
   if(!o.game)return '<header class="gm-top"><h1 class="gm-logo">geo<span>mingo</span></h1><span class="gm-beta" title="Still in testing. Official launch coming soon.">BETA</span><span class="gm-spacer"></span>'+passBtn()+acctSlot()+'</header>';
-  const g=GAMES.find(x=>x.name===o.game),gate=g?'Trip '+g.gate:'',sub=[gate,o.coord].filter(Boolean).join(' · ');
+  // Practice (o.practice): nothing under the name; the trip and the grid code go in the ticket's coral strip (Héctor 2026-11-15)
+  const g=GAMES.find(x=>x.name===o.game),gate=g?'Trip '+g.gate:'',sub=o.practice?'':[gate,o.coord].filter(Boolean).join(' · ');
   return '<header class="gm-top"><a class="gm-home" href="'+HOME+'" aria-label="All Geomingo games">'+ICO.back+logo+'<span class="gm-beta" title="Still in testing. Official launch coming soon.">BETA</span></a><span class="gm-spacer"></span>'+passBtn()+acctSlot()+'</header>'+
     '<div class="gm-bar"><h2 class="gm-title" id="brand" role="link" tabindex="0" title="'+esc(o.game)+' home">'+esc(o.game)+(sub?'<small>'+esc(sub)+'</small>':'')+'</h2><span class="gm-spacer"></span>'+(o.menu||'')+'</div>'}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-gm-pass]');if(!t)return;e.preventDefault();openPass()});
@@ -540,9 +545,15 @@ function roomStale(finished){return awayMs>(finished?ROOM_DONE:ROOM_LIVE)}
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){hiddenAt=Date.now();if(roomKey)roomSeen(roomKey)}
   else{awayMs=hiddenAt?Date.now()-hiddenAt:0;hiddenAt=0}});
+// Practice has one choice for every game, on the home page's Practice screen (Héctor 2026-11-15): 5 lives or Unlimited.
+// gm-lives: 'unl' = Unlimited (mistakes are only counted), anything else = 5 lives. Games without lives ignore it.
+const lives=()=>store.get('gm-lives')!=='unl';
+const setLives=on=>store.set('gm-lives',on?null:'unl');
 // the address says where you are, so a reload (F5) keeps you there: ?solo on Practice, ?friends on With friends,
 // nothing on today's game. Set after the page's start code has run (it may still read ?room, ?p, ?grid); other parts kept.
 let modeWant=null,modeQueued=false;
+// the screen the address says ("solo", "friends" or "" for today's game): the game title keeps you there
+const mode=()=>modeWant||'';
 function where(m){modeWant=m==='solo'||m==='friends'?m:'';const o=modeWant||'daily';if(!opened.has(o)){opened.add(o);stat('open',o)}
   if(modeQueued)return;modeQueued=true;
   queueMicrotask(()=>{modeQueued=false;try{const u=new URL(location.href);u.searchParams.delete('solo');u.searchParams.delete('friends');
@@ -564,6 +575,6 @@ try{if(CF_TOKEN&&/(^|\.)geomingo\.com$/.test(location.hostname)&&!new URLSearchP
 const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,stale:roomStale};
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
-  days,streak,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,cl3,clNew,CL3,clFlag,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
-  openWindow,closeWindow,esc,refreshPass,room,where,stat,statTo,PAGE,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
+  days,streak,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
+  openWindow,closeWindow,esc,refreshPass,room,where,mode,lives,setLives,stat,statTo,PAGE,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();
