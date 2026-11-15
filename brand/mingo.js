@@ -58,7 +58,7 @@ function result(id,k){k=k||dayKey();
     return {done:true,label:(d.S.qs||[]).reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0)+'/25'}}
   if(id==='flagpie'){const d=json('fp-daily');if(!(d&&d.date===k&&d.over&&d.S))return {done:false};
     if(!Array.isArray(d.S.qs))return {done:true,label:(d.S.st==='right'?6-d.S.k:0)+'/5'};
-    return {done:true,label:d.S.qs.reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0)+'/25'}}
+    return {done:true,label:d.S.qs.reduce((n,q)=>n+fpFlag(q),0)+(d.S.qs.some(q=>q.x3)?'/100':'/25')}}
   if(id==='impostor'){const d=json('im-daily');if(!(d&&d.date===k&&d.over&&d.S&&Array.isArray(d.S.qs)))return {done:false};
     return {done:true,label:d.S.qs.reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0)+'/30'}}
   if(id==='compass'){const d=json('cm-daily');if(!(d&&d.date===k&&d.over&&d.S&&Array.isArray(d.S.qs)))return {done:false};
@@ -170,13 +170,19 @@ const IMP3_FROM='2026-11-15',imp3=d=>!d||d>=IMP3_FROM;   // no day (Practice, Wi
 // a saved result (history entry, ranking row) has the new points from the day after IMP3_FROM, and on that day only if it says x3
 const impNew=(d,x)=>!d||d>IMP3_FROM||d===IMP3_FROM&&!!x;
 const IMP3=[15,10,5,3,1],impRound=q=>q.st!=='right'?0:q.x3?IMP3[q.k-1]||0:6-q.k;   // a round's stored points (x3: a game from IMP3_FROM)
+// Flag Pie from FP3_FROM (Héctor 2026-11-15: +16 with all five clues was far too much, "like Impostor"): 20, 13, 7, 4, 1 a flag
+// by clues open (x3 on the flag), so five flags still make 100; the history and the ranking keep these points (p / s, 0-100)
+const FP3_FROM='2026-11-16',fp3=d=>!d||d>=FP3_FROM;
+const fpNew=(d,x)=>!d||d>FP3_FROM||d===FP3_FROM&&!!x;
+const FP3=[20,13,7,4,1],fpFlag=q=>q.st!=='right'?0:q.x3?FP3[q.k-1]||0:6-q.k;
 const pf=(all,m)=>all&&!(+m)?20:0;
 const KM={
   grid:(s,c,n,w)=>{n=(+n||4)*(+n||4);return Math.min(100,Math.round((+s||0)/15))+pf((+c||0)>=n,w)},
   top10:(f,m)=>{f=Math.min(+f||0,10);return 10*f+pf(f>=10,m)},
   sil:(r,m)=>{r=Math.min(+r||0,9);return 10*r+(r>=9?10:0)+pf(r>=9,m)},
   clue:(r,p,n)=>{r=+r||0;p=+p||0;n=+n||5;return Math.round((15*r+p)*5/n)+(p>=5*n?20:0)},
-  imp:(r,p,d,x)=>{r=+r||0;p=+p||0;const n=impNew(d,x);return (n?p:10*r+p)+(r>=6?10:0)+(p>=(n?90:30)?20:0)}};
+  imp:(r,p,d,x)=>{r=+r||0;p=+p||0;const n=impNew(d,x);return (n?p:10*r+p)+(r>=6?10:0)+(p>=(n?90:30)?20:0)},
+  pie:(r,p,d,x,n)=>{if(!fpNew(d,x))return KM.clue(r,p,n);p=+p||0;return p+(p>=100?20:0)}};
 // this device's daily games, from each game's own history: {day: {game id: km}}
 function ledger(){const L={},add=(d,id,mi)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))(L[d]=L[d]||{})[id]=mi};
   [['bl-hist','borderline'],['cc-hist','citygrid']].forEach(([k,id])=>{const h=json(k)||{};
@@ -187,7 +193,7 @@ function ledger(){const L={},add=(d,id,mi)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))(L
     if(!k.length)continue;if(!newKm(d)){add(d,'silhouette',pts(Math.max(...k.map(x=>day[x]))/9));continue}
     add(d,'silhouette',Math.max(...k.map(x=>KM.sil(day[x],(sm[d]||{})[x]))))}
   const u=json('cu-hist')||{};for(const d in u)if(u[d])add(d,'customs',newKm(d)?KM.clue(u[d].r,u[d].p,5):clPts(u[d].r,u[d].p,5));
-  const f=json('fp-hist')||{};for(const d in f)if(f[d])add(d,'flagpie',newKm(d)?KM.clue(f[d].r,f[d].p,+f[d].n||5):clPts(f[d].r,f[d].p,+f[d].n||5));
+  const f=json('fp-hist')||{};for(const d in f)if(f[d])add(d,'flagpie',newKm(d)?KM.pie(f[d].r,f[d].p,d,f[d].x3,+f[d].n||5):clPts(f[d].r,f[d].p,+f[d].n||5));
   const im=json('im-hist')||{};for(const d in im)if(im[d])add(d,'impostor',newKm(d)?KM.imp(im[d].r,im[d].p,d,im[d].x3):clPts(im[d].r,im[d].p,6));
   const cm=json('cm-hist')||{};for(const d in cm)if(cm[d])add(d,'compass',newKm(d)?KM.clue(cm[d].r,cm[d].p,5):clPts(cm[d].r,cm[d].p,5));
   return L}
@@ -535,6 +541,6 @@ document.addEventListener('visibilitychange',()=>{
 const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,stale:roomStale};
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
-  days,streak,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
+  days,streak,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,fp3,fpNew,FP3,fpFlag,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
   openWindow,closeWindow,esc,refreshPass,room,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();

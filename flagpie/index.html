@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611160410"></script>
-<script src="../brand/account.js?v=202611160410"></script>
+<script src="../brand/mingo.js?v=202611160500"></script>
+<script src="../brand/account.js?v=202611160500"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -123,10 +123,12 @@ const realFlag=c=>'flags/'+c+'.svg';
 const contName={EU:'Europe',AS:'Asia',AF:'Africa',NA:'North or Central America',SA:'South America',OC:'Oceania'};
 // points (Héctor 2026-11-14, the same table in every game): 20 with the pie alone, 1 less for each clue more (20 to 16),
 // +20 for a perfect game (all five with the pie alone). raw: the old 5-to-1 points, still what the history and ranking keep
-const raw=q=>CLUES+1-q.k,worth=q=>15+raw(q);
-const ptsOf=q=>q.st==='right'?raw(q):0;
-const newQ=c=>({c,k:1,tries:[],st:'play',alt:null});
-const newGame=(codes,o)=>Object.assign({qs:codes.map(newQ),sel:0,over:false,left:null},o||{});
+// Games from Geomingo.fp3 on (Héctor 2026-11-15, x3 on the flag): 20, 13, 7, 4, 1, and the history and ranking keep these points
+const raw=q=>CLUES+1-q.k,worth=q=>q.x3?Geomingo.FP3[q.k-1]||0:15+raw(q);
+const ptsOf=q=>Geomingo.fpFlag(q);
+const newQ=(c,x)=>Object.assign({c,k:1,tries:[],st:'play',alt:null},x?{x3:1}:{});
+const newGame=(codes,o)=>{const x=Geomingo.fp3((o||{}).date);return Object.assign({qs:codes.map(c=>newQ(c,x)),sel:0,over:false,left:null},o||{})};
+const isNew=G=>G.qs.some(q=>q.x3);
 let query='',typing=false;
 // European number format: dot for thousands, comma for decimals (34,1 %)
 const num=(n,d)=>Number(n).toLocaleString('de-DE',d==null?{maximumFractionDigits:3}:{minimumFractionDigits:d,maximumFractionDigits:d});
@@ -184,7 +186,7 @@ function answer(q,code){if(code===q.c||(SAME[q.c]||[]).includes(code)){q.st='rig
 function nextClue(q){if(q.st!=='play')return;if(q.k<CLUES)q.k++;else q.st='wrong'}
 function feedback(q,res){if(res==='right')Geomingo.stamp('flagpie',cByCode[q.c].n,'+'+worth(q),q.c)}
 const tk=Geomingo.tk;
-const rawOf=G=>G.qs.reduce((n,q)=>n+ptsOf(q),0),pointsOf=G=>Geomingo.KM.clue(rightOf(G),rawOf(G),PER);
+const rawOf=G=>G.qs.reduce((n,q)=>n+ptsOf(q),0),pointsOf=G=>Geomingo.KM.pie(rightOf(G),rawOf(G),G.date,isNew(G),PER);
 const rightOf=G=>G.qs.filter(q=>q.st==='right').length;
 const wrongOf=G=>G.qs.reduce((n,q)=>n+q.tries.length,0);
 const pieOnlyOf=G=>G.qs.filter(q=>q.st==='right'&&q.k===1).length;
@@ -230,7 +232,10 @@ let D=null;
 // saves from the first day, when a game was one flag ({c, k, …} without qs), are left behind
 const isGame=S=>S&&Array.isArray(S.qs);
 const dailySaved=()=>{const d=load('fp-daily',null);return d&&d.date===todayKey()&&isGame(d.S)?d:null};
-function dailyGame(){const d=dailySaved();if(d){if(d.S&&d.S.over)d.S.left=null;return d.S}
+// a game of FP3_FROM's day started before the new points: its flags get x3, so the flags already played count with the new
+// points too. A game already finished keeps its old points (its ranking row is written once).
+function toFp3(S){if(S.over||!Geomingo.fp3(S.date)||S.qs.every(q=>q.x3))return;S.qs.forEach(q=>q.x3=1);store('fp-daily',{date:S.date,over:S.over,S})}
+function dailyGame(){const d=dailySaved();if(d){if(d.S&&d.S.over)d.S.left=null;toFp3(d.S);return d.S}
   return newGame(dailyCodes(todayKey()),{mode:'daily',date:todayKey(),num:dayNum(todayKey(),FIRST)})}
 function dailySave(){if(!D)return;
   if(D.mode==='archive'){const a=load('fp-arch',{});a[D.date]=D;store('fp-arch',a);if(D.over)logHist(D);return}
@@ -240,7 +245,7 @@ function dailySave(){if(!D)return;
 function logHist(G){if(G.mode!=='daily')return false;const h=load('fp-hist',{});
   // the first day was played as one flag: that entry (no n) gives way to the five-flag game
   if(h[G.date]&&!(G.date===FIRST&&!h[G.date].n))return false;
-  h[G.date]={p:rawOf(G),r:rightOf(G),a:pieOnlyOf(G),m:wrongOf(G),n:PER};store('fp-hist',h);return true}
+  h[G.date]=Object.assign({p:rawOf(G),r:rightOf(G),a:pieOnlyOf(G),m:wrongOf(G),n:PER},isNew(G)?{x3:1}:{});store('fp-hist',h);return true}
 function dailyPick(code){const q=D&&D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;
   const res=answer(q,code);query='';typing=res==='wrong';feedback(q,res);advance(D);dailySave();render();if(res!=='wrong')showLeft()}
 function dailyNextClue(){const q=D&&D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;nextClue(q);advance(D);dailySave();render();if(q.st!=='play')showLeft()}
@@ -252,7 +257,7 @@ function verdict(G){const p=pointsOf(G),r=rightOf(G);
   return r===PER&&p>=95?{pose:'happy',t:'A flag expert. '+p+' points.',s:'All five named.'}:r===PER?{pose:'happy',t:'All five stamped.',s:p+' points.'}
     :r>=3?{pose:'happy',t:r+' of 5 stamped.',s:p+' points. Tap a flag to see which it was.'}:r>=1?{pose:'think',t:'Tricky colours today.',s:r+' of 5, '+p+' points.'}
     :{pose:'sad',t:'No flag today.',s:'Solo helps: unlimited flags.'}}
-const fpAverage=()=>{const v=Object.values(load('fp-hist',{})).filter(e=>(+e.n||1)===PER);return v.length?EU(v.reduce((a,e)=>a+Geomingo.KM.clue(e.r,e.p,PER),0)/v.length,1):'–'};
+const fpAverage=()=>{const v=Object.entries(load('fp-hist',{})).filter(([d,e])=>(+e.n||1)===PER);return v.length?EU(v.reduce((a,[d,e])=>a+Geomingo.KM.pie(e.r,e.p,d,e.x3,PER),0)/v.length,1):'–'};
 // the result, on top of the page, as in every game
 function resultHTML(G){const p=pointsOf(G),v=verdict(G);
   if(G.mode==='archive')return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Archive · Flag Pie #${G.num}</span><p class="big">${p} points</p>
@@ -262,7 +267,7 @@ function resultHTML(G){const p=pointsOf(G),v=verdict(G);
   return `${Geomingo.doneTicket('flagpie',G.num,p+' points','next in '+nextIn(),summaryHTML(G))}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns">${nextGameBtn('flagpie')}${SHARE_BTN.replace('Share result','Share')}</div>`}
 // today's ranking (signed-in players, first try of the day): points, then fewer wrong answers, then who finished first
-const rankingHTML=()=>Geomingo.account.rankingHTML('flagpie',{what:'game',score:r=>[Geomingo.KM.clue(r.r,r.s,PER)+' pts',r.m+' wrong']});
+const rankingHTML=()=>Geomingo.account.rankingHTML('flagpie',{what:'game',score:r=>[Geomingo.KM.pie(r.r,r.s,todayKey(),r.x3,PER)+' pts',r.m+' wrong']});
 Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&D.mode==='daily'&&D.date===todayKey()){D=dailyGame();liveKey=''}
   if(!typing&&(view==='home'||view==='daily'&&D&&D.over))render()});
 function openDaily(){D=dailyGame();query='';view='daily';render();window.scrollTo(0,0)}
@@ -279,7 +284,7 @@ function dailyHTML(){const arch=D.mode==='archive';let h=header('Flag Pie',(arch
   return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel">${playHTML(D)}</section>`+quickRules()}
 
 /* ---- the archive: past days, one try each on this device ---- */
-const archDay=k=>{const e=load('fp-hist',{})[k];return e?Geomingo.KM.clue(e.r,e.p,+e.n||PER)+' pts':null};
+const archDay=k=>{const e=load('fp-hist',{})[k];return e?Geomingo.KM.pie(e.r,e.p,k,e.x3,+e.n||PER)+' pts':null};
 function openArchive(){view='archive';query='';typing=false;render();window.scrollTo(0,0)}
 function playArchive(k){if(archDay(k)){toast('You played this day already.');return}
   const a=load('fp-arch',{});D=isGame(a[k])?a[k]:newGame(dailyCodes(k),{mode:'archive',date:k,num:dayNum(k,FIRST)});
@@ -316,7 +321,8 @@ function myStatsHTML(){const h=load('fp-hist',{}),so=load('fp-solo5',null)||{n:0
   return statsPageHTML({game:'Flag Pie',hist:h,unit:'day',avg:fpAverage(),lbs:d=>[{path:'lb/flagpie',dates:d}],num:k=>'Flag Pie #'+dayNum(k,FIRST),
     solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'named']]},
     friends:(fr=>Object.assign(fr,{third:[fr.best||0,'best']}))(friendsOf('fp-friends'))})}
-const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Five flags, each one as a pie of its colours. Name the country with the pie alone for 20 points; every wrong answer opens one more clue and costs 1 point. All five with the pie alone: +20. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const G0=()=>view==='daily'?D:view==='train'||view==='room'?T:null;
+const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Five flags, each one as a pie of its colours. Name the country with the pie alone for 20 points; every wrong answer opens one more clue and lowers the points: ${G0()&&!isNew(G0())?'20, 19, 18, 17, 16':'20, 13, 7, 4, 1'}. All five with the pie alone: +20. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Five flags, one at a time. Each one is shown as a pie chart: its colours and how much of the flag each one covers, coat of arms and all. Name the country.</li>
   <li>Only the ${SOV.length} independent countries, never territories.</li></ul>
@@ -328,7 +334,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li><b>5 The flag, blurred</b>.</li>
   <li>A wrong answer opens the next clue. You can also tap <b>Next clue</b>.</li></ul>
   <h3>Points</h3><ul>
-  <li>Right with the pie alone: <b>20 points</b>. With 2 clues: 19. With 3: 18. With 4: 17. With all 5: 16.</li>
+  <li>Right with the pie alone: <b>20 points</b>. With 2 clues: 13. With 3: 7. With 4: 4. With all 5: 1.</li>
   <li>A wrong answer with all five clues open, or <b>I don't know</b>, lets the flag go with 0.</li>
   <li>All five right: up to 100 points. A <b>perfect game</b> (all five with the pie alone, not one wrong answer): +20, so 120.</li>
   <li>In today's flags your points are also your km for the GeoPass.</li>
