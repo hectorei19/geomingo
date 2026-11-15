@@ -122,7 +122,7 @@ window.GeoRace=function(cfg){
   // the chips above the game: everyone's points and where they are
   R.scoresHTML=()=>`<div class="scores" aria-label="Players">${players().map(p=>`<span class="chip${p.cur&&p.done?' done':''}${p.on===false?' off':''}"><span class="pin" style="${pinStyle(p.i)}"></span>${esc(p.name)}<small>${!p.cur?'joining':(p.s||0)+' pts'+(p.done?' ✓':' · '+(p.at||1)+'/'+cfg.total)}</small></span>`).join('')}</div>`;
   R.friendsHTML=()=>cfg.header(cfg.name,'')+`<section class="panel">
-    <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">With friends</span></div>
+    <div class="backline"><span class="ht">With friends</span></div>
     <p class="hint">Play online, 2 to ${MAX} players, each on their own phone. Everyone gets ${cfg.what} at the same time and sees how the others are doing.</p>
     <div class="field"><label class="label" for="fname">Your name in the room</label><input class="nameinp" id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(myName)}"></div>
     ${FB_OK?'':'<p class="hint">Online play could not load. Check the connection and reload the page.</p>'}

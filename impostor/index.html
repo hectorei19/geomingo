@@ -109,11 +109,11 @@
 <script src="../shared/data.js?v=202611141100"></script>
 <script src="../top10/extra-data.js?v=202611081900"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611141100"></script>
+<script src="../shared/minigames.js?v=202611150600"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
-<script src="../shared/race.js?v=202611100930"></script>
+<script src="../shared/race.js?v=202611150600"></script>
 <script src="facts.js?v=202611141130"></script>
 <script src="lies.js?v=202611141230"></script>
 <script>
@@ -262,7 +262,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Round',(i+1)+'/'+ROUNDS)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Impostor',(arch?'Archive #':'Daily #')+D.num);
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
-  if(!(D.over&&D.left==null&&!arch))h+=`<div class="backline"><button class="linkbtn" id="${arch?'archback':'home'}">← Back</button><span class="ht">${arch?'Archive #'+D.num:"Today's impostors"}</span></div>`;
+  if(!(D.over&&D.left==null&&!arch))h+=`<div class="backline"><span class="ht">${arch?'Archive #'+D.num:"Today's impostors"}</span></div>`;
   if(D.over&&D.left==null)return h+resultHTML(D)+(D.mode==='archive'?summaryHTML(D):rankingHTML());
   return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel">${playHTML(D)}</section>`+quickRules()}
 
@@ -283,7 +283,7 @@ const seg=(name,opts,val)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<
 const soloPool=()=>soloDiff()==='easy'?IMP_COUNTRIES.filter(c=>(DATA.pop[c.c]||0)>=1e7).map(c=>c.c):IMP_COUNTRIES.map(c=>c.c);
 function openSolo(){view='solo';chosen=null;render();window.scrollTo(0,0)}
 function soloHTML(){return header('Impostor','Solo')+`<section class="panel">
-  <div class="backline"><button class="linkbtn" id="home">← Back</button><span class="ht">Solo</span></div>
+  <div class="backline"><span class="ht">Solo</span></div>
   <p class="hint">Six rounds, each with six new countries. Up to 100 points, 120 for a perfect game.</p>
   <button class="primary" id="start">Start game</button></section>${quickRules()}`}
 function openTrain(){T=newGame(dealLies(Math.random,null),{mode:'solo'});chosen=null;view='train';render();window.scrollTo(0,0)}
@@ -291,7 +291,7 @@ function trainEnd(){if(view==='room'||T.logged)return;T.logged=1;logSolo('im-sol
 function trainPick(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over||!chosen)return;
   const res=answer(q,chosen);chosen=null;feedback(q,res);advance(T);if(T.over)trainEnd();render();showLeft()}
 function trainMore(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;chosen=null;moreFacts(q);advance(T);if(T.over)trainEnd();render();if(q.st!=='play')showLeft()}
-function trainHTML(){let h=header('Impostor','Solo')+(T.over&&T.left==null?'':`<div class="backline"><button class="linkbtn" id="soloback">← Back</button><span class="ht">Solo</span></div>`);
+function trainHTML(){let h=header('Impostor','Solo')+(T.over&&T.left==null?'':`<div class="backline"><span class="ht">Solo</span></div>`);
   // a finished Solo game: the pink ticket with the answers inside, then New game (Héctor 2026-11-14)
   if(T.over&&T.left==null){const p=pointsOf(T),s=load('im-solo',null)||{};
     return h+Geomingo.soloTicket({id:'impostor',what:'',score:p+' points',best:'Best: '+Math.max(s.best||0,p)+' points',detail:rightOf(T)+' of 6 caught',
