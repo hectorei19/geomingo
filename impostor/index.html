@@ -143,7 +143,7 @@ const setOf=(G,q)=>q.set||G.set;
 let chosen=null;   // the country tapped, waiting for "That's the impostor"
 
 const tk=Geomingo.tk;
-const rawOf=G=>G.qs.reduce((n,q)=>n+ptsOf(q),0),pointsOf=G=>Geomingo.KM.imp(rightOf(G),rawOf(G),G.date);
+const rawOf=G=>G.qs.reduce((n,q)=>n+ptsOf(q),0),pointsOf=G=>Geomingo.KM.imp(rightOf(G),rawOf(G),G.date,G.qs.some(q=>q.x3));
 const rightOf=G=>G.qs.filter(q=>q.st==='right').length;
 const wrongOf=G=>G.qs.filter(q=>q.st==='wrong'&&q.pick).length;
 const firstOf=G=>G.qs.filter(q=>q.st==='right'&&q.k===1).length;
@@ -217,7 +217,10 @@ const dailyDeal=key=>{if(key>=LIES_FROM)return liesOfDay(key);neighbourRule(key<
 let D=null;
 const isGame=S=>S&&Array.isArray(S.qs)&&S.qs.length>0&&Array.isArray(S.qs[0].set||S.set);
 const dailySaved=()=>{const d=load('im-daily',null);return d&&d.date===todayKey()&&isGame(d.S)?d:null};
-function dailyGame(){const d=dailySaved();if(d){if(d.S&&d.S.over)d.S.left=null;return d.S}
+// a game of IMP3_FROM's day started before the new points (Héctor 2026-11-15: "from today"): its rounds get x3, so the rounds
+// already played count with the new points too. A game already finished keeps its old points (its ranking row is written once).
+function toImp3(S){if(S.over||!Geomingo.imp3(S.date)||S.qs.every(q=>q.x3))return;S.qs.forEach(q=>q.x3=1);store('im-daily',{date:S.date,over:S.over,S})}
+function dailyGame(){const d=dailySaved();if(d){if(d.S&&d.S.over)d.S.left=null;toImp3(d.S);return d.S}
   return newGame(dailyDeal(todayKey()),{mode:'daily',date:todayKey(),num:dayNum(todayKey(),FIRST)})}
 function dailySave(){if(!D)return;
   if(D.mode==='archive'){const a=load('im-arch',{});a[D.date]=D;store('im-arch',a);if(D.over)logHist(D);return}
@@ -225,7 +228,7 @@ function dailySave(){if(!D)return;
   if(D.over&&logHist(D)&&!TESTDAY){Geomingo.clock.stop('impostor',D.date,rightOf(D)/ROUNDS);Geomingo.account.done('impostor')}}
 // a finished daily (on its day) goes into the history once: {p points, r impostors caught, a caught with one sentence, m wrong picks}
 function logHist(G){if(G.mode!=='daily')return false;const h=load('im-hist',{});if(h[G.date])return false;
-  h[G.date]={p:rawOf(G),r:rightOf(G),a:firstOf(G),m:wrongOf(G)};store('im-hist',h);return true}
+  h[G.date]=Object.assign({p:rawOf(G),r:rightOf(G),a:firstOf(G),m:wrongOf(G)},G.qs.some(q=>q.x3)?{x3:1}:{});store('im-hist',h);return true}
 function dailyPick(){const q=D&&D.qs[D.sel];if(!q||q.st!=='play'||D.over||!chosen)return;
   const res=answer(q,chosen);chosen=null;feedback(q,res);advance(D);dailySave();render();showLeft()}
 function dailyMore(){const q=D&&D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;chosen=null;moreFacts(q);advance(D);dailySave();render();if(q.st!=='play')showLeft()}
@@ -237,7 +240,7 @@ function verdict(G){const p=pointsOf(G),r=rightOf(G);
   return r===ROUNDS&&p>=95?{pose:'happy',t:'Nobody fools you. '+p+' points.',s:'All six impostors caught.'}:r===ROUNDS?{pose:'happy',t:'All six caught.',s:p+' points.'}
     :r>=4?{pose:'happy',t:r+' of 6 caught.',s:p+' points. Tap a round to see who it was.'}:r>=1?{pose:'think',t:'Sneaky impostors today.',s:r+' of 6, '+p+' points.'}
     :{pose:'sad',t:'They all got away.',s:'Solo helps: unlimited games.'}}
-const imAverage=()=>{const v=Object.entries(load('im-hist',{}));return v.length?EU(v.reduce((a,[d,e])=>a+Geomingo.KM.imp(e.r,e.p,d),0)/v.length,1):'–'};
+const imAverage=()=>{const v=Object.entries(load('im-hist',{}));return v.length?EU(v.reduce((a,[d,e])=>a+Geomingo.KM.imp(e.r,e.p,d,e.x3),0)/v.length,1):'–'};
 function resultHTML(G){const p=pointsOf(G),v=verdict(G);
   if(G.mode==='archive')return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Archive · Impostor #${G.num}</span><p class="big">${p} points</p>
     <p class="hint">${rightOf(G)} of 6 caught. Archive games don't count for the ranking or your streak.</p>
@@ -246,7 +249,7 @@ function resultHTML(G){const p=pointsOf(G),v=verdict(G);
   return `${Geomingo.doneTicket('impostor',G.num,p+' points','next in '+nextIn(),summaryHTML(G))}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns">${nextGameBtn('impostor')}${SHARE_BTN.replace('Share result','Share')}</div>`}
 // today's ranking (signed-in players, first try of the day): points, then fewer wrong picks, then who finished first
-const rankingHTML=()=>Geomingo.account.rankingHTML('impostor',{what:'game',score:r=>[Geomingo.KM.imp(r.r,r.s,todayKey())+' pts',r.m+' wrong']});
+const rankingHTML=()=>Geomingo.account.rankingHTML('impostor',{what:'game',score:r=>[Geomingo.KM.imp(r.r,r.s,todayKey(),r.x3)+' pts',r.m+' wrong']});
 Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&D.mode==='daily'&&D.date===todayKey()){D=dailyGame();liveKey=''}
   if(!typing&&(view==='home'||view==='daily'&&D&&D.over))render()});
 function openDaily(){D=dailyGame();chosen=null;view='daily';render();window.scrollTo(0,0)}
@@ -264,7 +267,7 @@ function dailyHTML(){const arch=D.mode==='archive';let h=header('Impostor',(arch
   return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel">${playHTML(D)}</section>`+quickRules()}
 
 /* ---- the archive: past days, one try each on this device ---- */
-const archDay=k=>{const e=load('im-hist',{})[k];return e?Geomingo.KM.imp(e.r,e.p,k)+' pts':null};
+const archDay=k=>{const e=load('im-hist',{})[k];return e?Geomingo.KM.imp(e.r,e.p,k,e.x3)+' pts':null};
 function openArchive(){view='archive';chosen=null;render();window.scrollTo(0,0)}
 function playArchive(k){if(archDay(k)){toast('You played this day already.');return}
   const a=load('im-arch',{});D=isGame(a[k])?a[k]:newGame(dailyDeal(k),{mode:'archive',date:k,num:dayNum(k,FIRST)});
