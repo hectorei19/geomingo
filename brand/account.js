@@ -344,7 +344,7 @@ function statsPage(o){const id='c'+(++cardN);CARDS[id]=o;const s=o.solo,f=o.frie
   const all=o.daily.n+s.n+f.n,first=o.dates.slice().sort()[0],nm=(u&&name)||G.traveller();
   const me='<div class="gm-me"><span class="gm-av">'+esc((nm.trim()[0]||'·').toUpperCase())+'</span><div class="gm-mett"><b>'+esc(nm)+'</b><small>'+esc(o.game)+' · '+all+' game'+(all===1?'':'s')+(first?'<br>since '+shortDate(first):'')+'</small></div>'+
     '<div class="gm-mest"><b>'+EU((G.pass&&G.pass().n)||0)+'</b><small>stamps</small></div></div>';
-  const solo=modeCard(medalSVG(s.n?s.medal:null,64),'Solo',s.n+' '+s.unit+(s.n===1?'':'s'),s.n?nums(s.stats):'<span class="gm-mfoot">Practice at your pace: your best and your accuracy show here.</span>');
+  const solo=modeCard(medalSVG(s.n?s.medal:null,64),'Practice',s.n+' '+s.unit+(s.n===1?'':'s'),s.n?nums(s.stats):'<span class="gm-mfoot">Practice at your pace: your best and your accuracy show here.</span>');
   const fr=modeCard(ringSVG(f.n?Math.round(f.w/f.n*100):null,64),'With friends',f.n+' game'+(f.n===1?'':'s'),
     f.n?nums([[f.w,f.w===1?'win':'wins'],[EU(f.place/f.n,1),'avg place'],f.third]):'<span class="gm-mfoot">Play online with 2 to 6 friends: your wins show here.</span>');
   return '<div class="gm-stats">'+me+'<div data-gm-card="'+id+'">'+dailyCard(o)+'</div>'+solo+fr+(o.extra||'')+'</div>'}

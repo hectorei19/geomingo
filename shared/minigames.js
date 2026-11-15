@@ -37,8 +37,8 @@ const mico=k=>`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="
 const menuBtn=()=>`<button class="helpbtn" id="menu" aria-haspopup="true" aria-expanded="false">${mico('menu')}Menu</button>`;
 // the name you play with in Countries (same site, so the same device storage); Guest otherwise
 function playerName(){try{return localStorage.getItem('bl-user')||'Guest'}catch(e){return 'Guest'}}
-function header(brand,coord,home){
-  return Geomingo.header({game:brand.replace(/<[^>]*>/g,''),coord,menu:menuBtn()})}
+function header(brand,coord,home,practice){
+  return Geomingo.header({game:brand.replace(/<[^>]*>/g,''),coord,practice,menu:menuBtn()})}
 // Mingo: what he says about your last move, for the game it belongs to (key), or what he says by default
 let mood=null;
 function say(key,pose,t,s){mood={key,pose,t,s}}
@@ -97,10 +97,10 @@ function archiveHTML(o){const items=archDates(o.first,o.played(todayKey())).map(
   return `<section class="panel"><div class="backline"><span class="ht">Archive</span></div>
     <p class="hint">Play the daily ${o.label.toLowerCase()}s you missed. The ones you played on their day are already done. One try each, on this device. Archive games don't count for the daily ranking or your streak.</p>
     ${items?`<ul class="arch">${items}</ul>`:`<p class="hint">No past ${o.label.toLowerCase()}s yet. Come back tomorrow.</p>`}</section>`}
-// the game's title: in Practice back to Practice's first screen, in With friends you stay there, else today's game
-// (Héctor 2026-11-15: in Solo the title took him to today's daily). The "‹ geomingo" on top goes to the home page.
+// the game's title: in Practice and With friends you stay where you are (Practice has no first screen any more, and the
+// game you are playing is kept), else today's game (Héctor 2026-11-15). The "‹ geomingo" on top goes to the home page.
 function titleTap(){const m=Geomingo.mode?Geomingo.mode():'';
-  if(m==='solo'&&typeof openSolo==='function')openSolo();else if(m==='friends')window.scrollTo(0,0);else if(typeof goHome==='function')goHome()}
+  if(m==='solo'||m==='friends')window.scrollTo(0,0);else if(typeof goHome==='function')goHome()}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#menu,#brand');if(!t)return;
   if(t.id==='menu')drawMenu(!document.querySelector('#menulayer .menubox'));else titleTap()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('#menulayer .menubox'))drawMenu(false);

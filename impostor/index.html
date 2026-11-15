@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611161300"></script>
-<script src="../brand/account.js?v=202611161200"></script>
+<script src="../brand/mingo.js?v=202611161410"></script>
+<script src="../brand/account.js?v=202611161330"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -99,7 +99,7 @@
 .claim:disabled{cursor:default}
 .frow .rpts{margin-left:auto;font-family:var(--mono);color:var(--gold);white-space:nowrap}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611161000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611161400">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -110,7 +110,7 @@
 <script src="../shared/data.js?v=202611141100"></script>
 <script src="../top10/extra-data.js?v=202611081900"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611161300"></script>
+<script src="../shared/minigames.js?v=202611161400"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
@@ -240,7 +240,7 @@ const soloShare=G=>`${Geomingo.share('Impostor')} (practice) — ${pointsOf(G)} 
 function verdict(G){const p=pointsOf(G),r=rightOf(G);
   return r===ROUNDS&&p>=95?{pose:'happy',t:'Nobody fools you. '+p+' points.',s:'All six impostors caught.'}:r===ROUNDS?{pose:'happy',t:'All six caught.',s:p+' points.'}
     :r>=4?{pose:'happy',t:r+' of 6 caught.',s:p+' points. Tap a round to see who it was.'}:r>=1?{pose:'think',t:'Sneaky impostors today.',s:r+' of 6, '+p+' points.'}
-    :{pose:'sad',t:'They all got away.',s:'Solo helps: unlimited games.'}}
+    :{pose:'sad',t:'They all got away.',s:'Practice helps: unlimited games.'}}
 const imAverage=()=>{const v=Object.entries(load('im-hist',{}));return v.length?EU(v.reduce((a,[d,e])=>a+Geomingo.KM.imp(e.r,e.p,d,e.x3),0)/v.length,1):'–'};
 function resultHTML(G){const p=pointsOf(G),v=verdict(G);
   if(G.mode==='archive')return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Archive · Impostor #${G.num}</span><p class="big">${p} points</p>
@@ -263,7 +263,6 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Round',(i+1)+'/'+ROUNDS)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Impostor',(arch?'Archive #':'Daily #')+D.num);
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
-  if(!(D.over&&D.left==null&&!arch))h+=`<div class="backline"><span class="ht">${arch?'Archive #'+D.num:"Today's impostors"}</span></div>`;
   if(D.over&&D.left==null)return h+resultHTML(D)+(D.mode==='archive'?summaryHTML(D):rankingHTML());
   return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel">${playHTML(D)}</section>`+quickRules()}
 
@@ -277,22 +276,16 @@ const archiveView=()=>header('Impostor','Archive')+archiveHTML({first:FIRST,labe
   played:archDay,saved:k=>{const g=load('im-arch',{})[k];return isGame(g)?g:null},done:g=>[pointsOf(g)+' pts',squaresHTML(g)]});
 
 /* ---- Solo: six random countries a game, as many games as you like (im-solo keeps the numbers) ----
-   Easy: well-known countries (10 million people or more). Hard: all of them. */
+   Rounds dealt like the daily ones. */
 let T=null;
-const soloDiff=()=>load('im-diff','easy')==='hard'?'hard':'easy';
-const seg=(name,opts,val)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-seg="${name}" data-v="${v}" aria-pressed="${v===val}">${l}</button>`).join('')}</div>`;
-const soloPool=()=>soloDiff()==='easy'?IMP_COUNTRIES.filter(c=>(DATA.pop[c.c]||0)>=1e7).map(c=>c.c):IMP_COUNTRIES.map(c=>c.c);
-function openSolo(){view='solo';chosen=null;render();window.scrollTo(0,0)}
-function soloHTML(){return header('Impostor','Solo')+`<section class="panel">
-  <div class="backline"><span class="ht">Solo</span></div>
-  <p class="hint">Six rounds, each with six new countries. Up to 100 points, 120 for a perfect game.</p>
-  <button class="primary" id="start">Start game</button></section>${quickRules()}`}
+// Practice has no setup screen (Héctor 2026-11-15): it starts a game at once, made like the daily one
+function openSolo(){openTrain()}
 function openTrain(){T=newGame(dealLies(Math.random,null),{mode:'solo'});chosen=null;view='train';render();window.scrollTo(0,0)}
 function trainEnd(){if(view==='room'||T.logged)return;T.logged=1;logSolo('im-solo',{p:pointsOf(T),best:pointsOf(T),r:rightOf(T)})}
 function trainPick(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over||!chosen)return;
   const res=answer(q,chosen);chosen=null;feedback(q,res);advance(T);if(T.over)trainEnd();render();showLeft()}
 function trainMore(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;chosen=null;moreFacts(q);advance(T);if(T.over)trainEnd();render();if(q.st!=='play')showLeft()}
-function trainHTML(){let h=header('Impostor','Solo')+(T.over&&T.left==null?'':`<div class="backline"><span class="ht">Solo</span></div>`);
+function trainHTML(){let h=header('Impostor','',0,true);  // Practice is said once, on the coral ticket (Héctor 2026-11-15)
   // a finished Solo game: the pink ticket with the answers inside, then New game (Héctor 2026-11-14)
   if(T.over&&T.left==null){const p=pointsOf(T),s=load('im-solo',null)||{};
     return h+Geomingo.soloTicket({id:'impostor',what:'',score:p+' points',best:'Best: '+Math.max(s.best||0,p)+' points',detail:rightOf(T)+' of 6 caught',
@@ -327,13 +320,13 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Never about what you can see on the flag.</li></ul>
   <h3>Modes</h3><ul>
   <li><b>Today's impostors</b>: six rounds, the same for everyone, new every day at midnight CET. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>
-  <li><b>Solo</b>: six random rounds, as many games as you like.</li>
+  <li><b>Practice</b>: six random rounds, as many games as you like.</li>
   <li><b>With friends</b>: online, 2 to 6 players, each on their own phone. Everyone gets the same six rounds at the same time and plays at their own pace. No lives. Most points win, then the fastest.</li></ul>`}
 function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Impostor: the sentences are written for Geomingo and checked against encyclopedias and official sources (older days: made from the same data as Countries, Connections and Top 10). Flags in their official shapes from <a href="https://github.com/hjnilsson/country-flags" target="_blank" rel="noopener">hjnilsson/country-flags</a> (from Wikimedia Commons, public domain).</li></ul>`)}
 
 /* ---- home: today's countries on top, then Solo and With friends, as in the other games ---- */
 let view='home';
-// ?solo (from Practice on the Geomingo home page) opens the Solo screen
+// ?solo (from Practice on the Geomingo home page) starts a practice game
 try{if(new URLSearchParams(location.search).has('solo')){view='solo';history.replaceState(null,'',location.pathname)}}catch(e){}
 // Back from today's game, Solo or With friends goes to the Geomingo home page (in a room: leave it first)
 const toHub=()=>{if(typeof roomCode!=='undefined'&&roomCode){goHome();return}location.href='../'};
@@ -370,7 +363,7 @@ function render(){
   if(!TESTDAY&&(view==='home'||view==='daily'&&D&&D.mode==='daily')){const g=dailyGame();if(!g.over)Geomingo.clock.start('impostor',todayKey())}
   if(D&&D.mode==='daily')watchResult('im:'+D.date,D.over&&D.left==null);
   if(view==='train')app.innerHTML=trainHTML();
-  else if(view==='solo')app.innerHTML=soloHTML();
+  else if(view==='solo'){openTrain();return}
   else if(view==='archive')app.innerHTML=archiveView();
   else if(view==='daily')app.innerHTML=dailyHTML();
   else app.innerHTML=homeHTML();
@@ -385,7 +378,6 @@ function bind(){
   if($('playsolo'))$('playsolo').onclick=openSolo;
   if($('soloback'))$('soloback').onclick=openSolo;
   if($('archback'))$('archback').onclick=openArchive;
-  if($('start'))$('start').onclick=openTrain;
   if($('tagain'))$('tagain').onclick=openTrain;
   if($('daily'))$('daily').onclick=openDaily;
   if($('copy')&&view!=='room')$('copy').onclick=()=>share(view==='train'&&T?soloShare(T):dailyShare(D));
@@ -395,8 +387,7 @@ function bind(){
   app.querySelectorAll('.six [data-c],.claims [data-c]').forEach(b=>b.onclick=()=>{if(!b.disabled&&G)choose(G,b.dataset.c)});
   if($('confirm'))$('confirm').onclick=TV?trainPick:dailyPick;
   if($('nextfact'))$('nextfact').onclick=TV?trainMore:dailyMore;
-  if($('nexttv'))$('nexttv').onclick=()=>TV?nextRound(T):nextRound(D,dailySave);
-  app.querySelectorAll('[data-seg="diff"]').forEach(b=>b.onclick=()=>{store('im-diff',b.dataset.v);render()})}
+  if($('nexttv'))$('nexttv').onclick=()=>TV?nextRound(T):nextRound(D,dailySave);}
 RACE.boot();
 render();
 // a new day while the page was in the background: today's new countries
