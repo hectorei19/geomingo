@@ -72,9 +72,9 @@ button.gm-home{background:none;border:0;font:inherit;cursor:pointer}
 /* Practice: the one choice for every game, 5 lives or Unlimited (Héctor 2026-11-15) */
 .pktop{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .pktop h2{font-size:28px}
-.pklives{display:flex;align-items:center}
-.pklives .seg{display:flex;gap:2px;padding:3px;border-radius:999px;border-color:var(--line)}
-.pklives .seg button{min-height:32px;padding:0 10px;font-size:13px;white-space:nowrap;border:0;border-radius:999px;background:transparent;color:var(--muted)}
+.pklives{display:flex;align-items:center;flex:none}
+.pklives .seg{display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:3px;border-radius:999px;border-color:var(--line)}
+.pklives .seg button{min-height:32px;padding:0 8px;font-size:13px;white-space:nowrap;border:0;border-radius:999px;background:transparent;color:var(--muted)}
 /* a game played today gets a passport stamp with Mingo in ink: round (Mingo with his passport) or
    rectangular (Mingo's head, VISITED and the date), tilted, picked per game and day */
 .tile{position:relative}
@@ -304,7 +304,7 @@ window.addEventListener('popstate',()=>{const h=location.hash.slice(1);setMode(h
 // Practice's one choice, for every game with lives: 5 lives, or Unlimited (play to the end, mistakes are only counted)
 const livesHTML=lv=>'<div class="pklives"><div class="seg" role="group" aria-label="Lives">'+
   [['5','5 lives'],['unl','Unlimited']].map(([v,l])=>'<button type="button" data-lives="'+v+'" aria-pressed="'+(v===lv)+'">'+l+'</button>').join('')+'</div></div>';
-const PKHEAD={practice:['Practice','Unlimited games at your pace. They don\'t count for the ranking.'],friends:['With friends','One room, all 9 games. 2 to 6 players, each on their own phone.']};
+const PKHEAD={practice:['Practice','Play as much as you like. No ranking.'],friends:['With friends','One room, all 9 games. 2 to 6 players, each on their own phone.']};
 // Practice opens the game's Solo screen, Friends its With friends screen (greyed when the game has none yet)
 function modeTile(g){const lk=look(g.id),pr=MODE==='practice',off=!pr&&g.nofriends;
   const state=pr?'PRACTICE':off?'SOON':'ONLINE',hint=pr?'Random game':off?'Coming soon':'Create or join a room';
