@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611160800"></script>
-<script src="../brand/account.js?v=202611160600"></script>
+<script src="../brand/mingo.js?v=202611161200"></script>
+<script src="../brand/account.js?v=202611161200"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -88,7 +88,7 @@
 <script src="countries.js?v=202611120800"></script>
 <script src="silhouette.js?v=202611141100"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611150600"></script>
+<script src="../shared/minigames.js?v=202611161200"></script>
 <!-- online rooms (With friends): Firebase, loaded after the page so today's board shows at once -->
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -178,7 +178,7 @@ function trainPick(code){const q=T.q;if(q.st!=='play'||T.over)return;
   const res=answer(q,code,T.nolives?Infinity:trainLeft());query='';typing=res==='wrong';
   if(res!=='right')T.miss++;
   const st=trainStats(),s=st[T.diff]||{n:0,ok:0,best:0};
-  if(res!=='wrong'){s.n++;if(res==='right'){s.ok++;T.streak++;if(!T.nolives)s.best=Math.max(s.best,T.streak)}else T.over=true;st[T.diff]=s;store('sil-train',st)}
+  if(res!=='wrong'){s.n++;if(res==='right'){s.ok++;T.streak++;if(!T.nolives)s.best=Math.max(s.best,T.streak)}else{T.over=true;Geomingo.stat('fin','solo')}st[T.diff]=s;store('sil-train',st)}
   feedback(q,res,code,silKey(),T.nolives?null:trainLeft());render()}
 // no lives: skip a shape you can't name; it shows its name and the game goes on
 function trainShow(){const q=T.q;if(q.st!=='play'||T.over)return;q.st='wrong';query='';typing=false;

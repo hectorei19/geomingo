@@ -114,14 +114,14 @@ const pageLink=q=>location.origin+location.pathname+(q||'');
 // Two taps, like Countries: the first asks to confirm.
 const giveUpHTML=()=>`<button class="linkbtn giveup" id="giveup">Give up</button>`;
 function bindGiveUp(end){const b=$('giveup');if(!b)return;
-  b.onclick=()=>{if(b.dataset.armed){end();return}b.dataset.armed='1';b.textContent='Tap again to give up'}}
+  b.onclick=()=>{if(b.dataset.armed){Geomingo.stat('giveup');end();return}b.dataset.armed='1';b.textContent='Tap again to give up'}}
 // the three numbers under every daily result (and in My stats): days played, the average result, the streak
 const statTiles=(played,avg,streak)=>`<div class="stgrid"><div class="st"><b>${played}</b><span>played</span></div><div class="st"><b>${avg}</b><span>average</span></div><div class="st"><b>${streak}</b><span>streak</span></div></div>`;
 // My stats (Menu): the same cards in every game (../brand/account.js statsPage): Daily, Solo, With friends.
 // Solo and With friends results are kept on this device for it: <game>-solo (each game its own numbers) and
 // <game>-friends {n games, w wins, pl sum of places, best score, fast quickest win, k the last games counted}
-function logSolo(key,add){const s=load(key,null)||{n:0};s.n++;for(const k in add)s[k]=k==='best'?Math.max(s.best||0,add.best):(s[k]||0)+add[k];store(key,s)}
-function logFriends(key,id,place,score,ms){const f=load(key,null)||{n:0,w:0,pl:0,best:0,k:[]};if(!place||(f.k||[]).includes(id))return;
+function logSolo(key,add){Geomingo.stat('fin','solo');const s=load(key,null)||{n:0};s.n++;for(const k in add)s[k]=k==='best'?Math.max(s.best||0,add.best):(s[k]||0)+add[k];store(key,s)}
+function logFriends(key,id,place,score,ms){const f=load(key,null)||{n:0,w:0,pl:0,best:0,k:[]};if(!place||(f.k||[]).includes(id))return;Geomingo.stat('fin','friends');
   f.k=(f.k||[]).concat(id).slice(-40);f.n++;if(place===1)f.w++;f.pl+=place;f.best=Math.max(f.best||0,score||0);
   if(ms&&place===1)f.fast=f.fast?Math.min(f.fast,ms):ms;store(key,f)}
 const friendsOf=key=>{const f=load(key,null)||{n:0,w:0,pl:0,best:0};return {n:f.n,w:f.w,place:f.pl,best:f.best,fast:f.fast}};

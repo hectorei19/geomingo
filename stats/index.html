@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex,nofollow">
+<style>body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>Stats · Geomingo</title>
+<meta name="theme-color" content="#151E30">
+<link rel="icon" href="../brand/icons/favicon.svg?v=202611101235" type="image/svg+xml">
+<script src="../brand/mingo.js?v=202611161200"></script>
+<script src="../brand/account.js?v=202611161200"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611150700">
+<style>
+/* geomingo.com/stats: the owner's page with the anonymous counters (st/ in Firebase, written by brand/account.js) */
+body{background:var(--bg);color:var(--ink);font-family:var(--body)}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px 40px}
+h3{font-family:var(--display);font-weight:800;font-size:17px;letter-spacing:.02em;margin:26px 0 10px}
+.note{color:var(--muted);font-size:13.5px;line-height:1.45}
+.box{background:var(--page);border:1px solid var(--line);border-radius:14px;padding:16px}
+.btn{font:600 15px var(--body);background:var(--coral);color:var(--on-coral);border:0;border-radius:999px;padding:11px 20px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.tabs{display:flex;gap:6px;margin:16px 0 4px}
+.tabs button{flex:1;font:600 14px var(--body);background:var(--page);color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:9px 0;cursor:pointer}
+.tabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media (max-width:560px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{background:var(--page);border:1px solid var(--line);border-radius:12px;padding:12px}
+.tile b{display:block;font-family:var(--display);font-size:26px;font-weight:900;line-height:1.1}
+.tile span{color:var(--muted);font-size:12.5px}
+.bars{display:flex;align-items:flex-end;gap:3px;height:120px;padding-top:6px}
+.bars i{flex:1;background:var(--blue);border-radius:3px 3px 0 0;min-height:2px;position:relative}
+.bars i.z{background:var(--line)}
+.axis{display:flex;justify-content:space-between;color:var(--muted);font-size:11.5px;margin-top:5px;font-family:var(--type)}
+.games{display:grid;gap:10px}
+.game{background:var(--page);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.game .top{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
+.game .top b{font-family:var(--display);font-size:17px;font-weight:800}
+.game .top span{margin-left:auto;color:var(--muted);font-size:13px}
+.row{display:grid;grid-template-columns:96px 1fr 128px;align-items:center;gap:10px;font-size:13.5px;padding:3px 0}
+.row .m{color:var(--muted)}
+.row .n{text-align:right;font-family:var(--type);font-size:12.5px;white-space:nowrap}
+.meter{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--green)}
+@media (max-width:420px){.row{grid-template-columns:78px 1fr 112px;gap:8px}}
+.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12.5px;margin:4px 0 10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+code{font-family:var(--type);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:2px 6px;word-break:break-all}
+ol{padding-left:20px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap" style="padding-bottom:0" id="top"></div>
+<main class="wrap" id="app"><p class="note">Cargando…</p></main>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="../brand/firebase-config.js?v=202611151700"></script>
+<script>
+'use strict';
+const G=Geomingo,A=G.account,$=id=>document.getElementById(id),esc=G.esc;
+// the pages counted (st/<day>/<page>): the home page and every game, by the folder of its address
+const PAGES=[{p:'home',name:'Página de inicio'}].concat(G.GAMES.map(g=>({p:g.path.replace(/\/$/,''),name:g.name})));
+const MODES=[['daily','Hoy'],['solo','Practice'],['friends','With friends']];
+let range=1,data=null,state='wait',err='';   // state: wait | out | denied | ok | error
+try{range=+localStorage.getItem('gm-st-range')||1}catch(e){}
+const n=x=>window.EU?EU(x):String(x);
+function header(){$('top').innerHTML=G.header({game:'Stats'});const b=$('brand');if(b)b.onclick=()=>scrollTo(0,0)}
+
+// the last days, newest last, as day keys (Madrid calendar)
+function days(k){const out=[];for(let i=k-1;i>=0;i--)out.push(G.dayKey(Date.now()-i*864e5));return out}
+function load(){const from=days(30)[0];state='wait';draw();
+  firebase.database().ref('st').orderByKey().startAt(from).once('value')
+    .then(s=>{data=s.val()||{};state='ok';draw()})
+    .catch(e=>{state=/permission/i.test(String(e&&e.message||e))?'denied':'error';err=String(e&&e.message||e);draw()})}
+
+function sum(ds,page,k){let t=0;ds.forEach(d=>{const v=data[d]&&data[d][page]&&data[d][page][k];if(v)t+=v});return t}
+function allPages(ds,k){return PAGES.reduce((t,x)=>t+sum(ds,x.p,k),0)}
+function pct(a,b){return b?Math.round(100*a/b)+'%':'–'}
+
+function bars(vals,labels){const max=Math.max(1,...vals);
+  return '<div class="bars">'+vals.map((v,i)=>'<i class="'+(v?'':'z')+'" style="height:'+(v?Math.max(4,100*v/max):2)+'%" title="'+esc(labels[i])+': '+v+'"></i>').join('')+'</div>'}
+
+function okHTML(){const ds=days(range);
+  const views=allPages(ds,'view'),phone=allPages(ds,'phone'),comp=allPages(ds,'computer'),signed=allPages(ds,'in'),guest=allPages(ds,'guest');
+  const fin=MODES.reduce((t,[m])=>t+allPages(ds,'fin-'+m),0);
+  let h='<div class="tabs">'+[[1,'Hoy'],[7,'7 días'],[30,'30 días']].map(([k,l])=>'<button data-r="'+k+'" class="'+(k===range?'on':'')+'">'+l+'</button>').join('')+'</div>';
+  h+='<p class="note">Números anónimos: cuántas veces pasa cada cosa, sin nombres ni datos de las personas. Una persona que entra dos veces cuenta dos visitas.</p>';
+  h+='<div class="tiles"><div class="tile"><b>'+n(views)+'</b><span>visitas</span></div><div class="tile"><b>'+n(fin)+'</b><span>partidas terminadas</span></div>'+
+    '<div class="tile"><b>'+pct(phone,phone+comp)+'</b><span>desde el móvil</span></div><div class="tile"><b>'+pct(signed,signed+guest)+'</b><span>con sesión iniciada</span></div></div>';
+  // visits by day (or by hour today)
+  if(range===1){h+='<h3>Visitas de hoy por hora</h3>'}else{h+='<h3>Visitas por día</h3>';const v=ds.map(d=>PAGES.reduce((t,x)=>t+((data[d]&&data[d][x.p]&&data[d][x.p].view)||0),0));
+    h+='<div class="box">'+bars(v,ds)+'<div class="axis"><span>'+esc(ds[0].slice(8)+'/'+ds[0].slice(5,7))+'</span><span>hoy</span></div></div>'}
+  // what time people play
+  const hrs=[];for(let i=0;i<24;i++)hrs.push(sum(ds,'_hour','h'+i));
+  if(range!==1)h+='<h3>A qué hora juega la gente</h3>';
+  h+='<div class="box">'+bars(hrs,hrs.map((_,i)=>i+':00'))+'<div class="axis"><span>0 h</span><span>6 h</span><span>12 h</span><span>18 h</span><span>23 h</span></div><p class="note" style="margin:8px 0 0">Hora de España.</p></div>';
+  // each game
+  h+='<h3>Cada juego</h3><div class="legend"><span><i style="background:var(--green)"></i>terminadas de las abiertas</span><span>abiertas → terminadas · rendidas</span></div><div class="games">';
+  const rows=PAGES.map(x=>({x,v:sum(ds,x.p,'view')})).sort((a,b)=>b.v-a.v);
+  rows.forEach(({x,v})=>{h+='<div class="game"><div class="top"><b>'+esc(x.name)+'</b><span>'+n(v)+' visitas</span></div>';
+    if(x.p!=='home')MODES.forEach(([m,l])=>{const o=sum(ds,x.p,'open-'+m),f=sum(ds,x.p,'fin-'+m),g=sum(ds,x.p,'giveup-'+m);
+      h+='<div class="row"><span class="m">'+l+'</span><span class="meter"><i style="width:'+(o?Math.min(100,100*f/o):0)+'%"></i></span><span class="n">'+n(o)+' → '+n(f)+' · '+n(g)+'</span></div>'});
+    h+='</div>'});
+  h+='</div><p class="note" style="margin-top:18px">«Abiertas» cuenta la primera vez que alguien ve Hoy, Practice o With friends en esa visita. «Terminadas» cuenta las partidas acabadas (ganadas o perdidas). «Rendidas» cuenta los Give up / End game (también salen en terminadas). Visitas, países y de dónde viene la gente: en Cloudflare Web Analytics.</p>';
+  return h}
+
+function draw(){const u=A&&A.user,el=$('app');let h='';
+  if(state==='out')h='<div class="box" style="margin-top:20px"><p>Esta página es solo para el dueño de Geomingo. Inicia sesión con tu cuenta de Google para ver los números.</p><button class="btn" id="in">Sign in with Google</button></div>';
+  else if(state==='denied')h='<div class="box" style="margin-top:20px"><p><b>Esta cuenta todavía no puede ver los números.</b></p>'+
+    '<p class="note">Si eres el dueño, haz esto una sola vez:</p><ol class="note"><li>Pulsa <b>Copiar reglas</b> (ya llevan tu código de cuenta: <code>'+esc(u?u.uid:'')+'</code>).</li>'+
+    '<li>Abre la consola de Firebase → Realtime Database → <b>Rules</b>.</li><li>Borra todo, pega, y pulsa <b>Publish</b>. Vuelve aquí y recarga.</li></ol>'+
+    '<button class="btn" id="copy">Copiar reglas</button> <a class="btn ghost" href="https://console.firebase.google.com/project/geomingogames/database/geomingogames-default-rtdb/rules" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block">Abrir Firebase</a><p class="note" id="copied"></p></div>';
+  else if(state==='error')h='<div class="box" style="margin-top:20px"><p>No se han podido leer los números. Comprueba la conexión y recarga.</p><p class="note">'+esc(err)+'</p></div>';
+  else if(state==='ok')h=okHTML();
+  else h='<p class="note" style="margin-top:20px">Cargando…</p>';
+  el.innerHTML=h;
+  if($('in'))$('in').onclick=()=>A.signIn();
+  if($('copy'))$('copy').onclick=copyRules;
+  el.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{range=+b.dataset.r;try{localStorage.setItem('gm-st-range',range)}catch(e){}draw()})}
+
+// the site's rules (countries/database.rules.json) with this account as the one that can read st/
+function copyRules(){const u=A.user;if(!u)return;
+  fetch('../countries/database.rules.json?'+Date.now()).then(r=>r.text()).then(t=>{t=t.split('ADMIN_UID').join(u.uid);
+    return navigator.clipboard.writeText(t)}).then(()=>{$('copied').textContent='Copiadas. Ahora pégalas en Firebase.'})
+    .catch(()=>{$('copied').textContent='No se han podido copiar. Prueba otra vez.'})}
+
+if(!firebase.apps.length)firebase.initializeApp(window.FIREBASE_CONFIG);
+firebase.auth().onAuthStateChanged(u=>{if(u)load();else{state='out';draw()}});
+if(A)A.onChange(header);
+header();
+</script>
+</body>
+</html>
