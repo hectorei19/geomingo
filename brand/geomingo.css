@@ -205,6 +205,7 @@ body:has(.ticket .tk-mode.daily,.ticket .tk-mode.practice) .gm-title small{displ
 @keyframes gm-up{from{transform:translateY(12px);opacity:.5}to{transform:none;opacity:1}}
 .gm-res{width:100%;max-width:400px;background:var(--page);border-radius:16px;overflow:hidden;animation:gm-up .2s ease;max-height:100%;overflow-y:auto;box-shadow:var(--shadow)}
 .gm-band{background:var(--cover);color:var(--cover-ink);padding:12px 16px;display:flex;align-items:center;gap:10px}
+.gm-band .gm-bico{color:var(--gold);flex-shrink:0}
 .gm-band b{font-family:var(--display);font-weight:800;font-stretch:115%;letter-spacing:.12em;text-transform:uppercase;font-size:14px;color:var(--gold)}
 .gm-rbody{padding:18px;display:flex;flex-direction:column;gap:12px}
 

@@ -145,7 +145,7 @@ function loadName(){const id=uid();
     if(v&&v.name)setName(v.name);else{holdOff();if(!OWN)askName()}
     syncAll();changed()}).catch(()=>holdOff())}
 function askName(){const first=((user.displayName||'').trim().split(/\s+/)[0]||'').slice(0,16);
-  const box=G.openWindow('<div class="gm-res gm-namebox"><div class="gm-band">'+G.mingo('head',26)+'<b>Welcome aboard</b></div><div class="gm-rbody">'+
+  const box=G.openWindow('<div class="gm-res gm-namebox"><div class="gm-band">'+bico('user')+'<b>Welcome aboard</b></div><div class="gm-rbody">'+
     '<label class="gm-lab" for="gm-name">Your name in Geomingo</label><input id="gm-name" class="gm-input" maxlength="16" autocomplete="nickname" placeholder="Your name" value="'+esc(first)+'">'+
     '<p class="gm-note" style="text-align:left">It appears in the daily ranking of every game. Choose carefully: it stays with your account and can\'t be changed later.</p>'+
     '<button class="gm-big coral" data-gm-act="savename">Save name</button></div></div>','Choose your name');
@@ -370,7 +370,7 @@ function userHTML(){const u=who();
     (signin&&!noBanner()?'<div class="gbanner"><span>'+trialLine()+'</span><button class="primary" data-gm-signin>Sign in</button><button class="linkbtn" data-gm-nobanner aria-label="Close">✕</button></div>':'')}
 // a guest's name: one small window, saved for every game on this device
 function changeName(then){const cur=G.traveller()==='Guest'?'':G.traveller();
-  const box=G.openWindow('<div class="gm-res gm-namebox"><div class="gm-band">'+G.mingo('head',26)+'<b>Who\'s playing?</b></div><div class="gm-rbody">'+
+  const box=G.openWindow('<div class="gm-res gm-namebox"><div class="gm-band">'+bico('user')+'<b>Who\'s playing?</b></div><div class="gm-rbody">'+
     '<label class="gm-lab" for="gm-gname">Your name</label><input id="gm-gname" class="gm-input" maxlength="16" autocomplete="nickname" placeholder="Your name" value="'+esc(cur)+'">'+
     '<p class="gm-note" style="text-align:left">Shown on your ticket, in rooms with friends and on the result you share, in every game. It stays on this device.</p>'+
     '<button class="gm-big coral" data-gm-act="saveg">Save</button></div></div>','Your name');
@@ -394,7 +394,14 @@ const MICO={help:'<circle cx="12" cy="12" r="9"/><path d="M12 17v.01M12 13.5a1.5
   rank:'<path d="M6 20V11M12 20V5M18 20v-6"/>',
   mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',ch:'<path d="M9 6l6 6-6 6"/>'};
 const mico=(k,n)=>'<svg width="'+(n||20)+'" height="'+(n||20)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+MICO[k]+'</svg>';
-function mwin(title,body,acts){const box=G.openWindow('<div class="gm-res hw"><div class="gm-band">'+G.mingo('head',26)+'<b>'+esc(title)+'</b></div><div class="gm-rbody">'+body+
+// the gold line icon in a window's top band (Héctor 2026-11-15, option C: no Mingo head there)
+const BICO={menu:'<path d="M4 7h16M4 12h16M4 17h16"/>',faq:'<circle cx="12" cy="12" r="9"/><path d="M12 17v.01M12 13.5a1.5 1.5 0 0 1 1-1.5a2.6 2.6 0 1 0-3-4"/>',
+  mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',shield:'<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9c-4.6-1-8-4.5-8-9V6z"/>',
+  book:'<path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 2z"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'};
+const bico=k=>'<svg class="gm-bico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+BICO[k]+'</svg>';
+const WICO={'Menu':'menu','FAQ':'faq','Contact':'mail','Send feedback':'mail','Privacy':'shield','Sources':'book'};
+function mwin(title,body,acts){const box=G.openWindow('<div class="gm-res hw"><div class="gm-band">'+(WICO[title]?bico(WICO[title]):'')+'<b>'+esc(title)+'</b></div><div class="gm-rbody">'+body+
   '<button class="gm-text" data-gm-act="close">Close</button></div></div>',title);
   box._acts=acts||{};box.addEventListener('click',e=>{if(e.target.closest('[data-gm-signin],[data-gm-signout]'))G.closeWindow()});
   const f=box.querySelector('a,button');if(f)f.focus({preventScroll:true});return box}
