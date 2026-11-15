@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611160400"></script>
-<script src="../brand/account.js?v=202611160400"></script>
+<script src="../brand/mingo.js?v=202611160410"></script>
+<script src="../brand/account.js?v=202611160410"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -598,8 +598,11 @@ const dailyEntry=(s,f)=>({s:s.players[0].score||0,c:s.players[0].cells||0,n:s.n,
 // an entry with no device (saved by an old version of the game) belongs to nobody: any device may replace it
 const otherDevice=e=>!!e&&!!e.d&&e.d!==ME;
 let dailyUp='';
+// another device only started today's grid and never finished it: a game finished here still counts
+// and replaces it, so the device that opened it shows this result too (Héctor 2026-11-14)
+const emptyStart=e=>!!e&&e.f===0&&!e.c&&!e.s&&!e.j;
 function recordDaily(s){if(TESTDAY)return;if(s.daily===todayKey())Geomingo.clock.stop('citygrid',s.daily,(s.players[0].cells||0)/(s.n*s.n));const h=loadHist(),e=dailyEntry(s,1),today=s.daily===todayKey();
-  if(USER&&today&&otherDevice(ACCT_TODAY))return; // the account already used today's try elsewhere
+  if(USER&&today&&otherDevice(ACCT_TODAY)&&!emptyStart(ACCT_TODAY))return; // the account already used today's try elsewhere
   const old=h[s.daily],same=old&&old.s===e.s&&old.c===e.c&&old.f===1&&old.d===ME;
   if(!same){h[s.daily]=e;saveHist(h);publishSoon()}
   if(!USER||!db||!today)return;
@@ -609,7 +612,7 @@ function recordDaily(s){if(TESTDAY)return;if(s.daily===todayKey())Geomingo.clock
   if(ACCT_TODAY&&ACCT_TODAY.d===ME&&ACCT_TODAY.f===1&&ACCT_TODAY.j){submitLB(s.daily,e);return}
   if(dailyUp===USER.uid+s.daily)return;
   dailyUp=USER.uid+s.daily;const full={...e,j:JSON.stringify(s)};
-  db.ref('users/'+USER.uid+'/capitals/daily/'+s.daily).transaction(cur=>!cur||!cur.d||cur.d===ME?full:undefined)
+  db.ref('users/'+USER.uid+'/capitals/daily/'+s.daily).transaction(cur=>!cur||!cur.d||cur.d===ME||emptyStart(cur)?full:undefined)
     .then(r=>{if(r.committed)submitLB(s.daily,e)}).catch(()=>{dailyUp=''})}
 // another device of the account finished today's grid: take its whole game, so this device shows exactly the same
 // the account decides: it replaces whatever this device has for today, even a game finished here.
@@ -929,7 +932,7 @@ function initFB(){
 const TS=()=>firebase.database.ServerValue.TIMESTAMP;
 
 /* ---- optional Google sign-in (Firebase Authentication): only used to keep your daily stats in sync between devices ---- */
-let USER=null,ACCT_TODAY=null,acctRef=null,PROFILE=null,NEEDNAME=false;
+let USER=null,ACCT_TODAY=null,ACCT_READY=true,ACCT_WAIT=0,acctT=0,acctRef=null,PROFILE=null,NEEDNAME=false;
 // the account's name: chosen once (users/<uid>/profile), then fixed; it is also the name shown in the ranking
 function applyProfile(name){PROFILE=name;NEEDNAME=false;const old=setup.user;setup.user=name;editingUser=false;
   try{localStorage.setItem('cc-user',name)}catch(e){}publishSoon();carryDaily();render()}
@@ -949,12 +952,15 @@ const AUTH_OK=FB_OK&&typeof firebase.auth==='function';
 let AUTH_KNOWN=false;
 const MAYBE_IN=()=>!USER&&!AUTH_KNOWN&&!!(window.Geomingo&&Geomingo.account&&Geomingo.account.wasSignedIn);
 // keep the account's entry for today up to date, so another device that starts today's grid locks it here at once
-function watchToday(){if(acctRef){acctRef.off();acctRef=null}ACCT_TODAY=null;if(!USER||!db||TESTDAY)return;
+// until the account says what it has for today, a signed-in device waits (up to 4 s) instead of opening an empty grid
+// that the account's finished game would replace a moment later (Héctor 2026-11-14)
+function watchToday(){if(acctRef){acctRef.off();acctRef=null}ACCT_TODAY=null;ACCT_READY=true;clearTimeout(acctT);if(!USER||!db||TESTDAY)return;
+  ACCT_READY=false;ACCT_WAIT=1;acctT=setTimeout(()=>{if(!ACCT_READY){ACCT_WAIT=0;if(!S&&screen==='home')render()}},4000);
   acctRef=db.ref('users/'+USER.uid+'/capitals/daily/'+todayKey());
-  acctRef.on('value',s=>{ACCT_TODAY=s.val();
+  acctRef.on('value',s=>{ACCT_TODAY=s.val();ACCT_READY=true;
     if(otherDevice(ACCT_TODAY)){const h=loadHist(),{j,...entry}=ACCT_TODAY;h[todayKey()]=entry;saveHist(h)}
     adoptDaily(ACCT_TODAY);
-    if(!S||S.daily)render()})}
+    if(!S||S.daily)render()},()=>{ACCT_READY=true;render()})}
 function initAuth(){if(!AUTH_OK||!initFB()){AUTH_KNOWN=true;return}
   firebase.auth().onAuthStateChanged(u=>{USER=u||null;AUTH_KNOWN=true;PROFILE=null;NEEDNAME=false;watchToday();if(USER){loadProfile();syncHist();syncGames().then(publishSoon);syncArch()}else ARCH_REMOTE=null;render()});
   firebase.auth().getRedirectResult().catch(e=>authError(e))}
@@ -1200,14 +1206,15 @@ let AUTH_WAIT=1;setTimeout(()=>{if(AUTH_WAIT){AUTH_WAIT=0;if(!S&&screen==='home'
 // today's grid already finished (here, or taken from another device of the account a moment later):
 // always show its result ticket, never the old summary card (Héctor 2026-11-14)
 const dailyOver=()=>{const d=loadDaily();return !!(d&&d.S&&d.S.over)};
-function autoDaily(){if(!AUTO&&!dailyOver()||S||screen!=='home'||editingUser||roomCode||MAYBE_IN()&&AUTH_WAIT||(USER&&NEEDNAME))return false;
+const acctWaiting=()=>!!USER&&!ACCT_READY&&!!ACCT_WAIT&&!dailyOver();
+function autoDaily(){if(!AUTO&&!dailyOver()||S||screen!=='home'||editingUser||roomCode||MAYBE_IN()&&AUTH_WAIT||(USER&&NEEDNAME)||acctWaiting())return false;
   AUTO=0;if(USER)adoptDaily(ACCT_TODAY);const d=loadDaily();
   if(USER&&otherDevice(ACCT_TODAY)&&!(d&&d.S.over))return false;
   if(!d&&!dailyGrid())return false;
   playDaily();return true}
 function render(){
   if(autoDaily())return;
-  if(AUTO&&AUTH_WAIT&&MAYBE_IN()&&!S&&screen==='home'&&!roomCode){
+  if(AUTO&&(AUTH_WAIT&&MAYBE_IN()||acctWaiting()&&!editingUser&&!NEEDNAME)&&!S&&screen==='home'&&!roomCode){
     app.innerHTML=Geomingo.header({game:GAME_NAME,coord:'',menu:menuBtn()})+`<section class="panel"><p class="hint">Opening today's grid…</p></section>`;bind();drawLayer();return}
   // the clock of the visas starts when today's grid is first on screen (home or game), unless it is already over
   if(!TESTDAY&&!roomCode){const k=todayKey(),dd=loadDaily(),hh=loadHist()[k];
