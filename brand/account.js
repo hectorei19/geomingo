@@ -397,7 +397,7 @@ const mico=(k,n)=>'<svg width="'+(n||20)+'" height="'+(n||20)+'" viewBox="0 0 24
 function mwin(title,body,acts){const box=G.openWindow('<div class="gm-res hw"><div class="gm-band">'+G.mingo('head',26)+'<b>'+esc(title)+'</b></div><div class="gm-rbody">'+body+
   '<button class="gm-text" data-gm-act="close">Close</button></div></div>',title);
   box._acts=acts||{};box.addEventListener('click',e=>{if(e.target.closest('[data-gm-signin],[data-gm-signout]'))G.closeWindow()});
-  const f=box.querySelector('a,button');if(f)f.focus();return box}
+  const f=box.querySelector('a,button');if(f)f.focus({preventScroll:true});return box}
 function openMenu(){const u=who();let km=0;try{km=G.geo().km}catch(e){}
   const nm=u?(name||u.displayName||'').trim():'';
   const box=u===undefined?'':u?'<div class="acctbox"><span class="av" aria-hidden="true">'+esc((nm[0]||'·').toUpperCase())+'</span><span class="nm"><b>'+esc(nm||'Traveller')+'</b><span>Signed in with Google</span></span><button class="out" data-gm-signout>Sign out</button></div>'
@@ -420,9 +420,14 @@ function openMenu(){const u=who();let km=0;try{km=G.geo().km}catch(e){}
 // a game tells the Menu its own lines: setGameMenu({name:'Countries',items:[[label,icon,colour,fn],…],sources:fn})
 let GM=null;function setGameMenu(o){GM=o}
 // Send feedback (Menu) and Contact (bottom of the home page): one small window that opens an email
-function openFeedback(){const m='mailto:'+CONTACT_EMAIL+'?subject='+encodeURIComponent('Geomingo feedback');
-  mwin('Send feedback','<div class="fb"><p>Found a mistake, have an idea for a game or just want to say hi? We read every message.</p>'+
+function openFeedback(title){const m='mailto:'+CONTACT_EMAIL+'?subject='+encodeURIComponent('Geomingo feedback');
+  mwin(typeof title==='string'?title:'Send feedback','<div class="fb"><p>Found a mistake, have an idea for a game or just want to say hi? We read every message.</p>'+
     '<a class="gm-big coral" href="'+m+'">Write to us</a><p class="fbm">'+esc(CONTACT_EMAIL)+'</p></div>')}
+// Privacy: the same window as FAQ and Sources, filled from the privacy/ page (the one text; that page keeps its own address for Google)
+function openPrivacy(){fetch(HOME_URL+'privacy/').then(r=>{if(!r.ok)throw 0;return r.text()}).then(t=>{
+  const d=new DOMParser().parseFromString(t,'text/html'),w=d.querySelector('.wrap');if(!w)throw 0;
+  w.querySelectorAll('.back,h1,script').forEach(e=>e.remove());mwin('Privacy','<div class="priv">'+w.innerHTML+'</div>')})
+  .catch(()=>{location.href=HOME_URL+'privacy/'})}
 // About & FAQ: what Geomingo is, then the common questions (tap one to open its answer)
 const FAQ=[
   ['When do new games come out?','Every day at midnight CET. Everyone in the world gets the same puzzles that day.'],
@@ -432,10 +437,10 @@ const FAQ=[
   ['Can I play with friends?','Yes. Tap With friends, create a room (you need to sign in) and share the code. Up to 6 players, the host picks the game and the points add up.'],
   ['Do I need an account?','Not at first: you can play 3 days as a guest. Then sign in with Google to keep playing. It\'s free, and your GeoPass follows you to any phone.'],
   ['Is there an app?','Not yet. Add geomingo.com to your home screen and it opens like an app.']];
-function openFaq(){mwin('About & FAQ','<div class="faq"><div class="fqa"><h3>What is Geomingo?</h3><p>Geomingo is a free daily geography game: nine short games every day, from naming countries and capitals to guessing a country by its shape or spotting the lie about it. Every daily game moves you up to 100 km in your GeoPass. Play today\'s trip alone, practise as much as you like, or open a room and play with friends.</p></div>'+
+function openFaq(){mwin('FAQ','<div class="faq"><div class="fqa"><h3>What is Geomingo?</h3><p>Geomingo is a free daily geography game: nine short games every day, from naming countries and capitals to guessing a country by its shape or spotting the lie about it. Every daily game moves you up to 100 km in your GeoPass. Play today\'s trip alone, practise as much as you like, or open a room and play with friends.</p></div>'+
   '<div class="fql">'+FAQ.map((q,i)=>'<details><summary><i>'+String(i+1).padStart(2,'0')+'</i><span>'+esc(q[0])+'</span></summary><p>'+esc(q[1])+'</p></details>').join('')+'</div></div>')}
 // the sources used by all the games (each game's Menu adds its own)
-function openCredits(){mwin('Credits & data sources','<div class="credits"><ul>'+
+function openCredits(){mwin('Sources','<div class="credits"><ul>'+
   '<li>Country data (names, borders, regions, area, languages, currencies, capitals): <a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a>, under the Open Database License (ODbL) 1.0, with a few corrections by hand.</li>'+
   '<li>Population, development, economy, politics, geography and sport figures: Wikipedia lists (CC BY-SA 4.0), which cite the UN, the UNDP, the World Bank and the CIA World Factbook among others.</li>'+
   '<li>Flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a> (MIT License).</li>'+
@@ -455,7 +460,7 @@ function changed(why){trialCheck();document.querySelectorAll('[data-gm-acctslot]
   const a=document.activeElement,typing=a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA')&&!a.closest('#gm-window');
   watchers.forEach(f=>{try{f(why||'',typing)}catch(e){console.error(e)}})}
 
-G.acctHTML=acctHTML;G.openMenu=openMenu;G.openFaq=openFaq;G.openCredits=openCredits;G.openFeedback=openFeedback;G.setGameMenu=setGameMenu;
+G.acctHTML=acctHTML;G.openMenu=openMenu;G.openFaq=openFaq;G.openCredits=openCredits;G.openFeedback=openFeedback;G.openPrivacy=openPrivacy;G.setGameMenu=setGameMenu;
 // ready/user: known for sure, or the last account seen on this device until Firebase answers (wasSignedIn: that last one)
 G.account={get ready(){return who()!==undefined},get user(){return who()||null},get name(){return name},
   wasSignedIn:!!(LAST&&LAST.u),get trial(){return trialState()},trialLine,

@@ -23,9 +23,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="brand/geomingo.css?v=202611171500">
+<link rel="stylesheet" href="brand/geomingo.css?v=202611171700">
 <script src="brand/mingo.js?v=202611171600"></script>
-<script src="brand/account.js?v=202611171600"></script>
+<script src="brand/account.js?v=202611171700"></script>
 <script src="brand/party.js?v=202611151310"></script>
 <style>
 /* Home page: Sign in and Menu on top, today's games as colour tiles, Practice and With friends, then the GeoPass
@@ -247,14 +247,14 @@ footer .links i{font-style:normal}
     <section class="week" id="week" aria-label="Ranking" hidden></section>
   </main>
   <footer>
-    <nav class="links" aria-label="About Geomingo"><button data-foot="faq">FAQ</button><i aria-hidden="true">·</i><button data-foot="contact">Contact</button><i aria-hidden="true">·</i><a href="privacy/">Privacy</a><i aria-hidden="true">·</i><button data-foot="sources">Sources</button></nav>
+    <nav class="links" aria-label="About Geomingo"><button data-foot="faq">FAQ</button><i aria-hidden="true">·</i><button data-foot="contact">Contact</button><i aria-hidden="true">·</i><button data-foot="privacy">Privacy</button><i aria-hidden="true">·</i><button data-foot="sources">Sources</button></nav>
   </footer>
 </div>
 
 <script>
 const G=Geomingo,esc=G.esc,A=()=>G.account;
 document.querySelector('footer .links').addEventListener('click',e=>{const b=e.target.closest('[data-foot]');if(!b)return;
-  ({faq:G.openFaq,contact:G.openFeedback,sources:G.openCredits})[b.dataset.foot]()});
+  ({faq:()=>G.openFaq(),contact:()=>G.openFeedback('Contact'),privacy:()=>G.openPrivacy(),sources:()=>G.openCredits()})[b.dataset.foot]()});
 const fmt=n=>EU(Math.round(Number(n||0)));
 const json=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};
 // each game's colour and little picture on its tile

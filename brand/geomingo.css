@@ -582,6 +582,11 @@ html.gm-walled,html.gm-walled body{overflow:hidden}
 .hw .acctbox.guest{flex-wrap:wrap}.hw .acctbox.guest .gbtn{width:100%}
 .hw .gh{margin:4px 4px -6px;font:700 12px var(--type);letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
 .hw .msrc{font-size:13px;min-height:36px;padding:4px 10px}
+.hw .priv{display:flex;flex-direction:column;gap:10px}.hw .priv ul{list-style:disc;display:block}
+.hw .priv .upd{margin:0;font:700 12px var(--type);letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+.hw .priv h2{margin:8px 0 -4px;font:800 16px var(--display);color:var(--ink)}
+.hw .priv p,.hw .priv li{margin:0;color:var(--ink);font-size:15px;line-height:1.5}.hw .priv ul{margin:0;padding-left:20px}.hw .priv li+li{margin-top:6px}
+.hw .priv .box{border:1px solid var(--line);border-radius:12px;background:var(--guil);padding:12px 14px}.hw .priv a{color:#F3D98B}
 .hw .fb{display:flex;flex-direction:column;gap:12px}.hw .fb p{margin:0;color:var(--ink);font-size:15px;line-height:1.5}
 .hw .fb a.gm-big{text-decoration:none;font-weight:700}.hw .fb .fbm{text-align:center;color:var(--muted);font-size:13px}
 /* How the GeoPass works: its list is made for the cream passport page, so here it gets light text on the dark window */
