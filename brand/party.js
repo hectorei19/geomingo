@@ -65,7 +65,7 @@ function stop(){if(ref){ref.off();try{ref.child('players/'+PID+'/on').onDisconne
 
 /* ================= the home page: create / join, then the room ================= */
 let H=null; // {el, tile(id,{played,click}), toast, onBack}
-let joinVal='',busy=false,seenN=null,armed=false;
+let joinVal='',busy=false,seenN=null;
 async function create(){if(!SIGNED()){G.account.signIn();return}
   if(!fb()){H.toast('Online play could not load. Check the connection and reload the page.','bad');return}
   if(busy)return;busy=true;
@@ -99,16 +99,13 @@ async function join(raw){const c=String(raw||'').toUpperCase().replace(/[^A-Z]/g
 async function leave(){const r0=ref;
   if(r0){try{await r0.transaction(x=>{if(!x||!x.players)return x;delete x.players[PID];
     const h=here(x),all=order(x);if(!all.length)return null;if(x.host===PID)x.host=(h[0]||all[0]);return x})}catch(e){}}
-  stop();keepMine(null);armed=false;draw()}
+  stop();keepMine(null);draw()}
 // the organiser picks a game: it opens on every phone in the room
 async function pick(id){if(!ref||!R||R.host!==PID)return;
   const n=((R.cur&&R.cur.n)||0)+1;
   try{const res=await ref.transaction(x=>{if(!x||x.host!==PID)return;const c=x.cur||{};
-      // a game still going (no points yet, opened less than 30 min ago) is not replaced by mistake
-      if(c.n&&!(x.res&&x.res[c.n])&&!armed&&now()-(c.t||0)<30*6e4){return}
       x.cur={n,g:id,room:'',exp:here(x).length,t:now()};return x});
-    if(!res.committed){armed=true;H.toast('A game is still going. Tap a game again to start a new one anyway.');draw();return}
-    armed=false;location.href=gameURL(id,n)}
+    if(res.committed)location.href=gameURL(id,n)}
   catch(e){H.toast('That did not go through. Check the connection.','bad')}}
 function open(){if(!code())return;whenFB(()=>listen(code(),(r,was,gone)=>{
   if(!r){H.toast(gone?'You are no longer in room '+was+'.':'Room '+was+' was closed.','bad');draw();return}
@@ -134,11 +131,10 @@ function roomHTML(){const r=R,T=table(r),host=r.host===PID,ids=order(r),c=r.cur,
   const med=['#D4AD4B','#C9CED6','#C99B78'];
   const tbl=T.games?'<div class="pt-tbl">'+T.rows.map((x,k)=>'<div class="pt-tr'+(x.n===(r.players[PID]||{}).name?' me':'')+'"><span class="md" style="'+(k<3&&x.t>0?'background:'+med[k]+';color:#0C1220':'')+'">'+(k+1)+'</span><span class="nm"><i style="background:'+color(x.n)+'"></i>'+esc(x.n)+'</span><span class="lt">'+(x.l!=null?'+'+x.l:'')+'</span><b>'+x.t+'</b></div>').join('')+'</div>':'';
   const g=c&&gameOf(c.g);
-  const now_=live&&g?'<div class="pt-now"><span><i></i>Now playing: <b>'+esc(g.name)+'</b></span><a class="pt-ghost" href="'+gameURL(c.g,c.n)+(c.room?'&room='+c.room:'')+'">'+(host?'Back to it':'Join')+'</a></div>':'';
   return '<div class="pt-card"><div class="pt-code"><div><p class="pt-lab">Room code</p><b>'+esc(code())+'</b></div><button class="pt-ghost" id="pinvite">Invite</button></div>'+
     '<p class="pt-lab">In the room · '+ids.length+'</p><div class="pt-ppl">'+chips+'</div></div>'+
-    (T.games?'<div class="pt-card"><p class="pt-lab">Points · after '+T.games+' game'+(T.games===1?'':'s')+'</p>'+tbl+'</div>':'')+now_+
-    '<div class="pkhead"><h2>'+(T.games?'Next game':'Pick a game')+'</h2>'+(host?'<p>'+(armed?'A game is still going. Tap a game to start a new one anyway.':'Everyone in the room starts it at the same time.')+'</p>':'')+'</div>'+
+    (T.games?'<div class="pt-card"><p class="pt-lab">Points · after '+T.games+' game'+(T.games===1?'':'s')+'</p>'+tbl+'</div>':'')+
+    '<div class="pkhead"><h2>'+(T.games?'Next game':'Pick a game')+'</h2>'+(host?'<p>'+'Everyone in the room starts it at the same time.'+'</p>':'')+'</div>'+
     (host?'':'<p class="pt-wait"><i></i>'+esc((r.players[r.host]||{}).name||'The host')+' is picking the next game…</p>')+
     '<ul class="tiles c3">'+(G.live?G.live():G.GAMES).map(x=>H.tile(x,{played:T.played.includes(x.id),click:host})).join('')+'</ul>'+
     (ids.length<2?'<p class="pt-rules">Waiting for friends: send them the code or tap Invite.</p>':RULES)+
@@ -216,9 +212,7 @@ html.gm-party body{padding-bottom:84px}
 .pt-tr .nm i{width:10px;height:10px;border-radius:50%;flex:none}
 .pt-tr .lt{font-family:var(--type);font-size:12px;color:var(--green)}
 .pt-tr b{font-family:var(--display);font-weight:900;font-size:20px;text-align:right}
-.pt-now{display:flex;align-items:center;justify-content:space-between;gap:10px;border-radius:14px;border:1.5px solid var(--blue);padding:10px 12px 10px 14px;font-size:15px}
-.pt-now i,.pt-wait i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--blue);box-shadow:0 0 10px var(--blue);margin-right:8px;vertical-align:middle}
-.pt-now .pt-ghost{min-height:40px}
+.pt-wait i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--blue);box-shadow:0 0 10px var(--blue);margin-right:8px;vertical-align:middle}
 .pt-wait{margin:0;text-align:center;color:var(--muted);font-size:15px}
 .pt-rules{margin:0;text-align:center;color:var(--muted);font-size:13px;line-height:1.45}
 .pt-leave{background:none;border:0;color:var(--muted);font:inherit;font-size:14px;text-decoration:underline;cursor:pointer;align-self:center;padding:8px}
