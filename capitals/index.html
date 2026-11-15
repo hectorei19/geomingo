@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611161230"></script>
+<script src="../brand/mingo.js?v=202611161300"></script>
 <script src="../brand/account.js?v=202611161200"></script>
 <script src="../brand/party.js?v=202611151100"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -1721,7 +1721,9 @@ function bind(){
     toast('Today\'s grid reset (test mode).','good');render()};
   app.querySelectorAll('[data-dcell]').forEach(b=>b.onclick=()=>{const ci=+b.dataset.dcell;playDaily();
     if(S&&S.daily&&!S.over&&S.cells[ci].o<0){ui.sel=ci;ui.query='';render()}});
-  if($('brand')){$('brand').onclick=goHome;$('brand').onkeydown=e=>{if(e.key==='Enter')goHome()}}
+  // the title: in Practice back to Practice's first screen, in With friends you stay, else today's grid
+  const titleTap=()=>{const m=Geomingo.mode();if(m==='solo'){screen='solo';clearInterval(tick);S=null;setup.code='';render();window.scrollTo(0,0)}else if(m==='friends')window.scrollTo(0,0);else goHome()};
+  if($('brand')){$('brand').onclick=titleTap;$('brand').onkeydown=e=>{if(e.key==='Enter')titleTap()}}
   if($('home'))$('home').onclick=toHub;
   if($('pass'))$('pass').onclick=pass;
   if($('giveup'))$('giveup').onclick=()=>{const b=$('giveup');if(b.dataset.armed){Geomingo.stat('giveup');endGame()}else{b.dataset.armed='1';b.textContent='Tap again to '+(S&&S.mode==='solo'?'give up':'end the game')}};
