@@ -292,7 +292,7 @@ function dealLies(r,key,use){use=use||{lie:{},tru:{}};const ok=e=>!key||e.d<=key
   // least used first, ties in random order (a random number per entry, so one shuffle decides)
   const order=(list,last)=>list.map(e=>[e,last[e.i]==null?-1:last[e.i],r()]).sort((a,b)=>a[1]-b[1]||a[2]-b[2]).map(x=>x[0]);
   const usedC=new Set(),dayG=new Set(),lies=[];
-  for(const e of order(LB.filter(e=>e.h&&ok(e)),use.lie)){if(lies.length===ROUNDS_LIES)break;
+  for(const e of order(LB.filter(e=>e.h&&ok(e)),use.lie)){if(lies.length===ROUNDS_LIES(key))break;
     if(usedC.has(e.c)||dayG.has(e.g))continue;lies.push(e);usedC.add(e.c);dayG.add(e.g)}
   // easy lies first, the hardest last
   lies.sort((a,b)=>a.h-b.h);
@@ -303,7 +303,8 @@ function dealLies(r,key,use){use=use||{lie:{},tru:{}};const ok=e=>!key||e.d<=key
     const all=shuffle(five.concat(L),r);
     rounds.push({m:'lie',set:all.map(e=>e.c),c:L.c,s:all.map(e=>e.t),n:all.map(e=>e.n),ids:all.map(e=>e.i)})}
   return {rounds}}
-const ROUNDS_LIES=6;
+// six rounds a game, five from Geomingo.IMP5_FROM (Héctor 2026-11-15) and in Practice / With friends (no day)
+const ROUNDS_LIES=key=>Geomingo.imp5(key)?5:6;
 // the daily games are dealt one after the other from LIES_FROM, so each day takes the sentences used longest ago
 const LIE_DAYS={};
 function liesOfDay(key){if(LIE_DAYS[key])return LIE_DAYS[key];

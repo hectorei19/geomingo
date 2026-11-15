@@ -169,7 +169,10 @@ const newKm=d=>d>=KM_FROM;
 const IMP3_FROM='2026-11-15',imp3=d=>!d||d>=IMP3_FROM;   // no day (Practice, With friends): the new table
 // a saved result (history entry, ranking row) has the new points from the day after IMP3_FROM, and on that day only if it says x3
 const impNew=(d,x)=>!d||d>IMP3_FROM||d===IMP3_FROM&&!!x;
-const IMP3=[15,10,5,3,1],impRound=q=>q.st!=='right'?0:q.x3?IMP3[q.k-1]||0:6-q.k;   // a round's stored points (x3: a game from IMP3_FROM)
+// from IMP5_FROM (Héctor 2026-11-15, starts the next day): five rounds like Customs, Flag Pie and Compass, 20, 15, 10, 5, 3
+// a round (CL3, x5 on the round), no +10 for all caught; 5 x 20 = 100, +20 perfect. No day (Practice, With friends): five rounds
+const IMP5_FROM='2026-11-16',imp5=d=>!d||d>=IMP5_FROM;
+const IMP3=[15,10,5,3,1],impRound=q=>q.st!=='right'?0:q.x5?[20,15,10,5,3][q.k-1]||0:q.x3?IMP3[q.k-1]||0:6-q.k;   // a round's stored points (x3: a game from IMP3_FROM, x5: from IMP5_FROM)
 // Flag Pie, Customs, Compass from CL3_FROM (Héctor 2026-11-15: +16 with all five clues was far too much, "like Impostor"):
 // 20, 15, 10, 5, 3 an answer by clues open (Compass: by clues and wrong guesses; x3 on the answer), so five still make 100;
 // the history and the ranking keep these points (p / s, 0-100). clFlag: an answer's stored points by clues open
@@ -182,7 +185,7 @@ const KM={
   top10:(f,m)=>{f=Math.min(+f||0,10);return 10*f+pf(f>=10,m)},
   sil:(r,m)=>{r=Math.min(+r||0,9);return 10*r+(r>=9?10:0)+pf(r>=9,m)},
   clue:(r,p,n)=>{r=+r||0;p=+p||0;n=+n||5;return Math.round((15*r+p)*5/n)+(p>=5*n?20:0)},
-  imp:(r,p,d,x)=>{r=+r||0;p=+p||0;const n=impNew(d,x);return (n?p:10*r+p)+(r>=6?10:0)+(p>=(n?90:30)?20:0)},
+  imp:(r,p,d,x,x5)=>{r=+r||0;p=+p||0;if(d?d>=IMP5_FROM:x5)return p+(p>=100?20:0);const n=impNew(d,x);return (n?p:10*r+p)+(r>=6?10:0)+(p>=(n?90:30)?20:0)},
   cl3:(r,p,d,x,n)=>{if(!clNew(d,x))return KM.clue(r,p,n);p=+p||0;return p+(p>=100?20:0)}};
 // this device's daily games, from each game's own history: {day: {game id: km}}
 function ledger(){const L={},add=(d,id,mi)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))(L[d]=L[d]||{})[id]=mi};
@@ -572,6 +575,6 @@ try{if(CF_TOKEN&&/(^|\.)geomingo\.com$/.test(location.hostname)&&!new URLSearchP
 const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,stale:roomStale};
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
-  days,streak,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,cl3,clNew,CL3,clFlag,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
+  days,streak,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
   openWindow,closeWindow,esc,refreshPass,room,where,mode,lives,setLives,stat,statTo,PAGE,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();
