@@ -584,6 +584,20 @@ html.gm-walled,html.gm-walled body{overflow:hidden}
 /* How the GeoPass works: its list is made for the cream passport page, so here it gets light text on the dark window */
 .hw .gp-how{margin:0;color:var(--ink);font-size:15px;gap:10px}
 .hw .gp-how b{color:#F3D98B}
+/* About & FAQ: a box with what Geomingo is, then numbered questions that open on tap */
+.hw .faq{display:flex;flex-direction:column;gap:16px}
+.hw .fqa{border:1.5px solid var(--line);border-radius:12px;background:var(--guil);padding:14px 16px;box-shadow:4px 4px 0 var(--coral-deep);margin-right:4px}
+.hw .fqa h3{margin:0 0 6px;font:700 16px var(--type);color:var(--gold)}
+.hw .fqa p{color:var(--ink);font-size:15px;line-height:1.5}
+.hw .fql{border:1.5px solid var(--line);border-radius:12px;overflow:hidden}
+.hw .fql details+details{border-top:1px solid var(--line)}
+.hw .fql summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:14px 12px;font:700 13.5px/1.3 var(--type);letter-spacing:.03em;text-transform:uppercase;color:var(--ink)}
+.hw .fql summary::-webkit-details-marker{display:none}
+.hw .fql summary i{font-style:normal;color:var(--coral)}
+.hw .fql summary span{flex:1}
+.hw .fql summary::after{content:"+";font:400 22px/1 var(--body);color:var(--muted)}
+.hw .fql details[open] summary::after{content:"\2013"}
+.hw .fql details p{padding:0 14px 14px 42px;line-height:1.5}
 .hw .credits{display:flex;flex-direction:column;gap:10px}
 .hw .credits ul{list-style:disc;padding-left:18px;margin:0;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--ink)}
 .hw p{margin:0;font-size:14px;color:var(--muted)}
