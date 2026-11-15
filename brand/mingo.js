@@ -160,17 +160,23 @@ const cxPts=(f,m)=>{f=Math.max(0,Math.min(4,+f||0));m=+m||0;return Math.max(0,25
    Countries, Capitals keep their own points (hard squares, speed, lines): 1 km for every 15 points, up to 100, +20 for
    all 16 squares with no life lost. Connections: 25 a group, -10 a mistake (cxPts). Top 10: 10 an answer.
    Silhouette: 10 a shape, +10 for all 9. Customs, Flag Pie, Compass: 20 at the first clue, 1 less for each clue more
-   (15 per right answer + its 5-to-1 points). Impostor: 15 caught first time, 1 less for each wrong pick, +10 for all 6.
+   (15 per right answer + its 5-to-1 points). Impostor: 15 caught first time, 1 less for each wrong pick, +10 for all 6;
+   from IMP3_FROM (Héctor 2026-11-15: a late catch gave almost as much as a first one; he asked for it from that same day) 15, 10, 5, 3, 1 (IMP3), and the history
+   and the ranking keep these points (p / s) instead of the old 5-to-1 ones.
    w / m: mistakes (null = not known: counts as none). */
 const KM_FROM='2026-11-15';
 const newKm=d=>d>=KM_FROM;
+const IMP3_FROM='2026-11-15',imp3=d=>!d||d>=IMP3_FROM;   // no day (Practice, With friends): the new table
+// a saved result (history entry, ranking row) has the new points from the day after IMP3_FROM, and on that day only if it says x3
+const impNew=(d,x)=>!d||d>IMP3_FROM||d===IMP3_FROM&&!!x;
+const IMP3=[15,10,5,3,1],impRound=q=>q.st!=='right'?0:q.x3?IMP3[q.k-1]||0:6-q.k;   // a round's stored points (x3: a game from IMP3_FROM)
 const pf=(all,m)=>all&&!(+m)?20:0;
 const KM={
   grid:(s,c,n,w)=>{n=(+n||4)*(+n||4);return Math.min(100,Math.round((+s||0)/15))+pf((+c||0)>=n,w)},
   top10:(f,m)=>{f=Math.min(+f||0,10);return 10*f+pf(f>=10,m)},
   sil:(r,m)=>{r=Math.min(+r||0,9);return 10*r+(r>=9?10:0)+pf(r>=9,m)},
   clue:(r,p,n)=>{r=+r||0;p=+p||0;n=+n||5;return Math.round((15*r+p)*5/n)+(p>=5*n?20:0)},
-  imp:(r,p)=>{r=+r||0;p=+p||0;return 10*r+p+(r>=6?10:0)+(p>=30?20:0)}};
+  imp:(r,p,d,x)=>{r=+r||0;p=+p||0;const n=impNew(d,x);return (n?p:10*r+p)+(r>=6?10:0)+(p>=(n?90:30)?20:0)}};
 // this device's daily games, from each game's own history: {day: {game id: km}}
 function ledger(){const L={},add=(d,id,mi)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))(L[d]=L[d]||{})[id]=mi};
   [['bl-hist','borderline'],['cc-hist','citygrid']].forEach(([k,id])=>{const h=json(k)||{};
@@ -182,7 +188,7 @@ function ledger(){const L={},add=(d,id,mi)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))(L
     add(d,'silhouette',Math.max(...k.map(x=>KM.sil(day[x],(sm[d]||{})[x]))))}
   const u=json('cu-hist')||{};for(const d in u)if(u[d])add(d,'customs',newKm(d)?KM.clue(u[d].r,u[d].p,5):clPts(u[d].r,u[d].p,5));
   const f=json('fp-hist')||{};for(const d in f)if(f[d])add(d,'flagpie',newKm(d)?KM.clue(f[d].r,f[d].p,+f[d].n||5):clPts(f[d].r,f[d].p,+f[d].n||5));
-  const im=json('im-hist')||{};for(const d in im)if(im[d])add(d,'impostor',newKm(d)?KM.imp(im[d].r,im[d].p):clPts(im[d].r,im[d].p,6));
+  const im=json('im-hist')||{};for(const d in im)if(im[d])add(d,'impostor',newKm(d)?KM.imp(im[d].r,im[d].p,d,im[d].x3):clPts(im[d].r,im[d].p,6));
   const cm=json('cm-hist')||{};for(const d in cm)if(cm[d])add(d,'compass',newKm(d)?KM.clue(cm[d].r,cm[d].p,5):clPts(cm[d].r,cm[d].p,5));
   return L}
 const dayTotal=day=>{const v=Object.values(day||{});return v.reduce((a,b)=>a+b,0)+(v.length>=ALLN?ALL5:0)};
@@ -529,6 +535,6 @@ document.addEventListener('visibilitychange',()=>{
 const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,stale:roomStale};
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
-  days,streak,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,KM,KM_FROM,newKm,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
+  days,streak,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
   openWindow,closeWindow,esc,refreshPass,room,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();
