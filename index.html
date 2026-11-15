@@ -24,8 +24,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
 <link rel="stylesheet" href="brand/geomingo.css?v=202611171500">
-<script src="brand/mingo.js?v=202611171100"></script>
-<script src="brand/account.js?v=202611171500"></script>
+<script src="brand/mingo.js?v=202611171600"></script>
+<script src="brand/account.js?v=202611171600"></script>
 <script src="brand/party.js?v=202611151310"></script>
 <style>
 /* Home page: Sign in and Menu on top, today's games as colour tiles, Practice and With friends, then the GeoPass
@@ -70,6 +70,22 @@ button.gm-home{background:none;border:0;font:inherit;cursor:pointer}
 .pktop h2{font-size:28px}
 .pklives{display:flex;align-items:center;flex:none}
 .pklives .seg{display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:3px;border-radius:999px;border-color:var(--line)}
+.acal{background:var(--cover);border:1.5px solid var(--line);border-radius:16px;padding:12px 12px 14px}
+/* Archive (Menu → Archive): a month of past days, then the picked day's games (Héctor 2026-11-15, "como B2 pero dentro del menu") */
+.acal .mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-family:var(--display);font-weight:800;font-size:17px;letter-spacing:.04em;text-transform:uppercase}
+.acal .mh button{width:40px;height:36px;border:0;background:transparent;color:var(--ink);font-size:24px;line-height:1;border-radius:10px;cursor:pointer}
+.acal .mh button:disabled{opacity:.2;cursor:default}
+.acal .g{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.acal .wd{font-family:var(--type);font-size:10px;color:var(--muted);text-align:center;padding-bottom:2px}
+.acal .d{aspect-ratio:1;min-width:0;padding:0;border-radius:9px;background:var(--page);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  font-family:var(--display);font-weight:800;font-size:15px;color:var(--ink);cursor:pointer}
+.acal .d small{font-family:var(--type);font-weight:400;font-size:9px;color:var(--coral-text);letter-spacing:0}
+.acal .d.full small{color:var(--green)}
+.acal .d.off{opacity:.25;cursor:default}
+.acal .d.today{border-color:var(--gold);color:#F3D98B}
+.acal .d.today small{color:#F3D98B}
+.acal .d.sel{border-color:var(--coral);background:color-mix(in srgb,var(--coral) 16%,var(--page))}
+.aday{margin:4px 2px 0;font-family:var(--type);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--coral-text)}
 .pklives .seg button{min-height:32px;padding:0 8px;font-size:13px;white-space:nowrap;border:0;border-radius:999px;background:transparent;color:var(--muted)}
 /* a game played today gets a passport stamp with Mingo in ink: round (Mingo with his passport) or
    rectangular (Mingo's head, VISITED and the date), tilted, picked per game and day */
@@ -274,7 +290,9 @@ function doneLine(id,label){const r=rightOf(id);return r?'Right · '+r:esc(label
 const HINT3={borderline:'Fill a country grid',citygrid:'Fill a capital grid',connections:'Find 4 groups',top10:'Name the top 10',silhouette:'Guess the country',customs:'Guess from clues',flagpie:'Guess from colours',impostor:'Find the odd one',compass:'Find the capital'};
 // Practice / With friends: a screen of the games (kept while the visit lasts, so Back from a game comes back to it);
 // it has its own history step, so the phone's back gesture returns to today's games
-let MODE='today';try{const t=sessionStorage.getItem('gm-tab');if(t==='practice'||t==='friends')MODE=t}catch(e){}
+let MODE='today';const SCREENS=['practice','friends','archive'];try{const t=sessionStorage.getItem('gm-tab');if(SCREENS.includes(t))MODE=t}catch(e){}
+// from a game's Menu → Archive (#archive): the Archive screen
+try{if(location.hash==='#archive'){MODE='archive';sessionStorage.setItem('gm-tab','archive')}}catch(e){}
 // an invite to a With friends room (?party=ABCD), or back from a game to the room (#friends): the room screen
 try{if(/[?&]party=/.test(location.search)||location.hash==='#friends'){MODE='friends';sessionStorage.setItem('gm-tab','friends')}}catch(e){}
 // from a game's Menu → Ranking (#ranking): today's screen, scrolled to the ranking once it shows
@@ -283,11 +301,12 @@ function setMode(t,push){MODE=t;try{sessionStorage.setItem('gm-tab',t)}catch(e){
   try{if(push&&t!=='today')history.pushState({gm:t},'','#'+t);else if(t==='today'&&location.hash)history.replaceState(null,'',location.pathname)}catch(e){}
   draw();window.scrollTo(0,0)}
 if(MODE!=='today')try{history.replaceState(null,'',location.pathname);history.pushState({gm:MODE},'','#'+MODE)}catch(e){}
-window.addEventListener('popstate',()=>{const h=location.hash.slice(1);setMode(h==='practice'||h==='friends'?h:'today')});
+window.addEventListener('popstate',()=>{const h=location.hash.slice(1);setMode(SCREENS.includes(h)?h:'today')});
 // Practice's one choice, for every game with lives: 5 lives, or Unlimited (play to the end, mistakes are only counted)
 const livesHTML=lv=>'<div class="pklives"><div class="seg" role="group" aria-label="Lives">'+
   [['5','5 lives'],['unl','Unlimited']].map(([v,l])=>'<button type="button" data-lives="'+v+'" aria-pressed="'+(v===lv)+'">'+l+'</button>').join('')+'</div></div>';
-const PKHEAD={practice:['Practice','Play as much as you like. No ranking.'],friends:['With friends','One room, all 9 games. 2 to 6 players.']};
+const PKHEAD={practice:['Practice','Play as much as you like. No ranking.'],friends:['With friends','One room, all 9 games. 2 to 6 players.'],
+  archive:['Archive','Play the days you missed. One try each. Points only: no km, no ranking.']};
 // Practice opens the game's Solo screen, Friends its With friends screen (greyed when the game has none yet)
 function modeTile(g){const lk=look(g.id),pr=MODE==='practice',off=!pr&&g.nofriends;
   const state=pr?'PRACTICE':off?'SOON':'ONLINE',hint=pr?'Random game':off?'Coming soon':'Create or join a room';
@@ -298,7 +317,36 @@ function modeTile(g){const lk=look(g.id),pr=MODE==='practice',off=!pr&&g.nofrien
 function partyTile(g,o){const lk=look(g.id),st=o.played?'PLAYED':'',inner='<span class="tt"><span>TRIP '+g.gate+'</span><span class="s2">'+st+'</span></span>'+lk.svg+'<b>'+esc(g.name)+'</b><small>'+(o.played?'Played':esc(HINT3[g.id]||g.hint))+'</small><span class="s3">'+st+'</span>';
   const cls='tile'+(lk.ctr?' ctr':'')+(o.played?' played':'');
   return '<li>'+(o.click?'<button type="button" class="'+cls+'" data-pick="'+g.id+'" style="--c:'+lk.c+'" aria-label="Play '+esc(g.name)+' with the room">'+inner+'</button>':'<div class="'+cls+'" style="--c:'+lk.c+'">'+inner+'</div>')+'</li>'}
-function tile(g,P){if(MODE!=='today')return modeTile(g);const r=G.result(g.id),lk=look(g.id),mi=P.today[g.id];
+/* ---- Archive: pick a past day on the calendar, then play that day's games (each game opens it with ?day=) ----
+   A game played on its day shows ✓ PLAYED, one played later from the Archive ✓ ARCHIVE. Before a game's daily #1: not yet. */
+const addDay=(k,n)=>new Date(Date.parse(k+'T12:00Z')+n*864e5).toISOString().slice(0,10);
+const A_FIRST=()=>G.live().reduce((m,g)=>g.first&&g.first<m?g.first:m,G.dayKey());
+let ADAY=null;try{ADAY=sessionStorage.getItem('gm-aday')}catch(e){}
+let AMON=null;
+function archDay(){const t=G.dayKey();if(!ADAY||!/^\d{4}-\d{2}-\d{2}$/.test(ADAY)||ADAY>=t||ADAY<A_FIRST())ADAY=addDay(t,-1);return ADAY}
+function archState(g,k,L,AR){if(!g.first||k<g.first)return 'no';if(L[k]&&L[k][g.id]!=null)return 'day';
+  const a=(AR[g.arch]=AR[g.arch]||json(g.arch)||{})[k];return a&&typeof a==='object'?(a.over?'arch':'prog'):'play'}
+function archCal(P){const t=G.dayKey(),first=A_FIRST(),k0=archDay(),L=P.L,AR={};
+  const mon=AMON||k0.slice(0,7),[y,m]=mon.split('-').map(Number),days=new Date(Date.UTC(y,m,0)).getUTCDate(),lead=(new Date(Date.UTC(y,m-1,1)).getUTCDay()+6)%7;
+  let c='M T W T F S S'.split(' ').map(x=>'<span class="wd" aria-hidden="true">'+x+'</span>').join('')+'<span></span>'.repeat(lead);
+  for(let d=1;d<=days;d++){const k=mon+'-'+String(d).padStart(2,'0');
+    if(k===t){c+='<button type="button" class="d today" data-aday="today" aria-label="Today: today\'s games">'+d+'<small>TODAY</small></button>';continue}
+    if(k>t||k<first){c+='<span class="d off" aria-hidden="true">'+d+'</span>';continue}
+    const gs=G.live().filter(g=>g.first&&k>=g.first),n=gs.filter(g=>{const s=archState(g,k,L,AR);return s==='day'||s==='arch'}).length;
+    c+='<button type="button" class="d'+(n===gs.length?' full':'')+(k===k0?' sel':'')+'" data-aday="'+k+'" aria-pressed="'+(k===k0)+'" aria-label="'+esc(G.dateText(k,{weekday:'long',day:'numeric',month:'long'}))+': '+n+' of '+gs.length+' played">'+d+'<small>'+n+'/'+gs.length+'</small></button>'}
+  const name=new Date(Date.UTC(y,m-1,15)).toLocaleDateString('en-GB',{month:'long',year:'numeric',timeZone:'UTC'});
+  return '<div class="acal"><div class="mh"><button type="button" data-amon="-1" aria-label="Previous month"'+(mon<=first.slice(0,7)?' disabled':'')+'>‹</button><span>'+name+'</span>'+
+    '<button type="button" data-amon="1" aria-label="Next month"'+(mon>=t.slice(0,7)?' disabled':'')+'>›</button></div><div class="g">'+c+'</div></div>'+
+    '<p class="aday">'+esc(G.dateText(k0,{weekday:'long',day:'numeric',month:'short'}))+' · tap a game</p>'}
+const AST={no:['NOT YET',''],day:['✓ PLAYED','Played on the day'],arch:['✓ ARCHIVE','Played later'],prog:['IN PROGRESS',''],play:['PLAY','']};
+function archTile(g,P,AR){const k=archDay(),st=archState(g,k,P.L,AR),lk=look(g.id),[lab,h]=AST[st];
+  const hint=st==='no'?'From '+esc(G.dateText(g.first,{day:'numeric',month:'short'})):st==='day'&&P.L[k][g.id]!=null?'+'+P.L[k][g.id]+' km on the day':h||esc(HINT3[g.id]||g.hint);
+  const top='<span class="tt"><span>TRIP '+g.gate+'</span><span class="s2">'+lab+'</span></span>'+lk.svg+'<b>'+esc(g.name)+'</b><small>'+hint+'</small><span class="s3">'+lab+'</span>';
+  if(st==='no')return '<li><div class="tile off'+(lk.ctr?' ctr':'')+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+': not out yet on this day">'+top+'</div></li>';
+  // played on its day: done (one try per day), nothing to open
+  if(st==='day')return '<li><div class="tile done'+(lk.ctr?' ctr':'')+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+': played on the day">'+top+'</div></li>';
+  return '<li><a class="tile'+(lk.ctr?' ctr':'')+(st==='day'||st==='arch'?' done':'')+'" href="'+g.href+'?day='+k+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+', '+esc(G.dateText(k,{weekday:'long',day:'numeric',month:'long'}))+': '+lab.replace('✓ ','').toLowerCase()+'">'+top+'</a></li>'}
+function tile(g,P){if(MODE==='archive')return archTile(g,P,P.AR||(P.AR={}));if(MODE!=='today')return modeTile(g);const r=G.result(g.id),lk=look(g.id),mi=P.today[g.id];
   const state=r.done?'✓ '+(mi!=null?'+'+mi+' KM':esc(r.label)):'TO VISIT',hint=r.done?doneLine(g.id,r.label):esc(HINT3[g.id]||g.hint);
   const lab='aria-label="'+esc(g.name)+', trip '+g.gate+': '+(r.done?'played today, '+esc(r.label):'play')+'"';
   return '<li><a class="tile'+(lk.ctr?' ctr':'')+(r.done?' done':'')+'" href="'+g.href+'" style="--c:'+lk.c+'" '+lab+'><span class="tt"><span>TRIP '+g.gate+'</span><span class="s2">'+state+'</span></span>'+lk.svg+
@@ -347,6 +395,14 @@ function draw(){const P=geo();
   if(on&&(pk.dataset.m!==MODE||pk.dataset.lv!==lv)){pk.dataset.m=MODE;pk.dataset.lv=lv;
     pk.innerHTML='<div class="pktop"><h2>'+PKHEAD[MODE][0]+'</h2>'+(lv?livesHTML(lv):'')+'</div><p>'+PKHEAD[MODE][1]+'</p>';
     pk.querySelectorAll('[data-lives]').forEach(b=>b.onclick=()=>{G.setLives(b.dataset.lives==='5');draw()})}
+  // Archive: the calendar under the title (drawn again each time: what you played changes it)
+  if(MODE==='archive'){let cal=document.getElementById('acal');if(!cal){cal=document.createElement('div');cal.id='acal';pk.appendChild(cal)}
+    const h=archCal(P);if(cal.innerHTML!==h){cal.innerHTML=h;
+      cal.querySelectorAll('[data-aday]').forEach(b=>b.onclick=()=>{const k=b.dataset.aday;if(k==='today'){setMode('today');return}
+        ADAY=k;try{sessionStorage.setItem('gm-aday',k)}catch(e){}draw()});
+      cal.querySelectorAll('[data-amon]').forEach(b=>b.onclick=()=>{const [y,m]=(AMON||archDay().slice(0,7)).split('-').map(Number),d=new Date(Date.UTC(y,m-1+(+b.dataset.amon),1));
+        AMON=d.toISOString().slice(0,7);draw()})}}
+  else{const cal=document.getElementById('acal');if(cal)cal.remove()}
   // the back is the "‹ geomingo" on top, as in every game (no separate ← Back line)
   document.getElementById('pkback').hidden=!on;document.getElementById('toplogo').hidden=on;document.getElementById('topbeta').hidden=on;
   ['todayhead','two','guest','pass','week'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=on?'none':''});
@@ -443,6 +499,8 @@ document.getElementById('week').addEventListener('click',e=>{const w=e.target.cl
   TAB=b.dataset.rtab;try{localStorage.setItem('gm-rank-tab',TAB)}catch(e){}drawWeek()});
 
 /* ---- the Menu (your initial ▾ on top) lives in brand/account.js, the same in every game; its Ranking line scrolls here ---- */
+// Menu → Archive on the home page
+G.showArchive=()=>{if(MODE!=='archive')setMode('archive',true)};
 G.showRanking=()=>{if(MODE!=='today')setMode('today');draw();const w=document.getElementById('week');if(w&&!w.hidden)w.scrollIntoView({behavior:'smooth'});else wantRank=true};
 document.getElementById('pkback').onclick=()=>{if(history.state&&history.state.gm)history.back();else setMode('today')};
 document.querySelectorAll('#two [data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode,true));

@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611171100"></script>
-<script src="../brand/account.js?v=202611171500"></script>
+<script src="../brand/mingo.js?v=202611171600"></script>
+<script src="../brand/account.js?v=202611171600"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -107,7 +107,7 @@
 <script src="../data/flags.js?v=202611101000"></script>
 <script src="../shared/data.js?v=202611141100"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611171500"></script>
+<script src="../shared/minigames.js?v=202611171600"></script>
 <script src="daily.js?v=202611142300"></script>
 <!-- With friends: online rooms in Countries' Firebase Realtime Database -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -650,7 +650,7 @@ function bind(){
   app.querySelectorAll('[data-go="free"]').forEach(b=>b.onclick=openSolo);
   if($('playsolo'))$('playsolo').onclick=openSolo;
   if($('soloback'))$('soloback').onclick=openSolo;
-  if($('archback'))$('archback').onclick=openArchive;
+  if($('archback'))$('archback').onclick=toArchive;
   app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
   app.querySelectorAll('[data-go="friends"]').forEach(b=>b.onclick=()=>{view='friends';render()});
   if($('home'))$('home').onclick=toHub;
@@ -678,7 +678,8 @@ function bind(){
 }
 
 /* ---- start: ?p=123 opens that practice puzzle, ?room=ABCD joins that room (shared links), ?friends opens With friends ---- */
-(()=>{const p=TESTQ.get('p'),q=TESTQ.get('room'),back=Geomingo.room.saved('cx-room'); // an old room, or another room than the invite link, is forgotten
+(()=>{const ak=Geomingo.askedDay(CX_FIRST);if(ak){openDay(ak);return}
+  const p=TESTQ.get('p'),q=TESTQ.get('room'),back=Geomingo.room.saved('cx-room'); // an old room, or another room than the invite link, is forgotten
   const clean=()=>{try{history.replaceState(null,'',location.pathname)}catch(e){}};
   if(p&&/^\d{1,10}$/.test(p)){openFree(+p);clean();return}
   if(q&&/^[A-Za-z]{4}$/.test(q)){clean();joinCode=q.toUpperCase();view='friends';render();if(myName||ACN())joinRoom(joinCode);return}

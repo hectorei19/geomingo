@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611171100"></script>
-<script src="../brand/account.js?v=202611171500"></script>
+<script src="../brand/mingo.js?v=202611171600"></script>
+<script src="../brand/account.js?v=202611171600"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1711,7 +1711,6 @@ document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.qh
 // this game's lines in the one Menu (your initial ▾, brand/account.js; Héctor 2026-11-15: the game's own ☰ is gone)
 if(Geomingo.setGameMenu)Geomingo.setGameMenu({name:GAME_NAME,items:[
   ['How to play','help','#7FA2F0',()=>{ui.help=true;drawLayer()}],
-  ['Archive','cal','#E39B5B',()=>openArchive()],
   ['My stats','stats','#5FC28F',()=>openStats(USER?USER.uid:null)]],sources:()=>{ui.credits=true;drawLayer()}});
 function drawLayer(){
   let h='';
@@ -1901,6 +1900,8 @@ function start(data){
   try{const q=new URLSearchParams(location.search).get('room');if(q&&/^[A-Za-z]{4}$/.test(q)){setup.mode='online';setup.join=q.toUpperCase();screen='friends'}}catch(e){}
   // a shared result link (?grid=4E-KQPMT) starts that same grid
   try{const g=new URLSearchParams(location.search).get('grid');if(g&&parseCode(g)){setup.code=g.trim().toUpperCase();if(setup.mode==='online')setup.mode='solo';screen='solo';if(S&&S.mode!=='online')S=null}}catch(e){}
+  // Menu → Archive on the home page: ?day=2026-11-14 opens that past grid (or the Archive list, when it was played on its day)
+  {const ak=Geomingo.askedDay(DAILY_FIRST);if(ak){AUTO=0;S=null;screen='archive';playArchive(ak)}}
   initAuth();watchLB();
   // back in the room after a reload, unless it is an old or finished one (or an invite link to another room was opened)
   if(FB_OK&&!S){const saved=Geomingo.room.saved('bl-room');
