@@ -354,7 +354,8 @@ function initFB(){if(!FB_OK)return false;if(db)return true;
   catch(e){console.error(e);return false}
   return true}
 const randRoom=()=>Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random()*24)]).join('');
-function needName(){const el=$('fname');if(el)myName=el.value.trim().slice(0,16);
+const ACN=()=>{const a=window.Geomingo&&Geomingo.account;return a&&a.user&&a.name?String(a.name).trim().slice(0,16):''};
+function needName(){const an=ACN();if(an){myName=an;return false}const el=$('fname');if(el)myName=el.value.trim().slice(0,16);
   if(!myName){toast('Type your name first.','bad');if(el)el.focus();return true}
   keep('cx-name',myName);return false}
 const lobbyOrder=r=>Object.keys(r.players||{}).filter(k=>r.players[k].name).sort((a,b)=>(r.players[a].t||0)-(r.players[b].t||0));
@@ -453,7 +454,7 @@ function lobbyHTML(){const r=room,order=lobbyOrder(r),isHost=r.host===ME;
 function friendsHTML(){return header('Connec<span>tions</span>','')+`<section class="panel">
     <div class="backline"><span class="ht">With friends</span></div>
     <p class="hint">Play online, 2 to ${MAX_PLAYERS} players, each on their own phone. Everyone gets the same puzzle at the same time and sees how the others are doing.</p>
-    <div class="field"><label class="label" for="fname">Your name in the room</label><input class="nameinp" id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(myName)}"></div>
+    ${ACN()?'':`<div class="field"><label class="label" for="fname">Your name in the room</label><input class="nameinp" id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(myName)}"></div>`}
     ${FB_OK?'':'<p class="hint">Online play could not load. Check the connection and reload the page.</p>'}
     <div class="field"><button class="primary" id="create" ${FB_OK?'':'disabled'}>Create room</button></div>
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(joinCode)}" autocomplete="off"><button class="ghost" id="join" ${FB_OK?'':'disabled'}>Join</button></div></div>
@@ -680,7 +681,7 @@ function bind(){
 (()=>{const p=TESTQ.get('p'),q=TESTQ.get('room'),back=Geomingo.room.saved('cx-room'); // an old room, or another room than the invite link, is forgotten
   const clean=()=>{try{history.replaceState(null,'',location.pathname)}catch(e){}};
   if(p&&/^\d{1,10}$/.test(p)){openFree(+p);clean();return}
-  if(q&&/^[A-Za-z]{4}$/.test(q)){clean();joinCode=q.toUpperCase();view='friends';render();if(myName)joinRoom(joinCode);return}
+  if(q&&/^[A-Za-z]{4}$/.test(q)){clean();joinCode=q.toUpperCase();view='friends';render();if(myName||ACN())joinRoom(joinCode);return}
   if(back&&initFB()){listenRoom(back,true);render();return}
   if(TESTQ.has('friends')){clean();view='friends'}
   render()})();

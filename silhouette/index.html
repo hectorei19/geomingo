@@ -351,7 +351,8 @@ const LET='ABCDEFGHJKLMNPQRSTUVWXYZ',randRoom=()=>[...Array(4)].map(()=>LET[Math
 const pinStyle=i=>`background:var(--p${i%6})`;
 const lobbyOrder=r=>Object.entries(r.players||{}).sort((a,b)=>(a[1].t||0)-(b[1].t||0)).map(x=>x[0]);
 function saveSetup(){const el=$('fname');if(el)setup.fname=el.value.trim().slice(0,16);store('sil-setup',{fname:setup.fname,fmt:setup.fmt,cont:setup.cont,diff:setup.diff})}
-function needName(){saveSetup();if(setup.fname)return false;
+const ACN=()=>{const a=window.Geomingo&&Geomingo.account;return a&&a.user&&a.name?String(a.name).trim().slice(0,16):''};
+function needName(){saveSetup();const an=ACN();if(an){setup.fname=an;return false}if(setup.fname)return false;
   toast("Type your name so your friends know who's playing.",'bad');const el=$('fname');if(el)el.focus();return true}
 const cfgText=c=>c.fmt==='ramp'?'10 rounds, getting harder: 7 Easy, then 3 Hard':`10 rounds · ${CONTS.find(x=>x[0]===c.cont)[1]} · ${DIFF_NAME[c.diff]}`;
 // the ten shapes of a game. Getting harder: three Easy, then four Normal countries not in the Easy list, then three turned.
@@ -483,7 +484,7 @@ function friendsHTML(){
   return header('Silhou<span>ette</span>','')+`<section class="panel">
     <div class="backline"><span class="ht">With friends</span></div>
     <p class="hint">2 to ${MAXP} players, each on their own phone. The host creates a room and shares its link or code.</p>
-    <div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||(Geomingo.traveller()==='Guest'?'':Geomingo.traveller()))}"></div>
+    ${ACN()?'':`<div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||(Geomingo.traveller()==='Guest'?'':Geomingo.traveller()))}"></div>`}
     <div class="field">${FB_OK()?'':'<p class="hint">Online play needs a connection: reload the page when you are online.</p>'}<button class="primary" id="create" ${FB_OK()?'':'disabled style="opacity:.5"'}>Create room</button></div>
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK()?'':'disabled'}>Join</button></div></div>
   </section>
