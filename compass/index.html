@@ -22,7 +22,7 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611171600"></script>
-<script src="../brand/account.js?v=202611171800"></script>
+<script src="../brand/account.js?v=202611171900"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -338,31 +338,24 @@ function myStatsHTML(){const h=load('cm-hist',{}),so=load('cm-solo',null)||{n:0}
     solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'found']]},
     friends:(fr=>Object.assign(fr,{third:[fr.best||0,'best']}))(friendsOf('cm-friends'))})}
 const G0=()=>view==='daily'?D:view==='train'||view==='room'?T:null;
-const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">The mystery capital is in the middle of the compass. Capitals appear round it, each in its real direction and with its distance. Name it with one clue for 20 points; every new clue and every wrong guess lowers the points: ${G0()&&!isNew(G0())?'20, 19, 18, 17, 16':'20, 15, 10, 5, 3'}. All five with one clue: +20. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name the mystery capital in the middle of the compass. The capitals around it show their real direction and distance. Fewer clues, more points: ${G0()&&!isNew(G0())?'20, 19, 18, 17, 16':'20, 15, 10, 5, 3'}. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
-  <li>Five capitals, one at a time. Each one is hidden in the middle of a compass: the <b>?</b>.</li>
-  <li>Other capitals appear on the rim of the compass, in their real direction seen from the mystery capital, with the distance in km. Example: <b>Rome · 765 km</b> at the bottom left means Rome is 765 km south-west of it.</li>
-  <li>Name the mystery capital. Any of the ${CITIES.length} national capitals can be the answer.</li></ul>
-  <h3>The clues</h3><ul>
-  <li>The first clue is far away, about 2.500 km or more. Each next one is closer, and they come from different directions.</li>
-  <li>Tap <b>Next clue</b> for one more capital on the compass.</li>
-  <li>A wrong guess lands on the compass too, in red, with its distance and direction: it helps you, but it lowers the points.</li></ul>
+  <li>Five mystery capitals, one at a time. Each one hides in the middle of a compass: the <b>?</b>.</li>
+  <li>Other capitals appear round it in their real direction, with the distance in km. <b>Rome · 765 km</b> at the bottom left means Rome is 765 km south-west.</li>
+  <li>Any of the ${CITIES.length} national capitals can be the answer. Distances are in a straight line over the globe.</li></ul>
+  <h3>How to play</h3><ul>
+  <li>Tap <b>Type a capital city…</b>, start typing and tap the capital in the list. Some other names work too (Kiev, La Paz).</li>
+  <li>The first clue is far away (2.500 km or more); each next one is closer. <b>Next clue</b> adds one.</li>
+  <li>A wrong guess shows on the compass too, in red: it helps you, but costs points.</li>
+  <li><b>I don't know</b> lets the capital go. <b>Give up</b> ends the game.</li></ul>
   <h3>Points</h3><ul>
-  <li>Right with the first clue alone: <b>20 points</b>. Every extra clue and every wrong guess lowers it: 15, 10, 5, 3.</li>
-  <li>One more after 3, or <b>I don't know</b>, and the capital goes with 0.</li>
-  <li>All five right: up to 100 points. A <b>perfect game</b> (all five with the first clue, not one wrong guess): +20, so 120.</li>
-  <li>In today's capitals your points are also your km for the GeoPass.</li>
-  <li><b>Give up</b> ends the game as it stands.</li></ul>
-  <h3>How to answer</h3><ul>
-  <li>Tap <b>Type a capital city…</b>, start typing and tap the capital in the list (its country is shown next to it).</li>
-  <li>Names are in English. Accents, capitals and spaces don't matter. Some other names work too (Kiev for Kyiv, La Paz for Sucre).</li></ul>
-  <h3>Distances</h3><ul>
-  <li>In a straight line over the globe (great circle), from the centre of one city to the centre of the other, rounded to the km.</li>
-  <li>The direction is the one you would set off in from the mystery capital, shown as the nearest of the 8 compass points.</li></ul>
+  <li>Right with the first clue: <b>20</b>. Every extra clue or wrong guess lowers it: 15, 10, 5, 3, then 0.</li>
+  <li>All five: up to 100. <b>Perfect game</b> (all with the first clue, no wrong guess): +20.</li></ul>
   <h3>Modes</h3><ul>
-  <li><b>Today's capitals</b>: five capitals, the same for everyone, new every day at midnight CET. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>
-  <li><b>Practice</b>: five random capitals, picked like today's, as many games as you like.</li>
-  <li><b>With friends</b>: online, 2 to 6 players, each on their own phone. Everyone gets the same five capitals (well-known ones) at the same time and plays at their own pace. No lives. Most points win, then the fastest.</li></ul>`}
+  <li><b>Daily</b>: five capitals, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
+  <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. Points only, no km.</li>
+  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Everyone gets the same five (well-known) capitals and plays at their own pace. Most points win, then the fastest.</li>
+  <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, points only, no km.</li></ul>`}
 function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Compass: the capitals and their coordinates are the ones of Geomingo's Capitals game; distances and directions are worked out on a round Earth (radius 6.371 km).</li><li>Flags from <a href="https://github.com/hjnilsson/country-flags" target="_blank" rel="noopener">hjnilsson/country-flags</a> (from Wikimedia Commons, public domain).</li></ul>`)}
 
 /* ---- the game opens straight into today's capitals, as the other games ---- */

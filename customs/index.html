@@ -22,7 +22,7 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611171600"></script>
-<script src="../brand/account.js?v=202611171800"></script>
+<script src="../brand/account.js?v=202611171900"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -359,32 +359,23 @@ function myStatsHTML(){const h=load('cu-hist',{}),so=load('cu-solo',null)||{n:0}
     solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'named']]},
     friends:(fr=>Object.assign(fr,{third:[fr.best||0,'best']}))(friendsOf('cu-friends'))})}
 const G0=()=>view==='daily'?D:view==='train'||view==='room'?T:null;
-const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Five travellers, five clues each, from not obvious to obvious. Name the country with 1 clue for 20 points, ${G0()&&!isNew(G0())?'with 2 for 19, down to 16 with all five':'then 15, 10, 5 and 3 with all five'}. A wrong answer opens the next clue. All five with 1 clue: +20. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name each traveller's country. Five clues each, from hard to easy; a wrong answer opens the next one. Fewer clues, more points: ${G0()&&!isNew(G0())?'20, 19, 18, 17, 16':'20, 15, 10, 5, 3'}. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
-  <li>Five travellers come to the customs desk, one at a time. Work out which country each one comes from.</li>
+  <li>Five travellers come to the customs desk, one at a time. Name the country each one comes from.</li>
+  <li>Each has five clues, from not obvious to obvious: <b>1</b> a curiosity, <b>2</b> numbers, <b>3</b> history and clubs, <b>4</b> on the map, <b>5</b> the obvious (neighbours, flag…).</li>
   <li>Only the 197 independent countries, never territories.</li></ul>
-  <h3>The clues</h3><ul>
-  <li>Each traveller has five clues, from not obvious to obvious, one from each group:</li>
-  <li><b>1 Curiosity</b>: life expectancy, median age, forest, highest point, Olympic medals, city life, CO₂, corruption or development score.</li>
-  <li><b>2 Numbers</b>: population, area, wealth per person, coastline, the capital's size or the length of its borders.</li>
-  <li><b>3 History and clubs</b>: independence, the EU, NATO, the Commonwealth, the Arab League, World Cups and Olympics hosted, nuclear power… or its flag described in words.</li>
-  <li><b>4 On the map</b>: continent with how far from the Equator, the coast, its seas, or its languages and driving side.</li>
-  <li><b>5 The obvious</b>: its neighbours, the capital's first letter or the flag.</li>
-  <li>Which clue of each group you get is random, so a country can come back with other clues.</li>
-  <li>You start with clue 1. Tap <b>Next clue</b> to open another one.</li></ul>
+  <h3>How to play</h3><ul>
+  <li>Tap <b>Type a country…</b>, start typing and tap the country in the list. Names in English, one per country (United Kingdom, not UK). Accents and capitals don't matter.</li>
+  <li>You start with clue 1. <b>Next clue</b> opens another; a wrong answer opens one too.</li>
+  <li><b>I don't know</b> lets the traveller go. <b>Give up</b> ends the game.</li></ul>
   <h3>Points</h3><ul>
-  <li>Name the country with 1 clue open: <b>20 points</b>. With 2: 15. With 3: 10. With 4: 5. With all 5: 3.</li>
-  <li>A wrong answer opens the next clue, so it lowers the points. A wrong answer with all five clues open, or <b>I don't know</b>, lets the traveller go with 0.</li>
-  <li>All five right: up to 100 points. A <b>perfect game</b> (all five with 1 clue, not one wrong answer): +20, so 120.</li>
-  <li>In today's travellers your points are also your km for the GeoPass.</li>
-  <li><b>Give up</b> ends the game as it stands.</li></ul>
-  <h3>How to answer</h3><ul>
-  <li>Tap <b>Type a country…</b>, start typing and tap the country in the list.</li>
-  <li>Names are in English. Accents, capitals and spaces don't matter. Each country has one name only, the one shown in the list as you type (United Kingdom, not UK).</li></ul>
+  <li>Right with 1 clue: <b>20</b>. With 2: 15. With 3: 10. With 4: 5. With 5: 3. Missed: 0.</li>
+  <li>All five: up to 100. <b>Perfect game</b> (all with 1 clue, no wrong answer): +20.</li></ul>
   <h3>Modes</h3><ul>
-  <li><b>Today's travellers</b>: five countries, the same for everyone, new every day at midnight CET. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>
-  <li><b>Practice</b>: five random travellers, picked like today's, as many games as you like.</li>
-  <li><b>With friends</b>: online, 2 to 6 players, each on their own phone. Everyone gets the same five travellers (well-known countries) at the same time and plays at their own pace. No lives. Most points win, then the fastest.</li></ul>`}
+  <li><b>Daily</b>: five travellers, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
+  <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. Points only, no km.</li>
+  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Everyone gets the same five travellers (well-known countries) and plays at their own pace. Most points win, then the fastest.</li>
+  <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, points only, no km.</li></ul>`}
 function creditsHTML(){return DATA_CREDITS}
 
 /* ---- home: today's travellers on top, then Solo and With friends, as in the other games ---- */

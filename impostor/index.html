@@ -22,7 +22,7 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611171600"></script>
-<script src="../brand/account.js?v=202611171800"></script>
+<script src="../brand/account.js?v=202611171900"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -302,30 +302,24 @@ function myStatsHTML(){const h=load('im-hist',{}),so=load('im-solo',null)||{n:0}
     solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'caught']]},
     friends:(fr=>Object.assign(fr,{third:[fr.best||0,'best']}))(friendsOf('im-friends'))})}
 const quickRules=()=>{const G=view==='daily'?D:view==='train'||view==='room'?T:null,old=G&&G.qs&&G.qs[0]&&!isLie(G.qs[0]);
-  if(!old)return `<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">${G&&!G.qs[0].x5?'Six':'Five'} rounds, six new countries in each. Every country says one sentence about itself: five are true, one is a lie that sounds true. ${G&&!G.qs[0].x5?'Find the liar first time for 15 points. A wrong pick shows that sentence was true and the round goes on, '+(!G.qs[0].x3?'one point less each time (15, 14, 13, 12, 11)':'for fewer points each time (15, 10, 5, 3, 1)')+'. All six caught: +10.':'Find the liar first time for 20 points. A wrong pick shows that sentence was true and the round goes on, for fewer points each time (20, 15, 10, 5, 3).'} Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+  if(!old)return `<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">${G&&!G.qs[0].x5?'Six':'Five'} rounds, six new countries in each. Each country says one thing about itself: one of them is lying. Find the liar. ${G&&!G.qs[0].x5?'Fewer tries, more points: '+(!G.qs[0].x3?'15, 14, 13, 12, 11':'15, 10, 5, 3, 1')+'. All six caught: +10.':'Fewer tries, more points: 20, 15, 10, 5, 3.'} Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
   return `<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Six rounds, six new countries in each. Sentences come out one by one, from hard to easy. Each one is true for all of them but one: the impostor. Find it with one sentence for 15 points; every new sentence costs 1 point, and a wrong pick scores 0. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`};
 function rulesHTML(){return `<h3>The idea</h3><ul>
-  <li>Five rounds, each with six new countries. Every country says one sentence about itself.</li>
-  <li>Five sentences are true. One is a lie that sounds true: that country is the <b>impostor</b>.</li>
-  <li>Careful: some true sentences sound unbelievable, and the lie is often a famous mix-up.</li>
-  <li>For example: “Italy: I have hosted the Summer Olympics twice.” A lie: only Rome 1960.</li></ul>
-  <h3>Five rounds</h3><ul>
-  <li>Tap a sentence, then <b>… is lying</b> to answer. Tap it again to change your mind.</li>
-  <li>After each round, every sentence shows a short note, so you see why it was true or false.</li></ul>
+  <li>Five rounds of six countries. Each country says one sentence about itself.</li>
+  <li>Five are true. One is a lie that sounds true: that country is the <b>impostor</b>. Careful, some true ones sound unbelievable.</li>
+  <li>Example: “Italy: I have hosted the Summer Olympics twice.” A lie: only Rome 1960.</li></ul>
+  <h3>How to play</h3><ul>
+  <li>Tap a sentence, then <b>… is lying</b>.</li>
+  <li>Wrong: that sentence is shown as true and you try again.</li>
+  <li>After each round, every sentence shows a short note explaining it. <b>Give up</b> ends the game.</li></ul>
   <h3>Points</h3><ul>
-  <li>Right first time: <b>20 points</b>.</li>
-  <li>A wrong pick shows that sentence was true, and you keep going for fewer points: 20, 15, 10, 5, 3.</li>
-  <li>Five wrong picks: 0 for the round.</li>
-  <li>Up to 100 points. A <b>perfect game</b> (all five first time): +20, so 120.</li>
-  <li>In today's impostors your points are also your km for the GeoPass.</li>
-  <li><b>Give up</b> ends the game as it stands.</li></ul>
-  <h3>The sentences</h3><ul>
-  <li>Written for Geomingo and checked one by one: records, history, borders, languages, sport, nature.</li>
-  <li>Never about what you can see on the flag.</li></ul>
+  <li>Right first time: <b>20</b>. Then 15, 10, 5, 3, then 0.</li>
+  <li>All five: up to 100. <b>Perfect game</b> (all first time): +20.</li></ul>
   <h3>Modes</h3><ul>
-  <li><b>Today's impostors</b>: five rounds, the same for everyone, new every day at midnight CET. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>
-  <li><b>Practice</b>: five random rounds, as many games as you like.</li>
-  <li><b>With friends</b>: online, 2 to 6 players, each on their own phone. Everyone gets the same five rounds at the same time and plays at their own pace. No lives. Most points win, then the fastest.</li></ul>`}
+  <li><b>Daily</b>: five rounds, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
+  <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. Points only, no km.</li>
+  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Everyone gets the same five rounds and plays at their own pace. Most points win, then the fastest.</li>
+  <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, points only, no km.</li></ul>`}
 function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Impostor: the sentences are written for Geomingo and checked against encyclopedias and official sources (older days: made from the same data as Countries, Connections and Top 10). Flags in their official shapes from <a href="https://github.com/hjnilsson/country-flags" target="_blank" rel="noopener">hjnilsson/country-flags</a> (from Wikimedia Commons, public domain).</li></ul>`)}
 
 /* ---- home: today's countries on top, then Solo and With friends, as in the other games ---- */
