@@ -356,8 +356,8 @@ function soloTicket(o){o=o||{};const g=GAMES.find(x=>x.id===o.id);
     (o.body?'<div class="tk-tear"></div><div class="gm-done-a">'+o.body+'</div>':'')+'</section>'}
 function tk(k,v,c){return '<div class="tk-c'+(c?' '+c:'')+'"><i>'+k+'</i><b>'+v+'</b></div>'}
 /* o.mode puts a coloured strip on top so you always know what you are playing:
-   'daily' (gold, "★ Daily #N · Counts for ranking"), 'practice' (blue, "Practice") or 'archive' (blue, "Archive #N"); o.num is the number.
-   Practice and archive also turn the ticket's edge blue. Rooms with friends pass no mode and keep the plain ticket. */
+   'daily' (gold, "★ Daily #N · Counts for ranking"), 'practice' (Mingo pink, "Practice") or 'archive' (Mingo pink, "Archive #N"); o.num is the number.
+   Practice and archive also turn the ticket's edge Mingo pink. Rooms with friends pass no mode and keep the plain ticket. */
 function ticket(say,stub,o){o=o||{};const m=o.mode,n=o.num!=null?' #'+o.num:'';
   const strip=m==='daily'?'<div class="tk-mode daily"><span>★ Daily'+n+'</span><span>Counts for ranking</span></div>'
     :m==='practice'?'<div class="tk-mode practice"><span>Practice</span></div>'
