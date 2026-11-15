@@ -184,6 +184,21 @@ button.gm-home{background:none;border:0;font:inherit;cursor:pointer}
 .rtabs{display:flex;gap:4px;padding:3px;border-radius:12px;background:var(--page);border:1px solid var(--line)}
 .rtabs button{flex:1;min-height:36px;border:0;border-radius:9px;background:none;color:var(--muted);font:800 12px var(--display);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;padding:0 4px}
 .rtabs button[aria-selected="true"]{background:var(--guil);color:#F3D98B;box-shadow:0 0 0 1.5px #F3D98B inset}
+/* simpler cards, less gold (Héctor 2026-11-15, option A): plain dark card, grey edge; gold only on the km, the bar and the level; smaller km in the ranking */
+.pass,.week{background:var(--guil);border:1px solid var(--line)}
+.pass .lab,.week h3{color:var(--muted)}
+.lvl,.week h3 b{background:none;color:#F3D98B;padding:0;font-size:12px;letter-spacing:.12em}
+.bar{height:6px}.bar i{box-shadow:none}
+.ladder b{color:var(--muted)}
+.stats{gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 0}
+.stat{border:0;background:none;border-radius:0;padding:0 4px}.stat+.stat{border-left:1px solid var(--line)}
+.stat b{color:var(--ink)}
+.week .rk{width:24px;height:24px;font-size:12px}
+.week .nm{font-weight:600;font-size:15px}
+.week .pt{font:600 14px var(--type);color:var(--ink)}
+.week li[data-who]{min-height:44px}
+.rtabs{background:none}
+.rtabs button[aria-selected="true"]{background:var(--line);color:var(--ink);box-shadow:none}
 footer{display:flex;flex-direction:column;gap:4px;align-items:center;padding-top:4px}
 /* one line of links at the very bottom (Héctor 2026-11-15, option D with plain text) */
 footer .links{display:flex;align-items:center;justify-content:center;margin-top:8px;color:var(--muted);font-size:14px}
