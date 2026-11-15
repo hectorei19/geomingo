@@ -377,35 +377,58 @@ function changeName(then){const cur=G.traveller()==='Guest'?'':G.traveller();
   const inp=box.querySelector('#gm-gname'),save=()=>{const n=inp.value.trim().slice(0,16);if(!n){say('Type a name to continue.');return}
     ls.set('bl-user',n);ls.set('cc-user',n);G.closeWindow();G.refreshPass();if(typeof then==='function')then(n);changed('name')};
   box._acts={saveg:save};inp.addEventListener('keydown',e=>{if(e.key==='Enter')save()});setTimeout(()=>inp.focus(),50)}
-// the header button: Sign in, or your initial (it opens a small menu with Sign out)
+// the ONE header button (Héctor 2026-11-15, option A with ▾): your initial, or "Sign in" for a guest; both open the Menu
+const CHEV='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 function acctHTML(){const u=who();if(u===undefined)return '';
-  if(!u)return '<button class="gm-acct" data-gm-signin>Sign in</button>';
+  if(!u)return '<button class="gm-acct" data-gm-acctmenu aria-haspopup="dialog" aria-label="Menu and sign in">Sign in'+CHEV+'</button>';
   const n=name||u.displayName||'';
-  return '<button class="gm-acct me" data-gm-acctmenu aria-haspopup="true" aria-label="Your account: '+esc(n)+'" title="'+esc(n)+'">'+esc((n.trim()[0]||'·').toUpperCase())+'</button>'}
-function acctMenu(open){let box=document.getElementById('gm-acctmenu');if(box)box.remove();if(!open||!user)return;
-  const b=document.querySelector('[data-gm-acctmenu]'),r=b?b.getBoundingClientRect():{bottom:54,right:innerWidth-16};
-  box=document.createElement('div');box.id='gm-acctmenu';
-  box.innerHTML='<div class="menuscrim gm-ascrim" data-gm-aclose></div><div class="gm-amenu" role="dialog" aria-label="Your account" style="top:'+Math.round(r.bottom+6)+'px;right:'+Math.max(8,Math.round(innerWidth-r.right))+'px">'+
-    '<span class="gm-lab">Signed in as</span><b>'+esc(name||user.displayName||'')+'</b>'+(user.email?'<small>'+esc(user.email)+'</small>':'')+
-    '<p>Your stats, your GeoPass and your daily results are saved in your account, on every device.</p>'+
-    '<button class="gm-big ghost" data-gm-signout>Sign out</button></div>';
-  document.body.appendChild(box);const s=box.querySelector('[data-gm-signout]');if(s)s.focus()}
-document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-gm-signin],[data-gm-chname],[data-gm-nobanner],[data-gm-acctmenu],[data-gm-signout],[data-gm-aclose]');if(!t)return;
+  return '<button class="gm-acct me" data-gm-acctmenu aria-haspopup="dialog" aria-label="Menu. Your account: '+esc(n)+'" title="'+esc(n)+'"><span class="av">'+esc((n.trim()[0]||'·').toUpperCase())+'</span>'+CHEV+'</button>'}
+/* the Menu, the same on the home page and in every game: your account on top, then GeoPass, Ranking, How the GeoPass works, Credits
+   (each game's own "Menu" button keeps How to play, its stats and its sources) */
+const HOME_URL=(()=>{try{const s=document.querySelector('script[src*="brand/account.js"]');return new URL('../',s.src).href}catch(e){return '/'}})();
+const MICO={gp:'<rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="11" r="3.5"/><path d="M9 17h6"/>',
+  rank:'<path d="M6 20V11M12 20V5M18 20v-6"/>',how:'<circle cx="12" cy="12" r="9"/><path d="M12 17v.01M12 13.5a1.5 1.5 0 0 1 1-1.5a2.6 2.6 0 1 0-3-4"/>',
+  book:'<path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 2z"/>',ch:'<path d="M9 6l6 6-6 6"/>'};
+const mico=(k,n)=>'<svg width="'+(n||20)+'" height="'+(n||20)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+MICO[k]+'</svg>';
+function mwin(title,body,acts){const box=G.openWindow('<div class="gm-res hw"><div class="gm-band">'+G.mingo('head',26)+'<b>'+esc(title)+'</b></div><div class="gm-rbody">'+body+
+  '<button class="gm-text" data-gm-act="close">Close</button></div></div>',title);
+  box._acts=acts||{};box.addEventListener('click',e=>{if(e.target.closest('[data-gm-signin],[data-gm-signout]'))G.closeWindow()});
+  const f=box.querySelector('a,button');if(f)f.focus();return box}
+function openMenu(){const u=who();let km=0;try{km=G.geo().km}catch(e){}
+  const nm=u?(name||u.displayName||'').trim():'';
+  const box=u===undefined?'':u?'<div class="acctbox"><span class="av" aria-hidden="true">'+esc((nm[0]||'·').toUpperCase())+'</span><span class="nm"><b>'+esc(nm||'Traveller')+'</b><span>Signed in with Google</span></span><button class="out" data-gm-signout>Sign out</button></div>'
+    :'<div class="acctbox guest"><span class="nm"><b>Guest traveller</b><span>Saved on this phone only.</span></span><button class="gbtn" data-gm-signin><i aria-hidden="true">G</i>Continue with Google</button></div>';
+  const it=(act,c,ic,t,sub,end)=>'<li><button class="it" data-gm-act="'+act+'" style="--c:'+c+'"><span class="ic">'+mico(ic)+'</span><span class="tx">'+t+(sub?'<small>'+sub+'</small>':'')+'</span>'+(end||'<span class="ch">'+mico('ch',18)+'</span>')+'</button></li>';
+  mwin('Menu',box+'<ul>'+it('gp','#D4AD4B','gp','My GeoPass','Stamps, countries and visas','<span class="mt">'+EU(Math.round(km))+' km</span>')+
+    it('rank','#5FC28F','rank','Ranking','Today, this week, this month')+
+    it('how','#A98BE0','how','How the GeoPass works','Km, levels, countries and visas')+
+    it('credits','#F07884','book','Credits &amp; data sources','')+'</ul>'+
+    '<p class="mfoot">New trips every day at midnight CET. How to play is in each game\'s Menu.</p>',
+    {gp:()=>G.openPass('passport'),how:()=>mwin('How the GeoPass works',G.howHTML()),credits:openCredits,
+     // the ranking is on the home page: there it scrolls to it, from a game it opens the home page at the ranking
+     rank:()=>{G.closeWindow();if(typeof G.showRanking==='function')G.showRanking();else location.href=HOME_URL+'#ranking'}})}
+// the sources used by all the games (each game's Menu adds its own)
+function openCredits(){mwin('Credits & data sources','<div class="credits"><ul>'+
+  '<li>Country data (names, borders, regions, area, languages, currencies, capitals): <a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a>, under the Open Database License (ODbL) 1.0, with a few corrections by hand.</li>'+
+  '<li>Population, development, economy, politics, geography and sport figures: Wikipedia lists (CC BY-SA 4.0), which cite the UN, the UNDP, the World Bank and the CIA World Factbook among others.</li>'+
+  '<li>Flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a> (MIT License).</li>'+
+  '<li>Fonts: Archivo, Public Sans and Courier Prime (Google Fonts, SIL Open Font License).</li>'+
+  '<li>Accounts, online play and rankings: <a href="https://firebase.google.com" target="_blank" rel="noopener">Firebase</a>.</li></ul>'+
+  '<p>Each game\'s Menu lists its own extra sources.</p></div>')}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-gm-signin],[data-gm-chname],[data-gm-nobanner],[data-gm-acctmenu],[data-gm-signout]');if(!t)return;
   e.preventDefault();
   if(t.hasAttribute('data-gm-signin'))signIn();
   else if(t.hasAttribute('data-gm-chname'))changeName();
   else if(t.hasAttribute('data-gm-nobanner')){ls.set('gm-nobanner','1');changed()}
-  else if(t.hasAttribute('data-gm-acctmenu'))acctMenu(!document.getElementById('gm-acctmenu'));
-  else if(t.hasAttribute('data-gm-signout')){acctMenu(false);signOut()}
-  else acctMenu(false)});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('gm-acctmenu'))acctMenu(false)});
+  else if(t.hasAttribute('data-gm-acctmenu'))openMenu();
+  else if(t.hasAttribute('data-gm-signout'))signOut()});
 
 // something changed: the header buttons are redrawn here; the page redraws itself (onChange) unless you are typing
 function changed(why){trialCheck();document.querySelectorAll('[data-gm-acctslot]').forEach(el=>{const h=acctHTML();if(el.innerHTML!==h)el.innerHTML=h});drawTrophies();
   const a=document.activeElement,typing=a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA')&&!a.closest('#gm-window');
   watchers.forEach(f=>{try{f(why||'',typing)}catch(e){console.error(e)}})}
 
-G.acctHTML=acctHTML;
+G.acctHTML=acctHTML;G.openMenu=openMenu;
 // ready/user: known for sure, or the last account seen on this device until Firebase answers (wasSignedIn: that last one)
 G.account={get ready(){return who()!==undefined},get user(){return who()||null},get name(){return name},
   wasSignedIn:!!(LAST&&LAST.u),get trial(){return trialState()},trialLine,
