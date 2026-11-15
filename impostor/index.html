@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611160700"></script>
+<script src="../brand/mingo.js?v=202611160800"></script>
 <script src="../brand/account.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -375,6 +375,7 @@ function render(){
   else app.innerHTML=homeHTML();
   bind()}
 function bind(){
+  Geomingo.where(view==='solo'||view==='train'?'solo':view==='friends'||view==='room'?'friends':''); // F5 keeps Practice / With friends
   RACE.bind();const TV=view==='train'||view==='room'&&RACE.inGame();
   if(TV)bindGiveUp(()=>{if(!T||T.over)return;T.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});T.over=true;T.left=null;chosen=null;trainEnd();render();window.scrollTo(0,0)});
   else bindGiveUp(()=>{if(!D||D.over)return;D.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});D.over=true;D.left=null;chosen=null;dailySave();render();window.scrollTo(0,0)});

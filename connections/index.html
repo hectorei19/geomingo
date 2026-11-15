@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611160700"></script>
+<script src="../brand/mingo.js?v=202611160800"></script>
 <script src="../brand/account.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -639,6 +639,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
 function copyText(t,okMsg){const manual=()=>{const el=$('linkbox');if(el){const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r)}toast('Copy blocked. Select the link and copy it.')};
   try{navigator.clipboard.writeText(t).then(()=>toast(okMsg,'good'),manual)}catch(e){manual()}}
 function bind(){
+  Geomingo.where(view==='friends'||view==='room'||S&&S.mode==='online'&&view==='game'?'friends':view==='solo'||view==='game'&&S&&S.mode==='free'?'solo':''); // F5 keeps Practice / With friends
   app.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>tap(b.dataset.c));
   app.querySelectorAll('[data-dc]').forEach(b=>b.onclick=()=>{openDaily();tap(b.dataset.dc)});
   if($('daily'))$('daily').onclick=openDaily;
