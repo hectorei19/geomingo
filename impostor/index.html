@@ -134,9 +134,9 @@ const nameOf=c=>impByCode[c].n;
 const isLie=q=>q.m==='lie';
 // points (Héctor 2026-11-14, the same table in every game): 15 caught first time, 1 less for each wrong pick (15 to 11),
 // +10 for all six caught, +20 for a perfect game (all six first time). raw: the old 5-to-1 points, still what the history and ranking keep.
-// Games from Geomingo.imp3 on (Héctor 2026-11-15, x3 on the round) take 3 off for each wrong pick: 15, 12, 9, 6, 3 (= 3 x raw)
-const raw=q=>SENT+1-q.k,worth=q=>q.x3?3*raw(q):10+raw(q);
-const ptsOf=q=>q.st==='right'?raw(q):0;
+// Games from Geomingo.imp3 on (Héctor 2026-11-15, x3 on the round): 15, 10, 5, 3, 1, and the history and ranking keep these points
+const raw=q=>SENT+1-q.k,worth=q=>q.x3?Geomingo.IMP3[q.k-1]||0:10+raw(q);
+const ptsOf=q=>Geomingo.impRound(q);
 const newGame=(g,o)=>Object.assign({qs:g.rounds.map(r=>Object.assign({set:r.set,c:r.c,f:r.f,k:1,pick:null,st:'play'},Geomingo.imp3((o||{}).date)?{x3:1}:{},r.m==='lie'?{m:'lie',s:r.s,n:r.n,w:[]}:{})),sel:0,over:false,left:null},o||{});
 // the six countries of a round (games from the first hours of day #1 kept one set for the whole game, in G.set)
 const setOf=(G,q)=>q.set||G.set;
@@ -175,7 +175,7 @@ function playHTML(G){let h=deskHTML(G);
   const q=G.qs[G.sel],more=SENT-q.k;
   if(isLie(q))return `<div class="play">${h}<span class="label">Round ${G.sel+1} of ${ROUNDS} · worth ${worth(q)} points</span>
     <span class="label">Five tell the truth. Who is lying?</span>${claimsHTML(q,false)}
-    ${chosen?`<button class="primary go" id="confirm">${esc(nameOf(chosen))} is lying</button>`:''}<div class="locked">${chosen?'Not sure? Tap it again to unselect':q.k===1?'Right first time: 15 points. Every wrong pick takes '+(q.x3?'3':'one')+' off.':'Not that one. Now worth '+worth(q)+' point'+(worth(q)===1?'':'s')+'.'}</div>
+    ${chosen?`<button class="primary go" id="confirm">${esc(nameOf(chosen))} is lying</button>`:''}<div class="locked">${chosen?'Not sure? Tap it again to unselect':q.k===1?(q.x3?'Right first time: 15 points. Then 10, 5, 3, 1.':'Right first time: 15 points. Every wrong pick takes one off.'):'Not that one. Now worth '+worth(q)+' point'+(worth(q)===1?'':'s')+'.'}</div>
     ${giveUpHTML()}</div>`;
   return `<div class="play">${h}<span class="label">Round ${G.sel+1} of ${ROUNDS} · worth ${worth(q)} point${worth(q)===1?'':'s'}</span>${sixHTML(G,q,false)}
     <span class="label">One of them doesn't fit the sentences. Which one?</span>${factsHTML(q,false)}
@@ -301,7 +301,7 @@ function myStatsHTML(){const h=load('im-hist',{}),so=load('im-solo',null)||{n:0}
     solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'caught']]},
     friends:(fr=>Object.assign(fr,{third:[fr.best||0,'best']}))(friendsOf('im-friends'))})}
 const quickRules=()=>{const G=view==='daily'?D:view==='train'||view==='room'?T:null,old=G&&G.qs&&G.qs[0]&&!isLie(G.qs[0]);
-  if(!old)return `<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Six rounds, six new countries in each. Every country says one sentence about itself: five are true, one is a lie that sounds true. Find the liar first time for 15 points. A wrong pick shows that sentence was true and the round goes on, ${G&&!G.qs[0].x3?'one point less each time (15, 14, 13, 12, 11)':'3 points less each time (15, 12, 9, 6, 3)'}. All six caught: +10. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+  if(!old)return `<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Six rounds, six new countries in each. Every country says one sentence about itself: five are true, one is a lie that sounds true. Find the liar first time for 15 points. A wrong pick shows that sentence was true and the round goes on, ${G&&!G.qs[0].x3?'one point less each time (15, 14, 13, 12, 11)':'for fewer points each time (15, 10, 5, 3, 1)'}. All six caught: +10. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
   return `<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Six rounds, six new countries in each. Sentences come out one by one, from hard to easy. Each one is true for all of them but one: the impostor. Find it with one sentence for 15 points; every new sentence costs 1 point, and a wrong pick scores 0. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`};
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Six rounds, each with six new countries. Every country says one sentence about itself.</li>
@@ -313,7 +313,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>After each round, every sentence shows a short note, so you see why it was true or false.</li></ul>
   <h3>Points</h3><ul>
   <li>Right first time: <b>15 points</b>.</li>
-  <li>A wrong pick shows that sentence was true, and you keep going for 3 points less: 15, 12, 9, 6, 3.</li>
+  <li>A wrong pick shows that sentence was true, and you keep going for fewer points: 15, 10, 5, 3, 1.</li>
   <li>Five wrong picks: 0 for the round.</li>
   <li>All six caught: +10, so up to 100 points. A <b>perfect game</b> (all six first time): +20, so 120.</li>
   <li>In today's impostors your points are also your km for the GeoPass.</li>
