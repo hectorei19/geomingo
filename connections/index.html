@@ -23,6 +23,7 @@
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611161230"></script>
 <script src="../brand/account.js?v=202611161200"></script>
+<script src="../brand/party.js?v=202611151100"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -354,7 +355,7 @@ function initFB(){if(!FB_OK)return false;if(db)return true;
   catch(e){console.error(e);return false}
   return true}
 const randRoom=()=>Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random()*24)]).join('');
-const ACN=()=>{const a=window.Geomingo&&Geomingo.account;return a&&a.user&&a.name?String(a.name).trim().slice(0,16):''};
+const ACN=()=>{const a=window.Geomingo&&Geomingo.account;return a&&a.user&&a.name?String(a.name).trim().slice(0,16):(Geomingo.party&&Geomingo.party.name())||''};
 function needName(){const an=ACN();if(an){myName=an;return false}const el=$('fname');if(el)myName=el.value.trim().slice(0,16);
   if(!myName){toast('Type your name first.','bad');if(el)el.focus();return true}
   keep('cx-name',myName);return false}
@@ -611,6 +612,7 @@ Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&S&&S.mode==='daily'){
 // the room's ranking, live while the others finish; the next game starts when everyone still here is done
 function roomResultHTML(){const list=ranked(),cur=list.filter(p=>p.cur),pos=cur.findIndex(p=>p.pid===ME)+1;
   const waiting=cur.some(p=>!p.done&&p.on!==false);
+  if(S.over&&!waiting&&Geomingo.party)Geomingo.party.result(cur.map(p=>({n:p.name,p:Geomingo.cxPts(p.done&&p.won?4:p.f||0,p.m||0)})));
   if(S.over&&!waiting)logFriends('cx-friends',roomCode+':'+S.round+':'+(room.startAt||''),pos,S.found.length,S.won?S.ms:0);
   const head=S.won?(pos===1&&!waiting?'You win!':`Solved in ${fmtTime(S.ms)}`):'Better luck next time';
   return `<section class="panel">${Geomingo.hello(S.won?'happy':'sad',S.won?(pos===1&&!waiting?'You win. First to arrive.':'Solved. Now wait for the others.'):'So close.',waiting?'Some players are still playing.':'Everyone has finished.',{key:'res'})}<span class="label">Room ${roomCode} · game ${S.round}</span><p class="big">${head}</p>
@@ -618,6 +620,9 @@ function roomResultHTML(){const list=ranked(),cur=list.filter(p=>p.cur),pos=cur.
     <pre class="sharebox" id="share">${esc(shareText())}</pre>
     ${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="rematch" style="flex:1" ${waiting?'disabled':''}>${waiting?'Waiting for the others…':'Play again'}</button></div>
   </section>`}
+// the one room for all nine games (../brand/party.js) drives this game's room
+if(Geomingo.party)Geomingo.party.game({room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
+  count:()=>room?lobbyOrder(room).length:0,names:()=>room?lobbyOrder(room).map(k=>room.players[k].name):[],create:createRoom,join:joinRoom,start:startRound});
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>You see 16 countries. They make <b>four groups of four</b>, and each group shares something, for example "Uses the euro" or "Flag has a crescent moon".</li>
   <li>Every country is in exactly one group, and there is only <b>one way</b> to split the 16. Very broad things (a flag colour, a big capital…) are never a group, so four blue flags are just a trap.</li>

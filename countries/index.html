@@ -23,6 +23,7 @@
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611161230"></script>
 <script src="../brand/account.js?v=202611161200"></script>
+<script src="../brand/party.js?v=202611151100"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -1139,7 +1140,7 @@ function freshSeed(n,diff){for(let i=0;i<30;i++){const sd=randSeed();if(gridFor(
 function lobbyOrder(r){return Object.entries(r.players||{}).sort((a,b)=>(a[1].t||0)-(b[1].t||0)).map(x=>x[0])}
 
 // the name the others see in a room: the account's name, or the one a guest typed on the With friends screen
-const roomName=()=>USER?setup.user:(setup.fname||'').trim();
+const roomName=()=>USER?setup.user:((setup.fname||'').trim()||(Geomingo.party&&Geomingo.party.name())||'');
 function needRoomName(){if(USER)return false;const el=document.getElementById('fname');if(el)setup.fname=el.value.trim().slice(0,16);
   try{localStorage.setItem('bl-setup',JSON.stringify({...setup,code:''}))}catch(e){}
   if(roomName())return false;toast("Type your name so your friends know who's playing.",'bad');if(el)el.focus();return true}
@@ -1150,7 +1151,7 @@ async function createRoom(){if(!SIGNED()){signIn();return}
   try{
     let code='';
     for(let i=0;i<8;i++){code=randRoom();const ex=await db.ref('rooms/'+code).get();if(!ex.exists())break}
-    await db.ref('rooms/'+code).set({v:APP_VERSION,host:ME,created:TS(),cfg:{n:setup.n,timer:30,diff:setup.diff||'normal'},status:'lobby',
+    await db.ref('rooms/'+code).set({v:APP_VERSION,host:ME,created:TS(),cfg:Geomingo.party&&Geomingo.party.on()?{n:DAILY_N,timer:30,diff:DAILY_DIFF}:{n:setup.n,timer:30,diff:setup.diff||'normal'},status:'lobby',
       players:{[ME]:{name:roomName(),t:TS(),on:true,...(USER?{uid:USER.uid}:{})}}});
     listenRoom(code);
   }catch(e){console.error(e);toast('Could not create the room. Check the connection and try again.','bad')}
@@ -1298,6 +1299,9 @@ async function tryTimeout(turn,deadline){
     const nm=(r.players[r.order[turn]]||{}).name||'Someone';
     r.ev={id:evId(),kind:'bad',text:"Time's up for "+nm+'.'};advance(r,r.order.length);return r})}catch(e){}
 }
+// the one room for all nine games (../brand/party.js) drives this game's room
+if(Geomingo.party)Geomingo.party.game({room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
+  count:()=>room?lobbyOrder(room).length:0,names:()=>room?lobbyOrder(room).map(k=>room.players[k].name):[],create:createRoom,join:joinRoom,start:()=>onlineAct('start')});
 function lobbyView(){
   const r=room,order=lobbyOrder(r),isHost=r.host===ME;
   const link=location.origin+location.pathname+'?room='+roomCode;
@@ -1663,12 +1667,14 @@ function resultsView(body){
     return `${Geomingo.soloTicket({id:'borderline',what:d[0].toUpperCase()+d.slice(1)+' · '+n+' × '+n,score:EU(p.score)+' points',best:'Best: '+EU(best),detail:p.cells+' of '+n*n+' squares',body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns gm-solo-btns"><button class="primary" id="again" style="flex:1">New grid</button>${SHARE_BTN.replace('Share result','Share')}</div>`}
   const ranked=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score||b.cells-a.cells);
+  // the one room for all nine games: these points as km (15 points = 1 km, up to 100, as in the daily)
+  if(S.mode==='online'&&S.over&&Geomingo.party)Geomingo.party.result(ranked.map(p=>({n:p.name,p:Math.min(100,Math.round((p.score||0)/15))})));
   const top=ranked[0].score,winners=ranked.filter(p=>p.score===top);
   return `<section class="panel respanel">${verdictHTML()}<p class="big">${winners.length>1?'Draw at '+top+' points':esc(winners[0].name)+' wins'}</p>
    <div class="podium">${ranked.map((p,r)=>`<div class="place ${p.score===top?'win':''}" ${p.uid?`data-stats="${esc(p.uid)}" role="button" tabindex="0"`:''}><span class="rk">${r+1}</span><span class="pin" style="${pinStyle(p.i)}"></span><span class="nm">${esc(p.name)}</span><span class="pt">${EU(p.score)}</span></div><div class="bd">${breakdown(p)}</div>`).join('')}</div>
    <pre class="sharebox" id="share">${esc(shareText())}</pre>
    ${SHARE_BTN}<div class="row-btns sharerow">${S.mode==='online'&&!S.host?'':'<button class="primary" id="again" style="flex:1">Rematch, new grid</button>'}</div>
-   ${S.mode==='online'?(S.host?'':'<p class="hint">The host can start a rematch.</p>')+'<button class="ghost" id="newg">Leave room</button>':'<button class="ghost" id="newg">Change settings</button>'}</section>`;
+   ${S.mode==='online'?(S.host?'':(Geomingo.party&&Geomingo.party.on()?'':'<p class="hint">The host can start a rematch.</p>'))+'<button class="ghost" id="newg">Leave room</button>':'<button class="ghost" id="newg">Change settings</button>'}</section>`;
 }
 function answersView(){
   if(ui.reveal<0)return `<p class="hint" style="margin-top:12px">Tap any square to see every country that fits it.</p>`;

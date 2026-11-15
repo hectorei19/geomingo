@@ -23,6 +23,7 @@
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611161230"></script>
 <script src="../brand/account.js?v=202611161200"></script>
+<script src="../brand/party.js?v=202611151100"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -351,7 +352,7 @@ const LET='ABCDEFGHJKLMNPQRSTUVWXYZ',randRoom=()=>[...Array(4)].map(()=>LET[Math
 const pinStyle=i=>`background:var(--p${i%6})`;
 const lobbyOrder=r=>Object.entries(r.players||{}).sort((a,b)=>(a[1].t||0)-(b[1].t||0)).map(x=>x[0]);
 function saveSetup(){const el=$('fname');if(el)setup.fname=el.value.trim().slice(0,16);store('sil-setup',{fname:setup.fname,fmt:setup.fmt,cont:setup.cont,diff:setup.diff})}
-const ACN=()=>{const a=window.Geomingo&&Geomingo.account;return a&&a.user&&a.name?String(a.name).trim().slice(0,16):''};
+const ACN=()=>{const a=window.Geomingo&&Geomingo.account;return a&&a.user&&a.name?String(a.name).trim().slice(0,16):(Geomingo.party&&Geomingo.party.name())||''};
 function needName(){saveSetup();const an=ACN();if(an){setup.fname=an;return false}if(setup.fname)return false;
   toast("Type your name so your friends know who's playing.",'bad');const el=$('fname');if(el)el.focus();return true}
 const cfgText=c=>c.fmt==='ramp'?'10 rounds, getting harder: 7 Easy, then 3 Hard':`10 rounds · ${CONTS.find(x=>x[0]===c.cont)[1]} · ${DIFF_NAME[c.diff]}`;
@@ -369,7 +370,7 @@ async function createRoom(){if(!SIGNED()){Geomingo.account.signIn();return}
   if(!initFB()){toast('Online play is not available right now. Check the connection and reload.','bad');return}
   try{let code='';
     for(let i=0;i<8;i++){code=randRoom();const ex=await db.ref('rooms/'+code).get();if(!ex.exists())break}
-    await db.ref('rooms/'+code).set({game:'silhouette',v:ROOM_V,host:ME,created:TS(),cfg:{fmt:setup.fmt,cont:setup.cont,diff:setup.diff},status:'lobby',
+    await db.ref('rooms/'+code).set({game:'silhouette',v:ROOM_V,host:ME,created:TS(),cfg:Geomingo.party&&Geomingo.party.on()?{fmt:'ramp',cont:'all',diff:'normal'}:{fmt:setup.fmt,cont:setup.cont,diff:setup.diff},status:'lobby',
       players:{[ME]:{name:setup.fname,t:TS(),on:true}}});
     listenRoom(code)}catch(e){console.error(e);toast('Could not create the room. Check the connection and try again.','bad')}}
 async function joinRoom(raw){
@@ -490,6 +491,9 @@ function friendsHTML(){
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK()?'':'disabled'}>Join</button></div></div>
   </section>
   <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Everyone gets the same shape at the same time, ${SECS} seconds each. No lives: try as many countries as you like until the time runs out. A right answer scores 10 points. Ten shapes, most points wins; if level, the faster one.</p></section>`}
+// the one room for all nine games (../brand/party.js) drives this game's room
+if(Geomingo.party)Geomingo.party.game({room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
+  count:()=>room?lobbyOrder(room).length:0,names:()=>room?lobbyOrder(room).map(k=>room.players[k].name):[],create:createRoom,join:joinRoom,start:()=>onlineAct('start')});
 function lobbyHTML(){const r=room,order=lobbyOrder(r),link=pageLink('?room='+roomCode),host=r.host===ME;
   const c=host?setup:r.cfg;
   return header('Silhou<span>ette</span>','room '+roomCode)+`<section class="panel namecard"><span class="label">Room code</span><p class="roomcode">${roomCode}</p>
@@ -511,9 +515,10 @@ const chipsHTML=()=>O.players.map(p=>`<div class="tk-c pl ${doneOf(p.cur)?'on':'
 function onlineHTML(){const q=O.q,t=now(),ready=O.status==='round'&&t<O.start;
   let h=header('Silhou<span>ette</span>','room '+roomCode);
   if(O.status==='over'){const rk=ranked(),best=rk[0],tie=rk.length>1&&rk[1].total===best.total,mine=rk.find(p=>p.pid===ME);
+    if(Geomingo.party)Geomingo.party.result(rk.map(p=>({n:p.name,p:p.total})));
     if(mine&&room&&room.qs)logFriends('sil-friends',roomCode+':'+room.qs.map(q=>q.c).join(''),1+rk.filter(p=>p.total>mine.total).length,mine.total);
     h+=`<section class="panel"><span class="label">Room ${roomCode} · final ranking</span><p class="big">${tie?"It's a tie":esc(best.name)+' wins'}</p>${boardRowsHTML(false)}
-      ${O.host?`<div class="row-btns"><button class="primary" id="orematch" style="flex:1">Rematch</button><button class="ghost" id="olobby" style="flex:1">Back to room</button></div>`:'<p class="hint">Waiting for the host to start a rematch.</p>'}</section>
+      ${O.host?`<div class="row-btns"><button class="primary" id="orematch" style="flex:1">Rematch</button><button class="ghost" id="olobby" style="flex:1">Back to room</button></div>`:(Geomingo.party&&Geomingo.party.on()?'':'<p class="hint">Waiting for the host to start a rematch.</p>')}</section>
       <div class="row-btns"><button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;return h}
   const say=Geomingo.hello('pass','Shape '+(O.round+1)+' of '+O.n+'.',(DIFF_NAME[q.d]||'')+' level. '+'No lives: keep trying. If points are level, the faster one wins.');
   h+=Geomingo.ticket(say,`<div id="ochips" style="display:contents">${chipsHTML()}</div>`+tk('Time',`<span id="tleft">${ready?'Get ready…':O.status==='reveal'?'':Math.max(0,Math.ceil((O.end-t)/1000))+' s'}</span>`,'tk-name'),{timer:O.status==='round'&&!ready,mode:'friends'});
