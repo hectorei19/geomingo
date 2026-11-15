@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Privacy · Geomingo</title>
+<meta name="description" content="What Geomingo keeps about you, where, and how to delete it.">
+<meta name="theme-color" content="#151E30">
+<link rel="icon" href="../brand/icons/favicon.svg?v=202611101235" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611171400">
+<style>
+/* geomingo.com/privacy: the privacy page, linked from the bottom of the home page (Héctor 2026-11-15) */
+body{background:var(--bg);color:var(--ink);font-family:var(--body)}
+.wrap{max-width:640px;margin:0 auto;padding:max(16px,env(safe-area-inset-top,0px)) 16px 48px}
+.back{display:inline-block;color:var(--muted);text-decoration:none;font:700 16px var(--display);padding:10px 0}
+.back b{color:var(--coral)}
+h1{font:900 30px var(--display);margin:10px 0 4px}
+.upd{font:700 12px var(--type);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin:0 0 20px}
+h2{font:800 18px var(--display);margin:26px 0 8px}
+p,li{font-size:15.5px;line-height:1.55;color:var(--ink)}
+ul{padding-left:20px;margin:0}li+li{margin-top:6px}
+a{color:#F3D98B}
+.box{border:1px solid var(--line);border-radius:14px;background:var(--page);padding:14px 16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="../">‹ geo<b>mingo</b></a>
+<h1>Privacy</h1>
+<p class="upd">Updated 15 Nov 2026</p>
+<p class="box">Geomingo is a free daily geography game. No ads, no advertising cookies, and we never sell or share your data.</p>
+
+<h2>On your phone</h2>
+<p>Your progress (today's games, your GeoPass, your settings and, as a guest, the name you type) is saved in your browser's storage on this device. You can clear it at any time by clearing this site's data in your browser.</p>
+
+<h2>If you sign in with Google</h2>
+<ul>
+<li>We use Google sign-in through Firebase (a Google service). We receive your name, email address and Google account id. Your email is never shown to other players.</li>
+<li>We save your name, your GeoPass, the days you played and your daily results in our Firebase database, so they follow you to any device.</li>
+<li>Your name and your daily score appear in the public rankings, and in rooms when you play with friends.</li>
+</ul>
+
+<h2>Visit statistics</h2>
+<p>To know how many people play, each page adds one to anonymous counters (page, phone or computer, guest or signed in, game started or finished). They hold no name, account or device id. We also use Cloudflare Web Analytics, which counts visits without cookies.</p>
+
+<h2>Other services</h2>
+<p>Fonts are loaded from Google Fonts. The site is hosted on GitHub Pages and served through Cloudflare. Like any website, these services see your IP address to deliver the page.</p>
+
+<h2>Delete your data</h2>
+<p>Signing out removes your account's data from this device. To delete your account and everything saved with it, write to us and we will do it.</p>
+
+<h2>Contact</h2>
+<p id="contact">Write to <a id="mail" href="mailto:">us</a>.</p>
+</div>
+<script>
+// the same address as Send feedback (CONTACT_EMAIL in brand/account.js)
+const CONTACT_EMAIL='hello@geomingo.com';
+if(CONTACT_EMAIL){const a=document.getElementById('mail');a.href='mailto:'+CONTACT_EMAIL;a.textContent=CONTACT_EMAIL}
+</script>
+</body>
+</html>

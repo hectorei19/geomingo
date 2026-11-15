@@ -383,13 +383,14 @@ function acctHTML(){const u=who();if(u===undefined)return '';
   if(!u)return '<button class="gm-acct" data-gm-acctmenu aria-haspopup="dialog" aria-label="Menu and sign in">Sign in'+CHEV+'</button>';
   const n=name||u.displayName||'';
   return '<button class="gm-acct me" data-gm-acctmenu aria-haspopup="dialog" aria-label="Menu. Your account: '+esc(n)+'" title="'+esc(n)+'"><span class="av">'+esc((n.trim()[0]||'·').toUpperCase())+'</span>'+CHEV+'</button>'}
-/* the Menu, the same on the home page and in every game: your account on top, then GeoPass, Ranking, How the GeoPass works, About & FAQ, Credits
-   (each game's own "Menu" button keeps How to play, its stats and its sources) */
+/* the Menu, the same on the home page and in every game (Héctor 2026-11-15, option D): your account on top, then GeoPass, Ranking, Send feedback.
+   FAQ, Contact, Privacy and Sources are in the line of links at the bottom of the home page (G.openFaq, G.openFeedback, G.openCredits).
+   Each game's own "Menu" button keeps How to play, its stats and its sources. */
+const CONTACT_EMAIL='hello@geomingo.com';
 const HOME_URL=(()=>{try{const s=document.querySelector('script[src*="brand/account.js"]');return new URL('../',s.src).href}catch(e){return '/'}})();
 const MICO={gp:'<rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="11" r="3.5"/><path d="M9 17h6"/>',
-  rank:'<path d="M6 20V11M12 20V5M18 20v-6"/>',how:'<circle cx="12" cy="12" r="9"/><path d="M12 17v.01M12 13.5a1.5 1.5 0 0 1 1-1.5a2.6 2.6 0 1 0-3-4"/>',
-  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/>',
-  book:'<path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 2z"/>',ch:'<path d="M9 6l6 6-6 6"/>'};
+  rank:'<path d="M6 20V11M12 20V5M18 20v-6"/>',
+  mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',ch:'<path d="M9 6l6 6-6 6"/>'};
 const mico=(k,n)=>'<svg width="'+(n||20)+'" height="'+(n||20)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+MICO[k]+'</svg>';
 function mwin(title,body,acts){const box=G.openWindow('<div class="gm-res hw"><div class="gm-band">'+G.mingo('head',26)+'<b>'+esc(title)+'</b></div><div class="gm-rbody">'+body+
   '<button class="gm-text" data-gm-act="close">Close</button></div></div>',title);
@@ -402,13 +403,14 @@ function openMenu(){const u=who();let km=0;try{km=G.geo().km}catch(e){}
   const it=(act,c,ic,t,sub,end)=>'<li><button class="it" data-gm-act="'+act+'" style="--c:'+c+'"><span class="ic">'+mico(ic)+'</span><span class="tx">'+t+(sub?'<small>'+sub+'</small>':'')+'</span>'+(end||'<span class="ch">'+mico('ch',18)+'</span>')+'</button></li>';
   mwin('Menu',box+'<ul>'+it('gp','#D4AD4B','gp','My GeoPass','Stamps, countries and visas','<span class="mt">'+EU(Math.round(km))+' km</span>')+
     it('rank','#5FC28F','rank','Ranking','Today, this week, this month')+
-    it('how','#A98BE0','how','How the GeoPass works','Km, levels, countries and visas')+
-    it('faq','#7FA2F0','info','About &amp; FAQ','What Geomingo is, common questions')+
-    it('credits','#F07884','book','Credits &amp; data sources','')+'</ul>'+
-    '<p class="mfoot">New trips every day at midnight CET. How to play is in each game\'s Menu.</p>',
-    {gp:()=>G.openPass('passport'),how:()=>mwin('How the GeoPass works',G.howHTML()),faq:openFaq,credits:openCredits,
+    it('fb','#F07884','mail','Send feedback','Ideas, mistakes, anything')+'</ul>',
+    {gp:()=>G.openPass('passport'),fb:openFeedback,
      // the ranking is on the home page: there it scrolls to it, from a game it opens the home page at the ranking
      rank:()=>{G.closeWindow();if(typeof G.showRanking==='function')G.showRanking();else location.href=HOME_URL+'#ranking'}})}
+// Send feedback (Menu) and Contact (bottom of the home page): one small window that opens an email
+function openFeedback(){const m='mailto:'+CONTACT_EMAIL+'?subject='+encodeURIComponent('Geomingo feedback');
+  mwin('Send feedback','<div class="fb"><p>Found a mistake, have an idea for a game or just want to say hi? We read every message.</p>'+
+    '<a class="gm-big coral" href="'+m+'">Write to us</a><p class="fbm">'+esc(CONTACT_EMAIL)+'</p></div>')}
 // About & FAQ: what Geomingo is, then the common questions (tap one to open its answer)
 const FAQ=[
   ['When do new games come out?','Every day at midnight CET. Everyone in the world gets the same puzzles that day.'],
@@ -441,7 +443,7 @@ function changed(why){trialCheck();document.querySelectorAll('[data-gm-acctslot]
   const a=document.activeElement,typing=a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA')&&!a.closest('#gm-window');
   watchers.forEach(f=>{try{f(why||'',typing)}catch(e){console.error(e)}})}
 
-G.acctHTML=acctHTML;G.openMenu=openMenu;
+G.acctHTML=acctHTML;G.openMenu=openMenu;G.openFaq=openFaq;G.openCredits=openCredits;G.openFeedback=openFeedback;
 // ready/user: known for sure, or the last account seen on this device until Firebase answers (wasSignedIn: that last one)
 G.account={get ready(){return who()!==undefined},get user(){return who()||null},get name(){return name},
   wasSignedIn:!!(LAST&&LAST.u),get trial(){return trialState()},trialLine,
