@@ -169,7 +169,10 @@ if(!HOME){let u;try{u=new URLSearchParams(location.search)}catch(e){u=new URLSea
   const pc=(u.get('party')||'').toUpperCase(),pn=+u.get('pn')||0;
   if(/^[A-Z]{4}$/.test(pc)&&pn){PG={code:pc,n:pn,page:G.PAGE,room:(u.get('room')||'').toUpperCase()};ss.set('gm-pg',PG);keepMine(pc)}
   else{const s=ss.get('gm-pg',null);if(s&&s.page===G.PAGE&&s.code===code())PG=s}
-  if(PG)document.documentElement.classList.add('gm-party')}
+  if(PG){const h=document.documentElement;h.classList.add('gm-party','pt-cover');
+    // the game's own With friends screen never shows: a plain cover until the room's screen takes over
+    const st=document.createElement('style');st.textContent='html.pt-cover body>*:not(.pt-ov):not(.pt-toast){visibility:hidden}html.pt-cover body{background:var(--bg,#0C1220)}';h.firstElementChild?h.firstElementChild.appendChild(st):h.appendChild(st);
+    setTimeout(()=>{if(!A)h.classList.remove('pt-cover')},15000)}}
 const css=`html.gm-party #rematch,html.gm-party #orematch,html.gm-party #olobby,html.gm-party #again,html.gm-party #newg,html.gm-party #ostart{display:none!important}
 .pt-ov{position:fixed;inset:0;z-index:60;background:var(--bg,#0C1220);display:flex;align-items:center;justify-content:center;padding:24px 16px}
 .pt-ov>div{max-width:420px;width:100%;display:flex;flex-direction:column;gap:14px;text-align:center}
@@ -228,13 +231,14 @@ function overlay(html){if(!document.body)return;if(!html){if(ov){ov.remove();ov=
   if(ov.dataset.h!==html){ov.dataset.h=html;ov.innerHTML='<div>'+html+'</div>';
     const s=ov.querySelector('[data-pstart]');if(s)s.onclick=()=>{if(A&&A.start){A.start();started=Date.now()}};
     const b=ov.querySelector('[data-pback]');if(b)b.onclick=()=>{location.href=homeURL()}}}
+function uncover(){document.documentElement.classList.remove('pt-cover')}
 function backBar(on){if(!document.body)return;if(!on){if(bar){bar.remove();bar=null}return}
   if(!bar){bar=document.createElement('div');bar.className='pt-bar';bar.innerHTML='<a class="pt-btn" href="'+homeURL()+'">Back to the room</a>';document.body.appendChild(bar)}}
 // every half second: make the game's room, join it, start it when everyone is in, then step out of the way
 function drive(){if(!PG||!A||!R)return;const c=R.cur||{},g=gameOf(c.g),rc=(A.room&&A.room())||'';
   // the organiser moved on to another game: follow
   if(c.n>PG.n){if(c.g){ss.set('gm-pg',null);location.href=gameURL(c.g,c.n)}return}
-  if(c.n!==PG.n){overlay('');backBar(true);return}
+  if(c.n!==PG.n){overlay('');uncover();backBar(true);return}
   const ok=G.account&&G.account.ready,mineRoom=!!rc&&(rc===c.room||rc===made);
   if(mineRoom&&rc===c.room)hadRoom=true;
   if(!rc&&hadRoom){location.href=homeURL();return}   // left the game's room: back to our room
@@ -254,10 +258,11 @@ function drive(){if(!PG||!A||!R)return;const c=R.cur||{},g=gameOf(c.g),rc=(A.roo
       '<div class="ppl">'+names.map(x=>'<span class="'+(inn.includes(x)?'in':'')+'">'+esc(x)+'</span>').join('')+'</div>'+
       (host?'<button class="pt-btn" data-pstart '+(n<2?'disabled':'')+'>Start now</button>':'')+
       '<button class="pt-ghost" data-pback>Back to the room</button>');backBar(false)}
-  else{overlay('');backBar(!!(R.res&&R.res[PG.n])||done)}}
+  else{overlay('');uncover();backBar(!!(R.res&&R.res[PG.n])||done)}}
 // what the game hands over: room() its room code (or null), host(), lobby(), count() players in its room, names(),
 // create(), join(code), start()
 function game(a){A=a;if(!PG)return;addCSS();
+  {const g=(G.GAMES||[]).find(x=>x.path.replace(/\/$/,'')===G.PAGE);overlay('<span class="lab">Room '+esc(PG.code)+' · game '+PG.n+'</span><h2>'+esc(g?g.name:'')+'</h2><p><span class="pt-dot"></span>Opening the game…</p>')}
   whenFB(()=>listen(PG.code,r=>{if(!r){ss.set('gm-pg',null);location.href=homeURL();return}drive()}));
   clearInterval(tickT);tickT=setInterval(drive,500)}
 // the points of this game, once everyone has finished: [{n:name, p:points}] (the first phone to send them wins)
