@@ -24,7 +24,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
 <link rel="stylesheet" href="brand/geomingo.css?v=202611171100">
-<script src="brand/mingo.js?v=202611171000"></script>
+<script src="brand/mingo.js?v=202611171100"></script>
 <script src="brand/account.js?v=202611171100"></script>
 <script src="brand/party.js?v=202611151310"></script>
 <style>
@@ -371,9 +371,10 @@ function loadRank(){const acc=A();if(rankBusy||!acc||!acc.ready||typeof firebase
    if they have played a game you haven't yet, their score stays hidden (🔒) so it spoils nothing, and a button takes you there */
 let OPEN=null;
 const DC={borderline:'#7FA2F0',citygrid:'#5FC28F',connections:'#D4AD4B',top10:'#A98BE0',silhouette:'#C99B78',customs:'#F07884',flagpie:'#6FC7C7',impostor:'#E58FC0',compass:'#B5D46A'};
-// the daily grids of Countries and Capitals are 4×4; Customs and Flag Pie give up to 25 points, Impostor up to 30
+// the daily grids of Countries and Capitals are 4×4; Customs, Flag Pie and Compass give up to 100 points (25 before x3);
+// Impostor up to 100 from IMP5_FROM, 90 on IMP3_FROM's day (x3), 30 before
 const OUTOF={borderline:16,citygrid:16,connections:4,top10:10,silhouette:9,customs:25,flagpie:25,impostor:30,compass:25};
-const scoreText=(id,r)=>(id==='borderline'||id==='citygrid'?r.c:r.s)+(OUTOF[id]?'/'+(r.x3&&(id==='flagpie'||id==='customs'||id==='compass')?100:OUTOF[id]):'');
+const scoreText=(id,r)=>(id==='borderline'||id==='citygrid'?r.c:r.s)+(OUTOF[id]?'/'+(id==='impostor'?(G.imp5(G.dayKey())?100:r.x3?90:30):r.x3&&(id==='flagpie'||id==='customs'||id==='compass')?100:OUTOF[id]):'');
 // This week / This month: each game's km over the whole period (and on how many days), you vs them
 function periodHTML(p,me){p=RANK.ppl.find(x=>x.id===p.id)||p;const ds=tabDays(TAB),self=p.id===me,nm=p.name.trim()||'Player',fn=esc(nm.split(' ')[0].slice(0,8)),word=TAB==='week'?'This week':'This month';
   const mp=me&&RANK.ppl.find(x=>x.id===me),sum=(q,id)=>{let km=0,n=0;if(q&&q.g)for(const d of ds){const v=q.g[d]&&q.g[d][id];if(v){km+=v;n++}}return{km,n}};
