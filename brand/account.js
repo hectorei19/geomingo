@@ -388,7 +388,9 @@ function acctHTML(){const u=who();if(u===undefined)return '';
    Each game's own "Menu" button keeps How to play, its stats and its sources. */
 const CONTACT_EMAIL='hello@geomingo.com';
 const HOME_URL=(()=>{try{const s=document.querySelector('script[src*="brand/account.js"]');return new URL('../',s.src).href}catch(e){return '/'}})();
-const MICO={gp:'<rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="11" r="3.5"/><path d="M9 17h6"/>',
+const MICO={help:'<circle cx="12" cy="12" r="9"/><path d="M12 17v.01M12 13.5a1.5 1.5 0 0 1 1-1.5a2.6 2.6 0 1 0-3-4"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  stats:'<path d="M4 20h16M7 16v-4M12 16V8M17 16v-6"/>',gp:'<rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="11" r="3.5"/><path d="M9 17h6"/>',
   rank:'<path d="M6 20V11M12 20V5M18 20v-6"/>',
   mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',ch:'<path d="M9 6l6 6-6 6"/>'};
 const mico=(k,n)=>'<svg width="'+(n||20)+'" height="'+(n||20)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+MICO[k]+'</svg>';
@@ -401,12 +403,19 @@ function openMenu(){const u=who();let km=0;try{km=G.geo().km}catch(e){}
   const box=u===undefined?'':u?'<div class="acctbox"><span class="av" aria-hidden="true">'+esc((nm[0]||'·').toUpperCase())+'</span><span class="nm"><b>'+esc(nm||'Traveller')+'</b><span>Signed in with Google</span></span><button class="out" data-gm-signout>Sign out</button></div>'
     :'<div class="acctbox guest"><span class="nm"><b>Guest traveller</b><span>Saved on this phone only.</span></span><button class="gbtn" data-gm-signin><i aria-hidden="true">G</i>Continue with Google</button></div>';
   const it=(act,c,ic,t,sub,end)=>'<li><button class="it" data-gm-act="'+act+'" style="--c:'+c+'"><span class="ic">'+mico(ic)+'</span><span class="tx">'+t+(sub?'<small>'+sub+'</small>':'')+'</span>'+(end||'<span class="ch">'+mico('ch',18)+'</span>')+'</button></li>';
-  mwin('Menu',box+'<ul>'+it('gp','#D4AD4B','gp','My GeoPass','Stamps, countries and visas','<span class="mt">'+EU(Math.round(km))+' km</span>')+
-    it('rank','#5FC28F','rank','Ranking','Today, this week, this month')+
-    it('fb','#F07884','mail','Send feedback','Ideas, mistakes, anything')+'</ul>',
-    {gp:()=>G.openPass('passport'),fb:openFeedback,
+  // in a game (Héctor 2026-11-15, option B: the games' own ☰ is gone): that game's lines on top, then Geomingo's, no subtitles
+  const g=GM,sub=t=>g?'':t,acts={};
+  let game='';if(g){g.items.forEach((x,i)=>{acts['g'+i]=()=>{G.closeWindow();x[3]()}});
+    game='<h5 class="gh">'+esc(g.name)+'</h5><ul>'+g.items.map((x,i)=>it('g'+i,x[2],x[1],x[0],'')).join('')+'</ul><h5 class="gh">Geomingo</h5>'}
+  mwin('Menu',box+game+'<ul>'+it('gp','#D4AD4B','gp','My GeoPass',sub('Stamps, countries and visas'),'<span class="mt">'+EU(Math.round(km))+' km</span>')+
+    it('rank','#5FC28F','rank','Ranking',sub('Today, this week, this month'))+
+    it('fb','#F07884','mail','Send feedback',sub('Ideas, mistakes, anything'))+'</ul>'+
+    (g&&g.sources?'<button class="gm-text msrc" data-gm-act="gsrc">'+esc(g.name)+' data sources</button>':''),
+    Object.assign(acts,{gp:()=>G.openPass('passport'),fb:openFeedback,gsrc:()=>{G.closeWindow();g.sources()},
      // the ranking is on the home page: there it scrolls to it, from a game it opens the home page at the ranking
-     rank:()=>{G.closeWindow();if(typeof G.showRanking==='function')G.showRanking();else location.href=HOME_URL+'#ranking'}})}
+     rank:()=>{G.closeWindow();if(typeof G.showRanking==='function')G.showRanking();else location.href=HOME_URL+'#ranking'}}))}
+// a game tells the Menu its own lines: setGameMenu({name:'Countries',items:[[label,icon,colour,fn],…],sources:fn})
+let GM=null;function setGameMenu(o){GM=o}
 // Send feedback (Menu) and Contact (bottom of the home page): one small window that opens an email
 function openFeedback(){const m='mailto:'+CONTACT_EMAIL+'?subject='+encodeURIComponent('Geomingo feedback');
   mwin('Send feedback','<div class="fb"><p>Found a mistake, have an idea for a game or just want to say hi? We read every message.</p>'+
@@ -443,7 +452,7 @@ function changed(why){trialCheck();document.querySelectorAll('[data-gm-acctslot]
   const a=document.activeElement,typing=a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA')&&!a.closest('#gm-window');
   watchers.forEach(f=>{try{f(why||'',typing)}catch(e){console.error(e)}})}
 
-G.acctHTML=acctHTML;G.openMenu=openMenu;G.openFaq=openFaq;G.openCredits=openCredits;G.openFeedback=openFeedback;
+G.acctHTML=acctHTML;G.openMenu=openMenu;G.openFaq=openFaq;G.openCredits=openCredits;G.openFeedback=openFeedback;G.setGameMenu=setGameMenu;
 // ready/user: known for sure, or the last account seen on this device until Firebase answers (wasSignedIn: that last one)
 G.account={get ready(){return who()!==undefined},get user(){return who()||null},get name(){return name},
   wasSignedIn:!!(LAST&&LAST.u),get trial(){return trialState()},trialLine,
