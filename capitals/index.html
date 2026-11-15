@@ -316,6 +316,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .gm-hello+.board-wrap{margin-top:-4px}
 .respanel .gm-hello{margin:-4px 0 -6px}
 .corner .mingo{width:auto;height:88%}
+.corner.dnum .dn.code{font-size:clamp(.56rem,2.5vw,.8rem);letter-spacing:0;white-space:nowrap;line-height:1.05}
 /* a right answer: the country's flag, darkened and blurred, behind the city's name in the centre (the stamp border keeps the player's colour);
    points in a tab in the top right corner and the country's code in the bottom left, as in Countries */
 .cell.flag .gm-stamp.wf{background:#0b1220;padding:clamp(14px,4.6vw,19px) 2px}
@@ -1345,9 +1346,9 @@ function nameView(){
 // home: three ways to play. 'solo' and 'friends' are the settings screens behind two of them
 let screen='home';
 const screenFor=s=>!s?'home':s.archive?'archive':s.daily?'home':s.mode==='solo'?'solo':'friends';
-// top-left corner of a board: the daily grid shows its number (GRID #3), other games Mingo's head
-const cornerHTML=day=>day?`<div class="corner dnum" aria-label="Grid number ${day}"><span class="dl">Grid</span><span class="dn${day>=100?' long':''}">#${day}</span></div>`
-  :`<div class="corner" aria-hidden="true">${Geomingo.mingo('head',30)}</div>`;
+// top-left corner of a board: the daily grid shows its number (GRID #10), other games their grid code, as in Countries
+const cornerHTML=(day,code)=>day?`<div class="corner dnum" aria-label="Grid number ${day}"><span class="dl">Grid</span><span class="dn${day>=100?' long':''}">#${day}</span></div>`
+  :`<div class="corner dnum" aria-label="Grid ${esc(code||'')}"><span class="dl">Grid</span><span class="dn code">${esc(code||'')}</span></div>`;
 // flags of the countries: the Geomingo flags, ../data/flags.js (loaded after the page, so the game never waits for it)
 const flagSrc=k=>typeof FLAGS!=='undefined'&&FLAGS[k]||'';
 // a right answer on the grid: a passport stamp with the city's name in the centre over its country's flag,
@@ -1454,7 +1455,7 @@ function gameView(){
   }
   mark=h.length;
   h+=`<div class="board-wrap"><div class="board b${n}" lang="en" style="grid-template-columns:minmax(0,1.25fr) repeat(${n},minmax(0,1fr))">`;
-  h+=cornerHTML(S.daily?S.day:0);
+  h+=cornerHTML(S.daily?S.day:0,S.code);
   S.cols.forEach((k,j)=>h+=`<div class="hd col" data-info="${k}" role="button" tabindex="0" aria-label="${esc(EUT(CATS[k].label))}: explain"><span class="ref">${colRef(j)}</span><span class="ht">${titleWithInfo(CATS[k].short)}</span></div>`);
   S.rows.forEach((rk,i)=>{
     h+=`<div class="hd rowh" data-info="${rk}" role="button" tabindex="0" aria-label="${esc(EUT(CATS[rk].label))}: explain"><span class="ref">${rowRef(i)}</span><span class="ht">${titleWithInfo(CATS[rk].short)}</span></div>`;
