@@ -60,7 +60,7 @@ function result(id,k){k=k||dayKey();
     if(!Array.isArray(d.S.qs))return {done:true,label:(d.S.st==='right'?6-d.S.k:0)+'/5'};
     return {done:true,label:d.S.qs.reduce((n,q)=>n+clFlag(q),0)+(d.S.qs.some(q=>q.x3)?'/100':'/25')}}
   if(id==='impostor'){const d=json('im-daily');if(!(d&&d.date===k&&d.over&&d.S&&Array.isArray(d.S.qs)))return {done:false};
-    return {done:true,label:d.S.qs.reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0)+'/30'}}
+    return {done:true,label:d.S.qs.reduce((n,q)=>n+impRound(q),0)+(d.S.qs.some(q=>q.x5)?'/100':d.S.qs.some(q=>q.x3)?'/90':'/30')}}
   if(id==='compass'){const d=json('cm-daily');if(!(d&&d.date===k&&d.over&&d.S&&Array.isArray(d.S.qs)))return {done:false};
     return {done:true,label:d.S.qs.reduce((n,q)=>n+(q.st==='right'?+q.p||0:0),0)+(d.S.qs.some(q=>q.x3)?'/100':'/25')}}
   return {done:false}}
