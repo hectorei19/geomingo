@@ -1015,15 +1015,6 @@ function cellValues(answers){
 }
 const valCache=new WeakMap();
 function valuesFor(answers){if(!valCache.has(answers))valCache.set(answers,cellValues(answers));return valCache.get(answers)}
-/* Daily (from PLAIN_FROM) and Practice: no line bonus (Héctor 2026-11-15). The squares share PLAIN_TOTAL points (80 km
-   at 15 points a km), a hard square worth up to twice an easy one, plus +1 for every second under PLAIN_SPEED s (about
-   20 km more), so a fast full grid reaches the 100 km top. With friends keeps 0-100 squares, its speed and lines. */
-const PLAIN_FROM='2026-11-16',PLAIN_TOTAL=1200,PLAIN_SPEED=20,plainCache=new WeakMap();
-const plain=()=>!!S&&S.mode==='solo'&&(!S.daily||S.daily>=PLAIN_FROM);
-function plainValues(answers){if(plainCache.has(answers))return plainCache.get(answers);
-  const w=valuesFor(answers).map(x=>1+x/SQ_MAX),t=w.reduce((a,b)=>a+b,0),raw=w.map(x=>x*PLAIN_TOTAL/t),v=raw.map(Math.floor);
-  let left=PLAIN_TOTAL-v.reduce((a,b)=>a+b,0);raw.map((x,i)=>[x-v[i],i]).sort((a,b)=>b[0]-a[0]||a[1]-b[1]).forEach(([,i])=>{if(left>0){v[i]++;left--}});
-  plainCache.set(answers,v);return v}
 function speedPts(elapsedMs,timer){const win=timer||SPEED_WINDOW;return SPEED_PER_SEC*Math.max(0,Math.floor(win-elapsedMs/1000))}
 function lineCounts(){
   const n=S.n,b=S.players.map(()=>0);
@@ -1036,9 +1027,9 @@ function computeScores(){
   const lc=lineCounts();
   S.players.forEach((p,i)=>{const mine=S.cells.filter(c=>c.o===i);
     p.cells=mine.length;p.base=mine.reduce((a,c)=>a+(c.p||0),0);p.speed=mine.reduce((a,c)=>a+(c.sb||0),0);
-    p.lines=lc[i];p.bonus=plain()?0:lc[i]*LINE_BONUS;p.score=p.base+p.speed+p.bonus});
+    p.lines=lc[i];p.bonus=lc[i]*LINE_BONUS;p.score=p.base+p.speed+p.bonus});
 }
-function liveScore(i){const lc=lineCounts();return S.cells.filter(c=>c.o===i).reduce((a,c)=>a+(c.p||0)+(c.sb||0),0)+(plain()?0:lc[i]*LINE_BONUS)}
+function liveScore(i){const lc=lineCounts();return S.cells.filter(c=>c.o===i).reduce((a,c)=>a+(c.p||0)+(c.sb||0),0)+lc[i]*LINE_BONUS}
 let statLive=false;
 function endGame(){
   if(S.mode==='online'){onlineAct('end');return}
@@ -1053,12 +1044,12 @@ function guess(ci,cid){
   const ok=S.answers[ci].includes(c.i);
   const p=S.players[S.turn];
   if(ok){
-    const pts=plain()?plainValues(S.answers)[ci]:valuesFor(S.answers)[ci],sb=plain()?Math.max(0,Math.floor(PLAIN_SPEED-(now()-(S.turnStart||now()))/1000)):speedPts(now()-(S.turnStart||now()),S.timer);
+    const pts=valuesFor(S.answers)[ci],sb=speedPts(now()-(S.turnStart||now()),S.timer);
     const before=lineCounts()[S.turn];
     S.cells[ci]={o:S.turn,c:cid,p:pts,sb};S.used.push(cid);S.passes=0;ui.fresh=ci;
     const nl=lineCounts()[S.turn]-before;
     Geomingo.stamp('borderline',c.n,'',c.c);
-    say('happy','Stamped: '+c.n+'.','+'+pts+' pts'+(sb?' · +'+sb+' speed':'')+(nl&&!plain()?' · +'+nl*LINE_BONUS+' for the line':'')+(S.mode==='solo'?'':' for '+p.name+'.'));
+    say('happy','Stamped: '+c.n+'.','+'+pts+' pts'+(sb?' · +'+sb+' speed':'')+(nl?' · +'+nl*LINE_BONUS+' for the line':'')+(S.mode==='solo'?'':' for '+p.name+'.'));
   }else{
     S.wrong++;loseLife();
     const left=S.mode==='solo'?livesLeft():0;
@@ -1761,7 +1752,7 @@ function drawLayer(){
       </dl>
       <button class="primary" id="credok">Close</button></div>`}
   if(ui.help){
-    const ks=[2,3,4,5,6,7,8,9,10,12,14,17,20,25,32,45],ev=plainValues(ks.map(k=>Array(k).fill(0)));
+    const ks=[2,3,4,5,6,7,8,9,10,12,14,17,20,25,32,45],ev=cellValues(ks.map(k=>Array(k).fill(0)));
     const exr=i=>`<tr><td>${i+1}.</td><td>${ks[i]} countries fit</td><td>${ev[i]} pts</td></tr>`;
     const ex=[0,1,2].map(exr).join('')+'<tr><td>…</td><td></td><td></td></tr>'+[13,14,15].map(exr).join('');
     const G=DAILY_N*DAILY_N;
@@ -1777,14 +1768,14 @@ function drawLayer(){
       <li>Right: it goes in the square. Wrong: the square stays empty and you lose one of your <b>5 lives</b>.</li>
       <li>The game ends when the grid is full or you run out of lives. <b>Give up</b> ends it early.</li></ul>
       <h3>Points</h3><ul>
-      <li><b>Square</b>: the ${DAILY_N*DAILY_N} squares share ${EU(PLAIN_TOTAL)} points. Hard squares (few countries fit) are worth more, up to twice an easy one.</li>
-      <li><b>Speed</b>: +1 for every second under ${PLAIN_SPEED} s.</li>
-      <li><b>Km</b> (daily): 1 km for every 15 points, up to 100. <b>Perfect grid</b> (all ${DAILY_N*DAILY_N}, no life lost): +20 km.</li>
-      <li><b>With friends</b>: a square is worth 0 to ${SQ_MAX}, +${SPEED_PER_SEC} for every second under ${SPEED_WINDOW} s, and +${LINE_BONUS} for every full row or column that is all yours.</li></ul>
+      <li><b>Square</b>: 0 to ${SQ_MAX}. Hard squares (few countries fit) are worth more.</li>
+      <li><b>Speed</b>: +${SPEED_PER_SEC} for every second under ${SPEED_WINDOW} s.</li>
+      <li><b>Lines</b>: +${LINE_BONUS} for every full row or column that is all yours.</li>
+      <li><b>Km</b> (daily): 1 km for every 15 points, up to 100. <b>Perfect grid</b> (all ${DAILY_N*DAILY_N}, no life lost): +20 km.</li></ul>
       <h3>Example: a ${DAILY_N} × ${DAILY_N} grid</h3>
       <p class="hint">The ${G} squares are ranked from hardest to easiest, and the points go down in equal steps. Squares with the same number of countries share the same points.</p>
       <table class="ptable">${ex}</table>
-      <p class="hint">All ${G} squares together: ${EU(PLAIN_TOTAL)} points (80 km). Speed adds up to 20 km more.</p>
+      <p class="hint">So the hardest square answered in 10 seconds is worth ${ev[0]} + ${SPEED_PER_SEC*(SPEED_WINDOW-10)} for speed = ${ev[0]+SPEED_PER_SEC*(SPEED_WINDOW-10)} points.</p>
       <h3>Modes</h3><ul>
       <li><b>Daily</b>: one ${DAILY_N} × ${DAILY_N} grid, the same for everyone, new every day at midnight CET. One try. Its km go to your GeoPass.</li>
       <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. 5 lives or <b>Unlimited</b>: pick it next to Practice on the home page. Points only, no km.</li>
