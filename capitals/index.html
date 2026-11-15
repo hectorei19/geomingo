@@ -1007,7 +1007,8 @@ const roomName=()=>USER?setup.user:(setup.fname||'').trim();
 function needRoomName(){if(USER)return false;const el=document.getElementById('fname');if(el)setup.fname=el.value.trim().slice(0,16);
   try{localStorage.setItem('cc-setup',JSON.stringify({...setup,code:''}))}catch(e){}
   if(roomName())return false;toast("Type your name so your friends know who's playing.",'bad');if(el)el.focus();return true}
-async function createRoom(){
+const SIGNED=()=>!!(USER||MAYBE_IN());
+async function createRoom(){if(!SIGNED()){signIn();return}
   if(needRoomName())return;
   if(!initFB()){toast('Online play is not set up on this copy of the site.','bad');return}
   try{
@@ -1408,7 +1409,7 @@ function setupView(){
     <div class="field"><span class="label">Difficulty</span>${seg('diff',[['normal','Easy'],['hard','Hard']],lvOf(setup.diff))}<p class="hint">${DHINT[lvOf(setup.diff)]}</p></div>`}
     ${on?`<div class="field"><span class="label">Time per turn</span>${seg('timer',[[0,'Off'],[30,'30 s']],setup.timer)}</div>`:''}
     ${on?'':`<div class="field"><span class="label">Lives</span>${seg('nolives',[[0,LIVES+' lives'],[1,'No lives']],setup.nolives?1:0)}<p class="hint">${setup.nolives?'Training: play until the grid is full. Mistakes are only counted.':'A wrong answer costs one. The game ends when they are gone.'}</p></div>`}
-    ${on?`<div class="field">${FB_OK?'':'<p class="hint">Online play only works on the published site with Firebase connected.</p>'}<button class="primary" id="create" ${FB_OK?'':'disabled style="opacity:.5"'}>Create room</button></div>
+    ${on?`<div class="field">${FB_OK?'':'<p class="hint">Online play only works on the published site with Firebase connected.</p>'}${SIGNED()?'':'<p class="hint">To create a room, sign in. Friends can join with your code or link without an account.</p>'}<button class="primary" id="create" ${FB_OK?'':'disabled style="opacity:.5"'}>${SIGNED()?'Create room':'Sign in to create a room'}</button></div>
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK?'':'disabled'}>Join</button></div></div>`:`
     <button class="primary" id="start">Start game</button>`}
   </section>

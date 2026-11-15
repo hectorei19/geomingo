@@ -367,7 +367,8 @@ function saveSetup(){const el=$('fname');if(el)setup.fname=el.value.trim().slice
 const ACN=()=>{const a=window.Geomingo&&Geomingo.account;return a&&a.user&&a.name?String(a.name).trim().slice(0,16):''};
 function needName(){saveSetup();const an=ACN();if(an){setup.fname=an;return false}if(setup.fname)return false;
   toast("Type your name so your friends know who's playing.",'bad');const el=$('fname');if(el)el.focus();return true}
-async function createRoom(){
+const SIGNED=()=>!!(window.Geomingo&&Geomingo.account&&Geomingo.account.user);
+async function createRoom(){if(!SIGNED()){Geomingo.account.signIn();return}
   if(needName())return;
   if(!initFB()){toast('Online play is not available right now. Check the connection and reload.','bad');return}
   try{let code='';
@@ -556,7 +557,7 @@ function friendsHTML(){
     <p class="hint">2 to ${MAXP} players, each on their own phone. The host creates a room and shares its link or code.</p>
     ${ACN()?'':`<div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||(Geomingo.traveller()==='Guest'?'':Geomingo.traveller()))}"></div>`}
     <div class="field"><span class="label">Time per turn</span>${seg('timer',TIMERS.map(t=>[t,t?t+' s':'Off']),setup.timer)}</div>
-    <div class="field">${FB_OK()?'':'<p class="hint">Online play needs a connection: reload the page when you are online.</p>'}<button class="primary" id="create" ${FB_OK()?'':'disabled style="opacity:.5"'}>Create room</button></div>
+    <div class="field">${FB_OK()?'':'<p class="hint">Online play needs a connection: reload the page when you are online.</p>'}${SIGNED()?'':'<p class="hint">To create a room, sign in. Friends can join with your code or link without an account.</p>'}<button class="primary" id="create" ${FB_OK()?'':'disabled style="opacity:.5"'}>${SIGNED()?'Create room':'Sign in to create a room'}</button></div>
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK()?'':'disabled'}>Join</button></div></div>
   </section>
   <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Everyone plays the same ranking and takes turns naming one country. A country in the top 10 scores 10 points for you; one outside just passes the turn. No lives: you play until the ten are found. Most points win; if level, fewer wrong answers, then the higher places found.</p></section>`}

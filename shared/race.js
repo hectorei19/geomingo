@@ -45,7 +45,8 @@ window.GeoRace=function(cfg){
   function needName(){const an=ACN();if(an){myName=an;return false}const el=$('fname');if(el)myName=el.value.trim().slice(0,16);
     if(!myName){toast('Type your name first.','bad');if(el)el.focus();return true}
     ls.set(K+'-name',myName);return false}
-  async function create(){if(needName())return;
+  const SIGNED=()=>!!(window.Geomingo&&Geomingo.account&&Geomingo.account.user);
+  async function create(){if(!SIGNED()){Geomingo.account.signIn();return}if(needName())return;
     if(!initFB()){toast('Online play could not load. Check the connection and reload the page.','bad');return}
     try{let code='';
       for(let i=0;i<8;i++){code=randRoom();const ex=await db.ref('rooms/'+code).get();if(!ex.exists())break}
@@ -127,7 +128,7 @@ window.GeoRace=function(cfg){
     <p class="hint">Play online, 2 to ${MAX} players, each on their own phone. Everyone gets ${cfg.what} at the same time and sees how the others are doing.</p>
     ${ACN()?'':`<div class="field"><label class="label" for="fname">Your name in the room</label><input class="nameinp" id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(myName)}"></div>`}
     ${FB_OK?'':'<p class="hint">Online play could not load. Check the connection and reload the page.</p>'}
-    <div class="field"><button class="primary" id="create" ${FB_OK?'':'disabled'}>Create room</button></div>
+    <div class="field">${SIGNED()?'':'<p class="hint">To create a room, sign in. Friends can join with your code or link without an account.</p>'}<button class="primary" id="create" ${FB_OK?'':'disabled'}>${SIGNED()?'Create room':'Sign in to create a room'}</button></div>
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(joinCode)}" autocomplete="off"><button class="ghost" id="join" ${FB_OK?'':'disabled'}>Join</button></div></div>
   </section>`;
   R.lobbyHTML=()=>{const r=R.room;
