@@ -74,18 +74,28 @@ async function boot(){OWN=typeof window.initAuth==='function';trialCheck();
     if(typeof firebase.auth!=='function')await script(SDK+'firebase-auth-compat.js');
     if(typeof firebase.database!=='function')await script(SDK+'firebase-database-compat.js');
     if(!firebase.apps.length)firebase.initializeApp(window.FIREBASE_CONFIG&&FIREBASE_CONFIG.apiKey?FIREBASE_CONFIG:CONFIG);
-    db=firebase.database();ok=true}
+    db=firebase.database();ok=true;statsOn()}
   catch(e){ok=false;failed=true;holdOff();changed();return}
   firebase.auth().onAuthStateChanged(onUser);
   if(!OWN)firebase.auth().getRedirectResult().catch(authError)}
 const TS=()=>firebase.database.ServerValue.TIMESTAMP;
+
+/* ---- anonymous usage counters, read only by the owner at geomingo.com/stats: st/<day>/<page>/<what> is a plain number
+   that goes up by 1 (page views, phone or computer, signed in or guest, and Geomingo.stat's open/fin/giveup), plus
+   st/<day>/_hour/h<0-23>. Nothing about the person is sent or kept on the device: no name, no account, no id.
+   Only on geomingo.com and never in test mode. */
+const COUNT=!TEST&&/(^|\.)geomingo\.com$/.test(location.hostname);let seen=0;
+function count(page,k){if(!COUNT||!db||page==='stats')return;db.ref('st/'+T()+'/'+page+'/'+k).set(firebase.database.ServerValue.increment(1)).catch(()=>{})}
+function statsOn(){if(!COUNT||!G.statTo)return;G.statTo(count);const p=G.PAGE;
+  let phone=false;try{phone=matchMedia('(pointer:coarse)').matches}catch(e){}
+  count(p,'view');count(p,phone?'phone':'computer');if(p!=='stats')count('_hour','h'+(+G.madridParts(Date.now()).hour))}
 const uid=()=>user&&user.uid;
 
 // signing out (here, or from Countries' menu) leaves the device clean, as Countries always did:
 // the stats, today's games, the GeoPass and the name go; the account keeps them for the next sign-in
 const DEVICE_KEYS=['bl-daily','bl-hist','bl-games','bl-arch','bl-user','cc-daily','cc-hist','cc-games','cc-arch','cc-user',
   'cx-daily','cx-hist','t10-daily','t10-hist','sil-daily','sil-hist','sil-miss','sil-train','gm-pass','gm-days','gm-acct','gm-lbc','gm-ranks','cx-solo','cx-friends','t10-solo','t10-friends','sil-friends','gm-feats','cu-daily','cu-hist','cu-arch','cu-solo','cu-diff','fp-daily','fp-hist','fp-arch','fp-solo','fp-solo5','fp-diff','im-daily','im-hist','im-arch','im-solo','im-diff','gm-ms'];
-function onUser(u){const was=user;user=u||null;if(!user)holdOff();
+function onUser(u){const was=user;user=u||null;if(!user)holdOff();if(!seen){seen=1;count(G.PAGE,user?'in':'guest')}
   if(was&&!user){DEVICE_KEYS.forEach(k=>ls.set(k,null));ls.set('gm-acct',null);location.reload();return}
   if(user){if(!(LAST&&LAST.u===user.uid))name='';loadName()}
   remember();changed();if(user)setTimeout(scanFeats,2500)}
@@ -194,7 +204,7 @@ function record(g){const id=uid(),A=ADAPT[g],k=T(),t=A&&A.today();if(!id||!db||T
   const e=A.get(k),entry={e:e==null?null:e,j:JSON.stringify(t.j),r:t.r,d:k};
   db.ref('users/'+id+'/hist/'+g+'/'+k).transaction(cur=>cur?undefined:entry)
     .then(x=>{if(x.committed)submit(g,k,t.r);else syncGame(g)}).catch(()=>{})}
-function done(g){if(uid())record(g);else changed()}
+function done(g){G.stat('fin','daily');if(uid())record(g);else changed()}
 
 /* ---- opening a game on a device that was signed in last time: today's game stays behind "Opening today's game…"
    until the account's game of today has come (at most 5 s), so an empty game never flashes before the one played

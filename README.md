@@ -71,6 +71,12 @@ Firebase project `geomingogames` (until Nov 2026 the old project `borderline-909
 - Countries keeps its own paths: `leaderboard/…`, `users/<uid>/daily…` and `profiles/…`. Capitals uses `lb/capitals/…`, `users/<uid>/capitals/…` and `gprofiles/capitals/…` (until 2026-11-14 they were `lb/citygrid`, `users/<uid>/cities` and `gprofiles/citygrid`, moved by `capitals/tools/move-to-capitals.js`).
 - `rooms/<code>` – the With friends rooms of every game (each room is tagged with its game)
 
+Anonymous usage counters: every page adds +1 to `st/<day>/<page>/<what>` (views, phone/computer, signed in/guest,
+`open-`/`fin-`/`giveup-` + daily/solo/friends, and `st/<day>/_hour/h<0-23>`), with no name, account or device id
+(`brand/account.js` `count`, `Geomingo.stat` in `brand/mingo.js`). Only the owner can read them, at
+https://geomingo.com/stats/ (the rules' `ADMIN_UID`; the page copies the rules with the owner's account code filled in).
+Cloudflare Web Analytics is switched on by putting its token in `CF_TOKEN` in `brand/mingo.js`.
+
 The rules are in `countries/database.rules.json`. After changing them, paste them by hand in the Firebase console → Realtime Database → Rules, and Publish.
 
 ## Publishing changes

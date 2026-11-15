@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611161000"></script>
-<script src="../brand/account.js?v=202611160600"></script>
+<script src="../brand/mingo.js?v=202611161230"></script>
+<script src="../brand/account.js?v=202611161200"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -888,6 +888,7 @@ function computeScores(){
     p.lines=lc[i];p.bonus=lc[i]*LINE_BONUS;p.score=p.base+p.speed+p.bonus});
 }
 function liveScore(i){const lc=lineCounts();return S.cells.filter(c=>c.o===i).reduce((a,c)=>a+(c.p||0)+(c.sb||0),0)+lc[i]*LINE_BONUS}
+let statLive=false;
 function endGame(){
   if(S.mode==='online'){onlineAct('end');return}
   S.over=true;clearInterval(tick);ui.sel=-1;
@@ -1686,6 +1687,8 @@ function bindSugg(){layer.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>
 function bind(){
   // the address says Practice (?solo) or With friends (?friends), so F5 keeps you there
   Geomingo.where(S?(S.daily?'':S.mode==='solo'?'solo':'friends'):roomCode||screen==='friends'?'friends':screen==='solo'?'solo':'');
+  // anonymous counter for geomingo.com/stats: a game seen running on this page that has now ended
+  if(S&&!S.over)statLive=true;else if(S&&S.over&&statLive){statLive=false;Geomingo.stat('fin',S.daily?'daily':S.mode==='solo'?'solo':'friends')}else if(!S)statLive=false;
   app.querySelectorAll('[data-seg]').forEach(b=>b.onclick=()=>{const k=b.dataset.seg,v=b.dataset.v;
     setup[k]=(k==='mode'||k==='diff')?v:+v;render()});
   const $=id=>document.getElementById(id);
@@ -1716,7 +1719,7 @@ function bind(){
   if($('brand')){$('brand').onclick=goHome;$('brand').onkeydown=e=>{if(e.key==='Enter')goHome()}}
   if($('home'))$('home').onclick=toHub;
   if($('pass'))$('pass').onclick=pass;
-  if($('giveup'))$('giveup').onclick=()=>{const b=$('giveup');if(b.dataset.armed){endGame()}else{b.dataset.armed='1';b.textContent='Tap again to '+(S&&S.mode==='solo'?'give up':'end the game')}};
+  if($('giveup'))$('giveup').onclick=()=>{const b=$('giveup');if(b.dataset.armed){Geomingo.stat('giveup');endGame()}else{b.dataset.armed='1';b.textContent='Tap again to '+(S&&S.mode==='solo'?'give up':'end the game')}};
   if($('gback')&&S&&S.mode==='online')$('gback').onclick=leaveRoom;
   else if($('gback')&&S&&S.daily&&!S.archive)$('gback').onclick=toHub;
   else if($('gback'))$('gback').onclick=()=>{screen=screenFor(S);clearInterval(tick);S=null;setup.code='';render();window.scrollTo(0,0)};

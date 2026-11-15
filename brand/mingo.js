@@ -543,13 +543,27 @@ document.addEventListener('visibilitychange',()=>{
 // the address says where you are, so a reload (F5) keeps you there: ?solo on Practice, ?friends on With friends,
 // nothing on today's game. Set after the page's start code has run (it may still read ?room, ?p, ?grid); other parts kept.
 let modeWant=null,modeQueued=false;
-function where(m){modeWant=m==='solo'||m==='friends'?m:'';if(modeQueued)return;modeQueued=true;
+function where(m){modeWant=m==='solo'||m==='friends'?m:'';const o=modeWant||'daily';if(!opened.has(o)){opened.add(o);stat('open',o)}
+  if(modeQueued)return;modeQueued=true;
   queueMicrotask(()=>{modeQueued=false;try{const u=new URL(location.href);u.searchParams.delete('solo');u.searchParams.delete('friends');
     let q=u.searchParams.toString();if(modeWant)q=modeWant+(q?'&'+q:'');const to=u.pathname+(q?'?'+q:'')+u.hash;
     if(to!==location.pathname+location.search+location.hash)history.replaceState(history.state,'',to)}catch(e){}})}
+// ---- anonymous usage counters for geomingo.com/stats (sent by account.js): +1 on a number per page and day, for
+// 'open-<mode>' (the first time a page shows today's game, Practice or With friends), 'fin-<mode>' (a game finished)
+// and 'giveup-<mode>'; mode daily | solo | friends (none given: the one on screen). No name, account or device id.
+const PAGE=(location.pathname.split('/').filter(Boolean)[0]||'home').toLowerCase().replace(/[^a-z0-9-]/g,'').slice(0,20)||'home';
+const opened=new Set(),statQ=[];let statSink=null;
+function stat(what,mode){const k=what+'-'+(mode||modeWant||'daily');if(statSink)statSink(PAGE,k);else if(statQ.length<50)statQ.push(k)}
+function statTo(f){statSink=f;statQ.splice(0).forEach(k=>f(PAGE,k))}
+// Cloudflare Web Analytics (visits, countries, phones, where people come from; no cookies): the site's token from
+// dash.cloudflare.com → Analytics & Logs → Web Analytics. Empty: off. Only on geomingo.com, never in test mode.
+const CF_TOKEN='b14a1376d8294064a5d68d966d941dbe';
+try{if(CF_TOKEN&&/(^|\.)geomingo\.com$/.test(location.hostname)&&!new URLSearchParams(location.search).has('test')){
+  const s=document.createElement('script');s.defer=true;s.src='https://static.cloudflareinsights.com/beacon.min.js';
+  s.setAttribute('data-cf-beacon',JSON.stringify({token:CF_TOKEN}));document.head.appendChild(s)}}catch(e){}
 const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,stale:roomStale};
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
   days,streak,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,cl3,clNew,CL3,clFlag,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
-  openWindow,closeWindow,esc,refreshPass,room,where,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
+  openWindow,closeWindow,esc,refreshPass,room,where,stat,statTo,PAGE,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();
