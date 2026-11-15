@@ -74,7 +74,7 @@ Firebase project `geomingogames` (until Nov 2026 the old project `borderline-909
 Anonymous usage counters: every page adds +1 to `st/<day>/<page>/<what>` (views, phone/computer, signed in/guest,
 `open-`/`fin-`/`giveup-` + daily/solo/friends, and `st/<day>/_hour/h<0-23>`), with no name, account or device id
 (`brand/account.js` `count`, `Geomingo.stat` in `brand/mingo.js`). Only the owner can read them, at
-https://geomingo.com/stats/ (the rules' `ADMIN_UID`; the page copies the rules with the owner's account code filled in).
+https://geomingo.com/stats/ (the owner's account id is in the rules' `st` .read; if it is ever missing, the page offers the rules with the signed-in account filled in).
 Cloudflare Web Analytics is switched on by putting its token in `CF_TOKEN` in `brand/mingo.js`.
 
 The rules are in `countries/database.rules.json`. After changing them, paste them by hand in the Firebase console → Realtime Database → Rules, and Publish.
