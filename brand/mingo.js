@@ -18,15 +18,16 @@ const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},s
 /* ---------- the games, each one a trip ----------
    id: the id each game already uses for its saves (Countries kept Borderline's), soon: shown as "Coming soon" */
 const GAMES=[
-  {id:'borderline',name:'Countries',path:'countries/',gate:'1',hint:'Fill the grid with countries'},
-  {id:'citygrid',name:'Capitals',path:'capitals/',gate:'2',hint:'Fill the grid with capitals'},
-  {id:'connections',name:'Connections',path:'connections/',gate:'3',hint:'Find 4 hidden groups'},
-  {id:'top10',name:'Top 10',path:'top10/',gate:'4',hint:'Name the top 10 countries'},
-  {id:'silhouette',name:'Silhouette',path:'silhouette/',gate:'5',hint:'Guess the hidden country'},
-  {id:'customs',name:'Customs',path:'customs/',gate:'6',hint:'Guess the country from clues'},
-  {id:'flagpie',name:'Flag Pie',path:'flagpie/',gate:'7',hint:'Guess the flag from its colours'},
-  {id:'impostor',name:'Impostor',path:'impostor/',gate:'8',hint:'Find the country that doesn\'t fit'},
-  {id:'compass',name:'Compass',path:'compass/',gate:'9',hint:'Find the capital with a compass'}];
+  {id:'borderline',first:'2026-10-15',arch:'bl-arch',name:'Countries',path:'countries/',gate:'1',hint:'Fill the grid with countries'},
+  {id:'citygrid',first:'2026-10-22',arch:'cc-arch',name:'Capitals',path:'capitals/',gate:'2',hint:'Fill the grid with capitals'},
+  {id:'connections',first:'2026-10-19',arch:'cx-arch',name:'Connections',path:'connections/',gate:'3',hint:'Find 4 hidden groups'},
+  {id:'top10',first:'2026-10-19',arch:'t10-arch',name:'Top 10',path:'top10/',gate:'4',hint:'Name the top 10 countries'},
+  {id:'silhouette',first:'2026-10-22',arch:'sil-arch',name:'Silhouette',path:'silhouette/',gate:'5',hint:'Guess the hidden country'},
+  {id:'customs',first:'2026-11-02',arch:'cu-arch',name:'Customs',path:'customs/',gate:'6',hint:'Guess the country from clues'},
+  {id:'flagpie',first:'2026-11-04',arch:'fp-arch',name:'Flag Pie',path:'flagpie/',gate:'7',hint:'Guess the flag from its colours'},
+  {id:'impostor',first:'2026-11-08',arch:'im-arch',name:'Impostor',path:'impostor/',gate:'8',hint:'Find the country that doesn\'t fit'},
+  {id:'compass',first:'2026-11-10',arch:'cm-arch',name:'Compass',path:'compass/',gate:'9',hint:'Find the capital with a compass'}];
+// first: the day of the game's daily #1; arch: where its Archive games are kept on this device (Menu → Archive reads both)
 GAMES.forEach(g=>g.href=ROOT+g.path);
 const live=()=>GAMES.filter(g=>!g.soon);
 const game=id=>GAMES.find(g=>g.id===id);
@@ -572,9 +573,14 @@ const CF_TOKEN='b14a1376d8294064a5d68d966d941dbe';
 try{if(CF_TOKEN&&/(^|\.)geomingo\.com$/.test(location.hostname)&&!new URLSearchParams(location.search).has('test')){
   const s=document.createElement('script');s.defer=true;s.src='https://static.cloudflareinsights.com/beacon.min.js';
   s.setAttribute('data-cf-beacon',JSON.stringify({token:CF_TOKEN}));document.head.appendChild(s)}}catch(e){}
+/* Menu → Archive opens a game on a past day with ?day=2026-11-14: the day asked for, when it is one of that game's
+   past dailies (from its first to yesterday), else null. The ?day is taken off the address. */
+function askedDay(first){try{const q=new URLSearchParams(location.search),k=q.get('day');if(k==null)return null;q.delete('day');
+  history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:''));
+  return /^\d{4}-\d{2}-\d{2}$/.test(k)&&k>=first&&k<dayKey()?k:null}catch(e){return null}}
 const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,stale:roomStale};
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
   days,streak,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
-  openWindow,closeWindow,esc,refreshPass,room,where,mode,lives,setLives,stat,statTo,PAGE,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
+  openWindow,closeWindow,esc,refreshPass,room,where,mode,askedDay,lives,setLives,stat,statTo,PAGE,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();

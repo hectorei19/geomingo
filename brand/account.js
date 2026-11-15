@@ -383,7 +383,7 @@ function acctHTML(){const u=who();if(u===undefined)return '';
   if(!u)return '<button class="gm-acct" data-gm-acctmenu aria-haspopup="dialog" aria-label="Menu and sign in">Sign in'+CHEV+'</button>';
   const n=name||u.displayName||'';
   return '<button class="gm-acct me" data-gm-acctmenu aria-haspopup="dialog" aria-label="Menu. Your account: '+esc(n)+'" title="'+esc(n)+'"><span class="av">'+esc((n.trim()[0]||'·').toUpperCase())+'</span>'+CHEV+'</button>'}
-/* the Menu, the same on the home page and in every game (Héctor 2026-11-15, option D): your account on top, then GeoPass, Ranking, Send feedback.
+/* the Menu, the same on the home page and in every game (Héctor 2026-11-15, option D): your account on top, then GeoPass, Ranking, Archive, Send feedback.
    FAQ, Contact, Privacy and Sources are in the line of links at the bottom of the home page (G.openFaq, G.openFeedback, G.openCredits).
    Each game's own "Menu" button keeps How to play, its stats and its sources. */
 const CONTACT_EMAIL='hello@geomingo.com';
@@ -409,9 +409,12 @@ function openMenu(){const u=who();let km=0;try{km=G.geo().km}catch(e){}
     game='<h5 class="gh">'+esc(g.name)+'</h5><ul>'+g.items.map((x,i)=>it('g'+i,x[2],x[1],x[0],'')).join('')+'</ul><h5 class="gh">Geomingo</h5>'}
   mwin('Menu',box+game+'<ul>'+it('gp','#D4AD4B','gp','My GeoPass',sub('Stamps, countries and visas'),'<span class="mt">'+EU(Math.round(km))+' km</span>')+
     it('rank','#5FC28F','rank','Ranking',sub('Today, this week, this month'))+
+    it('arch','#7FA2F0','cal','Archive',sub('Play past days of all '+G.ALLW+' games'))+
     it('fb','#F07884','mail','Send feedback',sub('Ideas, mistakes, anything'))+'</ul>'+
     (g&&g.sources?'<button class="gm-text msrc" data-gm-act="gsrc">'+esc(g.name)+' data sources</button>':''),
     Object.assign(acts,{gp:()=>G.openPass('passport'),fb:openFeedback,gsrc:()=>{G.closeWindow();g.sources()},
+     // Archive: a calendar of past days on the home page, for all the games (Héctor 2026-11-15); from a game it opens the home page there
+     arch:()=>{G.closeWindow();if(typeof G.showArchive==='function')G.showArchive();else location.href=HOME_URL+'#archive'},
      // the ranking is on the home page: there it scrolls to it, from a game it opens the home page at the ranking
      rank:()=>{G.closeWindow();if(typeof G.showRanking==='function')G.showRanking();else location.href=HOME_URL+'#ranking'}}))}
 // a game tells the Menu its own lines: setGameMenu({name:'Countries',items:[[label,icon,colour,fn],…],sources:fn})

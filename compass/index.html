@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611171100"></script>
-<script src="../brand/account.js?v=202611171500"></script>
+<script src="../brand/mingo.js?v=202611171600"></script>
+<script src="../brand/account.js?v=202611171600"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -94,7 +94,7 @@
 <script src="../capitals/data.js?v=202611121400"></script>
 <script src="clues.js?v=202611100915"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611171500"></script>
+<script src="../shared/minigames.js?v=202611171600"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
@@ -404,7 +404,7 @@ function bind(){
   if($('home'))$('home').onclick=toHub;
   if($('playsolo'))$('playsolo').onclick=openSolo;
   if($('soloback'))$('soloback').onclick=openSolo;
-  if($('archback'))$('archback').onclick=openArchive;
+  if($('archback'))$('archback').onclick=toArchive;
   if($('tagain'))$('tagain').onclick=openTrain;
   if($('copy')&&view!=='room')$('copy').onclick=()=>share(view==='train'&&T?soloShare(T):dailyShare(D));
   app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
@@ -415,7 +415,8 @@ function bind(){
   if(TV&&T&&!T.over)bindAnswer(T,trainPick);
   else if(view==='daily'&&D&&!D.over)bindAnswer(D,dailyPick)}
 RACE.boot();
-render();
+// Menu → Archive: ?day=2026-11-14 opens that past day
+{const ak=Geomingo.askedDay(FIRST);if(ak)openDay(ak);else render()}
 // a new day while the page was in the background: today's new capitals
 document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(view==='daily'&&D&&D.mode==='daily'&&D.date!==todayKey()){D=null;openDaily()}});
 </script>
