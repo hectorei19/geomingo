@@ -50,10 +50,10 @@ const ADAPT={
   connections:simple('cx-hist','cx-daily',S=>({s:(S.found||[]).length,m:S.mistakes||0})),
   top10:simple('t10-hist','t10-daily',S=>({s:(S.found||[]).length,m:(S.wrong||[]).length})),
   'sil-easy':silhouette('easy'),'sil-normal':silhouette('normal'),'sil-hard':silhouette('hard'),
-  customs:simple('cu-hist','cu-daily',S=>({s:(S.qs||[]).reduce((n,q)=>n+(q.st==='right'?6-q.k:0),0),r:(S.qs||[]).filter(q=>q.st==='right').length,m:(S.qs||[]).reduce((n,q)=>n+(q.tries||[]).length,0)})),
-  flagpie:simple('fp-hist','fp-daily',S=>({x3:(S.qs||[]).some(q=>q.x3)?1:0,s:(S.qs||[]).reduce((n,q)=>n+G.fpFlag(q),0),r:(S.qs||[]).filter(q=>q.st==='right').length,m:(S.qs||[]).reduce((n,q)=>n+(q.tries||[]).length,0)})),
+  customs:simple('cu-hist','cu-daily',S=>({x3:(S.qs||[]).some(q=>q.x3)?1:0,s:(S.qs||[]).reduce((n,q)=>n+G.clFlag(q),0),r:(S.qs||[]).filter(q=>q.st==='right').length,m:(S.qs||[]).reduce((n,q)=>n+(q.tries||[]).length,0)})),
+  flagpie:simple('fp-hist','fp-daily',S=>({x3:(S.qs||[]).some(q=>q.x3)?1:0,s:(S.qs||[]).reduce((n,q)=>n+G.clFlag(q),0),r:(S.qs||[]).filter(q=>q.st==='right').length,m:(S.qs||[]).reduce((n,q)=>n+(q.tries||[]).length,0)})),
   impostor:simple('im-hist','im-daily',S=>({x3:(S.qs||[]).some(q=>q.x3)?1:0,s:(S.qs||[]).reduce((n,q)=>n+G.impRound(q),0),r:(S.qs||[]).filter(q=>q.st==='right').length,m:(S.qs||[]).filter(q=>q.st==='wrong'&&q.pick).length})),
-  compass:simple('cm-hist','cm-daily',S=>({s:(S.qs||[]).reduce((n,q)=>n+(q.st==='right'?+q.p||0:0),0),r:(S.qs||[]).filter(q=>q.st==='right').length,m:(S.qs||[]).reduce((n,q)=>n+(q.tries||[]).length,0)}))};
+  compass:simple('cm-hist','cm-daily',S=>({x3:(S.qs||[]).some(q=>q.x3)?1:0,s:(S.qs||[]).reduce((n,q)=>n+(q.st==='right'?+q.p||0:0),0),r:(S.qs||[]).filter(q=>q.st==='right').length,m:(S.qs||[]).reduce((n,q)=>n+(q.tries||[]).length,0)}))};
 
 /* ---- Firebase ---- */
 // set further down: a page that was signed in last time waits for the account's game of today (see holdOff)
@@ -226,7 +226,7 @@ function watch(g){if(!ok||TEST)return;const k=T();if(lbRef[g]&&lbRef[g].day===k)
   lbRef[g].on('value',s=>{LB[g]={date:k,rows:s.val()||{}};keepLB(g);changed()},()=>{LB[g]={date:k,rows:null,off:true};changed()})}
 // from G.KM_FROM the ranking is by the game's points (the same table as the km), then fewer mistakes, then who finished first
 const PTS={connections:r=>G.cxPts(r.s,r.m),top10:r=>G.KM.top10(r.s,r.m),'sil-easy':r=>G.KM.sil(r.s,r.m),'sil-normal':r=>G.KM.sil(r.s,r.m),'sil-hard':r=>G.KM.sil(r.s,r.m),
-  customs:r=>G.KM.clue(r.r,r.s,5),flagpie:r=>G.KM.pie(r.r,r.s,T(),r.x3,5),compass:r=>G.KM.clue(r.r,r.s,5),impostor:r=>G.KM.imp(r.r,r.s,T(),r.x3)};
+  customs:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),flagpie:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),compass:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),impostor:r=>G.KM.imp(r.r,r.s,T(),r.x3)};
 const rankPts=(g,r)=>PTS[g]&&G.newKm(T())?PTS[g](r):r.s;
 const sorted=g=>Object.entries((LB[g]&&LB[g].rows)||{}).map(([id,v])=>Object.assign({id},v)).sort((a,b)=>rankPts(g,b)-rankPts(g,a)||b.s-a.s||(a.m||0)-(b.m||0)||(a.t||0)-(b.t||0));
 function mine(g){const me=meId();if(!me)return null;watch(g);const rows=sorted(g),i=rows.findIndex(r=>r.id===me);
@@ -253,9 +253,9 @@ function rankingHTML(g,o){const u=who();if(TEST||u===undefined)return '';o=o||{}
    the seconds the game took (sec, sent from 2026-11 on). mingo.js visas() reads it. */
 const FEATS=[['borderline','leaderboard','bl-hist',r=>(+r.c||0)>=8,e=>e&&e.f!==0],['citygrid','lb/capitals','cc-hist',r=>(+r.c||0)>=8,e=>e&&e.f!==0],
   ['connections','lb/connections','cx-hist',r=>(+r.s||0)>=2,e=>!!e],['top10','lb/top10','t10-hist',r=>(+r.s||0)>=5,e=>!!e],
-  ['silhouette','lb/sil-normal','sil-hist',r=>(+r.s||0)>=5,e=>e&&e.normal!=null],['customs','lb/customs','cu-hist',r=>(+r.s||0)>=13,e=>!!e],
-  ['flagpie','lb/flagpie','fp-hist',(r,d)=>(+r.s||0)>=(G.fpNew(d,r.x3)?50:13),e=>!!e],['impostor','lb/impostor','im-hist',(r,d)=>(+r.s||0)>=(G.impNew(d,r.x3)?45:15),e=>!!e],
-  ['compass','lb/compass','cm-hist',r=>(+r.s||0)>=13,e=>!!e]];
+  ['silhouette','lb/sil-normal','sil-hist',r=>(+r.s||0)>=5,e=>e&&e.normal!=null],['customs','lb/customs','cu-hist',(r,d)=>(+r.s||0)>=(G.clNew(d,r.x3)?50:13),e=>!!e],
+  ['flagpie','lb/flagpie','fp-hist',(r,d)=>(+r.s||0)>=(G.clNew(d,r.x3)?50:13),e=>!!e],['impostor','lb/impostor','im-hist',(r,d)=>(+r.s||0)>=(G.impNew(d,r.x3)?45:15),e=>!!e],
+  ['compass','lb/compass','cm-hist',(r,d)=>(+r.s||0)>=(G.clNew(d,r.x3)?50:13),e=>!!e]];
 let featBusy=false;
 const featStore=me=>{const c=json('gm-feats');return c&&c.u===me&&c.r?c:{u:me,r:{}}};
 function featsOf(rows,me,half){const L=Object.entries(rows||{}).map(([id,v])=>Object.assign({id},v)),i=L.slice().sort(lbOrder).findIndex(r=>r.id===me);

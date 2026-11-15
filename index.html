@@ -24,8 +24,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
 <link rel="stylesheet" href="brand/geomingo.css?v=202611142200">
-<script src="brand/mingo.js?v=202611160520"></script>
-<script src="brand/account.js?v=202611160520"></script>
+<script src="brand/mingo.js?v=202611160540"></script>
+<script src="brand/account.js?v=202611160540"></script>
 <style>
 /* Home page: Sign in and Menu on top, today's games as colour tiles, Practice and With friends, then the GeoPass
    (km, level, today's stamps) and the ranking by km (today, this week, this month) */
@@ -361,8 +361,8 @@ const GR=(r,d)=>N(d)?K.grid(r.s,r.c,4,r.w):pts((+r.c||0)/16);
 const LB=[['leaderboard','borderline',GR],['lb/capitals','citygrid',GR],
   ['lb/connections','connections',r=>cxPts(r.s,r.m)],['lb/top10','top10',(r,d)=>N(d)?K.top10(r.s,r.m):pts((+r.s||0)/10)],
   ...['easy','normal','hard'].map(x=>['lb/sil-'+x,'silhouette',(r,d)=>N(d)?K.sil(r.s,r.m):pts((+r.s||0)/9)]),
-  ['lb/customs','customs',(r,d)=>N(d)?K.clue(r.r,r.s,5):r.r!=null?clPts(r.r,r.s,5):pts((+r.s||0)/25)],['lb/flagpie','flagpie',(r,d)=>N(d)?K.pie(r.r,r.s,d,r.x3,5):r.r!=null?clPts(r.r,r.s,5):pts((+r.s||0)/25)],
-  ['lb/impostor','impostor',(r,d)=>N(d)?K.imp(r.r,r.s,d,r.x3):r.r!=null?clPts(r.r,r.s,6):pts((+r.s||0)/30)],['lb/compass','compass',(r,d)=>N(d)?K.clue(r.r,r.s,5):clPts(r.r,r.s,5)]];
+  ['lb/customs','customs',(r,d)=>N(d)?K.cl3(r.r,r.s,d,r.x3,5):r.r!=null?clPts(r.r,r.s,5):pts((+r.s||0)/25)],['lb/flagpie','flagpie',(r,d)=>N(d)?K.pie(r.r,r.s,d,r.x3,5):r.r!=null?clPts(r.r,r.s,5):pts((+r.s||0)/25)],
+  ['lb/impostor','impostor',(r,d)=>N(d)?K.imp(r.r,r.s,d,r.x3):r.r!=null?clPts(r.r,r.s,6):pts((+r.s||0)/30)],['lb/compass','compass',(r,d)=>N(d)?K.cl3(r.r,r.s,d,r.x3,5):clPts(r.r,r.s,5)]];
 const AV=['#7FA2F0','#F07884','#5FC28F','#D4AD4B','#A98BE0','#C99B78'];
 const TABS=[['day','Today','Nobody has earned km today yet. New day at midnight CET.'],
   ['week','This week','Nobody has earned km this week yet. New week every Monday.'],
@@ -390,7 +390,7 @@ let OPEN=null;
 const DC={borderline:'#7FA2F0',citygrid:'#5FC28F',connections:'#D4AD4B',top10:'#A98BE0',silhouette:'#C99B78',customs:'#F07884',flagpie:'#6FC7C7',impostor:'#E58FC0',compass:'#B5D46A'};
 // the daily grids of Countries and Capitals are 4×4; Customs and Flag Pie give up to 25 points, Impostor up to 30
 const OUTOF={borderline:16,citygrid:16,connections:4,top10:10,silhouette:9,customs:25,flagpie:25,impostor:30,compass:25};
-const scoreText=(id,r)=>(id==='borderline'||id==='citygrid'?r.c:r.s)+(OUTOF[id]?'/'+(r.x3&&id==='flagpie'?100:OUTOF[id]):'');
+const scoreText=(id,r)=>(id==='borderline'||id==='citygrid'?r.c:r.s)+(OUTOF[id]?'/'+(r.x3&&(id==='flagpie'||id==='customs'||id==='compass')?100:OUTOF[id]):'');
 // This week / This month: each game's km over the whole period (and on how many days), you vs them
 function periodHTML(p,me){p=RANK.ppl.find(x=>x.id===p.id)||p;const ds=tabDays(TAB),self=p.id===me,nm=p.name.trim()||'Player',fn=esc(nm.split(' ')[0].slice(0,8)),word=TAB==='week'?'This week':'This month';
   const mp=me&&RANK.ppl.find(x=>x.id===me),sum=(q,id)=>{let km=0,n=0;if(q&&q.g)for(const d of ds){const v=q.g[d]&&q.g[d][id];if(v){km+=v;n++}}return{km,n}};
