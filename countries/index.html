@@ -322,7 +322,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .cell.flag .cc{position:absolute;left:0;bottom:0;z-index:1;background:#0F1626;color:#fff;font-family:var(--display);font-weight:800;font-stretch:75%;font-size:clamp(.66rem,2.8vw,.85rem);letter-spacing:0;padding:2px 5px 1px 4px;border-radius:0 7px 0 0;line-height:1.15}
 .b5 .cell.flag .cc{font-size:.6rem;padding:1px 4px 0 3px;border-radius:0 5px 0 0}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611150700">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611161000">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -1572,7 +1572,7 @@ function gameView(){
         // the same four boxes in every game (Héctor, 2026-11-10): today's km in the daily, the class in Practice and the archive
         +(S.daily&&!S.archive?cell('km',Geomingo.newKm(S.daily)?Geomingo.KM.grid(S.players[0].score,S.cells.filter(c=>c.o===0).length,S.n,LIVES-livesLeft()):Geomingo.pts(S.cells.filter(c=>c.o===0).length/(S.n*S.n)),'tk-pts'):cell('Class',DLABEL[S.diff||'normal'],'tk-pts'))+(S.nolives?cell('Mistakes',S.wrong,'tk-gs'):cell('Lives',livesDots(livesLeft(),LIVES),'tk-gs'))+time
       :S.players.map((q,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${q.on===false?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(q.name)}</i><b>${liveScore(i)}</b></div>`).join('')+time;
-    h+=Geomingo.ticket(say,stub,{timer:S.timer,color:S.mode==='solo'?'':`var(--p${S.turn})`,mode:S.daily?(S.archive?'archive':'daily'):S.mode==='solo'?'practice':'',num:S.day});
+    h+=Geomingo.ticket(say,stub,{timer:S.timer,color:S.mode==='solo'?'':`var(--p${S.turn})`,mode:S.daily?(S.archive?'archive':'daily'):S.mode==='solo'?'practice':'friends',num:S.day});
   }
   mark=h.length;
   h+=`<div class="board-wrap"><div class="board b${n}" lang="en" style="grid-template-columns:minmax(0,1.25fr) repeat(${n},minmax(0,1fr))">`;

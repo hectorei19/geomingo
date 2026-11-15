@@ -357,13 +357,14 @@ function soloTicket(o){o=o||{};const g=GAMES.find(x=>x.id===o.id);
 function tk(k,v,c){return '<div class="tk-c'+(c?' '+c:'')+'"><i>'+k+'</i><b>'+v+'</b></div>'}
 /* o.mode puts a coloured strip on top so you always know what you are playing:
    'daily' (gold, "★ Daily #N · Counts for ranking"), 'practice' (Mingo pink, "Practice") or 'archive' (Mingo pink, "Archive #N"); o.num is the number.
-   Practice and archive also turn the ticket's edge Mingo pink. Rooms with friends pass no mode and keep the plain ticket. */
+   Practice and archive also turn the ticket's edge Mingo pink. 'friends' (or 'online'): blue strip "With friends" and blue edge (games with turns too: whose turn it is shows only in that player's box and the time bar). */
 function ticket(say,stub,o){o=o||{};const m=o.mode,n=o.num!=null?' #'+o.num:'';
   const strip=m==='daily'?'<div class="tk-mode daily"><span>★ Daily'+n+'</span><span>Counts for ranking</span></div>'
     :m==='practice'?'<div class="tk-mode practice"><span>Practice</span></div>'
-    :m==='archive'?'<div class="tk-mode practice"><span>Archive'+n+'</span></div>':'';
+    :m==='archive'?'<div class="tk-mode practice"><span>Archive'+n+'</span></div>'
+    :m==='friends'||m==='online'?'<div class="tk-mode friends"><span>With friends</span></div>':'';
   // o.color (a game with turns): the whole ticket takes the colour of the player whose turn it is (.tk-turn, --pc)
-  return '<section class="ticket'+(m==='practice'||m==='archive'?' tk-practice':'')+(o.color?' tk-turn" style="--pc:'+o.color:'')+'">'+strip+say+'<div class="tk-tear" aria-hidden="true"></div><div class="tk-stub">'+stub+'</div>'+(o.timer?'<span class="tbar" style="width:100%'+(o.color?';background:'+o.color:'')+'"></span>':'')+'</section>'}
+  return '<section class="ticket'+(m==='practice'||m==='archive'?' tk-practice':m==='friends'||m==='online'?' tk-friends':'')+(o.color?' tk-turn" style="--pc:'+o.color:'')+'">'+strip+say+'<div class="tk-tear" aria-hidden="true"></div><div class="tk-stub">'+stub+'</div>'+(o.timer?'<span class="tbar" style="width:100%'+(o.color?';background:'+o.color:'')+'"></span>':'')+'</section>'}
 // the traveller's name on the ticket: the account's, else the one played with in Countries or Capitals
 function traveller(){const a=window.Geomingo&&window.Geomingo.account;return ((a&&a.name)||store.get('bl-user')||store.get('cc-user')||'Guest').trim().slice(0,16)||'Guest'}
 
