@@ -140,6 +140,11 @@ body:has(.gm-done) .gm-title small{display:none}
 .ticket.tk-practice{border-color:var(--coral)}
 .ticket.tk-practice .tk-tear{border-top-color:color-mix(in srgb,var(--coral) 45%,transparent)}
 .ticket.tk-practice .tk-tear::before,.ticket.tk-practice .tk-tear::after{border-color:var(--coral)}
+/* With friends: the blue Practice used before (Héctor 2026-11-15) */
+.tk-mode.friends{background:var(--blue);color:#0C1220}
+.ticket.tk-friends{border-color:var(--blue)}
+.ticket.tk-friends .tk-tear{border-top-color:color-mix(in srgb,var(--blue) 50%,transparent)}
+.ticket.tk-friends .tk-tear::before,.ticket.tk-friends .tk-tear::after{border-color:var(--blue)}
 .tk-stub{display:flex;flex-wrap:wrap;gap:6px 4px;padding:8px 6px 10px}
 .tk-c{flex:1 1 auto;min-width:58px;display:flex;flex-direction:column;gap:2px;padding:4px 8px;border-radius:8px;border:1px solid transparent}
 .tk-c.tk-name{flex-grow:1.4;min-width:0;max-width:40%}
@@ -164,6 +169,10 @@ body:has(.gm-done) .gm-title small{display:none}
 .ticket.tk-turn .tk-c.pl.on i{color:var(--pc);font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.01em}
 .ticket.tk-turn .tk-c.pl.on .pin{width:12px;height:12px}
 @media (prefers-reduced-motion:reduce){.ticket.tk-turn .tbar.low{animation:none}}
+/* With friends with turns: the ticket stays plain blue (no thick coloured edge or glow); whose turn it is shows only in that player's box and the time bar (Héctor 2026-11-15) */
+.ticket.tk-friends.tk-turn{border:1.5px solid var(--blue);box-shadow:var(--shadow)}
+.ticket.tk-friends.tk-turn .tk-tear{border-top-color:color-mix(in srgb,var(--blue) 50%,transparent)}
+.ticket.tk-friends.tk-turn .tk-tear::before,.ticket.tk-friends.tk-turn .tk-tear::after{border-color:var(--blue)}
 @keyframes gm-pop{0%{transform:translateY(4px);opacity:.4}100%{transform:none;opacity:1}}
 
 /* section heading (home page) */
