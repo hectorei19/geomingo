@@ -580,7 +580,8 @@ html.gm-walled,html.gm-walled body{overflow:hidden}
 .hw .acctbox span{font-size:13px;color:var(--muted)}
 .hw .acctbox .out{background:none;border:0;padding:6px 0;color:#F3D98B;text-decoration:underline;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
 .hw .acctbox.guest{flex-wrap:wrap}.hw .acctbox.guest .gbtn{width:100%}
-.hw .mfoot{text-align:center;font-size:13px}
+.hw .fb{display:flex;flex-direction:column;gap:12px}.hw .fb p{margin:0;color:var(--ink);font-size:15px;line-height:1.5}
+.hw .fb a.gm-big{text-decoration:none;font-weight:700}.hw .fb .fbm{text-align:center;color:var(--muted);font-size:13px}
 /* How the GeoPass works: its list is made for the cream passport page, so here it gets light text on the dark window */
 .hw .gp-how{margin:0;color:var(--ink);font-size:15px;gap:10px}
 .hw .gp-how b{color:#F3D98B}
