@@ -123,7 +123,8 @@ window.GeoRace=function(cfg){
   R.inGame=()=>R.screen==='room'&&R.room&&R.room.status==='play'&&!!R.G;
   // the chips above the game: everyone's points and where they are
   R.scoresHTML=()=>`<div class="scores" aria-label="Players">${players().map(p=>`<span class="chip${p.cur&&p.done?' done':''}${p.on===false?' off':''}"><span class="pin" style="${pinStyle(p.i)}"></span>${esc(p.name)}<small>${!p.cur?'joining':(p.s||0)+' pts'+(p.done?' ✓':' · '+(p.at||1)+'/'+cfg.total)}</small></span>`).join('')}</div>`;
-  R.friendsHTML=()=>cfg.header(cfg.name,'')+`<section class="panel">
+  // in the one room for all nine games (../brand/party.js) the room's own screen takes over: nothing of this game's
+  R.friendsHTML=()=>(Geomingo.party&&Geomingo.party.on())?cfg.header(cfg.name,''):cfg.header(cfg.name,'')+`<section class="panel">
     <div class="backline"><span class="ht">With friends</span></div>
     <p class="hint">Play online, 2 to ${MAX} players, each on their own phone. Everyone gets ${cfg.what} at the same time and sees how the others are doing.</p>
     ${ACN()?'':`<div class="field"><label class="label" for="fname">Your name in the room</label><input class="nameinp" id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(myName)}"></div>`}
@@ -131,7 +132,7 @@ window.GeoRace=function(cfg){
     <div class="field">${SIGNED()?'':'<p class="hint">To create a room, sign in. Friends can join with your code or link without an account.</p>'}<button class="primary" id="create" ${FB_OK?'':'disabled'}>${SIGNED()?'Create room':'Sign in to create a room'}</button></div>
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(joinCode)}" autocomplete="off"><button class="ghost" id="join" ${FB_OK?'':'disabled'}>Join</button></div></div>
   </section>`;
-  R.lobbyHTML=()=>{const r=R.room;
+  R.lobbyHTML=()=>{const r=R.room;if(Geomingo.party&&Geomingo.party.on())return cfg.header(cfg.name,'');
     if(!r)return cfg.header(cfg.name,'')+'<section class="panel"><p class="hint">Connecting to the room…</p></section>';
     const o=order(r),host=r.host===ME;
     return cfg.header(cfg.name,'Room '+R.code)+`<section class="panel namecard">

@@ -38,7 +38,7 @@
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611161230"></script>
 <script src="../brand/account.js?v=202611161200"></script>
-<script src="../brand/party.js?v=202611151200"></script>
+<script src="../brand/party.js?v=202611151300"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -552,7 +552,7 @@ function homeHTML(){const key=todayKey(),num=dayNum(key,T10_FIRST),d=dailySaved(
     ${quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}`}
 function goHome(){if(roomCode){if(!confirm('Leave the room and go to the home screen?'))return;leaveRoom().then(()=>{view='home';render()});return}
   view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
-function friendsHTML(){
+function friendsHTML(){if(Geomingo.party&&Geomingo.party.on())return header('Top <span>10</span>','');
   return header('Top <span>10</span>','')+`<section class="panel">
     <div class="backline"><span class="ht">With friends</span></div>
     <p class="hint">2 to ${MAXP} players, each on their own phone. The host creates a room and shares its link or code.</p>
@@ -564,7 +564,7 @@ function friendsHTML(){
 // the one room for all nine games (../brand/party.js) drives this game's room
 if(Geomingo.party)Geomingo.party.game({room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
   count:()=>room?lobbyOrder(room).length:0,names:()=>room?lobbyOrder(room).map(k=>room.players[k].name):[],create:createRoom,join:joinRoom,start:()=>onlineAct('start')});
-function lobbyHTML(){const r=room,order=lobbyOrder(r),link=pageLink('?room='+roomCode);
+function lobbyHTML(){if(Geomingo.party&&Geomingo.party.on())return header('Top <span>10</span>','');const r=room,order=lobbyOrder(r),link=pageLink('?room='+roomCode);
   return header('Top <span>10</span>','room '+roomCode)+`<section class="panel namecard"><span class="label">Room code</span><p class="roomcode">${roomCode}</p>
     <p class="hint">Friends open Top 10, choose <b>With friends</b>, then type this code under Join. Or send them the link:</p>
     <pre class="sharebox" id="linkbox">${esc(link)}</pre><button class="ghost" id="copylink">Copy link</button>
