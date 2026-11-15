@@ -264,7 +264,7 @@ function rankingHTML(g,o){const u=who();if(TEST||u===undefined)return '';o=o||{}
 const FEATS=[['borderline','leaderboard','bl-hist',r=>(+r.c||0)>=8,e=>e&&e.f!==0],['citygrid','lb/capitals','cc-hist',r=>(+r.c||0)>=8,e=>e&&e.f!==0],
   ['connections','lb/connections','cx-hist',r=>(+r.s||0)>=2,e=>!!e],['top10','lb/top10','t10-hist',r=>(+r.s||0)>=5,e=>!!e],
   ['silhouette','lb/sil-normal','sil-hist',r=>(+r.s||0)>=5,e=>e&&e.normal!=null],['customs','lb/customs','cu-hist',(r,d)=>(+r.s||0)>=(G.clNew(d,r.x3)?50:13),e=>!!e],
-  ['flagpie','lb/flagpie','fp-hist',(r,d)=>(+r.s||0)>=(G.clNew(d,r.x3)?50:13),e=>!!e],['impostor','lb/impostor','im-hist',(r,d)=>(+r.s||0)>=(G.impNew(d,r.x3)?45:15),e=>!!e],
+  ['flagpie','lb/flagpie','fp-hist',(r,d)=>(+r.s||0)>=(G.clNew(d,r.x3)?50:13),e=>!!e],['impostor','lb/impostor','im-hist',(r,d)=>(+r.s||0)>=(G.imp5(d)?50:G.impNew(d,r.x3)?45:15),e=>!!e],
   ['compass','lb/compass','cm-hist',(r,d)=>(+r.s||0)>=(G.clNew(d,r.x3)?50:13),e=>!!e]];
 let featBusy=false;
 const featStore=me=>{const c=json('gm-feats');return c&&c.u===me&&c.r?c:{u:me,r:{}}};
