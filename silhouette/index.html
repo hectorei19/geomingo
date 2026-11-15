@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611161230"></script>
+<script src="../brand/mingo.js?v=202611161330"></script>
 <script src="../brand/account.js?v=202611161200"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -104,7 +104,6 @@ const LIVES=5,DIFF_NAME={easy:'Easy',normal:'Easy',hard:'Hard'};
 /* two levels to choose (15 Nov 2026): Easy = all 197 countries north up (the old Easy and Normal together), and Hard.
    'easy' (the 54 best-known) stays only inside "Getting harder" rooms and in old saves. */
 const lvOf=d=>d==='hard'?'hard':'normal';
-const DIFF_HINT={easy:'Well-known countries, north up',normal:'All 197 countries, north up',hard:'All 197, each shape turned'};
 const newQ=(c,rot)=>({c,rot:rot||0,tries:[],st:'play'});
 const flagSrc=c=>'../flagpie/flags/'+c+'.svg';
 const contName={EU:'Europe',AS:'Asia',AF:'Africa',NA:'North and Central America',SA:'South America',OC:'Oceania'};
@@ -163,16 +162,10 @@ function trainNext(){const pool=poolOf(T.diff).map(c=>c.c);
   if(!T.deck||!T.deck.length)T.deck=shuffled(pool,Math.random).filter(c=>c!==(T.q&&T.q.c));
   const c=T.deck.pop();T.q=newQ(c,T.diff==='hard'?hardTurn(Math.random):0);query='';typing=false}
 function openTrain(){const st=trainStats();
-  T={diff:lvOf(load('sil-diff','normal')),nolives:load('sil-nolives',0)?1:0,streak:0,miss:0,over:false,deck:null,q:null,best:st};trainNext();view='train';render();window.scrollTo(0,0)}
-// Solo's start screen, as in every game: the level, then Start game
-function openSolo(){view='solo';query='';typing=false;render();window.scrollTo(0,0)}
-function soloHTML(){const diff=lvOf(load('sil-diff','normal')),nl=load('sil-nolives',0)?1:0;
-  return header('Silhou<span>ette</span>','Solo')+`<section class="panel">
-    <div class="backline"><span class="ht">Solo</span></div>
-    <p class="hint">Name shape after shape${nl?'':` until your ${LIVES} lives are gone`}. No country comes back until you have seen them all.</p>
-    <div class="field"><span class="label">Difficulty</span>${seg('diff',[['normal','Easy'],['hard','Hard']],diff)}<p class="hint">${DIFF_HINT[diff]}.</p></div>
-    <div class="field"><span class="label">Lives</span>${seg('nolives',[[0,LIVES+' lives'],[1,'No lives']],nl)}<p class="hint">${nl?'Training: play as long as you like. Skip a shape you can\'t name; Give up ends the game.':'A wrong answer costs one. The game ends when they are gone.'}</p></div>
-    <button class="primary" id="start">Start game</button></section>${quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}`}
+  T={diff:'normal',nolives:Geomingo.lives()?0:1,streak:0,miss:0,over:false,deck:null,q:null,best:st};trainNext();view='train';render();window.scrollTo(0,0)}
+// Practice has no setup screen (Héctor 2026-11-15): a game starts at once, at the daily level (Easy, all 197 north up),
+// with the lives chosen on the home page's Practice screen (5 lives or Unlimited)
+function openSolo(){openTrain()}
 const trainLeft=()=>Math.max(0,LIVES-T.miss);
 function trainPick(code){const q=T.q;if(q.st!=='play'||T.over)return;
   // with no lives (training) a miss never ends the game: you keep trying, skip the shape or give up
@@ -191,13 +184,13 @@ function trainHTML(){const q=T.q,s=trainStats()[T.diff]||{best:0},done=q.st!=='p
   let h=header('Silhou<span>ette</span>','Solo');
   if(!T.over)h+=`<div class="backline"><span class="ht">Solo</span></div>`;
   // game over (no ← Back line then, as on today's result): the pink ticket with the last shape and its name inside, then New game (Héctor 2026-11-14)
-  if(T.over)return h+Geomingo.soloTicket({id:'silhouette',what:DIFF_NAME[T.diff]+(T.nolives?' · No lives':''),score:T.streak+' named',best:'Best: '+Math.max(s.best||0,T.streak)+' named',
+  if(T.over)return h+Geomingo.soloTicket({id:'silhouette',what:T.nolives?'Unlimited':LIVES+' lives',score:T.streak+' named',best:'Best: '+Math.max(s.best||0,T.streak)+' named',
     detail:T.miss+' mistake'+(T.miss===1?'':'s'),body:silBoxHTML(q,done)+revealHTML(q)})+`<div class="gm-done-btns gm-solo-btns"><button class="primary" id="tagain" style="flex:1">New game</button>${SHARE_BTN.replace('Share result','Share')}</div>`;
   // the ticket, as in every game: Mingo on top, then who is travelling, the level, the shapes named and the lives left
-  h+=Geomingo.ticket(moodHTML(silKey(),'pass','Whose shape is this?',T.nolives?'Type its name. No lives: take your time, or skip it.':'Type its name. Your best game at '+DIFF_NAME[T.diff]+': '+(s.best||0)+' named.'),
+  h+=Geomingo.ticket(moodHTML(silKey(),'pass','Whose shape is this?',T.nolives?'Type its name. Unlimited: take your time, or skip it.':'Type its name. Your best game at '+DIFF_NAME[T.diff]+': '+(s.best||0)+' named.'),
     tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Named',T.streak)+tk('Points',10*T.streak,'tk-pts')+(T.nolives?tk('Mistakes',T.miss,'tk-gs'):tk('Lives',livesHTML(trainLeft(),LIVES),'tk-gs')),{mode:'practice'});
   h+=`<section class="panel play">${silBoxHTML(q,done)}`;
-  if(T.over)h+=revealHTML(q)+`<span class="label">Game over</span><p class="big">${10*T.streak} points</p><p class="hint">${T.streak} named, 10 points each.</p><p class="hint">${T.nolives?'Training, no lives. '+T.miss+' mistake'+(T.miss===1?'':'s')+'.':T.streak&&T.streak>=(s.best||0)?'Your best game at '+DIFF_NAME[T.diff]+'.':'Your best at '+DIFF_NAME[T.diff]+': '+(s.best||0)+' named.'}</p><button class="primary" id="tagain">New game</button>`;
+  if(T.over)h+=revealHTML(q)+`<span class="label">Game over</span><p class="big">${10*T.streak} points</p><p class="hint">${T.streak} named, 10 points each.</p><p class="hint">${T.nolives?'Unlimited. '+T.miss+' mistake'+(T.miss===1?'':'s')+'.':T.streak&&T.streak>=(s.best||0)?'Your best game at '+DIFF_NAME[T.diff]+'.':'Your best at '+DIFF_NAME[T.diff]+': '+(s.best||0)+' named.'}</p><button class="primary" id="tagain">New game</button>`;
   else if(done)h+=revealHTML(q)+`<button class="primary" id="tnext">Next shape</button>`;
   else h+=triesHTML(q,true)+answerBoxHTML(q,(T.nolives?'<button class="ghost" id="tshow">Skip this shape</button>':'')+giveUpHTML());
   return h+`</section>`+(done?'':quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.'))}
@@ -322,7 +315,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Today's shapes are always <b>Easy</b>. In Solo and With friends you choose the level.</li></ul>
   <h3>Modes</h3><ul>
   <li><b>Today's shapes</b>: nine shapes on a 3 × 3 board, the same for everyone, new every day at midnight CET. Tap a shape to answer it, in any order. If your ${LIVES} lives run out, the shapes you have not named count as missed. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>
-  <li><b>Solo</b>: shape after shape at the level you choose, until your ${LIVES} lives are gone. Every shape you name is 10 points. No country comes back until you have seen them all. Pick <b>No lives</b> to train: no game over, skip a shape you can't name, and <b>Give up</b> when you want to stop.</li>
+  <li><b>Practice</b>: shape after shape at the daily level, until your ${LIVES} lives are gone. Every shape you name is 10 points. No country comes back until you have seen them all. With <b>Unlimited</b> (chosen on the Geomingo home page, under Practice) there is no game over: skip a shape you can't name, and <b>Give up</b> when you want to stop.</li>
   <li><b>With friends</b>: 2 to 6 players online, each on their own phone. The host chooses <b>Getting harder</b> (7 Easy, the first 3 well known, then 3 Hard) or a continent and a level. Everyone gets the same ten shapes at the same time, ${SECS} seconds each. There are no lives: you can try as many countries as you like until you name it or the time runs out. A right answer scores 10 points, so ten shapes make 100. Level on points, the faster one ranks first. The ranking shows after every shape and at the end.</li></ul>`}
 function creditsHTML(){return `<ul style="padding-left:18px">
   <li>Borders: <a href="https://github.com/topojson/world-atlas" target="_blank" rel="noopener">world-atlas</a>, from <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> 1:10m (public domain); Vatican City from <a href="https://www.geoboundaries.org" target="_blank" rel="noopener">geoBoundaries</a> (public domain). Each country is drawn on its own map centred on itself, so no shape is stretched or cut by the date line.</li>
@@ -551,7 +544,7 @@ function bindOnline(){
 
 /* ---- home: today's board open and playable on top, then Solo and With friends, as in the other games ---- */
 let view='home';
-// ?solo (from Practice on the Geomingo home page) opens the Solo screen
+// ?solo (from Practice on the Geomingo home page) starts a practice game
 try{if(new URLSearchParams(location.search).has('solo')){view='solo';history.replaceState(null,'',location.pathname)}}catch(e){}
 // Back from today's game, Solo or With friends goes to the Geomingo home page (in a room: leave it first)
 const toHub=()=>{if(typeof roomCode!=='undefined'&&roomCode){goHome();return}location.href='../'};
@@ -584,7 +577,7 @@ function render(){
   if(roomCode&&room)app.innerHTML=O?onlineHTML():lobbyHTML();
   else if(view==='friends')app.innerHTML=friendsHTML();
   else if(view==='train')app.innerHTML=trainHTML();
-  else if(view==='solo')app.innerHTML=soloHTML();
+  else if(view==='solo'){openTrain();return}
   else if(view==='archive')app.innerHTML=archiveView();
   else if(view==='daily')app.innerHTML=dailyHTML();
   else app.innerHTML=homeHTML();
@@ -601,7 +594,6 @@ function bind(){
   if($('playsolo'))$('playsolo').onclick=openSolo;
   if($('soloback'))$('soloback').onclick=openSolo;
   if($('archback'))$('archback').onclick=openArchive;
-  if($('start'))$('start').onclick=openTrain;
   app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
   app.querySelectorAll('[data-dtile]').forEach(b=>b.onclick=()=>{D=dailyGame();const i=+b.dataset.dtile;if(D.qs[i].st==='play')D.sel=i;query='';typing=false;view='daily';render();window.scrollTo(0,0)});
   app.querySelectorAll('[data-go="friends"]').forEach(b=>b.onclick=()=>{view='friends';render();window.scrollTo(0,0)});
@@ -611,8 +603,6 @@ function bind(){
   app.querySelectorAll('[data-tile]').forEach(b=>b.onclick=()=>{const i=+b.dataset.tile;
     if(D.over||D.qs[i].st!=='play'){toast(byCode[D.qs[i].c].n);return}
     D.sel=i;query='';typing=true;dailySave();render()});
-  if(view==='solo'){app.querySelectorAll('[data-seg="diff"]').forEach(b=>b.onclick=()=>{store('sil-diff',b.dataset.v);render()});
-    app.querySelectorAll('[data-seg="nolives"]').forEach(b=>b.onclick=()=>{store('sil-nolives',+b.dataset.v);render()});return}
   if(view==='archive')return;
   if(view==='train'){
     if($('tnext'))$('tnext').onclick=()=>{trainNext();typing=true;render()};

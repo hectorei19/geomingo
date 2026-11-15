@@ -540,6 +540,10 @@ function roomStale(finished){return awayMs>(finished?ROOM_DONE:ROOM_LIVE)}
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){hiddenAt=Date.now();if(roomKey)roomSeen(roomKey)}
   else{awayMs=hiddenAt?Date.now()-hiddenAt:0;hiddenAt=0}});
+// Practice has one choice for every game, on the home page's Practice screen (Héctor 2026-11-15): 5 lives or Unlimited.
+// gm-lives: 'unl' = Unlimited (mistakes are only counted), anything else = 5 lives. Games without lives ignore it.
+const lives=()=>store.get('gm-lives')!=='unl';
+const setLives=on=>store.set('gm-lives',on?null:'unl');
 // the address says where you are, so a reload (F5) keeps you there: ?solo on Practice, ?friends on With friends,
 // nothing on today's game. Set after the page's start code has run (it may still read ?room, ?p, ?grid); other parts kept.
 let modeWant=null,modeQueued=false;
@@ -565,5 +569,5 @@ const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,st
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
   days,streak,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,cl3,clNew,CL3,clFlag,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
-  openWindow,closeWindow,esc,refreshPass,room,where,stat,statTo,PAGE,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
+  openWindow,closeWindow,esc,refreshPass,room,where,lives,setLives,stat,statTo,PAGE,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();
