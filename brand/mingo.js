@@ -556,7 +556,7 @@ function stat(what,mode){const k=what+'-'+(mode||modeWant||'daily');if(statSink)
 function statTo(f){statSink=f;statQ.splice(0).forEach(k=>f(PAGE,k))}
 // Cloudflare Web Analytics (visits, countries, phones, where people come from; no cookies): the site's token from
 // dash.cloudflare.com → Analytics & Logs → Web Analytics. Empty: off. Only on geomingo.com, never in test mode.
-const CF_TOKEN='';
+const CF_TOKEN='b14a1376d8294064a5d68d966d941dbe';
 try{if(CF_TOKEN&&/(^|\.)geomingo\.com$/.test(location.hostname)&&!new URLSearchParams(location.search).has('test')){
   const s=document.createElement('script');s.defer=true;s.src='https://static.cloudflareinsights.com/beacon.min.js';
   s.setAttribute('data-cf-beacon',JSON.stringify({token:CF_TOKEN}));document.head.appendChild(s)}}catch(e){}
