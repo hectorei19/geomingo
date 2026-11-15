@@ -22,7 +22,7 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611171100"></script>
-<script src="../brand/account.js?v=202611171400"></script>
+<script src="../brand/account.js?v=202611171500"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -329,7 +329,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .b5 .cell.flag .gm-stamp.wf .pts{font-size:.6rem;padding:0 3px 1px 4px;border-radius:0 0 0 5px}
 .b5 .cell.flag .gm-stamp.wf .cc{font-size:.6rem;padding:1px 4px 0 3px;border-radius:0 5px 0 0}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611171400">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611171500">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -1227,7 +1227,7 @@ function autoDaily(){if(!AUTO&&!dailyOver()||S||screen!=='home'||editingUser||ro
 function render(){
   if(autoDaily())return;
   if(AUTO&&(AUTH_WAIT&&MAYBE_IN()||acctWaiting()&&!editingUser&&!NEEDNAME)&&!S&&screen==='home'&&!roomCode){
-    app.innerHTML=Geomingo.header({game:GAME_NAME,coord:'',menu:menuBtn()})+`<section class="panel"><p class="hint">Opening today's grid…</p></section>`;bind();drawLayer();return}
+    app.innerHTML=Geomingo.header({game:GAME_NAME,coord:''})+`<section class="panel"><p class="hint">Opening today's grid…</p></section>`;bind();drawLayer();return}
   // the clock of the visas starts when today's grid is first on screen (home or game), unless it is already over
   if(!TESTDAY&&!roomCode){const k=todayKey(),dd=loadDaily(),hh=loadHist()[k];
     if(S?S.daily===k&&!S.archive&&S.mode==='solo'&&!S.over:screen==='home'&&!(dd&&dd.S.over)&&!(hh&&hh.f===1))Geomingo.clock.start('citygrid',k)}
@@ -1235,7 +1235,7 @@ function render(){
   if(!S&&screen==='solo'&&!roomCode&&!editingUser&&!(USER&&NEEDNAME)){setup.mode='solo';if(startGame())return;screen='home';setup.code=''}
   const body=screen==='stats'?statsView():screen==='archive'?archiveView():S?gameView():((editingUser||(USER&&NEEDNAME))?nameView():((Geomingo.party&&Geomingo.party.on())&&(screen==='friends'||roomCode)?'':roomCode&&room?lobbyView():setupView()));
   watchResult();
-  app.innerHTML=Geomingo.header({game:GAME_NAME,practice:!!(S&&S.mode==='solo'&&!S.daily),coord:S?(S.daily?'Daily #'+S.day:S.code)+(S.mode==='online'?' · room '+roomCode:''):(roomCode?'Room '+roomCode:''),menu:menuBtn()})+(newVersion?`<div class="status" style="border-color:var(--sea)"><span class="who" style="white-space:normal">A new version of the game is available.</span><button class="primary" id="reload" style="padding:8px 12px;font-size:.9rem">Reload</button></div>`:'')+body;
+  app.innerHTML=Geomingo.header({game:GAME_NAME,practice:!!(S&&S.mode==='solo'&&!S.daily),coord:S?(S.daily?'Daily #'+S.day:S.code)+(S.mode==='online'?' · room '+roomCode:''):(roomCode?'Room '+roomCode:'')})+(newVersion?`<div class="status" style="border-color:var(--sea)"><span class="who" style="white-space:normal">A new version of the game is available.</span><button class="primary" id="reload" style="padding:8px 12px;font-size:.9rem">Reload</button></div>`:'')+body;
   bind();drawLayer();fitHeaders();saveDaily();recordGame();
   if(S&&!S.over&&S.timer)onTickVisual();
 }
@@ -1579,14 +1579,15 @@ const ICONS={menu:'M4 6h16M4 12h16M4 18h16',games:'M4 4h6v6H4zM14 4h6v6h-6zM4 14
   signout:'M14 8V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-2M9 12h12l-3-3M18 15l3-3',
   signin:'M14 8V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-2M20 12H7l3-3M10 15l-3-3'};
 const ico=k=>`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[k]}"/></svg>`;
-const menuBtn=()=>`<button class="helpbtn" id="menu" aria-haspopup="true" aria-expanded="${ui.menu?'true':'false'}">${ico('menu')}Menu</button>`;
 // "How to play" in the Quick rules box opens the full rules
-document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.qhelp')){ui.menu=false;ui.help=true;drawLayer()}});
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.qhelp')){ui.help=true;drawLayer()}});
+// this game's lines in the one Menu (your initial ▾, brand/account.js; Héctor 2026-11-15: the game's own ☰ is gone)
+if(Geomingo.setGameMenu)Geomingo.setGameMenu({name:GAME_NAME,items:[
+  ['How to play','help','#7FA2F0',()=>{ui.help=true;drawLayer()}],
+  ['Archive','cal','#E39B5B',()=>openArchive()],
+  ['My stats','stats','#5FC28F',()=>openStats(USER?USER.uid:null)]],sources:()=>{ui.credits=true;drawLayer()}});
 function drawLayer(){
   let h='';
-  // header menu: How to play, Archive, My stats, Credits, sign in/out
-  if(ui.menu){const it=(k,label,cls)=>`<button class="mitem${cls?' '+cls:''}" data-menu="${k}">${ico(k)}${label}</button>`;
-    h+=`<div class="menuscrim" id="menuscrim"></div><nav class="menubox" aria-label="Menu" style="top:${Math.round(((m=>m?m.getBoundingClientRect().bottom:54)(document.getElementById('menu')))+4)}px">${it('help','How to play')}${it('archive','Archive')}${it('stats','My stats')}${it('credits','Credits &amp; data sources')}${it('games','All Geomingo games')}${AUTH_OK?(USER?it('signout','Sign out','out'):it('signin','Sign in with Google','out')):''}</nav>`}
   if(S&&!S.over&&ui.sel>=0){
     const n=S.n,i=Math.floor(ui.sel/n),j=ui.sel%n;
     const res=matches(ui.query);
@@ -1669,12 +1670,6 @@ function drawLayer(){
     document.getElementById('sharecopy').onclick=()=>{close();copyShare()}}
   const ck=document.getElementById('credok');
   if(ck){const close=()=>{ui.credits=false;drawLayer()};ck.onclick=close;document.getElementById('credscrim').onclick=close}
-  const ms=document.getElementById('menuscrim');
-  if(ms){ms.onclick=()=>{ui.menu=false;drawLayer()};
-    layer.querySelectorAll('[data-menu]').forEach(b=>b.onclick=()=>{const k=b.dataset.menu;ui.menu=false;
-      if(k==='help'){ui.help=true;drawLayer()}else if(k==='credits'){ui.credits=true;drawLayer()}
-      else if(k==='stats')openStats(USER?USER.uid:null);else if(k==='games')location.href=Geomingo.HOME;else if(k==='archive')openArchive();
-      else if(k==='signin'){drawLayer();signIn()}else if(k==='signout'){drawLayer();signOut()}})}
   const hk=document.getElementById('helpok');
   if(hk){const close=()=>{ui.help=false;drawLayer()};hk.onclick=close;document.getElementById('helpscrim').onclick=close}
   const ok=document.getElementById('infook');
@@ -1734,7 +1729,6 @@ function bind(){
   else if($('gback'))$('gback').onclick=()=>{screen=screenFor(S);clearInterval(tick);S=null;setup.code='';render();window.scrollTo(0,0)};
   if($('playsolo'))$('playsolo').onclick=()=>{screen='solo';clearInterval(tick);S=null;setup.code='';render();window.scrollTo(0,0)};
   if($('create'))$('create').onclick=createRoom;
-  if($('menu'))$('menu').onclick=()=>{ui.menu=!ui.menu;drawLayer()};
   if($('reload'))$('reload').onclick=()=>{location.replace(location.pathname+'?v='+Date.now()+(roomCode?'&room='+roomCode:''))};
   if($('jcode'))$('jcode').oninput=e=>{setup.join=e.target.value};
   if($('jcode'))$('jcode').onkeydown=e=>{if(e.key==='Enter')joinRoom($('jcode').value)};
