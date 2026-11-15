@@ -345,7 +345,7 @@ const shareMessage=()=>shareText()+'\n\n'+(S.mode==='free'?'Play this list: ':"P
    Players take turns naming a country: one in the top 10 scores a point for whoever named it,
    one outside just passes the turn: there are no lives with friends. The game ends when the ten are found or everyone passes in a row. */
 const FB_OK=()=>typeof firebase!=='undefined'&&typeof firebase.database==='function'&&!!(window.FIREBASE_CONFIG&&/^https:\/\//.test(FIREBASE_CONFIG.databaseURL||''));
-const ROOM_V='t10-202611020600',MAXP=6,TIMERS=[0,15,30];
+const ROOM_V='t10-202611020600',MAXP=6,TIMERS=[0,30];
 let db=null,room=null,roomRef=null,roomCode=null,seenEv=null,firstSync=true,joining=false,offset=0,tick=null;
 const now=()=>Date.now()+offset;
 let ME=load('t10-pid','');if(!ME){ME='p'+Math.random().toString(36).slice(2,10);store('t10-pid',ME)}
@@ -364,14 +364,16 @@ const lobbyOrder=r=>Object.entries(r.players||{}).sort((a,b)=>(a[1].t||0)-(b[1].
 const topOf=id=>topCodes(listById(id));
 const randomList=not=>{const o=LISTS.filter(x=>x.id!==not);return o[Math.floor(Math.random()*o.length)].id};
 function saveSetup(){const el=$('fname');if(el)setup.fname=el.value.trim().slice(0,16);store('t10-setup',{fname:setup.fname,timer:setup.timer})}
-function needName(){saveSetup();if(setup.fname)return false;
+const ACN=()=>{const a=window.Geomingo&&Geomingo.account;return a&&a.user&&a.name?String(a.name).trim().slice(0,16):''};
+function needName(){saveSetup();const an=ACN();if(an){setup.fname=an;return false}if(setup.fname)return false;
   toast("Type your name so your friends know who's playing.",'bad');const el=$('fname');if(el)el.focus();return true}
-async function createRoom(){
+const SIGNED=()=>!!(window.Geomingo&&Geomingo.account&&Geomingo.account.user);
+async function createRoom(){if(!SIGNED()){Geomingo.account.signIn();return}
   if(needName())return;
   if(!initFB()){toast('Online play is not available right now. Check the connection and reload.','bad');return}
   try{let code='';
     for(let i=0;i<8;i++){code=randRoom();const ex=await db.ref('rooms/'+code).get();if(!ex.exists())break}
-    await db.ref('rooms/'+code).set({game:'top10',v:ROOM_V,host:ME,created:TS(),cfg:{timer:setup.timer},status:'lobby',
+    await db.ref('rooms/'+code).set({game:'top10',v:ROOM_V,host:ME,created:TS(),cfg:{timer:30},status:'lobby',
       players:{[ME]:{name:setup.fname,t:TS(),on:true}}});
     listenRoom(code)}catch(e){console.error(e);toast('Could not create the room. Check the connection and try again.','bad')}}
 async function joinRoom(raw){
@@ -553,9 +555,8 @@ function friendsHTML(){
   return header('Top <span>10</span>','')+`<section class="panel">
     <div class="backline"><span class="ht">With friends</span></div>
     <p class="hint">2 to ${MAXP} players, each on their own phone. The host creates a room and shares its link or code.</p>
-    <div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||(Geomingo.traveller()==='Guest'?'':Geomingo.traveller()))}"></div>
-    <div class="field"><span class="label">Time per turn</span>${seg('timer',TIMERS.map(t=>[t,t?t+' s':'Off']),setup.timer)}</div>
-    <div class="field">${FB_OK()?'':'<p class="hint">Online play needs a connection: reload the page when you are online.</p>'}<button class="primary" id="create" ${FB_OK()?'':'disabled style="opacity:.5"'}>Create room</button></div>
+    ${ACN()?'':`<div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||(Geomingo.traveller()==='Guest'?'':Geomingo.traveller()))}"></div>`}
+    <div class="field">${FB_OK()?'':'<p class="hint">Online play needs a connection: reload the page when you are online.</p>'}${SIGNED()?'':'<p class="hint">To create a room, sign in. Friends can join with your code or link without an account.</p>'}<button class="primary" id="create" ${FB_OK()?'':'disabled style="opacity:.5"'}>${SIGNED()?'Create room':'Sign in to create a room'}</button></div>
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK()?'':'disabled'}>Join</button></div></div>
   </section>
   <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Everyone plays the same ranking and takes turns naming one country. A country in the top 10 scores 10 points for you; one outside just passes the turn. No lives: you play until the ten are found. Most points win; if level, fewer wrong answers, then the higher places found.</p></section>`}
@@ -668,7 +669,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Today's list</b>: the same for everyone, new every day at midnight CET. One try. Missed one? Play it in <b>Menu → Archive</b>.</li>
   <li><b>Solo</b>: as many practice lists as you like, a new one each time until you have played them all. <b>Share</b> sends a friend a link to the same list. Pick <b>No lives</b> to train: play until the end, mistakes are only counted.</li>
-  <li><b>With friends</b>: 2 to ${MAXP} players online, each on their own phone. The host creates a room and shares its code or link, and can set a time per turn (Off, 15 s or 30 s). You take turns naming a country: one in the top 10 scores 10 points, one outside passes the turn. There are no lives. You can also tap <b>Pass</b>, and running out of time passes too. The game ends when the ten are found or everyone passes in a row. Most points wins. If level: fewer wrong answers wins, then the higher places found (the lower your places add up), then whoever found a country first.</li></ul>`}
+  <li><b>With friends</b>: 2 to ${MAXP} players online, each on their own phone. The host creates a room and shares its code or link. You take turns naming a country, 30 s each: one in the top 10 scores 10 points, one outside passes the turn. There are no lives. You can also tap <b>Pass</b>, and running out of time passes too. The game ends when the ten are found or everyone passes in a row. Most points wins. If level: fewer wrong answers wins, then the higher places found (the lower your places add up), then whoever found a country first.</li></ul>`}
 // tapping a suggestion does not take the focus from the box, so the phone keyboard stays open
 function drawSugg(){const u=$('sugg');if(u){u.innerHTML=suggHTML();u.querySelectorAll('[data-g]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>guess(b.dataset.g)})}}
 function bind(){

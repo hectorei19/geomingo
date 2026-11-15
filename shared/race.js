@@ -41,10 +41,12 @@ window.GeoRace=function(cfg){
     catch(e){console.error(e);return false}
     return true}
   const order=r=>Object.keys((r&&r.players)||{}).filter(k=>r.players[k].name).sort((a,b)=>(r.players[a].t||0)-(r.players[b].t||0));
-  function needName(){const el=$('fname');if(el)myName=el.value.trim().slice(0,16);
+  const ACN=()=>{const a=window.Geomingo&&Geomingo.account;return a&&a.user&&a.name?String(a.name).trim().slice(0,16):''};
+  function needName(){const an=ACN();if(an){myName=an;return false}const el=$('fname');if(el)myName=el.value.trim().slice(0,16);
     if(!myName){toast('Type your name first.','bad');if(el)el.focus();return true}
     ls.set(K+'-name',myName);return false}
-  async function create(){if(needName())return;
+  const SIGNED=()=>!!(window.Geomingo&&Geomingo.account&&Geomingo.account.user);
+  async function create(){if(!SIGNED()){Geomingo.account.signIn();return}if(needName())return;
     if(!initFB()){toast('Online play could not load. Check the connection and reload the page.','bad');return}
     try{let code='';
       for(let i=0;i<8;i++){code=randRoom();const ex=await db.ref('rooms/'+code).get();if(!ex.exists())break}
@@ -124,9 +126,9 @@ window.GeoRace=function(cfg){
   R.friendsHTML=()=>cfg.header(cfg.name,'')+`<section class="panel">
     <div class="backline"><span class="ht">With friends</span></div>
     <p class="hint">Play online, 2 to ${MAX} players, each on their own phone. Everyone gets ${cfg.what} at the same time and sees how the others are doing.</p>
-    <div class="field"><label class="label" for="fname">Your name in the room</label><input class="nameinp" id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(myName)}"></div>
+    ${ACN()?'':`<div class="field"><label class="label" for="fname">Your name in the room</label><input class="nameinp" id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(myName)}"></div>`}
     ${FB_OK?'':'<p class="hint">Online play could not load. Check the connection and reload the page.</p>'}
-    <div class="field"><button class="primary" id="create" ${FB_OK?'':'disabled'}>Create room</button></div>
+    <div class="field">${SIGNED()?'':'<p class="hint">To create a room, sign in. Friends can join with your code or link without an account.</p>'}<button class="primary" id="create" ${FB_OK?'':'disabled'}>${SIGNED()?'Create room':'Sign in to create a room'}</button></div>
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(joinCode)}" autocomplete="off"><button class="ghost" id="join" ${FB_OK?'':'disabled'}>Join</button></div></div>
   </section>`;
   R.lobbyHTML=()=>{const r=R.room;
@@ -173,7 +175,7 @@ window.GeoRace=function(cfg){
   // start: ?room=ABCD joins that room (invite links), ?friends opens With friends, else the room this phone was in
   R.boot=()=>{let q='',fr=false;try{const u=new URLSearchParams(location.search);q=u.get('room')||'';fr=u.has('friends')}catch(e){}
     const back=Geomingo.room.saved(ROOMKEY),clean=()=>{try{history.replaceState(null,'',location.pathname)}catch(e){}};
-    if(q&&/^[A-Za-z]{4}$/.test(q)){clean();joinCode=q.toUpperCase();R.screen='friends';if(myName)join(joinCode);return true}
+    if(q&&/^[A-Za-z]{4}$/.test(q)){clean();joinCode=q.toUpperCase();R.screen='friends';if(myName||ACN())join(joinCode);return true}
     if(back&&initFB()){listen(back,true);return true}
     if(fr){clean();R.screen='friends';return true}
     return false};

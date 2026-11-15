@@ -947,7 +947,7 @@ function startGame(){
   const players=[{name:setup.user||'You',score:0}];
   S={mode:setup.mode,n,seed,diff,code:makeCode(n,seed,diff),rows:g.rows,cols:g.cols,answers:g.answers,
      cells:g.answers.map(()=>({o:-1,c:null})),used:[],players,turn:0,
-     lives:setup.mode==='solo'?LIVES:null,nolives:setup.mode==='solo'&&setup.nolives?1:0,timer:setup.timer,deadline:0,passes:0,over:false,wrong:0,
+     lives:setup.mode==='solo'?LIVES:null,nolives:setup.mode==='solo'&&setup.nolives?1:0,timer:setup.mode==='solo'?0:setup.timer,deadline:0,passes:0,over:false,wrong:0,
      gid:'s-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7)};
   ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};
   startTurn(true);
@@ -1143,13 +1143,14 @@ const roomName=()=>USER?setup.user:(setup.fname||'').trim();
 function needRoomName(){if(USER)return false;const el=document.getElementById('fname');if(el)setup.fname=el.value.trim().slice(0,16);
   try{localStorage.setItem('bl-setup',JSON.stringify({...setup,code:''}))}catch(e){}
   if(roomName())return false;toast("Type your name so your friends know who's playing.",'bad');if(el)el.focus();return true}
-async function createRoom(){
+const SIGNED=()=>!!(USER||MAYBE_IN());
+async function createRoom(){if(!SIGNED()){signIn();return}
   if(needRoomName())return;
   if(!initFB()){toast('Online play is not set up on this copy of the site.','bad');return}
   try{
     let code='';
     for(let i=0;i<8;i++){code=randRoom();const ex=await db.ref('rooms/'+code).get();if(!ex.exists())break}
-    await db.ref('rooms/'+code).set({v:APP_VERSION,host:ME,created:TS(),cfg:{n:setup.n,timer:setup.timer,diff:setup.diff||'normal'},status:'lobby',
+    await db.ref('rooms/'+code).set({v:APP_VERSION,host:ME,created:TS(),cfg:{n:setup.n,timer:30,diff:setup.diff||'normal'},status:'lobby',
       players:{[ME]:{name:roomName(),t:TS(),on:true,...(USER?{uid:USER.uid}:{})}}});
     listenRoom(code);
   }catch(e){console.error(e);toast('Could not create the room. Check the connection and try again.','bad')}
@@ -1526,7 +1527,6 @@ function setupView(){
   if(screen==='home')return homeView();
   const fr=screen==='friends';
   setup.mode=fr?'online':'solo';
-  if(![0,15,30].includes(setup.timer))setup.timer=0;
   const on=setup.mode==='online',pc=parseCode(setup.code),fg=pc&&{...pc,code:setup.code.trim().toUpperCase()};
   return `<section class="panel">
     <div class="backline"><span class="ht">${fr?'With friends':'Solo'}</span></div>
@@ -1535,9 +1535,8 @@ function setupView(){
     ${fg&&!on?`<div class="field"><span class="label">Friend's grid</span><p class="hint" style="color:var(--ink);font-size:1rem"><b>${esc(fg.code)}</b> · ${fg.n} × ${fg.n} · ${DLABEL[fg.diff]}. You play exactly the squares your friend played.</p><button class="ghost" id="nofg">Play a random grid instead</button></div>`:`
     <div class="field"><span class="label">Difficulty</span>${seg('diff',[['normal','Easy'],['hard','Hard']],lvOf(setup.diff))}<p class="hint">${DHINT[lvOf(setup.diff)]}</p></div>
     <div class="field"><span class="label">Grid size</span>${seg('n',[[4,'4 × 4'],[5,'5 × 5']],setup.n)}</div>`}
-    <div class="field"><span class="label">Time per turn</span>${seg('timer',[[0,'Off'],[15,'15 s'],[30,'30 s']],setup.timer)}</div>
     ${on?'':`<div class="field"><span class="label">Lives</span>${seg('nolives',[[0,LIVES+' lives'],[1,'No lives']],setup.nolives?1:0)}<p class="hint">${setup.nolives?'Training: play until the grid is full. Mistakes are only counted.':'A wrong answer costs one. The game ends when they are gone.'}</p></div>`}
-    ${on?`<div class="field">${FB_OK?'':'<p class="hint">Online play only works on the published site with Firebase connected.</p>'}<button class="primary" id="create" ${FB_OK?'':'disabled style="opacity:.5"'}>Create room</button></div>
+    ${on?`<div class="field">${FB_OK?'':'<p class="hint">Online play only works on the published site with Firebase connected.</p>'}${SIGNED()?'':'<p class="hint">To create a room, sign in. Friends can join with your code or link without an account.</p>'}<button class="primary" id="create" ${FB_OK?'':'disabled style="opacity:.5"'}>${SIGNED()?'Create room':'Sign in to create a room'}</button></div>
     <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK?'':'disabled'}>Join</button></div></div>`:`
     <button class="primary" id="start">Start game</button>`}
   </section>
@@ -1759,12 +1758,12 @@ function drawLayer(){
       <h3>How to answer</h3><ul>
       <li>Tap an empty square. A box opens: start typing a country and tap it in the list.</li>
       <li>Right: its flag goes in the square and you get its points. Wrong: the square stays empty.</li>
-      <li>You have <b>5 lives</b> for the whole grid, whatever its size. A wrong answer costs one; a right answer costs nothing. With a time per turn, running out of time also costs one.</li>
+      <li>You have <b>5 lives</b> for the whole grid, whatever its size. A wrong answer costs one; a right answer costs nothing.</li>
       <li>The game ends when the grid is full or you run out of lives. <b>Give up</b> ends it early.</li></ul>
       <h3>Modes</h3><ul>
       <li><b>Today's grid</b>: one ${DAILY_N} × ${DAILY_N} grid at Easy level, the same for everyone, new every day at midnight CET. One try; if you leave, you carry on where you stopped. Sign in with Google to appear in the daily ranking. Missed a day? Play it in <b>Menu → Archive</b>.</li>
-      <li><b>Solo</b>: as many grids as you like. You choose the level, a 4 × 4 or 5 × 5 grid and the time per turn (Off, 15 s or 30 s). Pick <b>No lives</b> to train: play until the end, mistakes are only counted.</li>
-      <li><b>With friends</b>: 2 to 6 players online, each on their own phone. The host creates a room and shares its 4-letter code or link. You take turns: a right answer scores for you, a wrong one or running out of time passes the turn. You can also tap <b>Pass turn</b>. The game ends when the grid is full or everyone passes one after another.</li>
+      <li><b>Solo</b>: as many grids as you like. You choose the level and a 4 × 4 or 5 × 5 grid. Pick <b>No lives</b> to train: play until the end, mistakes are only counted.</li>
+      <li><b>With friends</b>: 2 to 6 players online, each on their own phone. The host creates a room and shares its 4-letter code or link. You take turns, 30 s each: a right answer scores for you, a wrong one or running out of time passes the turn. You can also tap <b>Pass turn</b>. The game ends when the grid is full or everyone passes one after another.</li>
       <li><b>Share</b>: at the end, send your result with a link. Friends who open it play exactly your grid.</li></ul>
       <h3>Levels</h3><ul>
       <li><b>Easy</b>: ${DHINT.normal} The list only finds names from their first letters, so you need to know the answer. <i>Example: ${DEXAMPLE.normal}.</i></li>
