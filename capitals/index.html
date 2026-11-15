@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611161330"></script>
+<script src="../brand/mingo.js?v=202611161410"></script>
 <script src="../brand/account.js?v=202611161330"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -328,7 +328,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .b5 .cell.flag .gm-stamp.wf .pts{font-size:.6rem;padding:0 3px 1px 4px;border-radius:0 0 0 5px}
 .b5 .cell.flag .gm-stamp.wf .cc{font-size:.6rem;padding:1px 4px 0 3px;border-radius:0 5px 0 0}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611161000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611161400">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -1234,7 +1234,7 @@ function render(){
   if(!S&&screen==='solo'&&!roomCode&&!editingUser&&!(USER&&NEEDNAME)){setup.mode='solo';if(startGame())return;screen='home';setup.code=''}
   const body=screen==='stats'?statsView():screen==='archive'?archiveView():S?gameView():((editingUser||(USER&&NEEDNAME))?nameView():((Geomingo.party&&Geomingo.party.on())&&(screen==='friends'||roomCode)?'':roomCode&&room?lobbyView():setupView()));
   watchResult();
-  app.innerHTML=Geomingo.header({game:GAME_NAME,coord:S?(S.daily?'Daily #'+S.day:S.code)+(S.mode==='online'?' · room '+roomCode:''):(roomCode?'Room '+roomCode:''),menu:menuBtn()})+(newVersion?`<div class="status" style="border-color:var(--sea)"><span class="who" style="white-space:normal">A new version of the game is available.</span><button class="primary" id="reload" style="padding:8px 12px;font-size:.9rem">Reload</button></div>`:'')+body;
+  app.innerHTML=Geomingo.header({game:GAME_NAME,practice:!!(S&&S.mode==='solo'&&!S.daily),coord:S?(S.daily?'Daily #'+S.day:S.code)+(S.mode==='online'?' · room '+roomCode:''):(roomCode?'Room '+roomCode:''),menu:menuBtn()})+(newVersion?`<div class="status" style="border-color:var(--sea)"><span class="who" style="white-space:normal">A new version of the game is available.</span><button class="primary" id="reload" style="padding:8px 12px;font-size:.9rem">Reload</button></div>`:'')+body;
   bind();drawLayer();fitHeaders();saveDaily();recordGame();
   if(S&&!S.over&&S.timer)onTickVisual();
 }
@@ -1432,8 +1432,8 @@ function gameView(){
   // the title (in a room also ← Leave); the back is the "‹ geomingo" on top, as in every game (Héctor 2026-11-15)
   const title=S.daily?(S.archive?'Grid #'+S.day:"Today's grid"):S.mode==='online'?'With friends':'Practice';
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
-  // Practice is said once, on the coral ticket (Héctor 2026-11-15)
-  if(!done&&!solo&&!(S.mode==='solo'&&!S.daily))h+=`<div class="backline">${S.mode==='online'?'<button class="linkbtn" id="gback">← Leave</button>':''}<span class="ht">${title}</span></div>`;
+  // only a room has a title line (← Leave); today's grid, the archive and Practice say it in the ticket's strip (Héctor 2026-11-15)
+  if(S.mode==='online')h+=`<div class="backline">${S.mode==='online'?'<button class="linkbtn" id="gback">← Leave</button>':''}<span class="ht">${title}</span></div>`;
   if(S.over){
     if(S.mode!=='solo')h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${p.on===false?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${EU(p.score)}</b></span>`).join('')}</div>`;
     if(!done&&!solo)h+=resultsView();
@@ -1450,7 +1450,7 @@ function gameView(){
         // the same four boxes in every game (Héctor, 2026-11-10): today's km in the daily, the class in Practice and the archive
         +(S.daily&&!S.archive?cell('km',Geomingo.newKm(S.daily)?Geomingo.KM.grid(S.players[0].score,S.cells.filter(c=>c.o===0).length,S.n,LIVES-livesLeft()):Geomingo.pts(S.cells.filter(c=>c.o===0).length/(S.n*S.n)),'tk-pts'):cell('Class',DLABEL[S.diff||'normal'],'tk-pts'))+(S.nolives?cell('Mistakes',S.wrong,'tk-gs'):cell('Lives',livesDots(livesLeft(),LIVES),'tk-gs'))+time
       :S.players.map((q,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${q.on===false?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(q.name)}</i><b>${liveScore(i)}</b></div>`).join('')+time;
-    h+=Geomingo.ticket(say,stub,{timer:S.timer,color:S.mode==='solo'?'':`var(--p${S.turn})`,mode:S.daily?(S.archive?'archive':'daily'):S.mode==='solo'?'practice':'friends',num:S.day});
+    h+=Geomingo.ticket(say,stub,{code:S.mode==='solo'&&!S.daily?S.code:'',timer:S.timer,color:S.mode==='solo'?'':`var(--p${S.turn})`,mode:S.daily?(S.archive?'archive':'daily'):S.mode==='solo'?'practice':'friends',num:S.day});
   }
   mark=h.length;
   h+=`<div class="board-wrap"><div class="board b${n}" lang="en" style="grid-template-columns:minmax(0,1.25fr) repeat(${n},minmax(0,1fr))">`;
@@ -1539,7 +1539,7 @@ function resultsView(body){
     return `<section class="panel respanel">${verdictHTML()}<span class="label">${S.dayof?'':S.archive?'Archive · ':''}Daily grid #${S.day}${S.dayof?' · played on its day':''}</span><p class="big">${EU(p.score)} points</p>${breakdown(p)}<p class="hint">${p.cells} of ${n*n} squares. ${S.wrong} wrong guess${S.wrong===1?'':'es'}. ${S.dayof?'You played this grid on its day, so it can\'t be played again.':S.archive?'Archive games don\'t count for the ranking or your streak.':`Share it: friends play today's grid with their own one try. Next grid in ${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min.`}</p><pre class="sharebox" id="share">${esc(shareText())}</pre>${SHARE_BTN}<div class="row-btns sharerow">${S.archive?`<button class="primary" id="newg" style="flex:1">Back to archive</button>`:nextGameBtn(next)}</div>${S.archive?'':afterNextHTML(next)+`<span class="label">Your daily grids</span>${statTiles(dailyStatsFrom({...loadHist(),[S.daily]:loadHist()[S.daily]||{s:p.score}}))}`}</section>${lbView(S.archive?S.daily:null)}`}
   // a finished Solo game: the pink ticket with the grid inside, then New grid and Share (Héctor 2026-11-14)
   if(S.mode==='solo'){const p=S.players[0],n=S.n,d=lvOf(S.diff),best=Math.max(p.score||0,...loadGames().filter(g=>g.m==='s'&&g.n===n&&lvOf(g.d)===d).map(g=>g.s||0));
-    return `${Geomingo.soloTicket({id:'citygrid',what:S.nolives?'Unlimited':LIVES+' lives',score:EU(p.score)+' points',best:'Best: '+EU(best),detail:p.cells+' of '+n*n+' squares',body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
+    return `${Geomingo.soloTicket({id:'citygrid',what:S.nolives?'Unlimited':LIVES+' lives',code:S.code,score:EU(p.score)+' points',best:'Best: '+EU(best),detail:p.cells+' of '+n*n+' squares',body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns gm-solo-btns"><button class="primary" id="again" style="flex:1">New grid</button>${SHARE_BTN.replace('Share result','Share')}</div>`}
   const ranked=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score||b.cells-a.cells);
   // the one room for all nine games: these points as km (15 points = 1 km, up to 100, as in the daily)

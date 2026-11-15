@@ -351,17 +351,18 @@ function doneTicket(id,num,score,next,body){const km=(ledger()[dayKey()]||{})[id
 /* a finished Solo (Practice) game: the same ticket as today's result, in Mingo pink (Héctor 2026-11-14).
    soloTicket({id:'borderline', what:'Normal · 4 × 4', score:'804 points', best:'Best: 1.040', detail:'8 of 16 squares', body:'…answers…'}) */
 function soloTicket(o){o=o||{};const g=GAMES.find(x=>x.id===o.id);
-  return '<section class="ticket gm-done tk-pink"><div class="tk-mode"><span>'+(g?'Trip '+g.gate+' · ':'')+'Practice'+(o.what?' · '+esc(o.what):'')+'</span><span>Done</span></div>'+
+  return '<section class="ticket gm-done tk-pink"><div class="tk-mode"><span>'+(g?'Trip '+g.gate+' · ':'')+'Practice'+(o.what?' · '+esc(o.what):'')+(o.code?' · '+esc(String(o.code)):'')+'</span><span>Done</span></div>'+
     '<div class="gm-done-c"><p class="big">'+esc(String(o.score))+'</p><p class="gm-done-s">'+(o.best?'<b>'+esc(o.best)+'</b>':'')+(o.detail?'<span>'+esc(o.detail)+'</span>':'')+'</p></div>'+
     (o.body?'<div class="tk-tear"></div><div class="gm-done-a">'+o.body+'</div>':'')+'</section>'}
 function tk(k,v,c){return '<div class="tk-c'+(c?' '+c:'')+'"><i>'+k+'</i><b>'+v+'</b></div>'}
 /* o.mode puts a coloured strip on top so you always know what you are playing:
    'daily' (gold, "★ Daily #N · Counts for ranking"), 'practice' (Mingo pink, "Practice") or 'archive' (Mingo pink, "Archive #N"); o.num is the number.
    Practice and archive also turn the ticket's edge Mingo pink. 'friends' (or 'online'): blue strip "With friends" and blue edge (games with turns too: whose turn it is shows only in that player's box and the time bar). */
-function ticket(say,stub,o){o=o||{};const m=o.mode,n=o.num!=null?' #'+o.num:'';
-  const strip=m==='daily'?'<div class="tk-mode daily"><span>★ Daily'+n+'</span><span>Counts for ranking</span></div>'
-    :m==='practice'?'<div class="tk-mode practice"><span>Practice</span></div>'
-    :m==='archive'?'<div class="tk-mode practice"><span>Archive'+n+'</span></div>'
+function ticket(say,stub,o){o=o||{};const m=o.mode,n=o.num!=null?' #'+o.num:'',pg=GAMES.find(x=>x.path===PAGE+'/');
+  const tr=pg?'Trip '+pg.gate+' · ':'';
+  const strip=m==='daily'?'<div class="tk-mode daily"><span>★ '+tr+'Daily'+n+'</span><span>Counts for ranking</span></div>'
+    :m==='practice'?'<div class="tk-mode practice"><span>'+tr+'Practice</span>'+(o.code?'<span>'+esc(String(o.code))+'</span>':'')+'</div>'
+    :m==='archive'?'<div class="tk-mode practice"><span>'+tr+'Archive'+n+'</span></div>'
     :m==='friends'||m==='online'?'<div class="tk-mode friends"><span>With friends</span></div>':'';
   // o.color (a game with turns): the whole ticket takes the colour of the player whose turn it is (.tk-turn, --pc)
   return '<section class="ticket'+(m==='practice'||m==='archive'?' tk-practice':m==='friends'||m==='online'?' tk-friends':'')+(o.color?' tk-turn" style="--pc:'+o.color:'')+'">'+strip+say+'<div class="tk-tear" aria-hidden="true"></div><div class="tk-stub">'+stub+'</div>'+(o.timer?'<span class="tbar" style="width:100%'+(o.color?';background:'+o.color:'')+'"></span>':'')+'</section>'}
@@ -379,7 +380,8 @@ const passBtn=()=>{const n=stamps();return '<button class="gm-pass" data-gm-pass
 const acctSlot=()=>'<span class="gm-acctslot" data-gm-acctslot>'+(window.Geomingo&&Geomingo.acctHTML?Geomingo.acctHTML():'')+'</span>';
 function header(o){o=o||{};
   if(!o.game)return '<header class="gm-top"><h1 class="gm-logo">geo<span>mingo</span></h1><span class="gm-beta" title="Still in testing. Official launch coming soon.">BETA</span><span class="gm-spacer"></span>'+passBtn()+acctSlot()+'</header>';
-  const g=GAMES.find(x=>x.name===o.game),gate=g?'Trip '+g.gate:'',sub=[gate,o.coord].filter(Boolean).join(' · ');
+  // Practice (o.practice): nothing under the name; the trip and the grid code go in the ticket's coral strip (Héctor 2026-11-15)
+  const g=GAMES.find(x=>x.name===o.game),gate=g?'Trip '+g.gate:'',sub=o.practice?'':[gate,o.coord].filter(Boolean).join(' · ');
   return '<header class="gm-top"><a class="gm-home" href="'+HOME+'" aria-label="All Geomingo games">'+ICO.back+logo+'<span class="gm-beta" title="Still in testing. Official launch coming soon.">BETA</span></a><span class="gm-spacer"></span>'+passBtn()+acctSlot()+'</header>'+
     '<div class="gm-bar"><h2 class="gm-title" id="brand" role="link" tabindex="0" title="'+esc(o.game)+' home">'+esc(o.game)+(sub?'<small>'+esc(sub)+'</small>':'')+'</h2><span class="gm-spacer"></span>'+(o.menu||'')+'</div>'}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-gm-pass]');if(!t)return;e.preventDefault();openPass()});

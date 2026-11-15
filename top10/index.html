@@ -36,7 +36,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611161330"></script>
+<script src="../brand/mingo.js?v=202611161410"></script>
 <script src="../brand/account.js?v=202611161330"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -95,7 +95,7 @@ body.kbon .t10list .mini{width:18px;height:18px}
 body.kbon .kbgu{display:flex;flex-direction:column;align-items:center;gap:14px}
 body.kbon .kbgu #src{align-self:center!important}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611161000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611161400">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -111,7 +111,7 @@ body.kbon .kbgu #src{align-self:center!important}
 <script src="../shared/data.js?v=202611141100"></script>
 <script src="extra-data.js?v=202611081900"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611161330"></script>
+<script src="../shared/minigames.js?v=202611161400"></script>
 <script>
 /* ---- the rankings ----
    Numbers Countries already uses (DATA and the country data), plus a few figures only Top 10 uses (XDATA,
@@ -604,10 +604,8 @@ function render(){
   if(view==='archive'){app.innerHTML=archiveView();bind();return}
   const l=listById(S&&S.list);
   if(!S||!l){app.innerHTML=header('Top <span>10</span>','')+`<section class="panel"><p class="hint">Could not load the list. Try again later.</p></section>`;bind();return}
-  let h=header('Top <span>10</span>',S.mode==='daily'?'Daily #'+S.num:S.mode==='archive'?'Archive #'+S.num:'');
+  let h=header('Top <span>10</span>',S.mode==='daily'?'Daily #'+S.num:S.mode==='archive'?'Archive #'+S.num:'',0,S.mode==='free');
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
-  // Practice is said once, on the coral ticket (Héctor 2026-11-15)
-  if(S.mode!=='free'&&!(S.over&&S.mode==='daily'))h+=`<div class="backline"><span class="ht">${S.mode==='daily'?"Today's list":S.mode==='archive'?'List #'+S.num:'Practice'}</span></div>`;
   // the ticket, as in every game: Mingo on top, then who is travelling, countries found and lives left
   const cell=Geomingo.tk,tk=()=>Geomingo.ticket(moodHTML(tKey(),'pass','10 stamps to win.',S.nolives?'In any order. Unlimited: play until you find them all.':'In any order. A country outside the top 10 costs a life.'),
     cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Found',S.found.length+'/10')+(S.mode==='daily'?(Geomingo.newKm(S.date)?cell('Points',Geomingo.KM.top10(S.found.length,S.wrong.length),'tk-pts'):cell('km',Geomingo.pts(S.found.length/10),'tk-pts')):cell('Points',Geomingo.KM.top10(S.found.length,S.wrong.length),'tk-pts'))+(S.nolives?cell('Mistakes',S.wrong.length,'tk-gs'):cell('Lives',livesHTML(S.lives,LIVES),'tk-gs')),{mode:S.mode==='free'?'practice':S.mode,num:S.num});

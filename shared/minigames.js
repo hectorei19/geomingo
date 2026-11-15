@@ -37,8 +37,8 @@ const mico=k=>`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="
 const menuBtn=()=>`<button class="helpbtn" id="menu" aria-haspopup="true" aria-expanded="false">${mico('menu')}Menu</button>`;
 // the name you play with in Countries (same site, so the same device storage); Guest otherwise
 function playerName(){try{return localStorage.getItem('bl-user')||'Guest'}catch(e){return 'Guest'}}
-function header(brand,coord,home){
-  return Geomingo.header({game:brand.replace(/<[^>]*>/g,''),coord,menu:menuBtn()})}
+function header(brand,coord,home,practice){
+  return Geomingo.header({game:brand.replace(/<[^>]*>/g,''),coord,practice,menu:menuBtn()})}
 // Mingo: what he says about your last move, for the game it belongs to (key), or what he says by default
 let mood=null;
 function say(key,pose,t,s){mood={key,pose,t,s}}

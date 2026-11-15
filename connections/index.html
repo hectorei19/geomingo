@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611161330"></script>
+<script src="../brand/mingo.js?v=202611161410"></script>
 <script src="../brand/account.js?v=202611161330"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -94,7 +94,7 @@
 .lp.me{border-color:var(--sea)}
 .primary[disabled]{opacity:.5;cursor:default}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611161000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611161400">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -105,7 +105,7 @@
 <script src="../data/flags.js?v=202611101000"></script>
 <script src="../shared/data.js?v=202611141100"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611161330"></script>
+<script src="../shared/minigames.js?v=202611161400"></script>
 <script src="daily.js?v=202611142300"></script>
 <!-- With friends: online rooms in Countries' Firebase Realtime Database -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -552,10 +552,10 @@ function render(keepShake){
   if(!S){app.innerHTML=header('Connections','')+`<section class="panel"><p class="hint">Could not build a puzzle. Try again later.</p></section>`;bind();return}
   const on=S.mode==='online';
   const coord=S.mode==='daily'?'Daily #'+S.num:S.mode==='archive'?'Archive #'+S.num:on?'Room '+roomCode:'';
-  let h=header('Connec<span>tions</span>',coord);
+  let h=header('Connec<span>tions</span>',coord,0,S.mode==='free');
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
-  // Practice is said once, on the coral ticket (Héctor 2026-11-15)
-  if(S.mode!=='free'&&!(S.over&&!on&&S.mode==='daily'))h+=`<div class="backline">${on?`<button class="linkbtn" id="leave">${leaveArmed?'Tap again to leave':'← Leave'}</button>`:``}<span class="ht">${S.mode==='daily'?"Today's puzzle":S.mode==='archive'?'Puzzle #'+S.num:on?'With friends':'Practice'}</span></div>`;
+  // only a room has a title line (← Leave); today's game, the archive and Practice say it in the ticket's strip (Héctor 2026-11-15)
+  if(on)h+=`<div class="backline">${on?`<button class="linkbtn" id="leave">${leaveArmed?'Tap again to leave':'← Leave'}</button>`:``}<span class="ht">${S.mode==='daily'?"Today's puzzle":S.mode==='archive'?'Puzzle #'+S.num:on?'With friends':'Practice'}</span></div>`;
   if(on)h+=scoresHTML();
   watchResult(cxKey(),S.over);
   // today's daily done: the four groups go inside the result ticket, Next trip and Share under it (Héctor 2026-11-12)

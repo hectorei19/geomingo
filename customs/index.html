@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611161330"></script>
+<script src="../brand/mingo.js?v=202611161410"></script>
 <script src="../brand/account.js?v=202611161330"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -87,7 +87,7 @@
 .cpre{display:flex;gap:6px;width:100%}
 .cpre i{flex:1;aspect-ratio:3/4;border-radius:8px;border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--mono);font-size:.8rem;color:var(--ink-2)}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611161000">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611161400">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -98,7 +98,7 @@
 <script src="../data/flags.js?v=202611101000"></script>
 <script src="../shared/data.js?v=202611141100"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611161330"></script>
+<script src="../shared/minigames.js?v=202611161400"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
@@ -320,7 +320,6 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Desk',(i+1)+'/'+PER)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Customs',(arch?'Archive #':'Daily #')+D.num);
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
-  if(!(D.over&&D.left==null&&!arch))h+=`<div class="backline"><span class="ht">${arch?'Archive #'+D.num:"Today's travellers"}</span></div>`;
   if(D.over&&D.left==null)return h+resultHTML(D)+(D.mode==='archive'?summaryHTML(D):rankingHTML());
   return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel">${playHTML(D)}</section>`+quickRules()}
 const cuAverage=()=>{const v=Object.entries(load('cu-hist',{}));return v.length?EU(v.reduce((a,[d,e])=>a+Geomingo.KM.cl3(e.r,e.p,d,e.x3,PER),0)/v.length,1):'–'};
@@ -347,7 +346,7 @@ function trainPick(code){const q=T.qs[T.sel];if(!q||q.st!=='play'||T.over)return
   const res=answer(q,code);query='';typing=res==='wrong';feedback(q,res);advance(T);if(T.over)trainEnd();render();if(res!=='wrong')showLeft()}
 function trainNextClue(){const q=T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;nextClue(q);
   advance(T);if(T.over)trainEnd();render();if(q.st!=='play')showLeft()}
-function trainHTML(){let h=header('Customs','');  // Practice is said once, on the coral ticket (Héctor 2026-11-15)
+function trainHTML(){let h=header('Customs','',0,true);  // Practice is said once, on the coral ticket (Héctor 2026-11-15)
   // a finished Solo game: the pink ticket with the answers inside, then New game (Héctor 2026-11-14)
   if(T.over&&T.left==null){const p=pointsOf(T),s=load('cu-solo',null)||{};
     return h+Geomingo.soloTicket({id:'customs',what:'',score:p+' points',best:'Best: '+Math.max(s.best||0,p)+' points',detail:rightOf(T)+' of 5 named',
