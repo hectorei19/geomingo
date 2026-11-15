@@ -173,7 +173,7 @@ const IMP3=[15,10,5,3,1],impRound=q=>q.st!=='right'?0:q.x3?IMP3[q.k-1]||0:6-q.k;
 // Flag Pie, Customs, Compass from CL3_FROM (Héctor 2026-11-15: +16 with all five clues was far too much, "like Impostor"):
 // 20, 15, 10, 5, 3 an answer by clues open (Compass: by clues and wrong guesses; x3 on the answer), so five still make 100;
 // the history and the ranking keep these points (p / s, 0-100). clFlag: an answer's stored points by clues open
-const CL3_FROM='2026-11-16',cl3=d=>!d||d>=CL3_FROM;
+const CL3_FROM='2026-11-15',cl3=d=>!d||d>=CL3_FROM;
 const clNew=(d,x)=>!d||d>CL3_FROM||d===CL3_FROM&&!!x;
 const CL3=[20,15,10,5,3],clFlag=q=>q.st!=='right'?0:q.x3?CL3[q.k-1]||0:6-q.k;
 const pf=(all,m)=>all&&!(+m)?20:0;
