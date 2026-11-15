@@ -476,6 +476,7 @@ const EASY_LABELS=new Set(['In Africa','In Europe','In Asia','In Oceania','In No
 // specialist categories: only in Hard grids
 const HARD_ONLY=new Set(['Over 2,000 m above sea level','On the Danube','Hosted a men\'s World Cup final','Name contains Z']);
 const DIFFS=['easy','normal','hard'];
+const lvOf=d=>d==='hard'?'hard':'normal'; // the level shown in Practice: Easy (old Easy and Normal) or Hard
 let DIFF='normal';
 const sovCount=a=>{let k=0;for(const i of a)if(!CITIES[i].t)k++;return k};
 let HARD_MAX=12,HARD_SMALL=5;
@@ -548,7 +549,7 @@ const randSeed=()=>Math.floor(Math.random()*7962624);
 /* ---- state ---- */
 let S = null;
 let setup = {mode:'solo',n:4,timer:0,diff:'normal',nolives:0,code:'',user:''};
-try{const s=JSON.parse(localStorage.getItem('cc-setup')||'null');if(s&&typeof s==='object'){setup={...setup,...s,code:''};delete setup.names;if(setup.mode!=='online')setup.mode='solo'}}catch(e){}
+try{const s=JSON.parse(localStorage.getItem('cc-setup')||'null');if(s&&typeof s==='object'){setup={...setup,...s,code:''};delete setup.names;if(setup.mode!=='online')setup.mode='solo';if(setup.diff==='easy')setup.diff='normal'}}catch(e){}
 // 3 × 3 grids were dropped: an old saved choice of 3 becomes 4 × 4, the only size left
 setup.n=4;
 try{setup.user=localStorage.getItem('bl-user')||localStorage.getItem('cc-user')||setup.user||''}catch(e){}
@@ -685,7 +686,7 @@ function computeStats(hist,games){
   const sum=a=>{const sq=a.reduce((x,g)=>x+(g.c||0),0),all=a.reduce((x,g)=>x+g.n*g.n,0);
     return {played:a.length,best:best(a.map(g=>g.s)),avg:avg(a.map(g=>g.s)),perfect:a.filter(g=>g.c===g.n*g.n).length,
       squares:sq,acc:all?Math.round(sq/all*100):0}};
-  const byDiff={};['easy','normal','hard'].forEach(d=>byDiff[d]=sum(solo.filter(g=>g.d===d)));
+  const byDiff={};['normal','hard'].forEach(d=>byDiff[d]=sum(solo.filter(g=>lvOf(g.d)===d)));
   const wins=fr.filter(g=>g.w===1).length;
   return {d:{played:days.length,streak:ds.streak,max:maxStreak,best:best(dv.map(e=>e.s||0)),avg:avg(dv.map(e=>e.s||0)),perfect:dv.filter(e=>e.c===(e.n||DAILY_N)*(e.n||DAILY_N)).length},
     s:{...sum(solo),byDiff},
@@ -1270,10 +1271,12 @@ addEventListener('resize',()=>{clearTimeout(fitHeaders.t);fitHeaders.t=setTimeou
 function onTickVisual(){const left=S.deadline-now();const bar=document.querySelector('.tbar');const sub=document.getElementById('tleft');if(bar){bar.style.width=Math.max(0,left/(S.timer*1000)*100)+'%';bar.classList.toggle('low',left<=5000)}if(sub)sub.textContent=Math.max(0,Math.ceil(left/1000))+'s'}
 
 const MHINT={solo:'1 player.',online:'Play online, 2 to 6 players, each on their own phone.'};
-const DLABEL={easy:'Easy',normal:'Normal',hard:'Hard'};
+/* two levels to choose (15 Nov 2026): Easy plays the grids once called Normal (the old Easy is folded in), and Hard.
+   'easy' stays only so old shared codes still open the same grid. */
+const DLABEL={easy:'Easy',normal:'Easy',hard:'Hard'};
 const DHINT={
   easy:'For everyone. Well-known topics, lots of possible answers.',
-  normal:'For geography fans. A wider mix of topics, some tricky squares.',
+  normal:'For everyone. A wide mix of topics, from well-known to a few tricky squares.',
   hard:'For experts. Tricky topics, few possible answers.'};
 const DEXAMPLE={
   easy:'"In Europe" × "On the coast", "Over 1M people" × "In Africa"',
@@ -1301,14 +1304,14 @@ function statsView(){
     daily:{n:D.played,unit:'grid',streak:D.streak,avg:D.avg},
     solo:{n:So.played,unit:'game',medal:So.best,stats:[[So.best,'best'],[(So.acc||0)+'%','accuracy'],[So.perfect,'perfect']]},
     friends:{n:F.played,w:F.wins,place:(F.place||0)*F.played,third:[F.best,'best']},
-    extra:A.levelBars('Solo by level',['easy','normal','hard'].map((k,i)=>[k[0].toUpperCase()+k.slice(1),(bd[k]||{}).acc||0,(bd[k]||{}).played||0,['green','blue','coral'][i]]))})}</section>`;
-  const row=k=>{const x=bd[k]||{played:0,best:0,avg:0};return `<tr><td>${k[0].toUpperCase()+k.slice(1)}</td><td>${x.played}</td><td>${x.best}</td><td>${x.avg}</td></tr>`};
+    extra:A.levelBars('Solo by level',['normal','hard'].map((k,i)=>[DLABEL[k],(bd[k]||{}).acc||0,(bd[k]||{}).played||0,['green','coral'][i]]))})}</section>`;
+  const row=k=>{const x=bd[k]||{played:0,best:0,avg:0};return `<tr><td>${DLABEL[k]}</td><td>${x.played}</td><td>${x.best}</td><td>${x.avg}</td></tr>`};
   return `<section class="panel stats">${back.replace('%NAME%',esc(name))}
     <span class="label">Today's grid</span>
     <div class="stgrid">${tile(D.played,'played')}${tile(D.streak,'streak')}${tile(D.max,'best streak')}${tile(D.best,'best score')}${tile(D.avg,'average')}${tile(D.perfect,'perfect grids')}</div>
     <span class="label">Solo</span>
     <div class="stgrid">${tile(So.played,'games')}${tile(So.best,'best score')}${tile(So.avg,'average')}${tile(So.perfect,'perfect grids')}${tile(So.acc===undefined?'–':So.acc+'%','accuracy')}${tile(So.squares===undefined?'–':So.squares,'squares')}</div>
-    ${So.played?`<table class="sttab"><tr><th></th><th>Games</th><th>Best</th><th>Average</th></tr>${row('easy')}${row('normal')}${row('hard')}</table>`:''}
+    ${So.played?`<table class="sttab"><tr><th></th><th>Games</th><th>Best</th><th>Average</th></tr>${row('normal')}${row('hard')}</table>`:''}
     <span class="label">With friends</span>
     <div class="stgrid">${tile(F.played,'games')}${tile(F.wins,'wins')}${tile(F.pct+'%','win rate')}${tile(F.best,'best score')}${tile(F.avg===undefined?'–':F.avg,'average')}${tile(F.place===undefined||!F.played?'–':String(F.place),'avg. place')}</div>
   </section>`}
@@ -1401,8 +1404,8 @@ function setupView(){
     <div class="backline"><span class="ht">${fr?'With friends':'Solo'}</span></div>
     ${fr?`<p class="hint">${MHINT.online} The host creates a room and shares its link or code.</p>`:''}
     ${on&&!USER&&!MAYBE_IN()?`<div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||(setup.user==='Guest'?'':setup.user))}"></div>`:''}
-    ${fg&&!on?`<div class="field"><span class="label">Friend's grid</span><p class="hint" style="color:var(--ink);font-size:1rem"><b>${esc(fg.code)}</b> · ${fg.n} × ${fg.n} · ${fg.diff[0].toUpperCase()+fg.diff.slice(1)}. You play exactly the squares your friend played.</p><button class="ghost" id="nofg">Play a random grid instead</button></div>`:`
-    <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['normal','Normal'],['hard','Hard']],setup.diff||'normal')}<p class="hint">${DHINT[setup.diff||'normal']}</p></div>`}
+    ${fg&&!on?`<div class="field"><span class="label">Friend's grid</span><p class="hint" style="color:var(--ink);font-size:1rem"><b>${esc(fg.code)}</b> · ${fg.n} × ${fg.n} · ${DLABEL[fg.diff]}. You play exactly the squares your friend played.</p><button class="ghost" id="nofg">Play a random grid instead</button></div>`:`
+    <div class="field"><span class="label">Difficulty</span>${seg('diff',[['normal','Easy'],['hard','Hard']],lvOf(setup.diff))}<p class="hint">${DHINT[lvOf(setup.diff)]}</p></div>`}
     <div class="field"><span class="label">Time per turn</span>${seg('timer',[[0,'Off'],[15,'15 s'],[30,'30 s']],setup.timer)}</div>
     ${on?'':`<div class="field"><span class="label">Lives</span>${seg('nolives',[[0,LIVES+' lives'],[1,'No lives']],setup.nolives?1:0)}<p class="hint">${setup.nolives?'Training: play until the grid is full. Mistakes are only counted.':'A wrong answer costs one. The game ends when they are gone.'}</p></div>`}
     ${on?`<div class="field">${FB_OK?'':'<p class="hint">Online play only works on the published site with Firebase connected.</p>'}<button class="primary" id="create" ${FB_OK?'':'disabled style="opacity:.5"'}>Create room</button></div>
@@ -1528,7 +1531,7 @@ function resultsView(body){
     <div class="gm-done-btns">${nextGameBtn(next)}${SHARE_BTN.replace('Share result','Share')}</div>`;
     return `<section class="panel respanel">${verdictHTML()}<span class="label">${S.dayof?'':S.archive?'Archive · ':''}Daily grid #${S.day}${S.dayof?' · played on its day':''}</span><p class="big">${EU(p.score)} points</p>${breakdown(p)}<p class="hint">${p.cells} of ${n*n} squares. ${S.wrong} wrong guess${S.wrong===1?'':'es'}. ${S.dayof?'You played this grid on its day, so it can\'t be played again.':S.archive?'Archive games don\'t count for the ranking or your streak.':`Share it: friends play today's grid with their own one try. Next grid in ${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min.`}</p><pre class="sharebox" id="share">${esc(shareText())}</pre>${SHARE_BTN}<div class="row-btns sharerow">${S.archive?`<button class="primary" id="newg" style="flex:1">Back to archive</button>`:nextGameBtn(next)}</div>${S.archive?'':afterNextHTML(next)+`<span class="label">Your daily grids</span>${statTiles(dailyStatsFrom({...loadHist(),[S.daily]:loadHist()[S.daily]||{s:p.score}}))}`}</section>${lbView(S.archive?S.daily:null)}`}
   // a finished Solo game: the pink ticket with the grid inside, then New grid and Share (Héctor 2026-11-14)
-  if(S.mode==='solo'){const p=S.players[0],n=S.n,d=S.diff||'normal',best=Math.max(p.score||0,...loadGames().filter(g=>g.m==='s'&&g.n===n&&(g.d||'normal')===d).map(g=>g.s||0));
+  if(S.mode==='solo'){const p=S.players[0],n=S.n,d=lvOf(S.diff),best=Math.max(p.score||0,...loadGames().filter(g=>g.m==='s'&&g.n===n&&lvOf(g.d)===d).map(g=>g.s||0));
     return `${Geomingo.soloTicket({id:'citygrid',what:d[0].toUpperCase()+d.slice(1)+' · '+n+' × '+n,score:EU(p.score)+' points',best:'Best: '+EU(best),detail:p.cells+' of '+n*n+' squares',body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns gm-solo-btns"><button class="primary" id="again" style="flex:1">New grid</button>${SHARE_BTN.replace('Share result','Share')}</div>`}
   const ranked=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score||b.cells-a.cells);
@@ -1624,14 +1627,13 @@ function drawLayer(){
       <li>You have <b>5 lives</b> for the whole grid, whatever its size. A wrong answer costs one; a right answer costs nothing. With a time per turn, running out of time also costs one.</li>
       <li>The game ends when the grid is full or you run out of lives. <b>Give up</b> ends it early.</li></ul>
       <h3>Modes</h3><ul>
-      <li><b>Today's grid</b>: one ${DAILY_N} × ${DAILY_N} grid at Normal level, the same for everyone, new every day at midnight CET. One try; if you leave, you carry on where you stopped. Sign in with Google to appear in the daily ranking. Missed a day? Play it in <b>Menu → Archive</b>.</li>
+      <li><b>Today's grid</b>: one ${DAILY_N} × ${DAILY_N} grid at Easy level, the same for everyone, new every day at midnight CET. One try; if you leave, you carry on where you stopped. Sign in with Google to appear in the daily ranking. Missed a day? Play it in <b>Menu → Archive</b>.</li>
       <li><b>Solo</b>: as many grids as you like. You choose the level and the time per turn (Off, 15 s or 30 s). Pick <b>No lives</b> to train: play until the end, mistakes are only counted.</li>
       <li><b>With friends</b>: 2 to 6 players online, each on their own phone. The host creates a room and shares its 4-letter code or link. You take turns: a right answer scores for you, a wrong one or running out of time passes the turn. You can also tap <b>Pass turn</b>. The game ends when the grid is full or everyone passes one after another.</li>
       <li><b>Share</b>: at the end, send your result with a link. Friends who open it play exactly your grid.</li></ul>
       <h3>Levels</h3><ul>
-      <li><b>Easy</b>: ${DHINT.easy} The list finds a capital from any part of its name. <i>Example: ${DEXAMPLE.easy}.</i></li>
-      <li><b>Normal</b>: ${DHINT.normal} The list only finds names from their first letters, so you need to know the answer. <i>Example: ${DEXAMPLE.normal}.</i></li>
-      <li><b>Hard</b>: ${DHINT.hard} The list works as in Normal. <i>Example: ${DEXAMPLE.hard}.</i></li></ul>
+      <li><b>Easy</b>: ${DHINT.normal} The list only finds names from their first letters, so you need to know the answer. <i>Example: ${DEXAMPLE.normal}.</i></li>
+      <li><b>Hard</b>: ${DHINT.hard} The list works as in Easy. <i>Example: ${DEXAMPLE.hard}.</i></li></ul>
       <h3>Points</h3><ul>
       <li><b>Square</b>: 0 to ${SQ_MAX} points. Hard squares (few capitals fit) are worth more, easy ones (many fit) less. You see a square's points when you fill it.</li>
       <li><b>Speed</b>: +${SPEED_PER_SEC} for every second left on your clock when you answer right. With the timer off, the clock counts down from ${SPEED_WINDOW} seconds.</li>

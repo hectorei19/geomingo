@@ -99,7 +99,10 @@
 /* ---- one silhouette to name: the same piece in Solo, Daily and With friends ----
    A question is {c: country code, rot: turn in degrees (Hard), tries: wrong answers so far, st: 'play' | 'right' | 'wrong'}.
    The lives are for the whole game, not per shape: every wrong answer on any shape costs one, and at none the game is over. */
-const LIVES=5,DIFF_NAME={easy:'Easy',normal:'Normal',hard:'Hard'};
+const LIVES=5,DIFF_NAME={easy:'Easy',normal:'Easy',hard:'Hard'};
+/* two levels to choose (15 Nov 2026): Easy = all 197 countries north up (the old Easy and Normal together), and Hard.
+   'easy' (the 54 best-known) stays only inside "Getting harder" rooms and in old saves. */
+const lvOf=d=>d==='hard'?'hard':'normal';
 const DIFF_HINT={easy:'Well-known countries, north up',normal:'All 197 countries, north up',hard:'All 197, each shape turned'};
 const newQ=(c,rot)=>({c,rot:rot||0,tries:[],st:'play'});
 const flagSrc=c=>'../flagpie/flags/'+c+'.svg';
@@ -159,14 +162,14 @@ function trainNext(){const pool=poolOf(T.diff).map(c=>c.c);
   if(!T.deck||!T.deck.length)T.deck=shuffled(pool,Math.random).filter(c=>c!==(T.q&&T.q.c));
   const c=T.deck.pop();T.q=newQ(c,T.diff==='hard'?hardTurn(Math.random):0);query='';typing=false}
 function openTrain(){const st=trainStats();
-  T={diff:load('sil-diff','normal'),nolives:load('sil-nolives',0)?1:0,streak:0,miss:0,over:false,deck:null,q:null,best:st};trainNext();view='train';render();window.scrollTo(0,0)}
+  T={diff:lvOf(load('sil-diff','normal')),nolives:load('sil-nolives',0)?1:0,streak:0,miss:0,over:false,deck:null,q:null,best:st};trainNext();view='train';render();window.scrollTo(0,0)}
 // Solo's start screen, as in every game: the level, then Start game
 function openSolo(){view='solo';query='';typing=false;render();window.scrollTo(0,0)}
-function soloHTML(){const diff=load('sil-diff','normal'),nl=load('sil-nolives',0)?1:0;
+function soloHTML(){const diff=lvOf(load('sil-diff','normal')),nl=load('sil-nolives',0)?1:0;
   return header('Silhou<span>ette</span>','Solo')+`<section class="panel">
     <div class="backline"><span class="ht">Solo</span></div>
     <p class="hint">Name shape after shape${nl?'':` until your ${LIVES} lives are gone`}. No country comes back until you have seen them all.</p>
-    <div class="field"><span class="label">Difficulty</span>${seg('diff',[['easy','Easy'],['normal','Normal'],['hard','Hard']],diff)}<p class="hint">${DIFF_HINT[diff]}.</p></div>
+    <div class="field"><span class="label">Difficulty</span>${seg('diff',[['normal','Easy'],['hard','Hard']],diff)}<p class="hint">${DIFF_HINT[diff]}.</p></div>
     <div class="field"><span class="label">Lives</span>${seg('nolives',[[0,LIVES+' lives'],[1,'No lives']],nl)}<p class="hint">${nl?'Training: play as long as you like. Skip a shape you can\'t name; Give up ends the game.':'A wrong answer costs one. The game ends when they are gone.'}</p></div>
     <button class="primary" id="start">Start game</button></section>${quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}`}
 const trainLeft=()=>Math.max(0,LIVES-T.miss);
@@ -290,11 +293,14 @@ function myStatsHTML(){const h=load('sil-hist',{}),days=Object.keys(h),tr=load('
     lbs:()=>['easy','normal','hard'].map(v=>({path:'lb/sil-'+v,dates:days.filter(k=>h[k]&&h[k][v]!=null)})),
     solo:{n,unit:'shape',medal:run,stats:[[run,'best game'],[n?Math.round(ok/n*100)+'%':'–','right'],[ok,'named']]},
     friends:Object.assign(fr,{third:[fr.best,'best']}),
-    extra:Geomingo.account?Geomingo.account.levelBars('Solo by level',['easy','normal','hard'].map((v,i)=>[DIFF_NAME[v],lv[i].n?Math.round(lv[i].ok/lv[i].n*100):0,lv[i].n,['green','blue','coral'][i]])):''})}
+    extra:Geomingo.account?Geomingo.account.levelBars('Solo by level',[soloLv(tr,'normal'),soloLv(tr,'hard')].map((s,i)=>[i?'Hard':'Easy',s.n?Math.round(s.ok/s.n*100):0,s.n,['green','coral'][i]])):''})}
+// Solo stats of a level: Easy adds up the old Easy and Normal shapes
+function soloLv(tr,v){const z={n:0,ok:0,best:0},a=v==='hard'?[tr.hard||z]:[tr.easy||z,tr.normal||z];
+  return {n:a.reduce((x,s)=>x+(s.n||0),0),ok:a.reduce((x,s)=>x+(s.ok||0),0),best:Math.max(0,...a.map(s=>s.best||0))}}
 function statsHTML(short){const h=load('sil-hist',{}),days=Object.keys(h);
   const tr=load('sil-train',{});
   return statTiles(days.length,silAverage(h),streakOf(h))+(short?'':`
-    <table class="sttab"><tr><th>Solo</th><th>Shapes</th><th>Right</th><th>Best game</th></tr>${['easy','normal','hard'].map(v=>{const s=tr[v]||{n:0,ok:0,best:0};return `<tr><td>${DIFF_NAME[v]}</td><td>${s.n}</td><td>${s.n?Math.round(s.ok/s.n*100)+'%':'–'}</td><td>${s.best}</td></tr>`}).join('')}</table>`)}
+    <table class="sttab"><tr><th>Solo</th><th>Shapes</th><th>Right</th><th>Best game</th></tr>${['normal','hard'].map(v=>{const s=soloLv(tr,v);return `<tr><td>${DIFF_NAME[v]}</td><td>${s.n}</td><td>${s.n?Math.round(s.ok/s.n*100)+'%':'–'}</td><td>${s.best}</td></tr>`}).join('')}</table>`)}
 const quickRules=extra=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name the country from its shape. Every shape fills the same frame, so size is no clue. You have ${LIVES} lives for the whole game, not per shape. Today's shapes: 10 points a shape, +10 for all nine, +20 with no wrong answer.${extra||''}</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Each shape is the outline of a country. Guess which one it is.</li>
@@ -310,14 +316,13 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>A <b>perfect game</b> (all nine, not one wrong answer): +20, so 120.</li>
   <li>Your points are also your km for the GeoPass.</li></ul>
   <h3>Levels</h3><ul>
-  <li><b>Easy</b>: 54 countries most people know from maps, news and travel, north up.</li>
-  <li><b>Normal</b>: all 197 countries, north up.</li>
+  <li><b>Easy</b>: all 197 countries, north up.</li>
   <li><b>Hard</b>: all 197, each shape turned at a random angle, so north is no clue.</li>
-  <li>Today's shapes are always <b>Normal</b>. In Solo and With friends you choose the level.</li></ul>
+  <li>Today's shapes are always <b>Easy</b>. In Solo and With friends you choose the level.</li></ul>
   <h3>Modes</h3><ul>
   <li><b>Today's shapes</b>: nine shapes on a 3 × 3 board, the same for everyone, new every day at midnight CET. Tap a shape to answer it, in any order. If your ${LIVES} lives run out, the shapes you have not named count as missed. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>
   <li><b>Solo</b>: shape after shape at the level you choose, until your ${LIVES} lives are gone. Every shape you name is 10 points. No country comes back until you have seen them all. Pick <b>No lives</b> to train: no game over, skip a shape you can't name, and <b>Give up</b> when you want to stop.</li>
-  <li><b>With friends</b>: 2 to 6 players online, each on their own phone. The host chooses <b>Getting harder</b> (3 Easy, 4 Normal, 3 Hard) or a continent and a level. Everyone gets the same ten shapes at the same time, ${SECS} seconds each. There are no lives: you can try as many countries as you like until you name it or the time runs out. A right answer scores 10 points, so ten shapes make 100. Level on points, the faster one ranks first. The ranking shows after every shape and at the end.</li></ul>`}
+  <li><b>With friends</b>: 2 to 6 players online, each on their own phone. The host chooses <b>Getting harder</b> (7 Easy, the first 3 well known, then 3 Hard) or a continent and a level. Everyone gets the same ten shapes at the same time, ${SECS} seconds each. There are no lives: you can try as many countries as you like until you name it or the time runs out. A right answer scores 10 points, so ten shapes make 100. Level on points, the faster one ranks first. The ranking shows after every shape and at the end.</li></ul>`}
 function creditsHTML(){return `<ul style="padding-left:18px">
   <li>Borders: <a href="https://github.com/topojson/world-atlas" target="_blank" rel="noopener">world-atlas</a>, from <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> 1:10m (public domain); Vatican City from <a href="https://www.geoboundaries.org" target="_blank" rel="noopener">geoBoundaries</a> (public domain). Each country is drawn on its own map centred on itself, so no shape is stretched or cut by the date line.</li>
   <li>Country names and continents: Countries' data, from <a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a> (ODbL 1.0).</li>
@@ -336,7 +341,7 @@ let db=null,room=null,roomRef=null,roomCode=null,joining=false,offset=0,tick=nul
 const now=()=>Date.now()+offset;
 let ME=load('sil-pid','');if(!ME){ME='p'+Math.random().toString(36).slice(2,10);store('sil-pid',ME)}
 // the name the others see: the one typed here before, or the one used in the other games' rooms on this device
-const setup={fname:'',fmt:'ramp',cont:'all',diff:'normal',join:'',...load('sil-setup',{})};
+const setup={fname:'',fmt:'ramp',cont:'all',diff:'normal',join:'',...load('sil-setup',{})};setup.diff=lvOf(setup.diff);
 if(!setup.fname)try{setup.fname=(JSON.parse(localStorage.getItem('t10-setup')||'{}')||{}).fname||(JSON.parse(localStorage.getItem('bl-setup')||'{}')||{}).fname||localStorage.getItem('bl-user')||''}catch(e){}
 function initFB(){if(db)return true;if(!FB_OK())return false;
   try{if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);db=firebase.database();db.ref('.info/serverTimeOffset').on('value',s=>{offset=s.val()||0})}catch(e){console.error(e);return false}
@@ -348,13 +353,13 @@ const lobbyOrder=r=>Object.entries(r.players||{}).sort((a,b)=>(a[1].t||0)-(b[1].
 function saveSetup(){const el=$('fname');if(el)setup.fname=el.value.trim().slice(0,16);store('sil-setup',{fname:setup.fname,fmt:setup.fmt,cont:setup.cont,diff:setup.diff})}
 function needName(){saveSetup();if(setup.fname)return false;
   toast("Type your name so your friends know who's playing.",'bad');const el=$('fname');if(el)el.focus();return true}
-const cfgText=c=>c.fmt==='ramp'?'10 rounds, getting harder: 3 Easy, 4 Normal, 3 Hard':`10 rounds · ${CONTS.find(x=>x[0]===c.cont)[1]} · ${DIFF_NAME[c.diff]}`;
+const cfgText=c=>c.fmt==='ramp'?'10 rounds, getting harder: 7 Easy, then 3 Hard':`10 rounds · ${CONTS.find(x=>x[0]===c.cont)[1]} · ${DIFF_NAME[c.diff]}`;
 // the ten shapes of a game. Getting harder: three Easy, then four Normal countries not in the Easy list, then three turned.
 // Chosen continent and level: from that continent; when Easy has fewer than ten there, the rest of the continent fills in.
 function dealShapes(cfg){const pick=(pool,n,not)=>shuffled(pool.map(c=>c.c).filter(c=>!not.includes(c)),Math.random).slice(0,n);
   if(cfg.fmt==='ramp'){const a=pick(poolOf('easy'),3,[]),b=pick(poolOf('normal').filter(c=>!c.e),4,a),h=pick(poolOf('normal'),3,[...a,...b]);
     return [...a.map(c=>({c,rot:0,d:'easy'})),...b.map(c=>({c,rot:0,d:'normal'})),...h.map(c=>({c,rot:hardTurn(Math.random),d:'hard'}))]}
-  let codes=pick(poolOf(cfg.diff,cfg.cont),ROUNDS,[]);
+  let codes=pick(poolOf(lvOf(cfg.diff),cfg.cont),ROUNDS,[]);
   if(codes.length<ROUNDS)codes=[...codes,...pick(poolOf('normal',cfg.cont),ROUNDS-codes.length,codes)];
   return codes.map(c=>({c,rot:cfg.diff==='hard'?hardTurn(Math.random):0,d:cfg.diff}))}
 async function createRoom(){
@@ -493,7 +498,7 @@ function lobbyHTML(){const r=room,order=lobbyOrder(r),link=pageLink('?room='+roo
     <span class="label">Game</span>
     ${host?`<div class="field">${seg('fmt',[['ramp','Getting harder'],['pick','Choose']],c.fmt)}
       ${c.fmt==='pick'?`<label class="label" for="ocont">Continent</label><select id="ocont" class="osel">${CONTS.map(([v,l])=>`<option value="${v}"${v===c.cont?' selected':''}>${l}</option>`).join('')}</select>
-      ${seg('odiff',[['easy','Easy'],['normal','Normal'],['hard','Hard']],c.diff)}`:''}</div>`:''}
+      ${seg('odiff',[['normal','Easy'],['hard','Hard']],lvOf(c.diff))}`:''}</div>`:''}
     <p class="hint">${esc(cfgText(r.cfg))} · ${SECS} s per shape</p>
     ${host?`<button class="primary" id="ostart" ${order.length<2?'disabled style="opacity:.5"':''}>${order.length<2?'Waiting for players…':'Start game'}</button>`:'<p class="hint">Waiting for the host to start the game.</p>'}
     <button class="ghost" id="leave">Leave room</button></section>`}
