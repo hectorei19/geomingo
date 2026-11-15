@@ -438,7 +438,7 @@ function openPrivacy(){fetch(HOME_URL+'privacy/').then(r=>{if(!r.ok)throw 0;retu
 // About & FAQ: what Geomingo is, then the common questions (tap one to open its answer)
 const FAQ=[
   ['When do new games come out?','Every day at midnight CET. Everyone in the world gets the same puzzles that day.'],
-  ['How do I play?','Tap a game in Today\'s itinerary. Each game has its rules under How to play in its own Menu.'],
+  ['How do I play?','Tap a game in Today\'s itinerary. Inside a game, Menu → How to play has its rules.'],
   ['What are the km?','Each daily game moves you up to 100 km, +20 km for a perfect game and +50 km for playing all nine. Your km fill your GeoPass and count for the ranking.'],
   ['Is there an unlimited mode?','Yes, Practice. Random puzzles with the daily rules, as many as you like, with 5 lives or unlimited. Practice gives points but no km.'],
   ['Can I play with friends?','Yes. Tap With friends, create a room (you need to sign in) and share the code. Up to 6 players, the host picks the game and the points add up.'],

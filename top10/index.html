@@ -37,7 +37,7 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611171600"></script>
-<script src="../brand/account.js?v=202611171800"></script>
+<script src="../brand/account.js?v=202611171900"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -526,7 +526,7 @@ function wrongsHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntri
   if(S.wrong.length){const ws=S.wrong.map(c=>({c,p:placeOf(l,c)})).sort((a,b)=>(a.p||1e9)-(b.p||1e9));
     h+=`<div class="wrongs">Not in the top 10:<div class="wl">${ws.map(({c,p})=>`<span class="w"${on?` style="${pc(c)}" title="${esc(who(c))}"`:''}><b class="wr">${p?'#'+p:'–'}</b><img src="${FLAGS[c]}" alt=""><span class="wn">${esc(byCode[c].n)}</span><small>${p?esc(shortFig(l.fmt(val[c]))):noFigure(l,c)}</small></span>`).join('')}</div></div>`}
   return h}
-const quickRules=extra=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name the ten countries of the ranking, in any order. A country outside the top 10 costs one of your ${LIVES} lives. Only independent countries count. 10 points a country, +20 with no life lost.${extra||''}</p></section>`;
+const quickRules=extra=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name the ten countries of the ranking, in any order. A country outside the top 10 costs one of your ${LIVES} lives. 10 points a country.${extra||''}</p></section>`;
 function homeHTML(){const key=todayKey(),num=dayNum(key,T10_FIRST),d=dailySaved(),h=load('t10-hist',{}),days=Object.keys(h);
   let daily;
   if(d&&d.over)
@@ -649,24 +649,21 @@ const rankingHTML=()=>Geomingo.account.rankingHTML('top10',{what:'list',score:r=
 Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&S&&S.mode==='daily'){const d=dailySaved();if(d){S=d;liveKey=''}}
   if(!typing&&!roomCode&&(view==='home'||view==='game'&&S&&S.over))render()});
 function rulesHTML(){return `<h3>The idea</h3><ul>
-  <li>Each game is a top 10 of countries based on real figures, for example "The 10 most populous countries" or "The 10 countries with the longest coastline".</li>
-  <li>Name the ten countries in the list, in any order. Each one you find appears in its place, with its figure.</li>
-  <li>Some lists cover the whole world, others one continent (Europe, Asia, Africa or the Americas). In a continent list, only its countries count.</li>
-  <li>If several countries tie for 10th place, any of them counts: find ten to win.</li>
-  <li>Only independent countries count, never territories. <b>Where the numbers come from</b> shows the source of each list.</li></ul>
+  <li>A top 10 of countries from real figures, for example "The 10 most populous countries". Some lists are for one continent.</li>
+  <li>Name the ten, in any order. Each one you find appears in its place, with its figure.</li>
+  <li>Ties for 10th: any of them counts. Only independent countries. <b>Where the numbers come from</b> shows the source.</li></ul>
   <h3>How to play</h3><ul>
-  <li>Tap <b>Type a country…</b>, start typing and tap the country in the list.</li>
-  <li>In the top 10: it appears in its place.</li>
-  <li>Not in the top 10: you lose one of your <b>${LIVES} lives</b>, and you see where it ranks.</li>
-  <li>The game ends when you find all ten or run out of lives. Then the full list is shown. <b>Give up</b> ends it early.</li></ul>
+  <li>Tap <b>Type a country…</b>, start typing and tap the country in the list. Names in English, one per country (United Kingdom, not UK). Accents and capitals don't matter.</li>
+  <li>In the top 10: it appears in its place. Not in it: you lose one of your <b>${LIVES} lives</b> and see where it ranks.</li>
+  <li>The game ends when you find all ten or run out of lives. <b>Give up</b> ends it early.</li></ul>
   <h3>Points</h3><ul>
-  <li>10 points for every country you find: all ten, 100.</li>
-  <li>A <b>perfect game</b> (all ten, not one life lost): +20, so 120.</li>
-  <li>In today's list your points are also your km for the GeoPass.</li></ul>
+  <li>10 for every country you find: all ten, 100.</li>
+  <li><b>Perfect game</b> (all ten, no life lost): +20.</li></ul>
   <h3>Modes</h3><ul>
-  <li><b>Today's list</b>: the same for everyone, new every day at midnight CET. One try. Missed one? Play it in <b>Menu → Archive</b>.</li>
-  <li><b>Practice</b>: as many practice lists as you like, a new one each time until you have played them all. <b>Share</b> sends a friend a link to the same list. With <b>Unlimited</b> (chosen on the Geomingo home page, under Practice) you play until the end and mistakes are only counted.</li>
-  <li><b>With friends</b>: 2 to ${MAXP} players online, each on their own phone. The host creates a room and shares its code or link. You take turns naming a country, 30 s each: one in the top 10 scores 10 points, one outside passes the turn. There are no lives. You can also tap <b>Pass</b>, and running out of time passes too. The game ends when the ten are found or everyone passes in a row. Most points wins. If level: fewer wrong answers wins, then the higher places found (the lower your places add up), then whoever found a country first.</li></ul>`}
+  <li><b>Daily</b>: one list, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
+  <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. 5 lives or <b>Unlimited</b>: pick it next to Practice on the home page. Points only, no km.</li>
+  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. You take turns, 30 s each, and a random player starts. A country in the top 10 scores 10; one outside, <b>Pass</b> or running out of time passes the turn. The game ends when the ten are found or everyone passes in a row. Most points win.</li>
+  <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, points only, no km.</li></ul>`}
 // tapping a suggestion does not take the focus from the box, so the phone keyboard stays open
 function drawSugg(){const u=$('sugg');if(u){u.innerHTML=suggHTML();u.querySelectorAll('[data-g]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>guess(b.dataset.g)})}}
 function bind(){

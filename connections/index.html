@@ -22,7 +22,7 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611171600"></script>
-<script src="../brand/account.js?v=202611171800"></script>
+<script src="../brand/account.js?v=202611171900"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -535,7 +535,7 @@ function homeHTML(){const key=todayKey(),num=dayNum(key,CX_FIRST),d=dailySaved()
     :Geomingo.hello('pass','GeoPass ready.','Tap a country to start. Every group you find is a stamp. One try, the same 16 for everyone.');
   return header('Connec<span>tions</span>','',true)+`<section class="home">${hi}${Geomingo.account.userHTML()}${daily}${d&&d.over?rankingHTML():''}</section>
     ${rulesPanel()}`}
-const rulesPanel=on=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something: a region, a flag, a language, a name… Each country is in exactly one group, and only one split works for all 16. Pick four and tap <b>Submit</b>. ${on?'With friends there are no lives: play until you find all four groups. Most points win, then speed.':`A wrong four costs one of your ${MAX_MISTAKES} lives. 25 points a group, 10 less a mistake, +20 with none.`} Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const rulesPanel=on=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something. Pick four and tap <b>Submit</b>. ${on?'With friends there are no lives: play until you find all four groups. Most points win, then speed.':`A wrong four costs one of your ${MAX_MISTAKES} lives. 25 points a group.`} Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 // the logo goes home from anywhere; in a room that means leaving it (in the middle of a game, tap twice)
 function goHome(){if(roomRef){if(S&&S.mode==='online'&&!S.over&&!leaveArmed){leaveArmed=true;render();toast('Tap again to leave the room.');return}
     leaveRoom(true);return}
@@ -621,25 +621,22 @@ function roomResultHTML(){const list=ranked(),cur=list.filter(p=>p.cur),pos=cur.
 if(Geomingo.party)Geomingo.party.game({room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
   count:()=>room?lobbyOrder(room).length:0,names:()=>room?lobbyOrder(room).map(k=>room.players[k].name):[],create:createRoom,join:joinRoom,start:startRound});
 function rulesHTML(){return `<h3>The idea</h3><ul>
-  <li>You see 16 countries. They make <b>four groups of four</b>, and each group shares something, for example "Uses the euro" or "Flag has a crescent moon".</li>
-  <li>Every country is in exactly one group, and there is only <b>one way</b> to split the 16. Very broad things (a flag colour, a big capital…) are never a group, so four blue flags are just a trap.</li>
-  <li>Only independent countries appear, never territories.</li></ul>
+  <li>16 countries make <b>four groups of four</b>. Each group shares something, for example "Uses the euro".</li>
+  <li>There is only one way to split them. Broad things (a flag colour…) are never a group, so four blue flags are a trap.</li>
+  <li>Groups go from easiest to trickiest: ${TEMOJI.join(' ')}. Tap <span class="ib">i</span> on a found group to see what it means.</li></ul>
   <h3>How to play</h3><ul>
-  <li>Tap four countries, then tap <b>Submit</b>.</li>
-  <li>Right: the four join a group with its name and their flags.</li>
-  <li>Wrong: you lose one of your <b>${MAX_MISTAKES} lives</b>. "One away" means three of your four belong together.</li>
-  <li>The game ends when you find all four groups or run out of lives. <b>Give up</b> ends it early and shows the answer.</li>
-  <li><b>Shuffle</b> moves the countries around. <b>Deselect all</b> clears your picks.</li>
-  <li>Stuck? <b>Show the 4 categories</b> tells you the four group names, but not which country goes where. Your shared result says you used it.</li>
-  <li>Groups go from easiest to trickiest: ${TEMOJI.join(' ')} (yellow, green, blue, purple). Tap <span class="ib">i</span> on a found group to see exactly what it means.</li></ul>
+  <li>Tap four countries, then <b>Submit</b>.</li>
+  <li>Wrong: you lose one of your <b>${MAX_MISTAKES} lives</b>. "One away" means three of the four belong together.</li>
+  <li><b>Shuffle</b> moves the countries. <b>Show the 4 categories</b> gives the group names if you are stuck.</li>
+  <li>The game ends when you find all four groups or run out of lives. <b>Give up</b> ends it early.</li></ul>
   <h3>Points</h3><ul>
-  <li>25 points for every group you find: all four, 100. Every mistake: 10 points less.</li>
-  <li>A <b>perfect game</b> (all four, not one mistake): +20, so 120.</li>
-  <li>In today's puzzle your points are also your km for the GeoPass.</li></ul>
+  <li>25 for every group: all four, 100. Every mistake: 10 less.</li>
+  <li><b>Perfect game</b> (all four, no mistake): +20.</li></ul>
   <h3>Modes</h3><ul>
-  <li><b>Today's puzzle</b>: the same for everyone, new every day at midnight CET. One try. Missed one? Play it in <b>Menu → Archive</b>.</li>
-  <li><b>Practice</b>: as many practice puzzles as you like. <b>Share</b> sends a friend a link to the same puzzle. With <b>Unlimited</b> (chosen on the Geomingo home page, under Practice) you play until the end and mistakes are only counted.</li>
-  <li><b>With friends</b>: 2 to ${MAX_PLAYERS} players online, each on their own phone. The host creates a room and shares its code or link. Everyone plays the same puzzle at the same time and sees how the others are doing. There are no lives: everyone plays until they find all four groups. Most points rank first (25 a group, 10 less a mistake, +20 with none), then speed.</li></ul>`}
+  <li><b>Daily</b>: one puzzle, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
+  <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. 5 lives or <b>Unlimited</b>: pick it next to Practice on the home page. Points only, no km.</li>
+  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Everyone plays the same puzzle at the same time until they find all four groups. Most points win (25 a group, 10 less a mistake, +20 with none), then the fastest.</li>
+  <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, points only, no km.</li></ul>`}
 function copyText(t,okMsg){const manual=()=>{const el=$('linkbox');if(el){const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r)}toast('Copy blocked. Select the link and copy it.')};
   try{navigator.clipboard.writeText(t).then(()=>toast(okMsg,'good'),manual)}catch(e){manual()}}
 function bind(){

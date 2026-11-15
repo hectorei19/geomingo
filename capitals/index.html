@@ -22,7 +22,7 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611171600"></script>
-<script src="../brand/account.js?v=202611171800"></script>
+<script src="../brand/account.js?v=202611171900"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -1406,7 +1406,7 @@ function homeView(){
   </section>
   ${QRULES}`;
 }
-const QRULES=`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name a capital that fits its row and its column, each capital once per grid. Tap <span class="ib">i</span> to see what a category means. Harder squares, quick answers and full lines score more; today's grid gives 1 km every 15 points, +20 km if perfect. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const QRULES=`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Fill each square with a capital that fits its row and its column, each capital once. Tap <span class="ib">i</span> to see what a category means. Harder squares score more. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 // the With friends screen (Practice has none: it starts a grid at once)
 function setupView(){
   if(screen!=='friends')return homeView();
@@ -1627,36 +1627,28 @@ function drawLayer(){
       <h2 id="helpt">How to play</h2>
       <h3>The idea</h3><ul>
       <li>Every row and every column has a category, for example "In Europe" or "On the coast".</li>
-      <li>Fill each square with a capital that fits <b>both</b> its row and its column. For "In Europe" and "On the coast", Lisbon or Athens would work.</li>
-      <li>Any of the ${CITIES.length} capitals in the game can be an answer, one per country, from Tokyo to Tarawa. The list shows each capital's country to help you. Each one can be used only once per grid.</li>
-      <li>Not sure what a category means? Tap its <span class="ib">i</span>.</li>
-      <li>Every grid can be finished: each empty square always has at least one capital left that fits.</li></ul>
-      <h3>How to answer</h3><ul>
-      <li>Tap an empty square. A box opens: start typing a capital and tap it in the list.</li>
-      <li>Right: its name goes in the square and you get its points. Wrong: the square stays empty.</li>
-      <li>You have <b>5 lives</b> for the whole grid, whatever its size. A wrong answer costs one; a right answer costs nothing.</li>
+      <li>Fill each of the ${DAILY_N*DAILY_N} squares with a capital that fits <b>both</b> its row and its column. Lisbon fits "In Europe" and "On the coast".</li>
+      <li>Any of the ${CITIES.length} capitals, one per country. The list shows each capital's country. Each one once per grid.</li>
+      <li>Tap a category's <span class="ib">i</span> to see what it means. Every grid can be finished.</li></ul>
+      <h3>How to play</h3><ul>
+      <li>Tap an empty square, start typing a capital and tap it in the list. The list only finds names from their first letters.</li>
+      <li>Right: it goes in the square. Wrong: the square stays empty and you lose one of your <b>5 lives</b>.</li>
       <li>The game ends when the grid is full or you run out of lives. <b>Give up</b> ends it early.</li></ul>
-      <h3>Modes</h3><ul>
-      <li><b>Today's grid</b>: one ${DAILY_N} × ${DAILY_N} grid at Easy level, the same for everyone, new every day at midnight CET. One try; if you leave, you carry on where you stopped. Sign in with Google to appear in the daily ranking. Missed a day? Play it in <b>Menu → Archive</b>.</li>
-      <li><b>Practice</b>: as many grids as you like, ${DAILY_N} × ${DAILY_N} at Easy level like today's. With <b>Unlimited</b> (chosen on the Geomingo home page, under Practice) you play until the grid is full and mistakes are only counted.</li>
-      <li><b>With friends</b>: 2 to 6 players online, each on their own phone. The host creates a room and shares its 4-letter code or link. You take turns, 30 s each: a right answer scores for you, a wrong one or running out of time passes the turn. You can also tap <b>Pass turn</b>. The game ends when the grid is full or everyone passes one after another.</li>
-      <li><b>Share</b>: at the end, send your result with a link. Friends who open it play exactly your grid.</li></ul>
-      <h3>Levels</h3><ul>
-      <li><b>Easy</b>: ${DHINT.normal} The list only finds names from their first letters, so you need to know the answer. <i>Example: ${DEXAMPLE.normal}.</i></li>
-      <li><b>Hard</b>: ${DHINT.hard} The list works as in Easy. <i>Example: ${DEXAMPLE.hard}.</i></li></ul>
       <h3>Points</h3><ul>
-      <li><b>Square</b>: 0 to ${SQ_MAX} points. Hard squares (few capitals fit) are worth more, easy ones (many fit) less. You see a square's points when you fill it.</li>
-      <li><b>Speed</b>: +${SPEED_PER_SEC} for every second left on your clock when you answer right. With the timer off, the clock counts down from ${SPEED_WINDOW} seconds.</li>
-      <li><b>Lines</b>: +${LINE_BONUS} for every full row or column where all the squares are yours.</li>
-      <li>The highest total wins.</li></ul>
-      <h3>Km for the GeoPass (today's grid)</h3><ul>
-      <li>1 km for every 15 points, up to 100 km (1.500 points or more).</li>
-      <li>A <b>perfect grid</b> (all ${DAILY_N*DAILY_N} squares, not one life lost): +20 km, so 120.</li></ul>
+      <li><b>Square</b>: 0 to ${SQ_MAX}. Hard squares (few capitals fit) are worth more.</li>
+      <li><b>Speed</b>: +${SPEED_PER_SEC} for every second under ${SPEED_WINDOW} s.</li>
+      <li><b>Lines</b>: +${LINE_BONUS} for every full row or column that is all yours.</li>
+      <li><b>Km</b> (daily): 1 km for every 15 points, up to 100. <b>Perfect grid</b> (all ${DAILY_N*DAILY_N}, no life lost): +20 km.</li></ul>
       <h3>Example: a ${DAILY_N} × ${DAILY_N} grid</h3>
       <p class="hint">The ${G} squares are ranked from hardest to easiest, and the points go down in equal steps. Squares with the same number of capitals share the same points.</p>
       <table class="ptable">${ex}</table>
       <p class="hint">So the hardest square answered in 10 seconds is worth ${ev[0]} + ${SPEED_PER_SEC*(SPEED_WINDOW-10)} for speed = ${ev[0]+SPEED_PER_SEC*(SPEED_WINDOW-10)} points.</p>
-      <p class="hint">Where the data comes from: <b>Credits &amp; data sources</b>, at the bottom of the page.</p>
+      <h3>Modes</h3><ul>
+      <li><b>Daily</b>: one ${DAILY_N} × ${DAILY_N} grid, the same for everyone, new every day at midnight CET. One try. Its km go to your GeoPass.</li>
+      <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. 5 lives or <b>Unlimited</b>: pick it next to Practice on the home page. Points only, no km.</li>
+      <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. You take turns, 30 s each, and a random player starts. A right answer scores; a wrong one, <b>Pass turn</b> or running out of time passes the turn. The game ends when the grid is full or everyone passes in a row.</li>
+      <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, points only, no km.</li></ul>
+      <p class="hint">Where the data comes from: <b>Menu</b>, Capitals data sources.</p>
       <button class="primary" id="helpok">Got it</button></div>`}
   if(ui.info!=null&&CATS[ui.info]){const k=CATS[ui.info];
     h+=`<div class="infoscrim" id="infoscrim"></div><div class="infobox" role="dialog" aria-modal="true" aria-labelledby="infot"><span class="label">Category</span><h2 id="infot">${esc(EUT(k.label))}</h2><p>${esc(k.desc)}</p><span class="meta">${k.count} capitals in the game match this on its own.</span><button class="primary" id="infook">Got it</button></div>`}
