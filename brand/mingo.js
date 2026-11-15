@@ -357,7 +357,7 @@ function soloTicket(o){o=o||{};const g=GAMES.find(x=>x.id===o.id);
 function tk(k,v,c){return '<div class="tk-c'+(c?' '+c:'')+'"><i>'+k+'</i><b>'+v+'</b></div>'}
 /* o.mode puts a coloured strip on top so you always know what you are playing:
    'daily' (gold, "★ Daily #N · Counts for ranking"), 'practice' (Mingo pink, "Practice") or 'archive' (Mingo pink, "Archive #N"); o.num is the number.
-   Practice and archive also turn the ticket's edge Mingo pink. 'friends' (or 'online'): blue strip "With friends" and blue edge (games with turns keep the edge in the player's colour). */
+   Practice and archive also turn the ticket's edge Mingo pink. 'friends' (or 'online'): blue strip "With friends" and blue edge (games with turns too: whose turn it is shows only in that player's box and the time bar). */
 function ticket(say,stub,o){o=o||{};const m=o.mode,n=o.num!=null?' #'+o.num:'';
   const strip=m==='daily'?'<div class="tk-mode daily"><span>★ Daily'+n+'</span><span>Counts for ranking</span></div>'
     :m==='practice'?'<div class="tk-mode practice"><span>Practice</span></div>'

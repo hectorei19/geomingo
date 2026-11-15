@@ -169,6 +169,10 @@ body:has(.gm-done) .gm-title small{display:none}
 .ticket.tk-turn .tk-c.pl.on i{color:var(--pc);font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.01em}
 .ticket.tk-turn .tk-c.pl.on .pin{width:12px;height:12px}
 @media (prefers-reduced-motion:reduce){.ticket.tk-turn .tbar.low{animation:none}}
+/* With friends with turns: the ticket stays plain blue (no thick coloured edge or glow); whose turn it is shows only in that player's box and the time bar (Héctor 2026-11-15) */
+.ticket.tk-friends.tk-turn{border:1.5px solid var(--blue);box-shadow:var(--shadow)}
+.ticket.tk-friends.tk-turn .tk-tear{border-top-color:color-mix(in srgb,var(--blue) 50%,transparent)}
+.ticket.tk-friends.tk-turn .tk-tear::before,.ticket.tk-friends.tk-turn .tk-tear::after{border-color:var(--blue)}
 @keyframes gm-pop{0%{transform:translateY(4px);opacity:.4}100%{transform:none;opacity:1}}
 
 /* section heading (home page) */
