@@ -22,7 +22,7 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611161330"></script>
-<script src="../brand/account.js?v=202611161200"></script>
+<script src="../brand/account.js?v=202611161330"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1446,12 +1446,12 @@ function statsView(){
     daily:{n:D.played,unit:'grid',streak:D.streak,avg:D.avg},
     solo:{n:So.played,unit:'game',medal:So.best,stats:[[So.best,'best'],[(So.acc||0)+'%','accuracy'],[So.perfect,'perfect']]},
     friends:{n:F.played,w:F.wins,place:(F.place||0)*F.played,third:[F.best,'best']},
-    extra:A.levelBars('Solo by level',['normal','hard'].map((k,i)=>[DLABEL[k],(bd[k]||{}).acc||0,(bd[k]||{}).played||0,['green','coral'][i]]))})}</section>`;
+    extra:A.levelBars('Practice by level',['normal','hard'].map((k,i)=>[DLABEL[k],(bd[k]||{}).acc||0,(bd[k]||{}).played||0,['green','coral'][i]]))})}</section>`;
   const row=k=>{const x=bd[k]||{played:0,best:0,avg:0};return `<tr><td>${DLABEL[k]}</td><td>${x.played}</td><td>${x.best}</td><td>${x.avg}</td></tr>`};
   return `<section class="panel stats">${back.replace('%NAME%',esc(name))}
     <span class="label">Today's grid</span>
     <div class="stgrid">${tile(D.played,'played')}${tile(D.streak,'streak')}${tile(D.max,'best streak')}${tile(D.best,'best score')}${tile(D.avg,'average')}${tile(D.perfect,'perfect grids')}</div>
-    <span class="label">Solo</span>
+    <span class="label">Practice</span>
     <div class="stgrid">${tile(So.played,'games')}${tile(So.best,'best score')}${tile(So.avg,'average')}${tile(So.perfect,'perfect grids')}${tile(So.acc===undefined?'–':So.acc+'%','accuracy')}${tile(So.squares===undefined?'–':So.squares,'squares')}</div>
     ${So.played?`<table class="sttab"><tr><th></th><th>Games</th><th>Best</th><th>Average</th></tr>${row('normal')}${row('hard')}</table>`:''}
     <span class="label">With friends</span>
@@ -1558,7 +1558,7 @@ function gameView(){
   // today's daily done: the grid goes inside the result ticket, Next trip and Share under it (Héctor 2026-11-12)
   const n=S.n,done=S.over&&S.daily&&!S.archive&&!S.dayof,solo=S.over&&S.mode==='solo';let h='',mark=0;
   // the title (in a room also ← Leave); the back is the "‹ geomingo" on top, as in every game (Héctor 2026-11-15)
-  const title=S.daily?(S.archive?'Grid #'+S.day:"Today's grid"):S.mode==='online'?'With friends':'Solo';
+  const title=S.daily?(S.archive?'Grid #'+S.day:"Today's grid"):S.mode==='online'?'With friends':'Practice';
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
   if(!done&&!solo)h+=`<div class="backline">${S.mode==='online'?'<button class="linkbtn" id="gback">← Leave</button>':''}<span class="ht">${title}</span></div>`;
   if(S.over){
@@ -1652,7 +1652,7 @@ const verdictHTML=()=>{const v=verdict();return Geomingo.hello(v.pose,v.t,v.s,{k
 const SHARE_BTN='<button class="primary sharebig" id="copy"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Share result</button>';
 const TRIP_STYLE='flex:1;display:flex;align-items:center;justify-content:center;min-width:0;white-space:nowrap;font-size:clamp(10px,calc((100vw - 170px)/15.5),14px);letter-spacing:.03em;padding:13.5px 8px 10.5px';
 const nextGameBtn=g=>g?`<a class="primary" href="${g.href}" style="${TRIP_STYLE}">Next trip: ${esc(g.name)} →</a>`:`<button class="primary" id="newg" style="flex:1">Back to menu</button>`;
-const afterNextHTML=g=>`<button class="ghost" id="playsolo">Play Solo</button>`+(g?'':`<p class="hint">You have played all of today's games. New ones at midnight CET.</p>`);
+const afterNextHTML=g=>`<button class="ghost" id="playsolo">Practice</button>`+(g?'':`<p class="hint">You have played all of today's games. New ones at midnight CET.</p>`);
 // when a game you were playing ends: straight to the summary at the top of the page (no window over it)
 let liveKey='';
 function watchResult(){if(!S){liveKey='';return}const k=gameKey();

@@ -22,7 +22,7 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611161330"></script>
-<script src="../brand/account.js?v=202611161200"></script>
+<script src="../brand/account.js?v=202611161330"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -181,8 +181,8 @@ function trainShow(){const q=T.q;if(q.st!=='play'||T.over)return;q.st='wrong';qu
 function trainSkip(){const q=T.q;if(q.st!=='play'||T.over)return;q.st='wrong';T.over=true;
   const st=trainStats(),s=st[T.diff]||{n:0,ok:0,best:0};s.n++;st[T.diff]=s;store('sil-train',st);render()}
 function trainHTML(){const q=T.q,s=trainStats()[T.diff]||{best:0},done=q.st!=='play';
-  let h=header('Silhou<span>ette</span>','Solo');
-  if(!T.over)h+=`<div class="backline"><span class="ht">Solo</span></div>`;
+  let h=header('Silhou<span>ette</span>','Practice');
+  if(!T.over)h+=`<div class="backline"><span class="ht">Practice</span></div>`;
   // game over (no ← Back line then, as on today's result): the pink ticket with the last shape and its name inside, then New game (Héctor 2026-11-14)
   if(T.over)return h+Geomingo.soloTicket({id:'silhouette',what:T.nolives?'Unlimited':LIVES+' lives',score:T.streak+' named',best:'Best: '+Math.max(s.best||0,T.streak)+' named',
     detail:T.miss+' mistake'+(T.miss===1?'':'s'),body:silBoxHTML(q,done)+revealHTML(q)})+`<div class="gm-done-btns gm-solo-btns"><button class="primary" id="tagain" style="flex:1">New game</button>${SHARE_BTN.replace('Share result','Share')}</div>`;
@@ -252,7 +252,7 @@ function dailyPlayHTML(G,tkt){const q=G.qs[G.sel],last=G.justDone!=null?G.qs[G.j
 function verdict(G){const r=rightOf(G),first=G.qs.filter(q=>q.st==='right'&&!q.tries.length).length;
   return r===9?(first===9?{pose:'happy',t:'Full page. Nine of nine, all first try.',s:'Nine new stamps.'}:{pose:'happy',t:'Visited. Nine of nine.',s:first+' on the first try.'})
     :r>=6?{pose:'happy',t:'Visited. '+r+' of 9.',s:'Tap a shape to see its name.'}:r>=3?{pose:'think',t:'A few gaps in the pages. '+r+' of 9.',s:'Tap a shape to see its name.'}
-    :{pose:'sad',t:'Rough crossing, this one.',s:r+' of 9. Solo helps.'}}
+    :{pose:'sad',t:'Rough crossing, this one.',s:r+' of 9. Practice helps.'}}
 function dailyResultHTML(G){const r=rightOf(G),v=verdict(G);
   if(G.arch)return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Archive · Silhouette #${G.num}</span><p class="big">${r} of 9</p>
     <p class="hint">${r===9?'Every shape named.':'Tap a shape to see its name.'} Archive games don't count for the ranking or your streak.</p>
@@ -287,14 +287,14 @@ function myStatsHTML(){const h=load('sil-hist',{}),days=Object.keys(h),tr=load('
     lbs:()=>['easy','normal','hard'].map(v=>({path:'lb/sil-'+v,dates:days.filter(k=>h[k]&&h[k][v]!=null)})),
     solo:{n,unit:'shape',medal:run,stats:[[run,'best game'],[n?Math.round(ok/n*100)+'%':'–','right'],[ok,'named']]},
     friends:Object.assign(fr,{third:[fr.best,'best']}),
-    extra:Geomingo.account?Geomingo.account.levelBars('Solo by level',[soloLv(tr,'normal'),soloLv(tr,'hard')].map((s,i)=>[i?'Hard':'Easy',s.n?Math.round(s.ok/s.n*100):0,s.n,['green','coral'][i]])):''})}
+    extra:Geomingo.account?Geomingo.account.levelBars('Practice by level',[soloLv(tr,'normal'),soloLv(tr,'hard')].map((s,i)=>[i?'Hard':'Easy',s.n?Math.round(s.ok/s.n*100):0,s.n,['green','coral'][i]])):''})}
 // Solo stats of a level: Easy adds up the old Easy and Normal shapes
 function soloLv(tr,v){const z={n:0,ok:0,best:0},a=v==='hard'?[tr.hard||z]:[tr.easy||z,tr.normal||z];
   return {n:a.reduce((x,s)=>x+(s.n||0),0),ok:a.reduce((x,s)=>x+(s.ok||0),0),best:Math.max(0,...a.map(s=>s.best||0))}}
 function statsHTML(short){const h=load('sil-hist',{}),days=Object.keys(h);
   const tr=load('sil-train',{});
   return statTiles(days.length,silAverage(h),streakOf(h))+(short?'':`
-    <table class="sttab"><tr><th>Solo</th><th>Shapes</th><th>Right</th><th>Best game</th></tr>${['normal','hard'].map(v=>{const s=soloLv(tr,v);return `<tr><td>${DIFF_NAME[v]}</td><td>${s.n}</td><td>${s.n?Math.round(s.ok/s.n*100)+'%':'–'}</td><td>${s.best}</td></tr>`}).join('')}</table>`)}
+    <table class="sttab"><tr><th>Practice</th><th>Shapes</th><th>Right</th><th>Best game</th></tr>${['normal','hard'].map(v=>{const s=soloLv(tr,v);return `<tr><td>${DIFF_NAME[v]}</td><td>${s.n}</td><td>${s.n?Math.round(s.ok/s.n*100)+'%':'–'}</td><td>${s.best}</td></tr>`}).join('')}</table>`)}
 const quickRules=extra=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name the country from its shape. Every shape fills the same frame, so size is no clue. You have ${LIVES} lives for the whole game, not per shape. Today's shapes: 10 points a shape, +10 for all nine, +20 with no wrong answer.${extra||''}</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Each shape is the outline of a country. Guess which one it is.</li>
@@ -312,7 +312,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Levels</h3><ul>
   <li><b>Easy</b>: all 197 countries, north up.</li>
   <li><b>Hard</b>: all 197, each shape turned at a random angle, so north is no clue.</li>
-  <li>Today's shapes are always <b>Easy</b>. In Solo and With friends you choose the level.</li></ul>
+  <li>Today's shapes and Practice are always <b>Easy</b>. With friends, the host chooses the level.</li></ul>
   <h3>Modes</h3><ul>
   <li><b>Today's shapes</b>: nine shapes on a 3 × 3 board, the same for everyone, new every day at midnight CET. Tap a shape to answer it, in any order. If your ${LIVES} lives run out, the shapes you have not named count as missed. One try. Missed a day? Play it in <b>Menu → Archive</b>.</li>
   <li><b>Practice</b>: shape after shape at the daily level, until your ${LIVES} lives are gone. Every shape you name is 10 points. No country comes back until you have seen them all. With <b>Unlimited</b> (chosen on the Geomingo home page, under Practice) there is no game over: skip a shape you can't name, and <b>Give up</b> when you want to stop.</li>

@@ -22,7 +22,7 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611161330"></script>
-<script src="../brand/account.js?v=202611161200"></script>
+<script src="../brand/account.js?v=202611161330"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -257,7 +257,7 @@ const soloShare=G=>`${Geomingo.share('Flag Pie')} (practice) — ${pointsOf(G)} 
 function verdict(G){const p=pointsOf(G),r=rightOf(G);
   return r===PER&&p>=95?{pose:'happy',t:'A flag expert. '+p+' points.',s:'All five named.'}:r===PER?{pose:'happy',t:'All five stamped.',s:p+' points.'}
     :r>=3?{pose:'happy',t:r+' of 5 stamped.',s:p+' points. Tap a flag to see which it was.'}:r>=1?{pose:'think',t:'Tricky colours today.',s:r+' of 5, '+p+' points.'}
-    :{pose:'sad',t:'No flag today.',s:'Solo helps: unlimited flags.'}}
+    :{pose:'sad',t:'No flag today.',s:'Practice helps: unlimited flags.'}}
 const fpAverage=()=>{const v=Object.entries(load('fp-hist',{})).filter(([d,e])=>(+e.n||1)===PER);return v.length?EU(v.reduce((a,[d,e])=>a+Geomingo.KM.cl3(e.r,e.p,d,e.x3,PER),0)/v.length,1):'–'};
 // the result, on top of the page, as in every game
 function resultHTML(G){const p=pointsOf(G),v=verdict(G);
@@ -303,7 +303,7 @@ function trainEnd(){if(view==='room'||T.logged)return;T.logged=1;logSolo('fp-sol
 function trainPick(code){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;
   const res=answer(q,code);query='';typing=res==='wrong';feedback(q,res);advance(T);if(T.over)trainEnd();render();if(res!=='wrong')showLeft()}
 function trainNextClue(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;nextClue(q);advance(T);if(T.over)trainEnd();render();if(q.st!=='play')showLeft()}
-function trainHTML(){let h=header('Flag Pie','Solo')+(T.over&&T.left==null?'':`<div class="backline"><span class="ht">Solo</span></div>`);
+function trainHTML(){let h=header('Flag Pie','Practice')+(T.over&&T.left==null?'':`<div class="backline"><span class="ht">Practice</span></div>`);
   // a finished Solo game: the pink ticket with the answers inside, then New game (Héctor 2026-11-14)
   if(T.over&&T.left==null){const p=pointsOf(T),s=load('fp-solo5',null)||{};
     return h+Geomingo.soloTicket({id:'flagpie',what:'',score:p+' points',best:'Best: '+Math.max(s.best||0,p)+' points',detail:rightOf(T)+' of 5 named',

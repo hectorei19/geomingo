@@ -22,7 +22,7 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611161330"></script>
-<script src="../brand/account.js?v=202611161200"></script>
+<script src="../brand/account.js?v=202611161330"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -240,7 +240,7 @@ const soloShare=G=>`${Geomingo.share('Impostor')} (practice) — ${pointsOf(G)} 
 function verdict(G){const p=pointsOf(G),r=rightOf(G);
   return r===ROUNDS&&p>=95?{pose:'happy',t:'Nobody fools you. '+p+' points.',s:'All six impostors caught.'}:r===ROUNDS?{pose:'happy',t:'All six caught.',s:p+' points.'}
     :r>=4?{pose:'happy',t:r+' of 6 caught.',s:p+' points. Tap a round to see who it was.'}:r>=1?{pose:'think',t:'Sneaky impostors today.',s:r+' of 6, '+p+' points.'}
-    :{pose:'sad',t:'They all got away.',s:'Solo helps: unlimited games.'}}
+    :{pose:'sad',t:'They all got away.',s:'Practice helps: unlimited games.'}}
 const imAverage=()=>{const v=Object.entries(load('im-hist',{}));return v.length?EU(v.reduce((a,[d,e])=>a+Geomingo.KM.imp(e.r,e.p,d,e.x3),0)/v.length,1):'–'};
 function resultHTML(G){const p=pointsOf(G),v=verdict(G);
   if(G.mode==='archive')return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Archive · Impostor #${G.num}</span><p class="big">${p} points</p>
@@ -286,7 +286,7 @@ function trainEnd(){if(view==='room'||T.logged)return;T.logged=1;logSolo('im-sol
 function trainPick(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over||!chosen)return;
   const res=answer(q,chosen);chosen=null;feedback(q,res);advance(T);if(T.over)trainEnd();render();showLeft()}
 function trainMore(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;chosen=null;moreFacts(q);advance(T);if(T.over)trainEnd();render();if(q.st!=='play')showLeft()}
-function trainHTML(){let h=header('Impostor','Solo')+(T.over&&T.left==null?'':`<div class="backline"><span class="ht">Solo</span></div>`);
+function trainHTML(){let h=header('Impostor','Practice')+(T.over&&T.left==null?'':`<div class="backline"><span class="ht">Practice</span></div>`);
   // a finished Solo game: the pink ticket with the answers inside, then New game (Héctor 2026-11-14)
   if(T.over&&T.left==null){const p=pointsOf(T),s=load('im-solo',null)||{};
     return h+Geomingo.soloTicket({id:'impostor',what:'',score:p+' points',best:'Best: '+Math.max(s.best||0,p)+' points',detail:rightOf(T)+' of 6 caught',
