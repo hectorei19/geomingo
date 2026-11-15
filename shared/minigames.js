@@ -97,10 +97,14 @@ function archiveHTML(o){const items=archDates(o.first,o.played(todayKey())).map(
   return `<section class="panel"><div class="backline"><span class="ht">Archive</span></div>
     <p class="hint">Play the daily ${o.label.toLowerCase()}s you missed. The ones you played on their day are already done. One try each, on this device. Archive games don't count for the daily ranking or your streak.</p>
     ${items?`<ul class="arch">${items}</ul>`:`<p class="hint">No past ${o.label.toLowerCase()}s yet. Come back tomorrow.</p>`}</section>`}
+// the game's title: in Practice and With friends you stay where you are (Practice has no first screen any more, and the
+// game you are playing is kept), else today's game (Héctor 2026-11-15). The "‹ geomingo" on top goes to the home page.
+function titleTap(){const m=Geomingo.mode?Geomingo.mode():'';
+  if(m==='solo'||m==='friends')window.scrollTo(0,0);else if(typeof goHome==='function')goHome()}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#menu,#brand');if(!t)return;
-  if(t.id==='menu')drawMenu(!document.querySelector('#menulayer .menubox'));else if(typeof goHome==='function')goHome()});
+  if(t.id==='menu')drawMenu(!document.querySelector('#menulayer .menubox'));else titleTap()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('#menulayer .menubox'))drawMenu(false);
-  if(e.key==='Enter'&&document.activeElement&&document.activeElement.id==='brand'&&typeof goHome==='function')goHome()});
+  if(e.key==='Enter'&&document.activeElement&&document.activeElement.id==='brand')titleTap()});
 
 // phones: the system share menu; elsewhere copy the result and the link (if the clipboard is blocked, select the text)
 const TOUCH=matchMedia('(pointer:coarse)').matches;
