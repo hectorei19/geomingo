@@ -23,9 +23,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="brand/geomingo.css?v=202611161400">
+<link rel="stylesheet" href="brand/geomingo.css?v=202611171100">
 <script src="brand/mingo.js?v=202611171000"></script>
-<script src="brand/account.js?v=202611171000"></script>
+<script src="brand/account.js?v=202611171100"></script>
 <script src="brand/party.js?v=202611151310"></script>
 <style>
 /* Home page: Sign in and Menu on top, today's games as colour tiles, Practice and With friends, then the GeoPass
@@ -35,10 +35,6 @@ main{display:flex;flex-direction:column;gap:18px}
 .gm-top>.gm-logo{font-size:30px}
 /* Practice / With friends: the logo turns into the games' "‹ geomingo" back, the one back on every screen */
 button.gm-home{background:none;border:0;font:inherit;cursor:pointer}
-.gm-top .gm-acct{border-radius:22px;border-color:var(--gold);color:#F3D98B;font-family:var(--display);font-weight:800;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
-.gm-top .gm-acct.me{border-radius:50%;color:var(--on-coral);font-size:19px;letter-spacing:0}
-.menubtn{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--line);background:var(--page);color:var(--ink);display:flex;align-items:center;justify-content:center;padding:0}
-.menubtn svg{stroke:currentColor}
 /* today's games: one colour per game */
 .tiles{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;--ic:44px;--nm:19px}
 .tiles li{display:flex;min-width:0}
@@ -195,35 +191,6 @@ button.gm-home{background:none;border:0;font:inherit;cursor:pointer}
 .rtabs button{flex:1;min-height:36px;border:0;border-radius:9px;background:none;color:var(--muted);font:800 12px var(--display);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;padding:0 4px}
 .rtabs button[aria-selected="true"]{background:var(--guil);color:#F3D98B;box-shadow:0 0 0 1.5px #F3D98B inset}
 footer{display:flex;flex-direction:column;gap:4px;align-items:center;padding-top:4px}
-/* the windows of this page: Menu, GeoPass */
-.hw .gm-rbody{gap:10px}
-.hw ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
-.hw .it{min-height:62px;width:100%;display:flex;align-items:center;gap:14px;padding:6px 4px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);text-decoration:none;font:inherit;text-align:left;cursor:pointer}
-.hw .it .ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--c);background:color-mix(in srgb,var(--c) 18%,transparent)}
-.hw .it .tx{flex:1;display:flex;flex-direction:column;font-size:16px;font-weight:600;line-height:1.3}
-.hw .it small{font-size:13px;font-weight:400;color:var(--muted)}
-.hw .it .mt{font-family:var(--display);font-weight:800;font-size:15px;color:#F3D98B;white-space:nowrap}
-.hw .it .ch{color:var(--muted);display:flex}
-.hw .acctbox{border-radius:14px;background:var(--guil);padding:12px;display:flex;align-items:center;gap:12px}
-.hw .acctbox .av{width:42px;height:42px;border-radius:50%;background:var(--coral,#F07884);color:#1A1020;display:flex;align-items:center;justify-content:center;font:900 20px var(--display);flex-shrink:0}
-.hw .acctbox .nm{flex:1;min-width:0;display:flex;flex-direction:column}
-.hw .acctbox .nm b{font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hw .acctbox span{font-size:13px;color:var(--muted)}
-.hw .acctbox .out{background:none;border:0;padding:6px 0;color:#F3D98B;text-decoration:underline;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
-.hw .acctbox.guest{flex-wrap:wrap}.hw .acctbox.guest .gbtn{width:100%}
-.hw .mfoot{text-align:center;font-size:13px}
-/* How the GeoPass works: its list is made for the cream passport page, so here it gets light text on the dark window */
-.hw .gp-how{margin:0;color:var(--ink);font-size:15px;gap:10px}
-.hw .gp-how b{color:#F3D98B}
-.hw .credits{display:flex;flex-direction:column;gap:10px}
-.hw .credits ul{list-style:disc;padding-left:18px;margin:0;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--ink)}
-.hw p{margin:0;font-size:14px;color:var(--muted)}
-.hw .lv{display:flex;justify-content:space-between;padding:8px 6px;border-bottom:1px solid var(--line);font-size:15px}
-.hw .lv.cur{color:#F3D98B;font-weight:700}
-.hw h4{margin:6px 0 0;font-family:var(--display);font-weight:900;font-size:15px;text-transform:uppercase;letter-spacing:.04em}
-.hw .how li{font-size:14px;color:var(--ink);padding:3px 0}
-.hw .log li{display:flex;justify-content:space-between;gap:8px;font-size:14px;padding:6px 0;border-bottom:1px solid var(--line)}
-.hw .log .pt{font-family:var(--type);font-weight:700;color:#F3D98B}
 </style>
 </head>
 <body>
@@ -234,7 +201,6 @@ footer{display:flex;flex-direction:column;gap:4px;align-items:center;padding-top
     <button class="gm-home" type="button" id="pkback" aria-label="Back to today's games" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span class="gm-logo">geo<span>mingo</span></span><span class="gm-beta" title="Still in testing. Official launch coming soon.">BETA</span></button>
     <span class="gm-spacer"></span>
     <span class="gm-acctslot" data-gm-acctslot></span>
-    <button class="menubtn" id="menu" aria-label="Menu" aria-haspopup="dialog"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   </header>
   <main>
     <p class="gm-betaline">Still testing. Official launch coming soon. Thanks for playing!</p>
@@ -296,6 +262,8 @@ const HINT3={borderline:'Fill a country grid',citygrid:'Fill a capital grid',con
 let MODE='today';try{const t=sessionStorage.getItem('gm-tab');if(t==='practice'||t==='friends')MODE=t}catch(e){}
 // an invite to a With friends room (?party=ABCD), or back from a game to the room (#friends): the room screen
 try{if(/[?&]party=/.test(location.search)||location.hash==='#friends'){MODE='friends';sessionStorage.setItem('gm-tab','friends')}}catch(e){}
+// from a game's Menu → Ranking (#ranking): today's screen, scrolled to the ranking once it shows
+let wantRank=location.hash==='#ranking';if(wantRank){MODE='today';try{sessionStorage.setItem('gm-tab','today');history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
 function setMode(t,push){MODE=t;try{sessionStorage.setItem('gm-tab',t)}catch(e){}
   try{if(push&&t!=='today')history.pushState({gm:t},'','#'+t);else if(t==='today'&&location.hash)history.replaceState(null,'',location.pathname)}catch(e){}
   draw();window.scrollTo(0,0)}
@@ -460,7 +428,7 @@ function drawWeek(){const el=document.getElementById('week'),acc=A();loadRank();
   const list=rows.slice(0,10).map(row).join('')+(i>=10?'<li class="gap">…</li>'+row(rows[i],i):'');
   const foot=!me?'<p>Sign in and play to join the ranking.</p>':i<0&&rows.length?'<p>Finish a daily game signed in to join this ranking.</p>':'';
   const tabs='<div class="rtabs" role="tablist">'+TABS.map(([k,l])=>'<button type="button" role="tab" data-rtab="'+k+'" aria-selected="'+(k===TAB)+'">'+l+'</button>').join('')+'</div>';
-  el.hidden=false;
+  el.hidden=false;if(wantRank){wantRank=false;setTimeout(()=>el.scrollIntoView({behavior:'smooth'}),60)}
   const h='<h3>Ranking'+(i>=0?'<b>You: #'+(i+1)+' of '+rows.length+'</b>':'')+'</h3>'+tabs+(rows.length?'<ol>'+list+'</ol>':'<p>'+tab[2]+'</p>')+foot;
   if(el.innerHTML!==h)el.innerHTML=h}
 document.getElementById('week').addEventListener('keydown',e=>{const w=e.target.closest('li[data-who]');
@@ -470,38 +438,8 @@ document.getElementById('week').addEventListener('click',e=>{const w=e.target.cl
   const b=e.target.closest('[data-rtab]');if(!b||b.dataset.rtab===TAB)return;
   TAB=b.dataset.rtab;try{localStorage.setItem('gm-rank-tab',TAB)}catch(e){}drawWeek()});
 
-/* ---- windows: Menu, the GeoPass ---- */
-const band=t=>'<div class="gm-band">'+G.mingo('head',26)+'<b>'+esc(t)+'</b></div>';
-const closeBtn='<button class="gm-text" data-gm-act="close">Close</button>';
-function win(title,body,acts){const box=G.openWindow('<div class="gm-res hw">'+band(title)+'<div class="gm-rbody">'+body+closeBtn+'</div></div>',title);
-  box._acts=acts||{};box.addEventListener('click',e=>{if(e.target.closest('[data-gm-signin],[data-gm-signout]'))G.closeWindow()});
-  const f=box.querySelector('a,button');if(f)f.focus();return box}
-const MICO={gp:'<rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="11" r="3.5"/><path d="M9 17h6"/>',
-  rank:'<path d="M6 20V11M12 20V5M18 20v-6"/>',how:'<circle cx="12" cy="12" r="9"/><path d="M12 17v.01M12 13.5a1.5 1.5 0 0 1 1-1.5a2.6 2.6 0 1 0-3-4"/>',
-  book:'<path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 2z"/>',ch:'<path d="M9 6l6 6-6 6"/>'};
-const mico=(k,n)=>'<svg width="'+(n||20)+'" height="'+(n||20)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+MICO[k]+'</svg>';
-// the Menu (Héctor's option A, 2026-11-10): your account on top, then one line per window, each with an icon and a short line
-function openMenu(){const acc=A(),u=acc&&acc.user,P=geo();
-  const nm=u?(acc.name||u.displayName||'').trim():'';
-  const who=!acc||!acc.ready?'':u?'<div class="acctbox"><span class="av" aria-hidden="true">'+esc((nm[0]||'·').toUpperCase())+'</span><span class="nm"><b>'+esc(nm||'Traveller')+'</b><span>Signed in with Google</span></span><button class="out" data-gm-signout>Sign out</button></div>'
-    :'<div class="acctbox guest"><span class="nm"><b>Guest traveller</b><span>Saved on this phone only.</span></span><button class="gbtn" data-gm-signin><i aria-hidden="true">G</i>Continue with Google</button></div>';
-  const it=(act,c,ic,t,sub,end)=>'<li><button class="it" data-gm-act="'+act+'" style="--c:'+c+'"><span class="ic">'+mico(ic)+'</span><span class="tx">'+t+(sub?'<small>'+sub+'</small>':'')+'</span>'+(end||'<span class="ch">'+mico('ch',18)+'</span>')+'</button></li>';
-  win('Menu',who+'<ul>'+it('gp','#D4AD4B','gp','My GeoPass','Stamps, countries and visas','<span class="mt">'+fmt(P.miles)+' km</span>')+
-    it('rank','#5FC28F','rank','Ranking','Today, this week, this month')+
-    it('how','#A98BE0','how','How the GeoPass works','Km, levels, countries and visas')+
-    it('credits','#F07884','book','Credits &amp; data sources','')+'</ul>'+
-    '<p class="mfoot">New trips every day at midnight CET. How to play is in each game\'s Menu.</p>',
-    {gp:()=>G.openPass('passport'),how:openHow,credits:openCredits,rank:()=>{G.closeWindow();const w=document.getElementById('week');if(w&&!w.hidden)w.scrollIntoView({behavior:'smooth'})}})}
-// the sources used by all the games (each game's Menu adds its own)
-function openCredits(){win('Credits & data sources','<div class="credits"><ul>'+
-  '<li>Country data (names, borders, regions, area, languages, currencies, capitals): <a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a>, under the Open Database License (ODbL) 1.0, with a few corrections by hand.</li>'+
-  '<li>Population, development, economy, politics, geography and sport figures: Wikipedia lists (CC BY-SA 4.0), which cite the UN, the UNDP, the World Bank and the CIA World Factbook among others.</li>'+
-  '<li>Flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a> (MIT License).</li>'+
-  '<li>Fonts: Archivo, Public Sans and Courier Prime (Google Fonts, SIL Open Font License).</li>'+
-  '<li>Accounts, online play and rankings: <a href="https://firebase.google.com" target="_blank" rel="noopener">Firebase</a>.</li></ul>'+
-  '<p>Each game\'s Menu lists its own extra sources.</p></div>')}
-function openHow(){win('How the GeoPass works',G.howHTML())}
-document.getElementById('menu').onclick=openMenu;
+/* ---- the Menu (your initial ▾ on top) lives in brand/account.js, the same in every game; its Ranking line scrolls here ---- */
+G.showRanking=()=>{if(MODE!=='today')setMode('today');draw();const w=document.getElementById('week');if(w&&!w.hidden)w.scrollIntoView({behavior:'smooth'});else wantRank=true};
 document.getElementById('pkback').onclick=()=>{if(history.state&&history.state.gm)history.back();else setMode('today')};
 document.querySelectorAll('#two [data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode,true));
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#openpass,#mypass'))G.openPass('passport')});

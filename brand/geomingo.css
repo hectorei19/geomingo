@@ -70,7 +70,7 @@ svg.mingo{display:block;flex-shrink:0;overflow:visible}
 .gm-betaline{margin:0;font-size:min(13px,3.2vw);color:var(--muted);text-align:left}
 /* game headers on phones: logo + BETA + GeoPass + Sign in must fit in one row, so the GeoPass button keeps only its icon and count */
 @media (max-width:480px){.gm-top .gm-home~.gm-pass .gm-pw{display:none}}
-@media (max-width:400px){.gm-home .gm-logo{font-size:19px}.gm-home .gm-beta{font-size:8px;letter-spacing:.08em;padding:1px 3px 0}.gm-top .gm-acct:not(.me){padding:0 8px}}
+@media (max-width:400px){.gm-home .gm-logo{font-size:19px}.gm-home .gm-beta{font-size:8px;letter-spacing:.08em;padding:1px 3px 0}.gm-top .gm-acct:not(.me){padding:0 8px}.gm-top .gm-acct.me{padding-right:8px}}
 @media (max-width:380px){.gm-top>.gm-logo{font-size:24px!important}}
 @media (max-width:350px){.gm-top>.gm-logo{font-size:21px!important}.gm-home .gm-logo{font-size:17px}.gm-top{gap:6px}}
 .gm-pass{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:6px 12px 6px 8px;border-radius:10px;border:0;background:var(--cover);color:var(--cover-ink);cursor:pointer;
@@ -489,14 +489,11 @@ button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
 .gm-acctslot{display:contents}
 .gm-acct{min-height:44px;min-width:44px;padding:0 12px;border-radius:10px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;
   font-family:var(--display);font-weight:800;font-stretch:105%;font-size:13px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;flex:none}
-.gm-acct.me{padding:0;width:44px;border-radius:50%;border:0;background:var(--coral);color:var(--on-coral);font-size:19px;letter-spacing:0}
+.gm-acct{border-radius:22px;border-color:var(--gold);color:#F3D98B;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+/* signed in: your initial in the coral circle + ▾, one button that opens the Menu (Héctor 2026-11-15) */
+.gm-acct.me{width:auto;padding:0 10px 0 4px;border:0;border-radius:22px;background:var(--coral);color:var(--on-coral);font-size:19px;letter-spacing:0;gap:4px}
+.gm-acct.me .av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.12)}
 .gm-acct:hover{border-color:var(--coral-text)}
-.gm-ascrim{position:fixed;inset:0;z-index:48}
-.gm-amenu{position:fixed;z-index:49;width:min(290px,calc(100vw - 16px));background:var(--page);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:14px 16px;display:flex;flex-direction:column;gap:2px}
-.gm-amenu b{font-family:var(--display);font-weight:800;font-stretch:92%;font-size:20px;text-transform:uppercase;line-height:1.1}
-.gm-amenu small{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis}
-.gm-amenu p{margin:8px 0 10px;font-size:14px;color:var(--muted)}
-.gm-amenu .gm-big{min-height:44px;font-size:15px}
 .gm-input{min-height:50px;border:1.5px solid var(--ink);border-radius:8px;background:var(--bg);color:var(--ink);padding:10px 14px;font-size:17px;width:100%}
 .gm-namebox .gm-rbody{gap:10px}
 .lb .ghost[data-gm-signin]{align-self:flex-start;margin-top:8px}
@@ -566,3 +563,35 @@ html.gm-walled,html.gm-walled body{overflow:hidden}
   font-family:var(--body);font-weight:700;font-size:16px;cursor:pointer}
 .gm-wallg i{width:22px;height:22px;border-radius:50%;border:2px solid #2A56B8;color:#2A56B8;font-style:normal;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
 .gm-wallcard .gm-wallnote{margin:12px 0 0;font-size:13px;color:var(--muted)}
+
+/* ---------- the Menu window (brand/account.js openMenu) and the other home windows ---------- */
+.hw .gm-rbody{gap:10px}
+.hw ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.hw .it{min-height:62px;width:100%;display:flex;align-items:center;gap:14px;padding:6px 4px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);text-decoration:none;font:inherit;text-align:left;cursor:pointer}
+.hw .it .ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--c);background:color-mix(in srgb,var(--c) 18%,transparent)}
+.hw .it .tx{flex:1;display:flex;flex-direction:column;font-size:16px;font-weight:600;line-height:1.3}
+.hw .it small{font-size:13px;font-weight:400;color:var(--muted)}
+.hw .it .mt{font-family:var(--display);font-weight:800;font-size:15px;color:#F3D98B;white-space:nowrap}
+.hw .it .ch{color:var(--muted);display:flex}
+.hw .acctbox{border-radius:14px;background:var(--guil);padding:12px;display:flex;align-items:center;gap:12px}
+.hw .acctbox .av{width:42px;height:42px;border-radius:50%;background:var(--coral,#F07884);color:#1A1020;display:flex;align-items:center;justify-content:center;font:900 20px var(--display);flex-shrink:0}
+.hw .acctbox .nm{flex:1;min-width:0;display:flex;flex-direction:column}
+.hw .acctbox .nm b{font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hw .acctbox span{font-size:13px;color:var(--muted)}
+.hw .acctbox .out{background:none;border:0;padding:6px 0;color:#F3D98B;text-decoration:underline;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+.hw .acctbox.guest{flex-wrap:wrap}.hw .acctbox.guest .gbtn{width:100%}
+.hw .mfoot{text-align:center;font-size:13px}
+/* How the GeoPass works: its list is made for the cream passport page, so here it gets light text on the dark window */
+.hw .gp-how{margin:0;color:var(--ink);font-size:15px;gap:10px}
+.hw .gp-how b{color:#F3D98B}
+.hw .credits{display:flex;flex-direction:column;gap:10px}
+.hw .credits ul{list-style:disc;padding-left:18px;margin:0;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--ink)}
+.hw p{margin:0;font-size:14px;color:var(--muted)}
+.hw .lv{display:flex;justify-content:space-between;padding:8px 6px;border-bottom:1px solid var(--line);font-size:15px}
+.hw .lv.cur{color:#F3D98B;font-weight:700}
+.hw h4{margin:6px 0 0;font-family:var(--display);font-weight:900;font-size:15px;text-transform:uppercase;letter-spacing:.04em}
+.hw .how li{font-size:14px;color:var(--ink);padding:3px 0}
+.hw .log li{display:flex;justify-content:space-between;gap:8px;font-size:14px;padding:6px 0;border-bottom:1px solid var(--line)}
+.hw .log .pt{font-family:var(--type);font-weight:700;color:#F3D98B}
+.hw .gbtn{min-height:50px;border-radius:12px;border:0;background:#F6F8F5;color:#16202F;display:flex;align-items:center;justify-content:center;gap:10px;font-family:var(--body);font-weight:700;font-size:16px;cursor:pointer}
+.hw .gbtn i{width:22px;height:22px;border-radius:50%;border:2px solid #2A56B8;color:#2A56B8;font-style:normal;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
