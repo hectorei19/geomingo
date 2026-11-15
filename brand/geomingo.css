@@ -140,6 +140,11 @@ body:has(.gm-done) .gm-title small{display:none}
 .ticket.tk-practice{border-color:var(--coral)}
 .ticket.tk-practice .tk-tear{border-top-color:color-mix(in srgb,var(--coral) 45%,transparent)}
 .ticket.tk-practice .tk-tear::before,.ticket.tk-practice .tk-tear::after{border-color:var(--coral)}
+/* With friends: the blue Practice used before (Héctor 2026-11-15) */
+.tk-mode.friends{background:var(--blue);color:#0C1220}
+.ticket.tk-friends{border-color:var(--blue)}
+.ticket.tk-friends .tk-tear{border-top-color:color-mix(in srgb,var(--blue) 50%,transparent)}
+.ticket.tk-friends .tk-tear::before,.ticket.tk-friends .tk-tear::after{border-color:var(--blue)}
 .tk-stub{display:flex;flex-wrap:wrap;gap:6px 4px;padding:8px 6px 10px}
 .tk-c{flex:1 1 auto;min-width:58px;display:flex;flex-direction:column;gap:2px;padding:4px 8px;border-radius:8px;border:1px solid transparent}
 .tk-c.tk-name{flex-grow:1.4;min-width:0;max-width:40%}
