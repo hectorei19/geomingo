@@ -170,11 +170,11 @@ const IMP3_FROM='2026-11-15',imp3=d=>!d||d>=IMP3_FROM;   // no day (Practice, Wi
 // a saved result (history entry, ranking row) has the new points from the day after IMP3_FROM, and on that day only if it says x3
 const impNew=(d,x)=>!d||d>IMP3_FROM||d===IMP3_FROM&&!!x;
 const IMP3=[15,10,5,3,1],impRound=q=>q.st!=='right'?0:q.x3?IMP3[q.k-1]||0:6-q.k;   // a round's stored points (x3: a game from IMP3_FROM)
-// Flag Pie from FP3_FROM (Héctor 2026-11-15: +16 with all five clues was far too much, "like Impostor"): 20, 13, 7, 4, 1 a flag
+// Flag Pie from FP3_FROM (Héctor 2026-11-15: +16 with all five clues was far too much, "like Impostor"): 20, 15, 10, 5, 3 a flag
 // by clues open (x3 on the flag), so five flags still make 100; the history and the ranking keep these points (p / s, 0-100)
 const FP3_FROM='2026-11-16',fp3=d=>!d||d>=FP3_FROM;
 const fpNew=(d,x)=>!d||d>FP3_FROM||d===FP3_FROM&&!!x;
-const FP3=[20,13,7,4,1],fpFlag=q=>q.st!=='right'?0:q.x3?FP3[q.k-1]||0:6-q.k;
+const FP3=[20,15,10,5,3],fpFlag=q=>q.st!=='right'?0:q.x3?FP3[q.k-1]||0:6-q.k;
 const pf=(all,m)=>all&&!(+m)?20:0;
 const KM={
   grid:(s,c,n,w)=>{n=(+n||4)*(+n||4);return Math.min(100,Math.round((+s||0)/15))+pf((+c||0)>=n,w)},

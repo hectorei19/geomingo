@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611160500"></script>
-<script src="../brand/account.js?v=202611160500"></script>
+<script src="../brand/mingo.js?v=202611160520"></script>
+<script src="../brand/account.js?v=202611160520"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -123,7 +123,7 @@ const realFlag=c=>'flags/'+c+'.svg';
 const contName={EU:'Europe',AS:'Asia',AF:'Africa',NA:'North or Central America',SA:'South America',OC:'Oceania'};
 // points (Héctor 2026-11-14, the same table in every game): 20 with the pie alone, 1 less for each clue more (20 to 16),
 // +20 for a perfect game (all five with the pie alone). raw: the old 5-to-1 points, still what the history and ranking keep
-// Games from Geomingo.fp3 on (Héctor 2026-11-15, x3 on the flag): 20, 13, 7, 4, 1, and the history and ranking keep these points
+// Games from Geomingo.fp3 on (Héctor 2026-11-15, x3 on the flag): 20, 15, 10, 5, 3, and the history and ranking keep these points
 const raw=q=>CLUES+1-q.k,worth=q=>q.x3?Geomingo.FP3[q.k-1]||0:15+raw(q);
 const ptsOf=q=>Geomingo.fpFlag(q);
 const newQ=(c,x)=>Object.assign({c,k:1,tries:[],st:'play',alt:null},x?{x3:1}:{});
@@ -322,7 +322,7 @@ function myStatsHTML(){const h=load('fp-hist',{}),so=load('fp-solo5',null)||{n:0
     solo:{n:so.n,unit:'game',medal:so.best||0,stats:[[so.best||0,'best'],[so.n?EU(so.p/so.n,1):0,'average'],[so.r||0,'named']]},
     friends:(fr=>Object.assign(fr,{third:[fr.best||0,'best']}))(friendsOf('fp-friends'))})}
 const G0=()=>view==='daily'?D:view==='train'||view==='room'?T:null;
-const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Five flags, each one as a pie of its colours. Name the country with the pie alone for 20 points; every wrong answer opens one more clue and lowers the points: ${G0()&&!isNew(G0())?'20, 19, 18, 17, 16':'20, 13, 7, 4, 1'}. All five with the pie alone: +20. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Five flags, each one as a pie of its colours. Name the country with the pie alone for 20 points; every wrong answer opens one more clue and lowers the points: ${G0()&&!isNew(G0())?'20, 19, 18, 17, 16':'20, 15, 10, 5, 3'}. All five with the pie alone: +20. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Five flags, one at a time. Each one is shown as a pie chart: its colours and how much of the flag each one covers, coat of arms and all. Name the country.</li>
   <li>Only the ${SOV.length} independent countries, never territories.</li></ul>
@@ -334,7 +334,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li><b>5 The flag, blurred</b>.</li>
   <li>A wrong answer opens the next clue. You can also tap <b>Next clue</b>.</li></ul>
   <h3>Points</h3><ul>
-  <li>Right with the pie alone: <b>20 points</b>. With 2 clues: 13. With 3: 7. With 4: 4. With all 5: 1.</li>
+  <li>Right with the pie alone: <b>20 points</b>. With 2 clues: 15. With 3: 10. With 4: 5. With all 5: 3.</li>
   <li>A wrong answer with all five clues open, or <b>I don't know</b>, lets the flag go with 0.</li>
   <li>All five right: up to 100 points. A <b>perfect game</b> (all five with the pie alone, not one wrong answer): +20, so 120.</li>
   <li>In today's flags your points are also your km for the GeoPass.</li>
