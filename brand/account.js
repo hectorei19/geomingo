@@ -2,7 +2,7 @@
    Every page loads it in its <head>, right after ../brand/mingo.js, so Geomingo.account is there for the page's own
    scripts; it starts once the page has loaded (and has loaded the Firebase SDK itself when the page did not).
    Signed in, these are kept in the account and follow you to every device:
-   - your name, chosen once (users/<uid>/profile, the same one Countries has always used)
+   - your name (users/<uid>/profile, the same one Countries has always used); unique, changed from the Menu once every 30 days
    - the GeoPass (users/<uid>/pass) and the days you played (users/<uid>/days), for every game
    - the daily results of Connections, Top 10, Silhouette, Customs, Flag Pie, Impostor and Compass
      (users/<uid>/hist/<game>/<date>), and each one joins
@@ -74,7 +74,7 @@ async function boot(){OWN=typeof window.initAuth==='function';trialCheck();
     if(typeof firebase.auth!=='function')await script(SDK+'firebase-auth-compat.js');
     if(typeof firebase.database!=='function')await script(SDK+'firebase-database-compat.js');
     if(!firebase.apps.length)firebase.initializeApp(window.FIREBASE_CONFIG&&FIREBASE_CONFIG.apiKey?FIREBASE_CONFIG:CONFIG);
-    db=firebase.database();ok=true;statsOn()}
+    db=firebase.database();ok=true;statsOn();watchNames()}
   catch(e){ok=false;failed=true;holdOff();changed();return}
   firebase.auth().onAuthStateChanged(onUser);
   if(!OWN)firebase.auth().getRedirectResult().catch(authError)}
@@ -138,23 +138,90 @@ function wall(on){let w=document.getElementById('gm-wall');
   document.body.appendChild(w);document.documentElement.classList.add('gm-walled');
   const b=w.querySelector('button');if(b)setTimeout(()=>b.focus(),50)}
 
-/* ---- the name: chosen once, kept in the account, shown in every ranking ---- */
+/* ---- the name: kept in the account, shown in every ranking ----
+   One name per player, nobody else can have it, and it can be changed from the Menu once every 30 days (Héctor 2026-11-16).
+   names/<key> = uid: who holds a name. key = the name in small letters without accents or spaces ("Héctor M" = "hectorm").
+   pnames/<uid> = {n, k, t}: each player's current name, public. Every ranking shows this name (nameOf), so a new name
+   shows on past days too, although the ranking rows keep a copy of the old one. t = when it was last changed (0 = never).
+   users/<uid>/profile keeps the name too (Countries and Capitals read it there). The rules check all of this. */
+const NAME_DAYS=30,NAME_MS=NAME_DAYS*864e5;
+const ACC={a:'àáâäãå',e:'èéêë',i:'ìíîï',o:'òóôöõ',u:'ùúûü',n:'ñ',c:'ç',y:'ýÿ'};   // the same list is in the Firebase rules
+const nameKey=v=>{let s=String(v||'').toLowerCase().split(' ').join('');for(const [b,l] of Object.entries(ACC))for(const ch of l)s=s.split(ch).join(b);return s};
+const cleanName=v=>String(v||'').replace(/\s+/g,' ').trim();
+const NAME_OK=/^[A-Za-z0-9 àáâäãåèéêëìíîïòóôöõùúûüñçýÿÀÁÂÄÃÅÈÉÊËÌÍÎÏÒÓÔÖÕÙÚÛÜÑÇÝ]+$/;
+// a few words nobody can have in their name (checked inside the key, so spaces and accents don't hide them)
+const BAD=['fuck','shit','cunt','nigger','nigga','fagot','faggot','bitch','whore','slut','asshole','pussy','penis','retard','hitler','nazi','porn',
+  'puta','puto','mierda','joder','polla','gilipollas','maricon','cabron','zorra','follar','verga','pendejo','chinga','coño'].map(nameKey);
+// what's wrong with a name, or '' when it can be used
+function nameProblem(v){const n=cleanName(v),k=nameKey(n);
+  if(!n)return 'Type a name.';
+  if(!NAME_OK.test(n))return 'Only letters, numbers and spaces.';
+  if(n.length>16)return 'At most 16 characters.';
+  if(k.length<3)return 'At least 3 letters or numbers.';
+  if(BAD.some(b=>k.includes(b)))return 'Please choose another name.';
+  return ''}
+// everyone's current name (pnames), kept up to date while the page is open; also kept on this device for the first paint
+let NAMES=json('gm-pnames')||{},MYP=null;
+function watchNames(){db.ref('pnames').on('value',s=>{const v=s.val()||{},m={};
+  for(const [id,p] of Object.entries(v))if(p&&typeof p.n==='string')m[id]=p.n;
+  const same=JSON.stringify(m)===JSON.stringify(NAMES);NAMES=m;if(!same){put('gm-pnames',m);changed('names')}},()=>{})}
+const nameOf=(id,fallback)=>(id&&NAMES[id])||fallback||'Player';
 function setName(n){name=n;ls.set('bl-user',n);ls.set('cc-user',n);if(user)remember();G.refreshPass()}
 function loadName(){const id=uid();
   db.ref('users/'+id+'/profile').once('value').then(s=>{if(uid()!==id)return;const v=s.val();
-    if(v&&v.name)setName(v.name);else{holdOff();if(!OWN)askName()}
+    if(v&&v.name){setName(v.name);claimOld(v.name)}else{holdOff();if(!OWN)askName()}
     syncAll();changed()}).catch(()=>holdOff())}
-function askName(){const first=((user.displayName||'').trim().split(/\s+/)[0]||'').slice(0,16);
-  const box=G.openWindow('<div class="gm-res gm-namebox"><div class="gm-band">'+bico('user')+'<b>Welcome aboard</b></div><div class="gm-rbody">'+
-    '<label class="gm-lab" for="gm-name">Your name in Geomingo</label><input id="gm-name" class="gm-input" maxlength="16" autocomplete="nickname" placeholder="Your name" value="'+esc(first)+'">'+
-    '<p class="gm-note" style="text-align:left">It appears in the daily ranking of every game. Choose carefully: it stays with your account and can\'t be changed later.</p>'+
-    '<button class="gm-big coral" data-gm-act="savename">Save name</button></div></div>','Choose your name');
-  const inp=box.querySelector('#gm-name');box._acts={savename:()=>saveName(inp.value)};
-  inp.addEventListener('keydown',e=>{if(e.key==='Enter')saveName(inp.value)});setTimeout(()=>inp.focus(),50)}
-function saveName(v){const n=String(v||'').trim().slice(0,16);if(!n){say('Type a name to continue.');return}
-  if(!uid())return;
-  db.ref('users/'+uid()+'/profile').transaction(cur=>cur?undefined:{name:n}).then(r=>{const x=(r.snapshot.val()||{}).name;
-    if(x){setName(x);G.closeWindow();if(!OWN)Object.keys(ADAPT).forEach(syncGame);changed()}}).catch(()=>say('Could not save your name. Try again.'))}
+// a name chosen before names were unique: it is reserved for its player the first time they come back,
+// unless someone else got it first (then they keep showing it until they change it)
+function claimOld(n){const id=uid();
+  db.ref('pnames/'+id).once('value').then(s=>{if(uid()!==id)return;MYP=s.val();if(MYP)return;
+    const c=cleanName(n),k=nameKey(c);if(c!==n||!NAME_OK.test(c)||!k||k.length>16)return;
+    db.ref().update({['names/'+k]:id,['pnames/'+id]:{n:c,k,t:0}}).then(()=>{MYP={n:c,k,t:0}}).catch(()=>{})}).catch(()=>{})}
+// is a name free? resolves 'free', 'mine' or 'taken'
+function nameFree(v){const k=nameKey(cleanName(v));
+  return db.ref('names/'+k).once('value').then(s=>{const w=s.val();return !w?'free':w===uid()?'mine':'taken'})}
+// saves a name for the account: the first one (t 0) or a change (t now). Resolves the name, or rejects with a message
+function claimName(v,first){const id=uid(),n=cleanName(v),k=nameKey(n),bad=nameProblem(n);
+  if(bad)return Promise.reject(new Error(bad));if(!id||!db)return Promise.reject(new Error('Sign in first.'));
+  return nameFree(n).then(f=>{if(f==='taken')throw new Error('Taken. Try another name.');
+    const up={['names/'+k]:id,['pnames/'+id]:{n,k,t:first?0:TS()},['users/'+id+'/profile']:{name:n}};
+    if(MYP&&MYP.k&&MYP.k!==k)up['names/'+MYP.k]=null;
+    return db.ref().update(up).catch(()=>{throw new Error('Could not save your name. Try again.')})})
+   .then(()=>{MYP={n,k,t:first?0:Date.now()};NAMES[id]=n;put('gm-pnames',NAMES);setName(n);changed('myname');return n})}
+// the first name, when you sign in for the first time (also used by Countries and Capitals)
+function firstName(v){const id=uid();if(!id||!db)return Promise.reject(new Error('Sign in first.'));
+  return db.ref('users/'+id+'/profile').once('value').then(s=>{const x=s.val();if(x&&x.name){setName(x.name);return x.name}return claimName(v,true)})}
+// when the name can be changed again (0 = now)
+const nextChange=()=>MYP&&MYP.t?Math.max(0,MYP.t+NAME_MS-Date.now()):0;
+// the name window: the first time (no Close, it must be chosen) or a change from the Menu
+function nameWindow(first){const cur=first?((user.displayName||'').trim().split(/\s+/)[0]||'').slice(0,16):name,wait=first?0:nextChange();
+  const when=wait?new Date(Date.now()+wait).toLocaleDateString('en-GB',{day:'numeric',month:'long'}):'';
+  const note=first?'It appears in the daily ranking of every game. Nobody else can have the same name. You can change it later in the Menu, once every '+NAME_DAYS+' days.'
+    :'3 to 16 letters, numbers or spaces. Nobody else can use the same name. You can change it once every '+NAME_DAYS+' days.';
+  const body=wait?'<p class="gm-nmwait">You changed your name recently. You can change it again on <b>'+esc(when)+'</b>.</p>'
+    :'<label class="gm-lab" for="gm-name">Your name in Geomingo</label><input id="gm-name" class="gm-input" maxlength="16" autocomplete="nickname" placeholder="Your name" value="'+esc(cur)+'">'+
+     '<p class="gm-nmst" aria-live="polite"></p><p class="gm-note" style="text-align:left">'+note+'</p>'+
+     '<button class="gm-big coral" data-gm-act="savename" disabled>Save name</button>';
+  const box=G.openWindow('<div class="gm-res gm-namebox"><div class="gm-band">'+bico('user')+'<b>'+(first?'Welcome aboard':'Change name')+'</b></div><div class="gm-rbody">'+body+
+    (first?'':'<button class="gm-text" data-gm-act="close">Close</button>')+'</div></div>',first?'Choose your name':'Change name');
+  const inp=box.querySelector('#gm-name');if(!inp)return;
+  const st=box.querySelector('.gm-nmst'),btn=box.querySelector('[data-gm-act="savename"]');let ask=0,tm=0;
+  const show=(cls,t,okay)=>{st.className='gm-nmst'+(cls?' '+cls:'');st.textContent=t;inp.classList.toggle('bad',cls==='bad');inp.classList.toggle('good',cls==='good');btn.disabled=!okay};
+  const check=()=>{clearTimeout(tm);const n=cleanName(inp.value),bad=nameProblem(n),me=++ask;
+    if(!first&&n===name){show('','This is your name now.',false);return}
+    if(bad){show(n?'bad':'',n?'✗ '+bad:'',false);return}
+    show('','Checking…',false);
+    tm=setTimeout(()=>nameFree(n).then(f=>{if(me!==ask)return;f==='taken'?show('bad','✗ Taken. Try another name.',false):show('good','✓ '+n+' is free',true)})
+      .catch(()=>{if(me===ask)show('','',true)}),300)};
+  const save=()=>{if(btn.disabled)return;btn.disabled=true;
+    (first?firstName(inp.value):claimName(inp.value)).then(()=>{G.closeWindow();if(first&&!OWN)Object.keys(ADAPT).forEach(syncGame);changed()})
+      .catch(e=>{show('bad','✗ '+((e&&e.message)||'Could not save your name. Try again.'),false)})};
+  box._acts={savename:save};inp.addEventListener('input',check);inp.addEventListener('keydown',e=>{if(e.key==='Enter')save()});
+  check();setTimeout(()=>inp.focus(),50)}
+function askName(){nameWindow(true)}
+// Change name (Menu): reads when it was last changed first, so the 30 days are shown right
+function changeMyName(){const id=uid();if(!id||!db){say('One moment, signing you in…');return}
+  db.ref('pnames/'+id).once('value').then(s=>{if(uid()!==id)return;MYP=s.val();nameWindow(false)}).catch(()=>nameWindow(false))}
 
 /* ---- keeping the account and this device in step ---- */
 function syncAll(){if(!uid()||!db)return;syncPass();syncDays();if(!OWN){Object.keys(ADAPT).forEach(syncGame);syncGrid('daily','bl-hist');syncGrid('capitals/daily','cc-hist')}}
@@ -249,7 +316,7 @@ function rankLine(g){if(TEST||who()===undefined)return '';watch(g);const m=mine(
 function rankingHTML(g,o){const u=who();if(TEST||u===undefined)return '';o=o||{};watch(g);const L=LB[g],title=o.title||"Today's ranking";
   if(!L||!L.rows)return '<section class="panel lb"><span class="label">'+esc(title)+'</span><p class="hint">'+(L&&L.off?'The ranking is not available right now.':'Loading…')+'</p></section>';
   const rows=sorted(g),me=meId(),i=rows.findIndex(r=>r.id===me),sc=o.score||(r=>[String(r.s),'']);
-  const row=(r,k)=>{const [a,b]=sc(r);return '<li class="'+(r.id===me?'me':'')+'"><span class="rk">'+(k+1)+'</span><span class="nm">'+esc(r.name||'Player')+'</span><span class="sq">'+esc(b)+'</span><span class="pt">'+esc(a)+'</span></li>'};
+  const row=(r,k)=>{const [a,b]=sc(r);return '<li class="'+(r.id===me?'me':'')+'"><span class="rk">'+(k+1)+'</span><span class="nm">'+esc(nameOf(r.id,r.name))+'</span><span class="sq">'+esc(b)+'</span><span class="pt">'+esc(a)+'</span></li>'};
   const list=rows.slice(0,10).map(row).join('')+(i>=10?'<li class="gap">…</li>'+row(rows[i],i):'');
   const foot=!u?'<button class="ghost" data-gm-signin>Sign in to join today\'s ranking</button>'+(ADAPT[g]&&ADAPT[g].today()?'<p class="hint">Your result is added when you sign in.</p>':'')
     :i<0?'<p class="hint">Your result joins the ranking when you finish today\'s '+esc(o.what||'game')+' signed in. Only your first try counts.</p>':'';
@@ -407,7 +474,7 @@ function mwin(title,body,acts){const box=G.openWindow('<div class="gm-res hw"><d
   const f=box.querySelector('a,button');if(f)f.focus({preventScroll:true});return box}
 function openMenu(){const u=who();let km=0;try{km=G.geo().km}catch(e){}
   const nm=u?(name||u.displayName||'').trim():'';
-  const box=u===undefined?'':u?'<div class="acctbox"><span class="av" aria-hidden="true">'+esc((nm[0]||'·').toUpperCase())+'</span><span class="nm"><b>'+esc(nm||'Traveller')+'</b><span>Signed in with Google</span></span><button class="out" data-gm-signout>Sign out</button></div>'
+  const box=u===undefined?'':u?'<div class="acctbox"><span class="av" aria-hidden="true">'+esc((nm[0]||'·').toUpperCase())+'</span><span class="nm"><b>'+esc(nm||'Traveller')+'</b><button class="chn" data-gm-act="chname">Change name</button></span><button class="out" data-gm-signout>Sign out</button></div>'
     :'<div class="acctbox guest"><span class="nm"><b>Guest traveller</b><span>Saved on this phone only.</span></span><button class="gbtn" data-gm-signin><i aria-hidden="true">G</i>Continue with Google</button></div>';
   const it=(act,c,ic,t,sub,end)=>'<li><button class="it" data-gm-act="'+act+'" style="--c:'+c+'"><span class="ic">'+mico(ic)+'</span><span class="tx">'+t+(sub?'<small>'+sub+'</small>':'')+'</span>'+(end||'<span class="ch">'+mico('ch',18)+'</span>')+'</button></li>';
   // in a game (Héctor 2026-11-15, option B: the games' own ☰ is gone): that game's lines on top, then Geomingo's, no subtitles
@@ -419,7 +486,7 @@ function openMenu(){const u=who();let km=0;try{km=G.geo().km}catch(e){}
     it('arch','#7FA2F0','cal','Archive',sub('Play past days of all '+G.ALLW+' games'))+
     it('fb','#F07884','mail','Send feedback',sub('Ideas, mistakes, anything'))+'</ul>'+
     (g&&g.sources?'<button class="gm-text msrc" data-gm-act="gsrc">'+esc(g.name)+' data sources</button>':''),
-    Object.assign(acts,{gp:()=>G.openPass('passport'),fb:openFeedback,gsrc:()=>{G.closeWindow();g.sources()},
+    Object.assign(acts,{chname:changeMyName,gp:()=>G.openPass('passport'),fb:openFeedback,gsrc:()=>{G.closeWindow();g.sources()},
      // Archive: a calendar of past days on the home page, for all the games (Héctor 2026-11-15); from a game it opens the home page there
      arch:()=>{G.closeWindow();if(typeof G.showArchive==='function')G.showArchive();else location.href=HOME_URL+'#archive'},
      // the ranking is on the home page: there it scrolls to it, from a game it opens the home page at the ranking
@@ -471,6 +538,6 @@ G.acctHTML=acctHTML;G.openMenu=openMenu;G.openFaq=openFaq;G.openCredits=openCred
 // ready/user: known for sure, or the last account seen on this device until Firebase answers (wasSignedIn: that last one)
 G.account={get ready(){return who()!==undefined},get user(){return who()||null},get name(){return name},
   wasSignedIn:!!(LAST&&LAST.u),get trial(){return trialState()},trialLine,
-  signIn,signOut,done,userHTML,changeName,rankingHTML,rankLine,mine,statsPage,levelBars,bestRun,onChange:f=>watchers.push(f)};
+  signIn,signOut,done,userHTML,changeName,nameOf,firstName,nameProblem,nameFree,changeMyName,rankingHTML,rankLine,mine,statsPage,levelBars,bestRun,onChange:f=>watchers.push(f)};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();

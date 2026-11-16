@@ -574,6 +574,10 @@ html.gm-walled,html.gm-walled body{overflow:hidden}
 .hw .acctbox .nm b{font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hw .acctbox span{font-size:13px;color:var(--muted)}
 .hw .acctbox .out{background:none;border:0;padding:6px 0;color:#F3D98B;text-decoration:underline;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+.hw .acctbox .chn{align-self:flex-start;background:none;border:0;padding:2px 0 0;color:#F3D98B;text-decoration:underline;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.gm-nmst{margin:0;min-height:20px;font-size:14px;font-weight:700;color:var(--muted)}.gm-nmst.good{color:#5FC28F}.gm-nmst.bad{color:var(--coral)}
+.gm-input.good{border-color:#5FC28F}.gm-input.bad{border-color:var(--coral)}
+.gm-nmwait{margin:0;font-size:15px;line-height:1.45}
 .hw .acctbox.guest{flex-wrap:wrap}.hw .acctbox.guest .gbtn{width:100%}
 .hw .gh{margin:4px 4px -6px;font:700 12px var(--type);letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
 .hw .msrc{font-size:13px;min-height:36px;padding:4px 10px}

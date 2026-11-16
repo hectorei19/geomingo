@@ -64,7 +64,8 @@ Guests (not signed in) can play on 3 different days (`gm-trial`); after that a s
 
 Firebase project `geomingogames` (until Nov 2026 the old project `borderline-90920`, kept as a backup). With an account, everything below follows you to every device; signing out leaves the device clean (the account keeps it all):
 
-- `users/<uid>/profile` – your name, chosen once, shown in every ranking
+- `users/<uid>/profile` – your name, shown in every ranking; unique, changed from the Menu once every 30 days
+- `names/<key>` = uid (who holds each name; key = lower case, no accents or spaces) and `pnames/<uid>` = {n, k, t} (current name, public; every ranking shows it, also on past days)
 - `users/<uid>/pass`, `users/<uid>/days` – the GeoPass and the days played (the streak), for every game
 - `users/<uid>/hist/<game>/<date>` – the daily results of Connections (`connections`), Top 10 (`top10`), Silhouette (`sil-easy`, `sil-normal`, `sil-hard`), Customs (`customs`), Flag Pie (`flagpie`), Impostor (`impostor`) and Compass (`compass`), with today's whole game, so another device shows the same one (one try per account)
 - `lb/<game>/<date>/<uid>` – each game's public daily ranking; each account writes its result once

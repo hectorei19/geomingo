@@ -23,9 +23,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="brand/geomingo.css?v=202611191700">
+<link rel="stylesheet" href="brand/geomingo.css?v=202611201600">
 <script src="brand/mingo.js?v=202611181900"></script>
-<script src="brand/account.js?v=202611190700"></script>
+<script src="brand/account.js?v=202611201600"></script>
 <script src="brand/party.js?v=202611160600"></script>
 <style>
 /* Home page: Sign in and Menu on top, today's games as colour tiles, Practice and With friends, then the GeoPass
@@ -442,7 +442,7 @@ function loadRank(){const acc=A();if(rankBusy||!acc||!acc.ready||typeof firebase
     for(const uid in v){const r=v[uid];if(!r||typeof r!=='object')continue;const p=P[uid]=P[uid]||{name:'',days:{}},day=p.days[d]=p.days[d]||{};
       if(r.name)p.name=String(r.name).slice(0,16);day[id]=Math.max(day[id]||0,f(r,d));
       if(d===today){const g=TD[id]=TD[id]||{},k=f(r,d);if(!g[uid]||k>g[uid].km)g[uid]={km:k,s:+r.s||0,c:+r.c||0}}}}).catch(()=>{}))))
-  .then(()=>{const ppl=Object.entries(P).map(([id,p])=>{const km={};for(const d in p.days)km[d]=dayTotal(p.days[d]);return{id,name:p.name||'Player',km,g:p.days}});
+  .then(()=>{const ppl=Object.entries(P).map(([id,p])=>{const km={};for(const d in p.days)km[d]=dayTotal(p.days[d]);return{id,n0:p.name||'Player',name:p.name||'Player',km,g:p.days}});
     RANK={day:G.dayKey(),at:Date.now(),ppl,today:TD};rankBusy=false;try{localStorage.setItem('gm-rank',JSON.stringify(RANK))}catch(e){}drawWeek()})}
 /* tap a name in the ranking: the row opens with today's daily results, you vs them, game by game.
    if they have played a game you haven't yet, their score stays hidden (🔒) so it spoils nothing, and a button takes you there */
@@ -482,6 +482,8 @@ function duelHTML(p,me){if(TAB!=='day')return periodHTML(p,me);const T=(RANK&&RA
 function rankRows(t){const ds=tabDays(t);
   return RANK.ppl.map(p=>({id:p.id,name:p.name,mi:ds.reduce((a,d)=>a+(p.km[d]||0),0)})).filter(r=>r.mi>0).sort((a,b)=>b.mi-a.mi||a.name.localeCompare(b.name))}
 function drawWeek(){const el=document.getElementById('week'),acc=A();loadRank();
+  // each player's current name (Héctor 2026-11-16: a new name shows on past days too)
+  if(RANK&&acc&&acc.nameOf)RANK.ppl.forEach(p=>{p.name=acc.nameOf(p.id,p.n0||p.name)});
   if(!acc||!acc.ready||!RANK){el.hidden=true;return}
   const me=acc.user&&acc.user.uid,rows=rankRows(TAB),i=rows.findIndex(r=>r.id===me),tab=TABS.find(x=>x[0]===TAB);
   const row=(r,k)=>{const o=r.id===OPEN;return '<li class="'+(r.id===me?'me':'')+(k<3?' m'+(k+1):'')+(o?' open':'')+'" data-who="'+esc(r.id)+'" role="button" tabindex="0" aria-expanded="'+o+'"><span class="rk">'+(k+1)+'</span><span class="av" style="--c:'+AV[k%AV.length]+'">'+esc((r.name.trim()[0]||'·').toUpperCase())+'</span><span class="nm">'+esc(r.id===me?r.name+' (you)':r.name)+'</span><span class="pt">'+fmt(r.mi)+' km</span><span class="chev" aria-hidden="true">'+(o?'▲':'▼')+'</span></li>'+(o?duelHTML(r,me):'')};
