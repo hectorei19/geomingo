@@ -56,12 +56,25 @@
         ".validate": "newData.hasChildren(['name', 'd', 's', 'f']) && newData.child('name').isString() && newData.child('name').val().length <= 16"
       }
     },
+    "names": {
+      "$key": {
+        ".read": true,
+        ".write": "auth != null && (data.exists() ? data.val() === auth.uid && (newData.exists() ? newData.val() === auth.uid : newData.parent().parent().child('pnames').child(auth.uid).child('k').val() !== $key) : newData.val() === auth.uid && newData.parent().parent().child('pnames').child(auth.uid).child('k').val() === $key)"
+      }
+    },
+    "pnames": {
+      ".read": true,
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid && newData.exists()",
+        ".validate": "newData.hasChildren(['n', 'k', 't']) && newData.child('n').isString() && newData.child('n').val().length >= 1 && newData.child('n').val().length <= 16 && newData.child('k').isString() && newData.child('k').val().matches(/^[a-z0-9]{1,16}$/) && newData.child('k').val() === newData.child('n').val().toLowerCase().replace(' ', '').replace('à', 'a').replace('á', 'a').replace('â', 'a').replace('ä', 'a').replace('ã', 'a').replace('å', 'a').replace('è', 'e').replace('é', 'e').replace('ê', 'e').replace('ë', 'e').replace('ì', 'i').replace('í', 'i').replace('î', 'i').replace('ï', 'i').replace('ò', 'o').replace('ó', 'o').replace('ô', 'o').replace('ö', 'o').replace('õ', 'o').replace('ù', 'u').replace('ú', 'u').replace('û', 'u').replace('ü', 'u').replace('ñ', 'n').replace('ç', 'c').replace('ý', 'y').replace('ÿ', 'y') && newData.parent().parent().child('names').child(newData.child('k').val()).val() === $uid && newData.child('t').isNumber() && (!data.exists() || data.child('k').val() === newData.child('k').val() || !newData.parent().parent().child('names').child(data.child('k').val()).exists()) && (data.exists() ? (newData.child('n').val() === data.child('n').val() && newData.child('k').val() === data.child('k').val() && newData.child('t').val() === data.child('t').val()) || (newData.child('t').val() === now && now >= data.child('t').val() + 2592000000) : (newData.child('t').val() === 0 || newData.child('t').val() === now))"
+      }
+    },
     "users": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && auth.uid === $uid",
         "profile": {
-          ".validate": "!data.exists() && newData.hasChildren(['name']) && newData.child('name').isString() && newData.child('name').val().length >= 1 && newData.child('name').val().length <= 16"
+          ".validate": "(!data.exists() || newData.parent().parent().parent().child('pnames').child($uid).child('n').val() === newData.child('name').val()) && newData.hasChildren(['name']) && newData.child('name').isString() && newData.child('name').val().length >= 1 && newData.child('name').val().length <= 16"
         },
         "games": {
           "$id": {

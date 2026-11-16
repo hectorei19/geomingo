@@ -22,7 +22,7 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611191600"></script>
-<script src="../brand/account.js?v=202611190700"></script>
+<script src="../brand/account.js?v=202611201500"></script>
 <script src="../brand/party.js?v=202611160600"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -317,7 +317,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .b5 .cell.flag .gm-stamp.wf .pts{font-size:.6rem;padding:0 3px 1px 4px;border-radius:0 0 0 5px}
 .b5 .cell.flag .gm-stamp.wf .cc{font-size:.6rem;padding:1px 4px 0 3px;border-radius:0 5px 0 0}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611191600">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611201500">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -629,10 +629,10 @@ function pastLB(date){if(LBD[date]===undefined&&initFB()){LBD[date]=null;db.ref(
 function lbView(date){if(!FB_OK||TESTDAY)return '';
   if(date){const src=pastLB(date);if(!src)return `<section class="panel lb"><span class="label">Ranking of grid #${dayNumber(date)}</span><p class="hint">Loading…</p></section>`;
     const rows=lbRows(src),me=USER&&USER.uid,i=rows.findIndex(r=>r.uid===me);
-    const row=(r,k)=>`<li class="${r.uid===me?'me':''}" data-stats="${esc(r.uid)}" role="button" tabindex="0"><span class="rk">${k+1}</span><span class="nm">${esc(r.name||'Player')}</span><span class="sq">${r.c}/${DAILY_N*DAILY_N}</span><span class="pt">${EU(r.s)}</span></li>`;
+    const row=(r,k)=>`<li class="${r.uid===me?'me':''}" data-stats="${esc(r.uid)}" role="button" tabindex="0"><span class="rk">${k+1}</span><span class="nm">${esc(pname(r.uid,r.name))}</span><span class="sq">${r.c}/${DAILY_N*DAILY_N}</span><span class="pt">${EU(r.s)}</span></li>`;
     return `<section class="panel lb"><span class="label">Ranking of grid #${dayNumber(date)}${rows.length?` · ${rows.length} player${rows.length===1?'':'s'}`:''}</span>${rows.length?`<ol class="lbl">${rows.slice(0,10).map(row).join('')+(i>=10?`<li class="gap">…</li>`+row(rows[i],i):'')}</ol>`:'<p class="hint">Nobody played this grid on its day.</p>'}<p class="hint">How the players did on the day. Archive games are not added.</p></section>`}
   const rows=lbRows(),me=USER&&USER.uid,i=rows.findIndex(r=>r.uid===me);
-  const row=(r,k)=>`<li class="${r.uid===me?'me':''}" data-stats="${esc(r.uid)}" role="button" tabindex="0"><span class="rk">${k+1}</span><span class="nm">${esc(r.name||'Player')}</span><span class="sq">${r.c}/${DAILY_N*DAILY_N}</span><span class="pt">${EU(r.s)}</span></li>`;
+  const row=(r,k)=>`<li class="${r.uid===me?'me':''}" data-stats="${esc(r.uid)}" role="button" tabindex="0"><span class="rk">${k+1}</span><span class="nm">${esc(pname(r.uid,r.name))}</span><span class="sq">${r.c}/${DAILY_N*DAILY_N}</span><span class="pt">${EU(r.s)}</span></li>`;
   const list=rows.slice(0,10).map(row).join('')+(i>=10?`<li class="gap">…</li>`+row(rows[i],i):'');
   const foot=!USER&&!MAYBE_IN()?(AUTH_OK?`<button class="ghost" id="signin2">Sign in to join today's ranking</button>${carryable(loadDaily())?'<p class="hint">Your result is added when you sign in.</p>':''}`:''):i<0?`<p class="hint">Your result joins the ranking when you finish today's grid signed in.</p>`:'';
   return `<section class="panel lb"><span class="label">Today's ranking${i>=0?`<b>You: #${i+1} of ${rows.length}</b>`:rows.length?` · ${rows.length} player${rows.length===1?'':'s'}`:''}</span>${rows.length?`<ol class="lbl">${list}</ol>`:`<p class="hint">Nobody in today's ranking yet.</p>`}${foot}</section>`}
@@ -930,7 +930,7 @@ const TS=()=>firebase.database.ServerValue.TIMESTAMP;
 
 /* ---- optional Google sign-in (Firebase Authentication): only used to keep your daily stats in sync between devices ---- */
 let USER=null,ACCT_TODAY=null,ACCT_READY=true,ACCT_WAIT=0,acctT=0,acctRef=null,PROFILE=null,NEEDNAME=false;
-// the account's name: chosen once (users/<uid>/profile), then fixed; it is also the name shown in the ranking
+// the account's name (users/<uid>/profile): unique, changed from the Menu once every 30 days (brand/account.js); it is also the name shown in the ranking
 function applyProfile(name){PROFILE=name;NEEDNAME=false;const old=setup.user;setup.user=name;editingUser=false;
   try{localStorage.setItem('cc-user',name)}catch(e){}publishSoon();carryDaily();render()}
 // signed in after finishing today's grid as a guest: the result joins the account and today's ranking
@@ -942,8 +942,15 @@ function loadProfile(){if(!USER||!db)return;const uid=USER.uid;
     if(v&&v.name)applyProfile(v.name);else{NEEDNAME=true;render()}}).catch(()=>{})}
 function saveProfile(v){const name=(v||'').trim().slice(0,16);if(!name){toast('Type a name to continue.','bad');return}
   if(!USER||!db)return;
-  db.ref('users/'+USER.uid+'/profile').transaction(cur=>cur?undefined:{name}).then(r=>{const n=(r.snapshot.val()||{}).name;if(n)applyProfile(n)})
-    .catch(()=>toast('Could not save your name. Try again.','bad'))}
+  // the name is unique (Héctor 2026-11-16): Geomingo.account checks and reserves it
+  const A=window.Geomingo&&Geomingo.account;if(!A||!A.firstName){toast('Could not save your name. Try again.','bad');return}
+  const bad=A.nameProblem(name);if(bad){toast(bad,'bad');return}
+  A.firstName(name).then(applyProfile).catch(e=>toast((e&&e.message)||'Could not save your name. Try again.','bad'))}
+// every ranking shows each player's current name (pnames), also on past days
+const pname=(id,n)=>{const A=window.Geomingo&&Geomingo.account;return A&&A.nameOf?A.nameOf(id,n):(n||'Player')};
+if(window.Geomingo&&Geomingo.account&&Geomingo.account.onChange)Geomingo.account.onChange((why,typing)=>{
+  if(why==='myname'&&USER&&PROFILE&&Geomingo.account.name&&Geomingo.account.name!==PROFILE)applyProfile(Geomingo.account.name);
+  else if(why==='names'&&!typing&&!(document.activeElement&&document.activeElement.tagName==='INPUT'))render()});
 const AUTH_OK=FB_OK&&typeof firebase.auth==='function';
 // until Firebase says who you are, a device that was signed in last time is shown as signed in (no Sign in banner flashing)
 let AUTH_KNOWN=false;
@@ -1274,7 +1281,7 @@ function statsView(){
   else{const p=statsCache[STATS_UID];
     if(p===undefined)return `<section class="panel">${back.replace('%NAME%','Player')}<p class="hint">Loading…</p></section>`;
     if(!p||!p.d)return `<section class="panel">${back.replace('%NAME%','Player')}<p class="hint">No stats yet for this player.</p></section>`;
-    st=p;name=p.name||'Player'}
+    st=p;name=pname(STATS_UID,p.name)}
   const tile=(v,l)=>`<div class="st"><b>${v}</b><span>${l}</span></div>`,D=st.d,So=st.s,F=st.f;
   // your own stats: the same cards as every game (../brand/account.js statsPage): Daily, Solo, With friends
   const A=mine&&window.Geomingo&&Geomingo.account,days=A?Object.keys(loadHist()):[];
@@ -1296,7 +1303,7 @@ function nameView(){
     return `<section class="panel namecard"><p class="big">Choose your name</p>
       <label class="label" for="pickname">Your name in Geomingo</label>
       <input id="pickname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.user||first)}">
-      <p class="hint">It appears in the daily ranking and on your results. Choose carefully: it stays with your account and can't be changed later.</p>
+      <p class="hint">It appears in the daily ranking and on your results. Nobody else can have the same name. You can change it later in the Menu, once every 30 days.</p>
       <button class="primary" id="savepick">Save name</button></section>`}
   // without Google sign-in (Firebase not reachable) the name is typed and stays on this device
   return `<section class="panel namecard"><p class="big">Who's playing?</p>
