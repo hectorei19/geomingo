@@ -167,8 +167,8 @@ if(!HOME){let u;try{u=new URLSearchParams(location.search)}catch(e){u=new URLSea
   else{const s=ss.get('gm-pg',null);if(s&&s.page===G.PAGE&&s.code===code())PG=s}
   if(PG)document.documentElement.classList.add('gm-party');
   // a game's own With friends screen is gone: With friends is the one room on the home page
-  // (an invite to one game's room, ?room=ABCD, still opens that room)
-  else if(u.has('friends')&&!u.get('room')){location.replace('../#friends')}}
+  // (an old invite to one game's room, ?room=ABCD, goes there too)
+  else if(u.has('friends')||u.has('room')){location.replace('../#friends')}}
 const css=`html.gm-party #rematch,html.gm-party #orematch,html.gm-party #olobby,html.gm-party #again,html.gm-party #newg,html.gm-party #ostart{display:none!important}
 .pt-ov{position:fixed;inset:0;z-index:60;background:var(--bg,#0C1220);display:flex;align-items:center;justify-content:center;padding:24px 16px}
 .pt-ov>div{max-width:420px;width:100%;display:flex;flex-direction:column;gap:14px;text-align:center}
