@@ -1335,6 +1335,7 @@ function titleWithInfo(t){
 function fitHeaders(){
   const ts=[...document.querySelectorAll('.hd .ht')];if(!ts.length)return;
   ts.forEach(t=>t.style.fontSize='');
+  document.querySelectorAll('.hd.col').forEach(h=>{h.style.aspectRatio='';h.style.height=''});
   const fits=t=>{const box=t.parentElement,cs=getComputedStyle(box),ref=box.querySelector('.ref');
     const free=box.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-(ref?ref.offsetHeight+1:0);
     return t.scrollHeight<=free+0.5&&t.scrollWidth<=t.clientWidth+0.5};
@@ -1350,6 +1351,8 @@ function fitHeaders(){
     const cs=getComputedStyle(hs[0]),pt=parseFloat(cs.paddingTop),pb=parseFloat(cs.paddingBottom);
     const inner=hs[0].clientHeight-pt-pb;
     const tall=Math.max(...hs.map(h=>{const r=h.querySelector('.ref'),t=h.querySelector('.ht');return (r?r.offsetHeight+1:0)+(t?t.offsetHeight:0)}));
+    // the titles row is only as tall as its tallest title, so the grid starts right under it (Héctor 2026-11-16: too much space)
+    if(sel==='.hd.col'){hs.forEach(h=>{h.style.aspectRatio='auto';h.style.height=Math.ceil(tall+pt+pb)+'px'});return}
     const off=Math.max(0,(inner-tall)/2);
     hs.forEach(h=>h.style.paddingTop=(pt+off)+'px');
   });
