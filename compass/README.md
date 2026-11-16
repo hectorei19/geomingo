@@ -16,6 +16,8 @@ seen from the mystery capital, with its distance in km. Name the mystery capital
   flags from `../flagpie/flags/`. Answers: any of the 197 capitals; a city already on the compass can't be picked.
 - Daily: five a day from `DECK` (145 capitals people know: country with 5 million people or more, capital of a million,
   or in Europe), kept as it was on the first day, dealt from a deck shuffled once per cycle (`compass-<cycle>`).
+  Easier month, 17 Nov to 16 Dec 2026 (Héctor, players found it too hard): each day is 2 easy + 2 normal + 1 hard capital,
+  from at least 4 parts of the world (`MIX_FROM`, `MIX_TO`, `MIX_EASY`, `MIX_NORMAL`; hard = the rest of `DECK`).
   `?test&day=2026-11-20` plays that day without saving.
 - Solo: Easy = the daily deck, Hard = all 197. With friends: an online room, everyone plays the same set at the same time on their own phone, no lives (`../shared/race.js`).
 - Saves: `cm-daily`, `cm-hist` {p, r, a, m}, `cm-arch`, `cm-solo`, `cm-diff`. Ranking: `lb/compass` (s points, r found, m wrong guesses), no rule change.
