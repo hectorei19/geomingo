@@ -78,12 +78,13 @@ function archDates(first,playedToday){const out=[],end=Date.parse(todayKey()+'T1
 // a day you played on its day, opened from the calendar on the home page: its result on the coral archive ticket,
 // with Back to archive under it, instead of this game's old list of days (Héctor 2026-11-16)
 let DAYOF=null;
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#archlist')){DAYOF=null;openArchive()}});
 function dayofHTML(o,k){const p=String(o.played(k)||''),g=Geomingo.GAMES.find(x=>x.path===Geomingo.PAGE+'/'),
     date=new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
   const score=p.replace(/ pts$/,' points').replace(/^(\d+)\/(\d+)( groups)?$/,'$1 of $2');
   return Geomingo.archTicket({id:g?g.id:'',num:o.num(k),score,detail:'Played on its day',note:date,
       body:`<p class="hint" style="margin:0">Each day can be played once, so this one is done.</p>`})+
-    `<div class="gm-done-btns gm-solo-btns"><button class="primary" id="archback" style="flex:1">Back to archive</button></div>`}
+    `<div class="gm-done-btns gm-solo-btns"><button class="primary" id="archback" style="flex:1">Back to calendar</button></div>${Geomingo.archListBtn()}`}
 function archiveHTML(o){if(DAYOF)return dayofHTML(o,DAYOF);const items=archDates(o.first,o.played(todayKey())).map(k=>{const n=o.num(k),g=o.saved(k),p=o.played(k),
       date=new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
     let st,sq='';
@@ -91,7 +92,7 @@ function archiveHTML(o){if(DAYOF)return dayofHTML(o,DAYOF);const items=archDates
     else if(p)st=`<span class="as done">${esc(p)}</span>`;
     else st=`<span class="as">${g?'In progress':'Play'}</span>`;
     return `<li><button data-arch="${k}"><span class="an">#${n}</span><span class="ad"><b>${o.label} #${n}</b><small>${date}</small></span>${sq}${st}</button></li>`}).join('');
-  return `<section class="panel"><div class="backline"><span class="ht">Archive</span></div>
+  return `<section class="panel"><a class="linkbtn" href="${Geomingo.HOME}#archive" style="display:inline-block;margin-bottom:6px">← Calendar of all games</a><div class="backline"><span class="ht">Archive</span></div>
     <p class="hint">Play the past ${o.label.toLowerCase()}s you missed. The ones you played on their day are already done. One try each, on this device. Archive games don't count for the daily ranking or your streak.</p>
     ${items?`<ul class="arch">${items}</ul>`:`<p class="hint">No past ${o.label.toLowerCase()}s yet. Come back tomorrow.</p>`}</section>`}
 // Menu → Archive on the home page opens a past day (?day=…): that day's archive game, or its result when it was played on its day

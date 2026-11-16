@@ -36,7 +36,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611191600"></script>
+<script src="../brand/mingo.js?v=202611181900"></script>
 <script src="../brand/account.js?v=202611190700"></script>
 <script src="../brand/party.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -111,7 +111,7 @@ body.kbon .kbgu #src{align-self:center!important}
 <script src="../shared/data.js?v=202611141100"></script>
 <script src="extra-data.js?v=202611081900"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611171900"></script>
+<script src="../shared/minigames.js?v=202611181900"></script>
 <script>
 /* ---- the rankings ----
    Numbers Countries already uses (DATA and the country data), plus a few figures only Top 10 uses (XDATA,
@@ -646,7 +646,7 @@ function resultHTML(body){const v=verdict();
     <div class="gm-done-btns">${nextGameBtn('top10')}${SHARE_BTN.replace('Share result','Share')}</div>`;
   // an archive game: the coral ticket with the answers inside, Back to archive and Share under it (Héctor 2026-11-16)
   if(S.mode==='archive'&&body!==undefined)return `${Geomingo.archTicket({id:'top10',num:S.num,score:S.found.length+' of 10',detail:S.wrong.length+' mistake'+(S.wrong.length===1?'':'s'),body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
-    <div class="gm-done-btns gm-solo-btns"><button class="primary" id="archback" style="flex:1">Back to archive</button>${SHARE_BTN.replace('Share result','Share')}</div>`;
+    <div class="gm-done-btns gm-solo-btns"><button class="primary" id="archback" style="flex:1">Back to calendar</button>${SHARE_BTN.replace('Share result','Share')}</div>${Geomingo.archListBtn()}`;
   // a finished Solo list: the pink ticket with the list inside, then New list and Share (Héctor 2026-11-14)
   if(S.mode==='free'){const st=load('t10-solo',{n:0}),m=S.wrong.length;
     return `${Geomingo.soloTicket({id:'top10',what:S.nolives?'Unlimited':LIVES+' lives',score:S.found.length+' of 10',best:'Best: '+Math.max(st.best||0,S.found.length)+' of 10',detail:m+' mistake'+(m===1?'':'s'),body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
