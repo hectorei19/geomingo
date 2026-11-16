@@ -191,7 +191,27 @@ function trainHTML(){const r=rightOf(T),m=trainMiss(),s=trainStats()[T.diff]||{b
    nine a day, so no country comes back until the cycle is over. The day's save keeps one entry per level
    (only Normal since there is one daily board; Easy and Hard live on in Solo and With friends). */
 const DAILY_FIRST='2026-10-22',DAILY_N=9,DAILY_LV='normal',NEW_FROM_CYCLE=1,NEW_CODES=new Set(['VAT']);
-function dailyBoard(key,diff){
+/* Easier two months (Héctor 2026-11-16, players found the daily too hard, as in Compass): from MIX_FROM to MIX_TO
+   each board is 4 easy shapes (the 54 Easy ones) + 3 normal (MIX_NORMAL, shapes many people know) + 2 hard (the rest),
+   in a random order, from Europe, Asia, Africa and the Americas every day (no part of the world more than 3 times
+   when it can). Each list is dealt from its own deck, shuffled once per round. Other days keep the usual cycle. */
+const MIX_FROM='2026-11-17',MIX_TO='2027-01-16';
+const MIX_NORMAL=['NLD','BEL','CHE','AUT','CZE','HUN','ROU','BGR','DNK','HRV','SRB','BLR','GEO','AFG','IRQ','SYR','ISR','JOR','YEM','OMN','ARE','MYS','MMR','NPL','PRK','TWN','LKA','KHM','LAO','UZB','TUN','SDN','TZA','AGO','NAM','BWA','ZWE','MOZ','GHA','CMR','MLI','NER','TCD','ECU','PRY','PAN','CRI','JAM','PNG','DOM','HTI'];
+const isMix=key=>key>=MIX_FROM&&key<=MIX_TO;
+const MIXK={};
+function mixBoard(key){if(MIXK[key])return MIXK[key];
+  const by=Object.fromEntries(COUNTRIES.map(c=>[c.c,c])),part=c=>{const r=by[c].r;return r==='NA'||r==='SA'?'AM':r==='OC'?'AS':r};
+  const tiers={e:COUNTRIES.filter(c=>c.e).map(c=>c.c),n:MIX_NORMAL.filter(c=>by[c]&&!by[c].e)};
+  tiers.h=COUNTRIES.map(c=>c.c).filter(c=>!by[c].e&&!tiers.n.includes(c));
+  const deck={e:[],n:[],h:[]},round={e:0,n:0,h:0};
+  const take=(t,cnt,day)=>{if(deck[t].length<12)deck[t]=deck[t].concat(shuffled(tiers[t].slice().sort(),rng(seedOf('silhouette-mix-'+t+'-'+round[t]++))));
+    const ok=[c=>!day.includes(c)&&!cnt[part(c)],c=>!day.includes(c)&&(cnt[part(c)]||0)<3&&Object.keys(cnt).length>=4,c=>!day.includes(c)];
+    for(const f of ok){const j=deck[t].findIndex(f);if(j>=0)return deck[t].splice(j,1)[0]}};
+  for(let k=MIX_FROM;k<=key;k=new Date(Date.parse(k+'T12:00Z')+864e5).toISOString().slice(0,10)){const cnt={},day=[];
+    for(const t of ['e','e','e','e','n','n','n','h','h']){const c=take(t,cnt,day);day.push(c);cnt[part(c)]=(cnt[part(c)]||0)+1}
+    MIXK[k]=shuffled(day,rng(seedOf('silhouette-mix-'+k)))}
+  return MIXK[key]}
+function dailyBoard(key,diff){if(diff==='normal'&&isMix(key))return mixBoard(key).map(c=>newQ(c,0));
   // Vatican City joined on 2026-11-07 (the same 197 countries as every Geomingo game): cycles before NEW_FROM_CYCLE keep their order without it
   const all=poolOf(diff).map(c=>c.c).sort(),base=all.filter(c=>!NEW_CODES.has(c)),days=Math.floor(base.length/DAILY_N),n=dayNum(key,DAILY_FIRST)-1;
   const cycle=Math.floor(n/days),i=((n%days)+days)%days,codes=cycle>=NEW_FROM_CYCLE?all:base;
