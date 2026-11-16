@@ -552,7 +552,7 @@ function loadDaily(){try{const d=JSON.parse(localStorage.getItem('cc-daily')||'n
 function saveDaily(){if(S&&S.dayof)return; // a grid played on its day, opened from the archive only to look at it
   if(S&&S.archive){saveArchGame(S);if(S.over)recordArchive(S);return}
   if(S&&S.daily)try{localStorage.setItem('cc-daily',JSON.stringify({date:S.daily,S}))}catch(e){}
-  if(S&&S.daily&&S.over)recordDaily(S)}
+  if(S&&S.daily&&S.over)recordDaily(S);else pushProgress()}
 /* ---- daily stats: one entry per played day {date:{s:score,c:squares,n:size}}, kept on the device
    and, when signed in with Google, in Firebase (users/<uid>/capitals/daily) so they follow you to other devices ---- */
 function loadHist(){try{return JSON.parse(localStorage.getItem('cc-hist')||'{}')||{}}catch(e){return {}}}
@@ -569,9 +569,22 @@ let dailyUp='';
 const emptyStart=e=>!!e&&e.f===0&&!e.c&&!e.s&&!e.j;
 // today's grid is locked only by a game another device finished (or played on): opening it there is not enough,
 // so a phone that only opened today's grid never shows the old "started on another device" screen here (Héctor 2026-11-16)
-const lockedElsewhere=e=>otherDevice(e)&&!emptyStart(e);
+// a half-played game kept in the account (j, not finished) is not a lock either: every device of the account
+// continues that same game, with the same squares and lives (Héctor 2026-11-16)
+const shared=e=>!!e&&e.f===0&&!!e.j;
+const lockedElsewhere=e=>otherDevice(e)&&!emptyStart(e)&&!shared(e);
+// how far a game has gone: squares got + lives lost; it only grows, so the account keeps the furthest one
+const progOf=e=>(e&&(e.c||0)+(e.w||0))||0;
+const progS=s=>s.cells.filter(c=>c.o>=0).length+(dailyEntry(s,0).w||0);
+// today's grid half played on this device: keep it in the account, so the other devices show it too
+// the account entry keeps the device that first opened today's grid (d), as the Firebase rules ask
+let progUp='';
+function pushProgress(){if(!USER||!db||TESTDAY||!S||!S.daily||S.archive||S.dayof||S.over||S.guest||S.mode!=='solo'||S.daily!==todayKey())return;
+  const sig=USER.uid+S.daily+':'+progS(S);if(progUp===sig)return;progUp=sig;const mine=S,e={...dailyEntry(mine,0),c:mine.cells.filter(c=>c.o>=0).length,s:liveScore(0)},j=JSON.stringify(mine);
+  db.ref('users/'+USER.uid+'/capitals/daily/'+mine.daily).transaction(cur=>cur&&cur.f===1||cur&&progOf(cur)>progOf(e)?undefined:{...e,d:cur&&cur.d||ME,j})
+    .catch(()=>{progUp=''})}
 function recordDaily(s){if(TESTDAY)return;if(s.daily===todayKey())Geomingo.clock.stop('citygrid',s.daily,(s.players[0].cells||0)/(s.n*s.n));const h=loadHist(),e=dailyEntry(s,1),today=s.daily===todayKey();
-  if(USER&&today&&otherDevice(ACCT_TODAY)&&!emptyStart(ACCT_TODAY))return; // the account already used today's try elsewhere
+  if(USER&&today&&lockedElsewhere(ACCT_TODAY))return; // the account already used today's try elsewhere
   const old=h[s.daily],same=old&&old.s===e.s&&old.c===e.c&&old.f===1&&old.d===ME;
   if(!same){h[s.daily]=e;saveHist(h);publishSoon()}
   if(!USER||!db||!today)return;
@@ -580,16 +593,21 @@ function recordDaily(s){if(TESTDAY)return;if(s.daily===todayKey())Geomingo.clock
   // the result joins the public ranking only once the account confirms today's try is this device's
   if(ACCT_TODAY&&ACCT_TODAY.d===ME&&ACCT_TODAY.f===1&&ACCT_TODAY.j){submitLB(s.daily,e);return}
   if(dailyUp===USER.uid+s.daily)return;
-  dailyUp=USER.uid+s.daily;const full={...e,j:JSON.stringify(s)};
-  db.ref('users/'+USER.uid+'/capitals/daily/'+s.daily).transaction(cur=>!cur||!cur.d||cur.d===ME||emptyStart(cur)?full:undefined)
+  dailyUp=USER.uid+s.daily;const full={...e,j:JSON.stringify(s)};const fin=cur=>({...full,d:cur&&cur.d||ME});
+  db.ref('users/'+USER.uid+'/capitals/daily/'+s.daily).transaction(cur=>cur&&cur.f===1&&cur.j?undefined:!cur||!cur.d||cur.d===ME||emptyStart(cur)||shared(cur)?fin(cur):undefined)
     .then(r=>{if(r.committed)submitLB(s.daily,e)}).catch(()=>{dailyUp=''})}
 // another device of the account finished today's grid: take its whole game, so this device shows exactly the same
 // the account decides: it replaces whatever this device has for today, even a game finished here.
 // A game finished on this device comes back too when the device lost it (signing out clears the device)
-function adoptDaily(a){if(!a||a.f!==1||!a.j)return;const loc=loadDaily();
-  if(!otherDevice(a)){if(loc)return;try{const s=JSON.parse(a.j);if(s&&s.daily===todayKey()&&s.over){localStorage.setItem('cc-daily',JSON.stringify({date:s.daily,S:s}));if(S&&S.daily===todayKey()&&!S.over)S=null}}catch(e){}return}
+function adoptDaily(a){if(shared(a)){adoptProgress(a);return}
+  if(!a||a.f!==1||!a.j)return;const loc=loadDaily();
+  if(!otherDevice(a)){if(loc&&loc.S.over)return;try{const s=JSON.parse(a.j);if(s&&s.daily===todayKey()&&s.over){localStorage.setItem('cc-daily',JSON.stringify({date:s.daily,S:s}));if(S&&S.daily===todayKey()&&!S.over)S=null}}catch(e){}return}
   if(loc&&loc.S.over&&loc.S.adopted===a.d+a.s)return;
   try{const s=JSON.parse(a.j);if(s&&s.daily===todayKey()&&s.over){s.adopted=a.d+a.s;localStorage.setItem('cc-daily',JSON.stringify({date:s.daily,S:s}));if(S&&S.daily===todayKey())S=null}}catch(e){}}
+function adoptProgress(a){try{const s=JSON.parse(a.j);if(!s||s.daily!==todayKey()||s.over)return;const loc=loadDaily();
+  if(loc&&(loc.S.over||progS(loc.S)>=progS(s)))return;if(S&&S.daily===todayKey()&&!S.archive&&(S.over||progS(S)>=progS(s)))return;
+  localStorage.setItem('cc-daily',JSON.stringify({date:s.daily,S:s}));progUp=USER?USER.uid+s.daily+':'+progS(s):'';
+  if(S&&S.daily===todayKey()&&!S.archive){S=s;ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};startTurn()}}catch(e){}}
 /* ---- daily ranking: lb/capitals/<date>/<uid> = {name, s, c, t}; anyone can read it, each account
    writes its own result once (Firebase rules refuse a second write) ---- */
 let LB=null,lbRef=null,lbDate=null,lbSent='';
@@ -966,7 +984,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/ca
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed){const k=n+':'+seed;if(!ansCache[k])ansCache[k]=generate(n,seed);return ansCache[k]}
-const APP_VERSION='202611161425';
+const APP_VERSION='202611161450';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
