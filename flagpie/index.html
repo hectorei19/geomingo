@@ -282,7 +282,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     :q.k>1||q.tries.length?['think','Look again.','A new clue is open. Every clue lowers the points.']
     :['pass','A flag in pieces.','These are its colours and how much of it each one covers. Whose flag is it?'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
-    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Flag',(i+1)+'/'+PER)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
+    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Flag',(i+1)+'/'+PER)+tk(mode==='daily'?'km':'Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Flag Pie',(arch?'Archive #':'Daily #')+D.num);
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
   if(D.over&&D.left==null)return h+resultHTML(D)+(D.mode==='archive'?'':rankingHTML());

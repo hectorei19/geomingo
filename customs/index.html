@@ -316,7 +316,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
   const m=lf?(q.st==='right'?['happy','Stamped.','Tap Next traveller when you are ready.']:['sad','Not this time.','Tap Next traveller when you are ready.'])
     :[G.qs.some(x=>x.st!=='play')||q.k>1?'think':'pass','A traveller at the desk.','Read the clues and name the country. Every new clue lowers the points.'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
-    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Desk',(i+1)+'/'+PER)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
+    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Desk',(i+1)+'/'+PER)+tk(mode==='daily'?'km':'Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Customs',(arch?'Archive #':'Daily #')+D.num);
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
   if(D.over&&D.left==null)return h+resultHTML(D)+(D.mode==='archive'?'':rankingHTML());

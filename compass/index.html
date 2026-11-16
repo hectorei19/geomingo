@@ -299,7 +299,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     :q.k>1?['think','A new capital on the compass.','Every clue lowers the points. Which capital sits in the middle?']
     :['pass','Where am I?','The mystery capital is in the middle. The city on the rim shows how far it is, and which way.'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
-    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('City',(i+1)+'/'+PER)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+show(q.p,q):'0'):'+'+show(worth(q),q),'tk-gs'),{mode,num:G.num})}
+    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('City',(i+1)+'/'+PER)+tk(mode==='daily'?'km':'Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+show(q.p,q):'0'):'+'+show(worth(q),q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Compass',(arch?'Archive #':'Daily #')+D.num);
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
   if(D.over&&D.left==null)return h+resultHTML(D)+(D.mode==='archive'?'':rankingHTML());
