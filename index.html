@@ -254,6 +254,8 @@ footer .links i{font-style:normal}
 
 <script>
 const G=Geomingo,esc=G.esc,A=()=>G.account;
+// next to the date: "· 🔥 Day 5", the streak from 2 days on (Héctor 2026-11-16, option B)
+function streakTag(){let n=0;try{n=G.streak()}catch(e){}return n>=2?' · 🔥 Day '+n:''}
 document.querySelector('footer .links').addEventListener('click',e=>{const b=e.target.closest('[data-foot]');if(!b)return;
   ({faq:()=>G.openFaq(),contact:()=>G.openFeedback('Contact'),privacy:()=>G.openPrivacy(),sources:()=>G.openCredits()})[b.dataset.foot]()});
 const fmt=n=>EU(Math.round(Number(n||0)));
@@ -388,7 +390,7 @@ function guestHTML(){const acc=A();if(!acc||!acc.ready||acc.user||!acc.trial)ret
 function draw(){const P=geo();
   document.querySelectorAll('.hmingo').forEach(el=>{if(!el.firstChild)el.innerHTML=G.mingo('pass',56)});
   document.querySelectorAll('[data-gm-acctslot]').forEach(el=>{const h=G.acctHTML?G.acctHTML():'';if(el.innerHTML!==h)el.innerHTML=h});
-  set('dep',esc(G.dateText(G.dayKey(),{weekday:'short',day:'numeric',month:'short'})));
+  set('dep',esc(G.dateText(G.dayKey(),{weekday:'short',day:'numeric',month:'short'}))+streakTag());
   const nl=G.live().length;let soon='';for(let n=nl+1;n<=Math.max(9,Math.ceil(nl/3)*3);n++)soon+=SOON(n);
   const fr=MODE==='friends';document.getElementById('games').hidden=fr;document.getElementById('party').hidden=!fr;
   if(!fr)set('games',G.live().map(g=>tile(g,P)).join('')+(MODE==='today'?soon:''));
@@ -439,7 +441,7 @@ const tabDays=t=>t==='day'?[G.dayKey()]:t==='week'?weekDays():monthDays();
 let RANK=(()=>{try{const w=JSON.parse(localStorage.getItem('gm-rank')||'null');return w&&w.ppl&&w.day===G.dayKey()?Object.assign(w,{at:0}):null}catch(e){return null}})(),rankBusy=false;
 function loadRank(){const acc=A();if(rankBusy||!acc||!acc.ready||typeof firebase==='undefined'||!firebase.apps.length)return;
   if(RANK&&RANK.day===G.dayKey()&&Date.now()-RANK.at<5*60e3)return;
-  rankBusy=true;const db=firebase.database(),days=[...new Set([...weekDays(),...monthDays(),yesterday()])],P={},today=G.dayKey(),TD={};
+  rankBusy=true;const db=firebase.database(),days=[...new Set([...weekDays(),...monthDays()])],P={},today=G.dayKey(),TD={};
   Promise.all(days.flatMap(d=>LB.map(([path,id,f])=>db.ref(path+'/'+d).once('value').then(s=>{const v=s.val()||{};
     for(const uid in v){const r=v[uid];if(!r||typeof r!=='object')continue;const p=P[uid]=P[uid]||{name:'',days:{}},day=p.days[d]=p.days[d]||{};
       if(r.name)p.name=String(r.name).slice(0,16);day[id]=Math.max(day[id]||0,f(r,d));
@@ -483,18 +485,7 @@ function duelHTML(p,me){if(TAB!=='day')return periodHTML(p,me);const T=(RANK&&RA
   return '<li class="duel"><div class="dh"><span>'+(self?'Today · your games':'Today · you vs '+esc(nm))+'</span>'+(self?'':'<b>'+w1+' – '+w2+'</b>')+'</div><div class="dg">'+cells+'</div>'+foot+'</li>'}
 function rankRows(t){const ds=tabDays(t);
   return RANK.ppl.map(p=>({id:p.id,name:p.name,mi:ds.reduce((a,d)=>a+(p.km[d]||0),0)})).filter(r=>r.mi>0).sort((a,b)=>b.mi-a.mi||a.name.localeCompare(b.name))}
-/* the line under the logo: "🔥 5 days in a row · yesterday you were 4th of 23" (Héctor 2026-11-16, option C).
-   The streak from 2 days on; yesterday's place in the km ranking when you were in it. Neither: the beta line stays. */
-function yesterday(){return new Date(Date.parse(G.dayKey()+'T12:00Z')-864e5).toISOString().slice(0,10)}
-const nth=n=>n+(n%100>=11&&n%100<=13?'th':['th','st','nd','rd'][n%10]||'th');
-const BETA_LINE=document.querySelector('.gm-betaline')?document.querySelector('.gm-betaline').textContent:'';
-function drawStreak(){const el=document.querySelector('.gm-betaline');if(!el)return;const acc=A(),me=acc&&acc.user&&acc.user.uid;
-  let n=0;try{n=G.streak()}catch(e){}const parts=[];
-  if(n>=2)parts.push('🔥 '+n+' days in a row');
-  if(me&&RANK){const yd=yesterday(),rows=RANK.ppl.filter(p=>(p.km[yd]||0)>0).sort((a,b)=>b.km[yd]-a.km[yd]),i=rows.findIndex(p=>p.id===me);
-    if(i>=0)parts.push('yesterday you were '+nth(i+1)+' of '+rows.length)}
-  const t=parts.length?parts.join(' · '):BETA_LINE;if(el.textContent!==t)el.textContent=t}
-function drawWeek(){const el=document.getElementById('week'),acc=A();loadRank();drawStreak();
+function drawWeek(){const el=document.getElementById('week'),acc=A();loadRank();
   // each player's current name (Héctor 2026-11-16: a new name shows on past days too)
   if(RANK&&acc&&acc.nameOf)RANK.ppl.forEach(p=>{p.name=acc.nameOf(p.id,p.n0||p.name)});
   if(!acc||!acc.ready||!RANK){el.hidden=true;return}
