@@ -966,7 +966,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/ca
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed){const k=n+':'+seed;if(!ansCache[k])ansCache[k]=generate(n,seed);return ansCache[k]}
-const APP_VERSION='202611161410';
+const APP_VERSION='202611161425';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
@@ -1146,8 +1146,11 @@ async function checkVersion(){
   try{const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;const j=await r.json();
     if(j.v&&j.v!==APP_VERSION&&!newVersion){
       // not in the middle of a game: load the new version straight away (once per version, so it can never loop)
-      let done='';try{done=sessionStorage.getItem('cc-reloaded')||''}catch(e){}
-      if((!S||S.over)&&done!==j.v){try{sessionStorage.setItem('cc-reloaded',j.v)}catch(e){}const u=new URL(location.href);u.searchParams.set('v',j.v);location.replace(u.toString());return}
+      // a page opened from the browser's cache (no ?v= of the new version yet) always reloads; one that already has it never does,
+      // so it can never loop, and tapping the game again a moment later does not show the old version (Héctor 2026-11-16)
+      let here='';try{here=new URLSearchParams(location.search).get('v')||''}catch(e){}
+      const untouched=!S||S.over||(S.daily&&S.cells&&!S.cells.some(c=>c.o>=0)&&!S.wrong);
+      if(untouched&&here!==j.v){const u=new URL(location.href);u.searchParams.set('v',j.v);location.replace(u.toString());return}
       newVersion=true;render()}}catch(e){}
 }
 setTimeout(checkVersion,1500);setInterval(checkVersion,60000);
