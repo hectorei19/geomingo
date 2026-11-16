@@ -25,7 +25,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
 <link rel="stylesheet" href="brand/geomingo.css?v=202611201600">
 <script src="brand/mingo.js?v=202611181900"></script>
-<script src="brand/account.js?v=202611201600"></script>
+<script src="brand/account.js?v=202611201900"></script>
 <script src="brand/party.js?v=202611160600"></script>
 <style>
 /* Home page: Sign in and Menu on top, today's games as colour tiles, Practice and With friends, then the GeoPass
@@ -443,7 +443,7 @@ function loadRank(){const acc=A();if(rankBusy||!acc||!acc.ready||typeof firebase
       if(r.name)p.name=String(r.name).slice(0,16);day[id]=Math.max(day[id]||0,f(r,d));
       if(d===today){const g=TD[id]=TD[id]||{},k=f(r,d);if(!g[uid]||k>g[uid].km)g[uid]={km:k,s:+r.s||0,c:+r.c||0}}}}).catch(()=>{}))))
   .then(()=>{const ppl=Object.entries(P).map(([id,p])=>{const km={};for(const d in p.days)km[d]=dayTotal(p.days[d]);return{id,n0:p.name||'Player',name:p.name||'Player',km,g:p.days}});
-    RANK={day:G.dayKey(),at:Date.now(),ppl,today:TD};rankBusy=false;try{localStorage.setItem('gm-rank',JSON.stringify(RANK))}catch(e){}drawWeek()})}
+    RANK={day:G.dayKey(),at:Date.now(),ppl,today:TD};rankBusy=false;if(acc.backfill)acc.backfill(ppl.map(p=>[p.id,p.n0]));try{localStorage.setItem('gm-rank',JSON.stringify(RANK))}catch(e){}drawWeek()})}
 /* tap a name in the ranking: the row opens with today's daily results, you vs them, game by game.
    if they have played a game you haven't yet, their score stays hidden (🔒) so it spoils nothing, and a button takes you there */
 let OPEN=null;
