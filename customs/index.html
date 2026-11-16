@@ -279,7 +279,7 @@ function toCl3(S){if(S.over||!Geomingo.cl3(S.date)||S.qs.every(q=>q.x3))return;S
 function dailyGame(){const d=dailySaved();if(d&&d.S){if(d.S.over)d.S.left=null;toCl3(d.S);return d.S}
   return {mode:'daily',date:todayKey(),num:dayNum(todayKey(),FIRST),qs:dailyQs(todayKey()),sel:0,over:false}}
 function dailySave(){if(!D)return;
-  if(D.mode==='archive'){const a=load('cu-arch',{});a[D.date]=D;store('cu-arch',a);if(D.over)logHist(D);return}
+  if(D.mode==='archive'){const a=load('cu-arch',{});if(D.over&&!D.pd)D.pd=Geomingo.dayKey();a[D.date]=D;store('cu-arch',a);if(D.over)logHist(D);return}
   store('cu-daily',{date:D.date,over:D.over,S:D});
   if(D.over&&logHist(D)&&!TESTDAY){Geomingo.clock.stop('customs',D.date,rightOf(D)/PER);Geomingo.account.done('customs')}}
 // a finished daily (on its day) goes into the history once: {p points, r travellers named, m wrong answers}

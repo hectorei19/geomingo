@@ -294,7 +294,7 @@ const dailySaved=()=>{const d=load('t10-daily',null);return d&&d.date===todayKey
 function save(){if(!S||S.mode==='online')return;
   if(S.mode==='daily'){store('t10-daily',{date:S.date,over:S.over,S});
     if(S.over){const h=load('t10-hist',{});if(!h[S.date]){h[S.date]={f:S.found.length,l:S.lives};store('t10-hist',h);if(!TESTDAY){Geomingo.clock.stop('top10',S.date,S.found.length/10);Geomingo.account.done('top10')}}}}
-  else if(S.mode==='archive'){const a=load('t10-arch',{});a[S.date]=S;store('t10-arch',a)}
+  else if(S.mode==='archive'){const a=load('t10-arch',{});if(S.over&&!S.pd)S.pd=Geomingo.dayKey();a[S.date]=S;store('t10-arch',a)}
   else{if(S.over&&!S.logged){S.logged=1;logSolo('t10-solo',{p:S.found.length>=10?1:0,f:S.found.length,best:S.found.length})}
     store('t10-free',S)}}
 // today's game, saved or new (a new one is saved at the first answer)
