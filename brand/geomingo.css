@@ -262,14 +262,16 @@ body:has(.ticket .tk-mode.daily,.ticket .tk-mode.practice) .gm-title small{displ
 .gp-goal small{display:block;font-size:13px;color:var(--muted);line-height:1.35}
 .gp-goal em{font:700 12px var(--type);color:var(--muted);font-style:normal;white-space:nowrap}
 .gp-pb{display:block;height:5px;border-radius:3px;background:var(--line);margin-top:6px;overflow:hidden}.gp-pb i{display:block;height:100%;background:var(--c)}
-.gp-cont>div{display:grid;grid-template-columns:86px 1fr 62px;gap:8px;align-items:center;font-size:14px;color:var(--ink);padding:4px 0}
+.gp-cont>div{display:grid;grid-template-columns:86px 1fr 46px;gap:8px;align-items:center;font-size:14px;color:var(--ink);padding:4px 0}
 .gp-cont i{height:7px;border-radius:4px;background:var(--line);overflow:hidden;display:block;position:relative}
 .gp-cont i u{position:absolute;left:0;top:0;bottom:0;background:color-mix(in srgb,var(--coral) 38%,var(--line))}
+.gp-cont i s{position:absolute;left:0;top:0;bottom:0;background:#B4566A}
 .gp-cont i b{position:absolute;left:0;top:0;bottom:0;background:var(--coral)}
 .gp-cont small{font:12px var(--type);color:var(--muted);text-align:right;white-space:nowrap}
 .gp-key{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--muted);margin:10px 0 0}
 .gp-key i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
-.gp-key i.v{background:color-mix(in srgb,var(--coral) 38%,var(--line))}.gp-key i.m{background:var(--coral)}
+.gp-key i.v{background:color-mix(in srgb,var(--coral) 38%,var(--line))}.gp-key i.k{background:#B4566A}.gp-key i.m{background:var(--coral)}
+.gp-key .r{margin-left:auto;font:11px var(--type)}
 .gp-more{display:block;margin:10px auto 0;background:none;border:0;color:var(--ink);font:700 13px var(--type);text-decoration:underline;min-height:40px;cursor:pointer}
 .gp-allc{display:flex;flex-direction:column;gap:10px}.gp-allc:empty{display:none}
 .gp-info{display:none;font-size:14px;line-height:1.45;color:var(--muted);background:var(--guil);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
@@ -283,6 +285,7 @@ body:has(.ticket .tk-mode.daily,.ticket .tk-mode.practice) .gm-title small{displ
 .gp-c svg{width:66%;flex:1;min-height:0}
 .gp-c path{fill:none;stroke:#4A5878;stroke-width:1.2;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 .gp-c.half path{fill:color-mix(in srgb,var(--coral) 35%,transparent);stroke:color-mix(in srgb,var(--coral) 60%,transparent);stroke-width:1}
+.gp-c.known path{fill:#B4566A;stroke:#B4566A;stroke-width:1}
 .gp-c.mine path{fill:var(--coral);stroke:var(--coral);stroke-width:1}
 .gp-c small{font:700 8.5px var(--type);text-transform:uppercase;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .gp-c.off small{color:#5D6A84}
