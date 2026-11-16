@@ -253,10 +253,10 @@ const DECK=["abudhabi-are","abuja-nga","accra-gha","addisababa-eth","algiers-dza
 function dailyCodes(key){const n=dayNum(key,FIRST)-1,codes=DECK.filter(c=>cityBy[c]).sort(),days=Math.floor(codes.length/PER);
   const cyc=Math.floor(n/days),i=((n%days)+days)%days;return shuffle(codes,rngFrom(seedOf('compass-'+cyc))).slice(i*PER,(i+1)*PER)}
 /* Easier month (Héctor 2026-11-16, players found Compass too hard): from MIX_FROM to MIX_TO each day is
-   2 easy + 2 normal + 1 hard capital, in that order, from at least 4 parts of the world (Europe, Africa,
+   2 easy + 2 normal + 1 hard capital, in a random order (Héctor 2026-11-16), from at least 4 parts of the world (Europe, Africa,
    the Americas, Asia & Oceania). Each list is dealt from its own deck, shuffled once per round. Days before
    MIX_FROM and after MIX_TO keep the usual DECK. A capital that is back gets other clue cities (q.v). */
-const MIX_FROM='2026-11-17',MIX_TO='2026-12-16';
+const MIX_FROM='2026-11-17',MIX_TO='2027-01-16';
 const MIX_EASY=["london-gbr","paris-fra","madrid-esp","rome-ita","berlin-deu","lisbon-prt","amsterdam-nld","athens-grc","dublin-irl","vienna-aut","brussels-bel","moscow-rus","oslo-nor","stockholm-swe","copenhagen-dnk","prague-cze","warsaw-pol","tokyo-jpn","beijing-chn","seoul-kor","bangkok-tha","delhi-ind","singapore-sgp","jakarta-idn","tehran-irn","jerusalem-isr","riyadh-sau","cairo-egy","nairobi-ken","washington-usa","ottawa-can","mexicocity-mex","havana-cub","buenosaire-arg","lima-per","santiago-chl","bogota-col","brasilia-bra","canberra-aus","wellington-nzl"];
 const MIX_NORMAL=["helsinki-fin","reykjavik-isl","kyiv-ukr","budapest-hun","bucharest-rou","belgrade-srb","bern-che","ankara-tur","baghdad-irq","damascus-syr","beirut-lbn","kabul-afg","islamabad-pak","kathmandu-npl","dhaka-bgd","hanoi-vnm","manila-phl","kualalumpu-mys","taipei-twn","pyongyang-prk","abudhabi-are","kuwaitcity-kwt","doha-qat","algiers-dza","tunis-tun","rabat-mar","tripoli-lby","khartoum-sdn","addisababa-eth","accra-gha","dakar-sen","pretoria-zaf","abuja-nga","kinshasa-cod","caracas-ven","quito-ecu","montevideo-ury","sofia-bgr","zagreb-hrv","luxembourg-lux"];
 const MIX_HARD=DECK.filter(c=>!MIX_EASY.includes(c)&&!MIX_NORMAL.includes(c));
@@ -272,7 +272,7 @@ function mixDay(key){if(MIXK[key])return MIXK[key];
       if(j>=0)return deck[t].splice(j,1)[0]}};
   for(let k=MIX_FROM;k<=key;k=dayKeyAfter(k)){const used=new Set(),day=[];
     for(const t of ['e','e','n','n','h']){const c=take(t,used,day);day.push(c);used.add(partOf(c))}
-    MIXK[k]=day.map(c=>({c,v:seen[c]||0}));day.forEach(c=>seen[c]=(seen[c]||0)+1)}
+    MIXK[k]=shuffle(day,rngFrom(seedOf('compass-mix-'+k))).map(c=>({c,v:seen[c]||0}));day.forEach(c=>seen[c]=(seen[c]||0)+1)}
   return MIXK[key]}
 function dayKeyAfter(k){return new Date(Date.parse(k+'T12:00Z')+864e5).toISOString().slice(0,10)}
 // a day's game: in the 2nd round of the list on (cycle 1, from day 30) each capital is back with other clue cities (q.v)
