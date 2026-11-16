@@ -24,7 +24,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
 <link rel="stylesheet" href="brand/geomingo.css?v=202611211900">
-<script src="brand/mingo.js?v=202611211900"></script>
+<script src="brand/mingo.js?v=202611212030"></script>
 <script src="brand/account.js?v=202611211900"></script>
 <script src="brand/party.js?v=202611160600"></script>
 <style>
@@ -254,6 +254,8 @@ footer .links i{font-style:normal}
 
 <script>
 const G=Geomingo,esc=G.esc,A=()=>G.account;
+// next to the date: "· 🔥 Day 5", the streak from 2 days on (Héctor 2026-11-16, option B)
+function streakTag(){let n=0;try{n=G.streak()}catch(e){}return n>=2?' · 🔥 Day '+n:''}
 document.querySelector('footer .links').addEventListener('click',e=>{const b=e.target.closest('[data-foot]');if(!b)return;
   ({faq:()=>G.openFaq(),contact:()=>G.openFeedback('Contact'),privacy:()=>G.openPrivacy(),sources:()=>G.openCredits()})[b.dataset.foot]()});
 const fmt=n=>EU(Math.round(Number(n||0)));
@@ -388,7 +390,7 @@ function guestHTML(){const acc=A();if(!acc||!acc.ready||acc.user||!acc.trial)ret
 function draw(){const P=geo();
   document.querySelectorAll('.hmingo').forEach(el=>{if(!el.firstChild)el.innerHTML=G.mingo('pass',56)});
   document.querySelectorAll('[data-gm-acctslot]').forEach(el=>{const h=G.acctHTML?G.acctHTML():'';if(el.innerHTML!==h)el.innerHTML=h});
-  set('dep',esc(G.dateText(G.dayKey(),{weekday:'short',day:'numeric',month:'short'})));
+  set('dep',esc(G.dateText(G.dayKey(),{weekday:'short',day:'numeric',month:'short'}))+streakTag());
   const nl=G.live().length;let soon='';for(let n=nl+1;n<=Math.max(9,Math.ceil(nl/3)*3);n++)soon+=SOON(n);
   const fr=MODE==='friends';document.getElementById('games').hidden=fr;document.getElementById('party').hidden=!fr;
   if(!fr)set('games',G.live().map(g=>tile(g,P)).join('')+(MODE==='today'?soon:''));

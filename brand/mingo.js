@@ -355,11 +355,13 @@ function hello(pose,title,sub,o){o=o||{};const key=o.key||'main',txt=pose+title,
    the score, the km it earned and when the next one comes; Next trip and Share go under it (Héctor 2026-11-10: less is more) */
 /* body: the day's answers, shown inside the same ticket under a tear line (Héctor 2026-11-12: one card, buttons below) */
 // from KM_FROM the big number is the day's points, the same number as its km (Countries and Capitals keep their own points)
+// the streak under the km on the done ticket, from 2 days on: "🔥 5 days in a row" (Héctor 2026-11-16, option B)
+function streakSpan(){let n=0;try{n=streak()}catch(e){}return n>=2?'<span class="gm-done-st">🔥 '+n+' days in a row</span>':''}
 function doneTicket(id,num,score,next,body){setTimeout(refreshPass,0);const km=(ledger()[dayKey()]||{})[id];if(km!=null&&newKm(dayKey())&&id!=='borderline'&&id!=='citygrid')score=fmt(km)+' point'+(km===1?'':'s');
   // the trip and daily number sit in the gold strip (not under the game's name: geomingo.css hides it there) (Héctor 2026-11-14)
   const g=GAMES.find(x=>x.id===id);
   return '<section class="ticket gm-done"><div class="tk-mode daily"><span>★ '+(g?'Trip '+g.gate+' · ':'')+'Daily #'+esc(String(num))+'</span><span>Done</span></div>'+
-    '<div class="gm-done-c"><p class="big">'+esc(String(score))+'</p><p class="gm-done-s">'+(km!=null?'<b>+'+fmt(km)+' km</b>':'')+'<span>'+esc(next)+'</span></p></div>'+
+    '<div class="gm-done-c"><p class="big">'+esc(String(score))+'</p><p class="gm-done-s">'+(km!=null?'<b>+'+fmt(km)+' km</b>':'')+streakSpan()+'<span>'+esc(next)+'</span></p></div>'+
     (body?'<div class="tk-tear"></div><div class="gm-done-a">'+body+'</div>':'')+'</section>'}
 /* a finished Archive game (a past day): the same ticket again, in the archive's coral, the day's answers inside;
    Back to archive and Share go under it (Héctor 2026-11-16). archTicket({id:'top10', num:28, score:'7 of 10', detail:'3 mistakes', body:'…answers…'});
