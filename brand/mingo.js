@@ -348,6 +348,8 @@ function doneTicket(id,num,score,next,body){setTimeout(refreshPass,0);const km=(
 /* a finished Archive game (a past day): the same ticket again, in the archive's coral, the day's answers inside;
    Back to archive and Share go under it (Héctor 2026-11-16). archTicket({id:'top10', num:28, score:'7 of 10', detail:'3 mistakes', body:'…answers…'});
    note:'' hides the "Points only, no km" line (a day played on its day, which did earn km) */
+// under an archive game's result: the list of every past day of this game (Héctor 2026-11-16: the calendar and the lists link both ways)
+function archListBtn(){const g=GAMES.find(x=>x.path===PAGE+'/');return '<button type="button" class="gm-text" id="archlist">All '+esc(g?g.name:'')+' days</button>'}
 function archTicket(o){o=o||{};const g=GAMES.find(x=>x.id===o.id);
   return '<section class="ticket gm-done tk-pink"><div class="tk-mode practice"><span>'+(g?'Trip '+g.gate+' · ':'')+'Archive #'+esc(String(o.num))+'</span><span>Done</span></div>'+
     '<div class="gm-done-c"><p class="big">'+esc(String(o.score))+'</p><p class="gm-done-s">'+(o.detail?'<b>'+esc(o.detail)+'</b>':'')+(o.note===''?'':'<span>'+esc(o.note||'Points only, no km')+'</span>')+'</p></div>'+
@@ -563,6 +565,6 @@ function askedDay(first){try{const q=new URLSearchParams(location.search),k=q.ge
 const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,stale:roomStale};
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
-  days,streak,streakInfo,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,countriesSeen,EXPERT,TIERS,gameVisas,specialVisas,challengeVisas,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,archTicket,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,dayTotal,level,geo,visas,clock,secText,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
+  days,streak,streakInfo,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,countriesSeen,EXPERT,TIERS,gameVisas,specialVisas,challengeVisas,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,archTicket,archListBtn,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,dayTotal,level,geo,visas,clock,secText,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
   openWindow,closeWindow,esc,refreshPass,room,where,mode,askedDay,lives,setLives,stat,statTo,PAGE,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();

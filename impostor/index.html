@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611191600"></script>
+<script src="../brand/mingo.js?v=202611181900"></script>
 <script src="../brand/account.js?v=202611190700"></script>
 <script src="../brand/party.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -110,7 +110,7 @@
 <script src="../shared/data.js?v=202611141100"></script>
 <script src="../top10/extra-data.js?v=202611081900"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611180600"></script>
+<script src="../shared/minigames.js?v=202611181900"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
@@ -249,7 +249,7 @@ const imAverage=()=>{const v=Object.entries(load('im-hist',{}));return v.length?
 function resultHTML(G){const p=pointsOf(G),v=verdict(G);
   // an archive game: the coral ticket with the day's answers inside, Back to archive and Share under it (Héctor 2026-11-16)
   if(G.mode==='archive')return `${Geomingo.archTicket({id:'impostor',num:G.num,score:p+' points',detail:rightOf(G)+' of '+nOf(G)+' caught',body:summaryHTML(G).replace("Today's impostors",'The impostors')})}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
-    <div class="gm-done-btns gm-solo-btns"><button class="primary" id="archback" style="flex:1">Back to archive</button>${SHARE_BTN.replace('Share result','Share')}</div>`;
+    <div class="gm-done-btns gm-solo-btns"><button class="primary" id="archback" style="flex:1">Back to calendar</button>${SHARE_BTN.replace('Share result','Share')}</div>${Geomingo.archListBtn()}`;
   return `${Geomingo.doneTicket('impostor',G.num,p+' points','next in '+nextIn(),summaryHTML(G))}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns">${nextGameBtn('impostor')}${SHARE_BTN.replace('Share result','Share')}</div>`}
 // today's ranking (signed-in players, first try of the day): points, then fewer wrong picks, then who finished first

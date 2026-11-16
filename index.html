@@ -24,7 +24,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
 <link rel="stylesheet" href="brand/geomingo.css?v=202611191600">
-<script src="brand/mingo.js?v=202611191600"></script>
+<script src="brand/mingo.js?v=202611181900"></script>
 <script src="brand/account.js?v=202611190700"></script>
 <script src="brand/party.js?v=202611160600"></script>
 <style>
@@ -88,8 +88,8 @@ button.gm-home{background:none;border:0;font:inherit;cursor:pointer}
 .acal .d.sel{border-color:var(--coral);background:color-mix(in srgb,var(--coral) 16%,var(--page))}
 .aday{margin:4px 2px 0;font-family:var(--type);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--coral-text)}
 .pklives .seg button{min-height:32px;padding:0 8px;font-size:13px;white-space:nowrap;border:0;border-radius:999px;background:transparent;color:var(--muted)}
-/* a game played today gets a passport stamp with Mingo in ink: round (Mingo with his passport) or
-   rectangular (Mingo's head, VISITED and the date), tilted, picked per game and day */
+/* a game played today (and, in the Archive, a game played on its day) gets a passport stamp with Mingo in ink:
+   always the rectangular one (Mingo's head, VISITED and the date), tilted per game and day (Héctor 2026-11-16) */
 .tile{position:relative}
 .tile.done>svg{opacity:.45}
 .stamp{position:absolute;left:50%;top:41%;transform:translate(-50%,-50%) rotate(var(--r,-12deg));display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -345,19 +345,19 @@ function archTile(g,P,AR){const k=archDay(),st=archState(g,k,P.L,AR),lk=look(g.i
   const top='<span class="tt"><span>TRIP '+g.gate+'</span><span class="s2">'+lab+'</span></span>'+lk.svg+'<b>'+esc(g.name)+'</b><small>'+hint+'</small><span class="s3">'+lab+'</span>';
   if(st==='no')return '<li><div class="tile off'+(lk.ctr?' ctr':'')+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+': not out yet on this day">'+top+'</div></li>';
   // played on its day: done (one try per day), nothing to open
-  if(st==='day')return '<li><div class="tile done'+(lk.ctr?' ctr':'')+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+': played on the day">'+top+'</div></li>';
+  if(st==='day')return '<li><div class="tile done'+(lk.ctr?' ctr':'')+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+': played on the day">'+top+stamp(g.id,k)+'</div></li>';
   return '<li><a class="tile'+(lk.ctr?' ctr':'')+(st==='day'||st==='arch'?' done':'')+'" href="'+g.href+'?day='+k+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+', '+esc(G.dateText(k,{weekday:'long',day:'numeric',month:'long'}))+': '+lab.replace('✓ ','').toLowerCase()+'">'+top+'</a></li>'}
 function tile(g,P){if(MODE==='archive')return archTile(g,P,P.AR||(P.AR={}));if(MODE!=='today')return modeTile(g);const r=G.result(g.id),lk=look(g.id),mi=P.today[g.id];
   const state=r.done?'✓ '+(mi!=null?'+'+mi+' KM':esc(r.label)):'TO VISIT',hint=r.done?doneLine(g.id,r.label):esc(HINT3[g.id]||g.hint);
   const lab='aria-label="'+esc(g.name)+', trip '+g.gate+': '+(r.done?'played today, '+esc(r.label):'play')+'"';
   return '<li><a class="tile'+(lk.ctr?' ctr':'')+(r.done?' done':'')+'" href="'+g.href+'" style="--c:'+lk.c+'" '+lab+'><span class="tt"><span>TRIP '+g.gate+'</span><span class="s2">'+state+'</span></span>'+lk.svg+
     '<b>'+esc(g.name)+'</b><small>'+hint+'</small><span class="s3">'+state+'</span>'+(r.done?stamp(g.id):'')+'</a></li>'}
-// the passport stamp on a game played today: shape and tilt look random but stay the same for that game all day
+// the passport stamp on a game played today (k: or on that day, in the Archive): always VISITED with the date (Héctor
+// 2026-11-16: the round one had no date); the tilt looks random but stays the same for that game and day
 const MON=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-function stamp(id){const k=G.dayKey();let h=0;for(const ch of id+k)h=Math.imul(h^ch.charCodeAt(0),2654435761)>>>0;h^=h>>>15;
-  const shape=h%2?'round':'rect',tilt=[-16,-12,-8,-5,6,9,13][(h>>>4)%7],d=k.split('-');
-  const st='<span class="stamp '+shape+'" style="--r:'+tilt+'deg" aria-hidden="true">';
-  return shape==='round'?st+G.mingo('happy',40)+'</span>':st+G.mingo('head',30)+'<span><b>VISITED</b><i>'+(+d[2])+' '+MON[+d[1]-1]+'</i></span></span>'}
+function stamp(id,k){k=k||G.dayKey();let h=0;for(const ch of id+k)h=Math.imul(h^ch.charCodeAt(0),2654435761)>>>0;h^=h>>>15;
+  const tilt=[-16,-12,-8,-5,6,9,13][(h>>>4)%7],d=k.split('-');
+  return '<span class="stamp rect" style="--r:'+tilt+'deg" aria-hidden="true">'+G.mingo('head',30)+'<span><b>VISITED</b><i>'+(+d[2])+' '+MON[+d[1]-1]+'</i></span></span>'}
 const SOON=n=>'<li><div class="tile soon ctr" aria-label="Coming soon: a new game"><span class="tt"><span>TRIP '+n+'</span><span class="s2">SOON</span></span>'+
   '<svg viewBox="-14 -9 46 48" preserveAspectRatio="xMidYMid meet" aria-hidden="true" style="stroke:none"><path d="M0 0 H18 M0 30 H18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M2 1 C2 10 8 12 9 15 C10 12 16 10 16 1 Z M2 29 C2 20 8 18 9 15 C10 18 16 20 16 29 Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M5 5 H13 C12 9 10 11 9 13 C8 11 6 9 5 5 Z M4 28 C6 23 12 23 14 28 Z" fill="currentColor"/><path d="M9 15 V24" stroke="currentColor" stroke-width="1" stroke-dasharray="1.5 1.5"/></svg>'+
   '<b>New game</b><small>Coming soon</small><span class="s3">SOON</span></div></li>';
