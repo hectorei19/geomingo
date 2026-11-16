@@ -148,6 +148,8 @@ const NAME_DAYS=30,NAME_MS=NAME_DAYS*864e5;
 const ACC={a:'àáâäãå',e:'èéêë',i:'ìíîï',o:'òóôöõ',u:'ùúûü',n:'ñ',c:'ç',y:'ýÿ'};   // the same list is in the Firebase rules
 const nameKey=v=>{let s=String(v||'').toLowerCase().split(' ').join('');for(const [b,l] of Object.entries(ACC))for(const ch of l)s=s.split(ch).join(b);return s};
 const cleanName=v=>String(v||'').replace(/\s+/g,' ').trim();
+// how every name is shown (Héctor 2026-11-16): first letter of each word in capitals, the rest small ("AGST" → "Agst")
+const fmtName=v=>cleanName(v).toLowerCase().replace(/(^|\s)(\S)/g,(m,a,b)=>a+b.toUpperCase());
 const NAME_OK=/^[A-Za-z0-9 àáâäãåèéêëìíîïòóôöõùúûüñçýÿÀÁÂÄÃÅÈÉÊËÌÍÎÏÒÓÔÖÕÙÚÛÜÑÇÝ]+$/;
 // a few words nobody can have in their name (checked inside the key, so spaces and accents don't hide them)
 const BAD=['fuck','shit','cunt','nigger','nigga','fagot','faggot','bitch','whore','slut','asshole','pussy','penis','retard','hitler','nazi','porn',
@@ -164,12 +166,35 @@ function nameProblem(v){const n=cleanName(v),k=nameKey(n);
 let NAMES=json('gm-pnames')||{},MYP=null;
 function watchNames(){db.ref('pnames').on('value',s=>{const v=s.val()||{},m={};
   for(const [id,p] of Object.entries(v))if(p&&typeof p.n==='string')m[id]=p.n;
-  const same=JSON.stringify(m)===JSON.stringify(NAMES);NAMES=m;if(!same){put('gm-pnames',m);changed('names')}},()=>{})}
-const nameOf=(id,fallback)=>(id&&NAMES[id])||fallback||'Player';
-function setName(n){name=n;ls.set('bl-user',n);ls.set('cc-user',n);if(user)remember();G.refreshPass()}
+  namesIn=true;const same=JSON.stringify(m)===JSON.stringify(NAMES);NAMES=m;flushFill();if(!same){put('gm-pnames',m);changed('names')}},()=>{})}
+const nameOf=(id,fallback)=>fmtName((id&&NAMES[id])||fallback)||'Player';
+// the names this page already knows (everyone's current name, the rankings seen here): a name one of them uses
+// counts as taken even before it is in names/ (players from before 2026-11-16 who haven't come back yet)
+function knownNames(){const m={};const add=(id,n)=>{if(id&&n&&!m[id])m[id]=String(n)};
+  for(const id in NAMES)add(id,NAMES[id]);
+  for(const g in LB)for(const id in (LB[g]&&LB[g].rows)||{})add(id,LB[g].rows[id].name);
+  const r=json('gm-rank');if(r&&Array.isArray(r.ppl))r.ppl.forEach(p=>add(p.id,p.n0||p.name));
+  return m}
+/* players from before names were unique are put in names/ by whoever sees them in a ranking (the rules check the name
+   is the one in their account), so their names are taken at once, not only when they come back. Once per player per visit. */
+const filled=new Set();let toFill=[],namesIn=false;
+const flushFill=()=>{if(toFill.length&&uid()&&namesIn){const l=toFill;toFill=[];backfill(l)}};
+function backfill(list){if(TEST||!db)return;if(!uid()||!namesIn){toFill=toFill.concat(list);return}let n=0;
+  for(const [id,nm] of list){if(!id||filled.has(id)||NAMES[id]||id===uid()||n>=40)continue;filled.add(id);
+    const c=cleanName(nm),k=nameKey(c);if(c!==nm||!NAME_OK.test(c)||!k||k.length>16)continue;n++;
+    db.ref().update({['names/'+k]:id,['pnames/'+id]:{n:c,k,t:0}}).catch(()=>{})}}
+// once, from the owner's account: every player in every ranking since the first daily game (15 Oct 2026)
+const OWNER='WjzTvjoYtjcshmTn4P7Lg5yKsdE3',LB_PATHS=['leaderboard','lb/capitals','lb/connections','lb/top10','lb/sil-easy','lb/sil-normal','lb/sil-hard','lb/customs','lb/flagpie','lb/impostor','lb/compass'];
+function sweepNames(){if(uid()!==OWNER||ls.get('gm-namesweep')||TEST)return;const days=[];
+  for(let t=Date.parse('2026-10-15T12:00Z');t<=Date.now();t+=864e5)days.push(new Date(t).toISOString().slice(0,10));
+  const seen={};Promise.all(days.flatMap(d=>LB_PATHS.map(p=>db.ref(p+'/'+d).once('value').then(s=>{const v=s.val()||{};
+    for(const id in v)if(v[id]&&v[id].name&&!seen[id])seen[id]=String(v[id].name)}).catch(()=>{}))))
+   .then(()=>{const L=Object.entries(seen);let i=0;const step=()=>{const part=L.slice(i,i+40);i+=40;if(!part.length){ls.set('gm-namesweep','1');return}
+     part.forEach(x=>filled.delete(x[0]));backfill(part);setTimeout(step,1500)};step()})}
+function setName(n){name=fmtName(n);ls.set('bl-user',n);ls.set('cc-user',n);if(user)remember();G.refreshPass()}
 function loadName(){const id=uid();
   db.ref('users/'+id+'/profile').once('value').then(s=>{if(uid()!==id)return;const v=s.val();
-    if(v&&v.name){setName(v.name);claimOld(v.name)}else{holdOff();if(!OWN)askName()}
+    if(v&&v.name){setName(v.name);claimOld(v.name);sweepNames();flushFill()}else{holdOff();if(!OWN)askName()}
     syncAll();changed()}).catch(()=>holdOff())}
 // a name chosen before names were unique: it is reserved for its player the first time they come back,
 // unless someone else got it first (then they keep showing it until they change it)
@@ -178,10 +203,11 @@ function claimOld(n){const id=uid();
     const c=cleanName(n),k=nameKey(c);if(c!==n||!NAME_OK.test(c)||!k||k.length>16)return;
     db.ref().update({['names/'+k]:id,['pnames/'+id]:{n:c,k,t:0}}).then(()=>{MYP={n:c,k,t:0}}).catch(()=>{})}).catch(()=>{})}
 // is a name free? resolves 'free', 'mine' or 'taken'
-function nameFree(v){const k=nameKey(cleanName(v));
-  return db.ref('names/'+k).once('value').then(s=>{const w=s.val();return !w?'free':w===uid()?'mine':'taken'})}
+function nameFree(v){const k=nameKey(cleanName(v)),me=uid(),K=knownNames();
+  if(Object.entries(K).some(([id,n])=>id!==me&&nameKey(cleanName(n))===k))return Promise.resolve('taken');
+  return db.ref('names/'+k).once('value').then(s=>{const w=s.val();return !w?'free':w===me?'mine':'taken'})}
 // saves a name for the account: the first one (t 0) or a change (t now). Resolves the name, or rejects with a message
-function claimName(v,first){const id=uid(),n=cleanName(v),k=nameKey(n),bad=nameProblem(n);
+function claimName(v,first){const id=uid(),n=fmtName(v),k=nameKey(n),bad=nameProblem(n);
   if(bad)return Promise.reject(new Error(bad));if(!id||!db)return Promise.reject(new Error('Sign in first.'));
   return nameFree(n).then(f=>{if(f==='taken')throw new Error('Taken. Try another name.');
     const up={['names/'+k]:id,['pnames/'+id]:{n,k,t:first?0:TS()},['users/'+id+'/profile']:{name:n}};
@@ -208,10 +234,10 @@ function nameWindow(first){const cur=first?((user.displayName||'').trim().split(
   const st=box.querySelector('.gm-nmst'),btn=box.querySelector('[data-gm-act="savename"]');let ask=0,tm=0;
   const show=(cls,t,okay)=>{st.className='gm-nmst'+(cls?' '+cls:'');st.textContent=t;inp.classList.toggle('bad',cls==='bad');inp.classList.toggle('good',cls==='good');btn.disabled=!okay};
   const check=()=>{clearTimeout(tm);const n=cleanName(inp.value),bad=nameProblem(n),me=++ask;
-    if(!first&&n===name){show('','This is your name now.',false);return}
+    if(!first&&fmtName(n)===name){show('','This is your name now.',false);return}
     if(bad){show(n?'bad':'',n?'✗ '+bad:'',false);return}
     show('','Checking…',false);
-    tm=setTimeout(()=>nameFree(n).then(f=>{if(me!==ask)return;f==='taken'?show('bad','✗ Taken. Try another name.',false):show('good','✓ '+n+' is free',true)})
+    tm=setTimeout(()=>nameFree(n).then(f=>{if(me!==ask)return;f==='taken'?show('bad','✗ Taken. Try another name.',false):show('good','✓ '+fmtName(n)+(f==='mine'?' is yours':' is free'),true)})
       .catch(()=>{if(me===ask)show('','',true)}),300)};
   const save=()=>{if(btn.disabled)return;btn.disabled=true;
     (first?firstName(inp.value):claimName(inp.value)).then(()=>{G.closeWindow();if(first&&!OWN)Object.keys(ADAPT).forEach(syncGame);changed()})
@@ -300,7 +326,7 @@ function submit(g,k,r){const id=uid();if(!id||!name||TEST||k!==T())return;const 
   db.ref('lb/'+g+'/'+k+'/'+id).set(Object.assign({name:name.slice(0,16),s:r.s,m:r.m||0,t:TS()},r.r!=null?{r:r.r}:{},r.x3?{x3:1}:{},sec?{sec}:{})).catch(()=>{})}
 function watch(g){if(!ok||TEST)return;const k=T();if(lbRef[g]&&lbRef[g].day===k)return;
   if(lbRef[g])lbRef[g].off();if(!(LB[g]&&LB[g].date===k))LB[g]={date:k,rows:null};lbRef[g]=db.ref('lb/'+g+'/'+k);lbRef[g].day=k;
-  lbRef[g].on('value',s=>{LB[g]={date:k,rows:s.val()||{}};keepLB(g);changed()},()=>{LB[g]={date:k,rows:null,off:true};changed()})}
+  lbRef[g].on('value',s=>{LB[g]={date:k,rows:s.val()||{}};keepLB(g);backfill(Object.entries(LB[g].rows).map(([id,r])=>[id,r&&r.name]));changed()},()=>{LB[g]={date:k,rows:null,off:true};changed()})}
 // from G.KM_FROM the ranking is by the game's points (the same table as the km), then fewer mistakes, then who finished first
 const PTS={connections:r=>G.cxPts(r.s,r.m),top10:r=>G.KM.top10(r.s,r.m),'sil-easy':r=>G.KM.sil(r.s,r.m),'sil-normal':r=>G.KM.sil(r.s,r.m),'sil-hard':r=>G.KM.sil(r.s,r.m),
   customs:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),flagpie:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),compass:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),impostor:r=>G.KM.imp(r.r,r.s,T(),r.x3)};
@@ -538,6 +564,6 @@ G.acctHTML=acctHTML;G.openMenu=openMenu;G.openFaq=openFaq;G.openCredits=openCred
 // ready/user: known for sure, or the last account seen on this device until Firebase answers (wasSignedIn: that last one)
 G.account={get ready(){return who()!==undefined},get user(){return who()||null},get name(){return name},
   wasSignedIn:!!(LAST&&LAST.u),get trial(){return trialState()},trialLine,
-  signIn,signOut,done,userHTML,changeName,nameOf,firstName,nameProblem,nameFree,changeMyName,rankingHTML,rankLine,mine,statsPage,levelBars,bestRun,onChange:f=>watchers.push(f)};
+  signIn,signOut,done,userHTML,changeName,nameOf,fmtName,backfill,firstName,nameProblem,nameFree,changeMyName,rankingHTML,rankLine,mine,statsPage,levelBars,bestRun,onChange:f=>watchers.push(f)};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();

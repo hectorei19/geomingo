@@ -22,7 +22,7 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611181900"></script>
-<script src="../brand/account.js?v=202611201600"></script>
+<script src="../brand/account.js?v=202611201900"></script>
 <script src="../brand/party.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1059,7 +1059,7 @@ const TS=()=>firebase.database.ServerValue.TIMESTAMP;
 /* ---- optional Google sign-in (Firebase Authentication): only used to keep your daily stats in sync between devices ---- */
 let USER=null,ACCT_TODAY=null,ACCT_READY=true,ACCT_WAIT=0,acctT=0,acctRef=null,PROFILE=null,NEEDNAME=false;
 // the account's name (users/<uid>/profile): unique, changed from the Menu once every 30 days (brand/account.js); it is also the name shown in the ranking
-function applyProfile(name){PROFILE=name;NEEDNAME=false;const old=setup.user;setup.user=name;editingUser=false;
+function applyProfile(name){name=pname(null,name);PROFILE=name;NEEDNAME=false;const old=setup.user;setup.user=name;editingUser=false;
   try{localStorage.setItem('bl-user',name)}catch(e){}publishSoon();carryDaily();render()}
 // signed in after finishing today's grid as a guest: the result joins the account and today's ranking
 // (only the first game of the day on this device, and only if the account hasn't played today: recordDaily checks that)
