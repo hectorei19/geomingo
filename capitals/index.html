@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611171600"></script>
+<script src="../brand/mingo.js?v=202611171700"></script>
 <script src="../brand/account.js?v=202611171900"></script>
 <script src="../brand/party.js?v=202611160600"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -1447,7 +1447,10 @@ function resultsView(body){
   if(S.daily){const p=S.players[0],n=S.n,ms=msToNextDay(),next=S.archive?null:Geomingo.nextGame('citygrid');
     if(!S.archive&&!S.dayof)return `${Geomingo.doneTicket('citygrid',S.day,EU(p.score)+' points',`next in ${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min`,body)}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns">${nextGameBtn(next)}${SHARE_BTN.replace('Share result','Share')}</div>`;
-    return `<section class="panel respanel">${verdictHTML()}<span class="label">${S.dayof?'':S.archive?'Archive · ':''}Daily grid #${S.day}${S.dayof?' · played on its day':''}</span><p class="big">${EU(p.score)} points</p>${breakdown(p)}<p class="hint">${p.cells} of ${n*n} squares. ${S.wrong} wrong guess${S.wrong===1?'':'es'}. ${S.dayof?'You played this grid on its day, so it can\'t be played again.':S.archive?'Archive games don\'t count for the ranking or your streak.':`Share it: friends play today's grid with their own one try. Next grid in ${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min.`}</p><pre class="sharebox" id="share">${esc(shareText())}</pre>${SHARE_BTN}<div class="row-btns sharerow">${S.archive?`<button class="primary" id="newg" style="flex:1">Back to archive</button>`:nextGameBtn(next)}</div>${S.archive?'':afterNextHTML(next)+`<span class="label">Your daily grids</span>${statTiles(dailyStatsFrom({...loadHist(),[S.daily]:loadHist()[S.daily]||{s:p.score}}))}`}</section>${lbView(S.archive?S.daily:null)}`}
+    // an archive grid (or one played on its day, opened from the archive): the coral ticket with the grid inside,
+    // Back to archive (the calendar of all the games on the home page) and Share under it (Héctor 2026-11-16)
+    return `${Geomingo.archTicket({id:'citygrid',num:S.day,score:EU(p.score)+' points',detail:S.dayof?'Played on its day':p.cells+' of '+n*n+' squares',body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
+    <div class="gm-done-btns gm-solo-btns"><button class="primary" id="archback" style="flex:1">Back to archive</button>${SHARE_BTN.replace('Share result','Share')}</div>${lbView(S.daily)}`}
   // a finished Solo game: the pink ticket with the grid inside, then New grid and Share (Héctor 2026-11-14)
   if(S.mode==='solo'){const p=S.players[0],n=S.n,best=Math.max(p.score||0,...loadGames().filter(g=>g.m==='s'&&g.n===n).map(g=>g.s||0));
     return `${Geomingo.soloTicket({id:'citygrid',what:S.nolives?'Unlimited':LIVES+' lives',code:S.code,score:EU(p.score)+' points',best:'Best: '+EU(best),detail:p.cells+' of '+n*n+' squares',body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
@@ -1625,6 +1628,7 @@ function bind(){
   else if($('gback'))$('gback').onclick=()=>{screen=screenFor(S);clearInterval(tick);S=null;setup.code='';render();window.scrollTo(0,0)};
   if($('playsolo'))$('playsolo').onclick=()=>{screen='solo';clearInterval(tick);S=null;setup.code='';render();window.scrollTo(0,0)};
   if($('reload'))$('reload').onclick=()=>{location.replace(location.pathname+'?v='+Date.now())};
+  if($('archback'))$('archback').onclick=()=>{location.href=Geomingo.HOME+'#archive'};
   if($('newg')&&S&&S.mode==='online')$('newg').onclick=leaveRoom;
   else if($('newg'))$('newg').onclick=()=>{screen=screenFor(S);clearInterval(tick);S=null;setup.code='';render()};
   if($('again'))$('again').onclick=()=>{if(S.mode==='online'){onlineAct('rematch');return}setup.code='';startGame()};
