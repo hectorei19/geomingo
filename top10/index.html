@@ -86,8 +86,6 @@
 body.kbon .t10list{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(var(--rows,5),auto);grid-auto-flow:column}
 body.kbon .t10list li{display:grid;grid-template-columns:26px 1fr;grid-template-rows:auto auto;align-content:center;column-gap:6px;min-height:46px;padding:4px 8px 4px 10px;min-width:0}
 body.kbon .t10list li.c2top{border-top:0}
-.t10list li.pad{display:none}
-body.kbon .t10list li.pad{display:grid} /* ties make an odd list: an empty box keeps both columns the same height */
 body.kbon .t10list li.c2{border-left:2px dashed var(--line)}
 body.kbon .t10list .rk{grid-row:1/3;width:auto;font-size:1.15rem;align-self:center}
 body.kbon .t10list .nm{font-size:.86rem;line-height:1.15;gap:6px;min-width:0;overflow-wrap:anywhere}
@@ -239,6 +237,11 @@ function ranking(l){return SOVC.filter(c=>!l.reg||l.reg.in(c)).map(c=>({c:c.c,v:
 function topCodes(l){const r=ranking(l),cut=r[9].v;return r.filter(x=>l.dir*(x.v-cut)<=0).map(x=>x.c)}
 // a country's place, shared when tied ("#10" for every country level with the 10th)
 function placeOf(l,code){const r=ranking(l),x=r.find(y=>y.c===code);return x?r.findIndex(y=>y.v===x.v)+1:0}
+// always ten boxes (Héctor 2026-11-16): the countries level at the bottom of the top 10 share the boxes that are left,
+// e.g. two countries level at #10 fill the one last box, either of them counts. tail(): that group, its place and its boxes
+function tail(l,top){const p=placeOf(l,top[top.length-1]),g=top.filter(c=>placeOf(l,c)===p);return {g,p,n:10-(top.length-g.length)}}
+// a country of that group once its boxes are full: right, but there is no box left for it (no life lost)
+function tailFull(l,top,found,code){const t=tail(l,top);return t.g.includes(code)&&found.filter(c=>t.g.includes(c)).length>=t.n}
 // lists used: at least 20 countries with a figure, and at most 12 countries level with the top 10
 const LISTS=ALL_LISTS.filter(l=>{if(OFF.includes(l.id))return false;const r=ranking(l);return r.length>=20&&topCodes(l).length<=12});
 const listById=id=>ALL_LISTS.find(l=>l.id===id);
@@ -321,6 +324,7 @@ function guess(code){if(!S||S.over)return;const c=byCode[code];
   query='';typing=true;
   if(S.mode==='online'){onlineGuess(code);return}
   const i=S.top.indexOf(code);
+  if(i>=0&&tailFull(listById(S.list),S.top,S.found,code)){const t=tail(listById(S.list),S.top);say(tKey(),'think','Hold on.',`${c.n} is #${t.p} too, but ${t.n>1?"those boxes are":"that box is"} already filled. No life lost.`);render();return}
   if(i>=0){S.found.push(code);fresh=code;Geomingo.stamp('top10',c.n,'#'+placeOf(listById(S.list),code),code);if(S.found.length>=10){S.over=true;S.won=true}}
   else{S.wrong.push(code);if(!S.nolives){S.lives--;if(S.lives<=0)S.over=true}}
     save();render();if(S.over)window.scrollTo(0,0);
@@ -446,13 +450,14 @@ async function onlineGuess(code){const c=byCode[code];let note='';
       r.found=r.found||{};r.wrong=r.wrong||{};
       if(r.found[code]||r.wrong[code]){note='tried';return}
       const nm=(r.players[ME]||{}).name||'Someone',top=topOf(r.list),i=top.indexOf(code);
+      if(i>=0&&tailFull(listById(r.list),top,Object.keys(r.found),code)){note='full';return}
       r.k=(r.k||0)+1;r.passes=0;
       if(i>=0){r.found[code]={o:r.turn||0,k:r.k};r.ev={id:evId(),kind:'good',c:code,text:`${nm}: ${c.n} is #${placeOf(listById(r.list),code)}.`}}
       else{r.wrong[code]={o:r.turn||0,k:r.k};
         const k=placeOf(listById(r.list),code)-1;
         r.ev={id:evId(),kind:'bad',text:`${nm}: ${c.n} is not in the top 10${k>=0?` (#${k+1})`:''}.`}}
       advance(r);return r});
-    if(!res.committed)toast(note==='turn'?'It is not your turn any more.':note==='tried'?c.n+' was already named.':'The game is over.','bad')}
+    if(!res.committed)toast(note==='turn'?'It is not your turn any more.':note==='tried'?c.n+' was already named.':note==='full'?c.n+' is level with the last place, but that box is already filled.':'The game is over.','bad')}
   catch(e){console.error(e);toast('That answer did not go through. Check the connection.','bad')}}
 async function onlineAct(kind){
   try{await roomRef.transaction(r=>{
@@ -495,7 +500,7 @@ const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'sh
 // "Where the numbers come from": after the wrong answers, before the quick rules
 const srcHTML=`<p class="t10src" style="margin:0;text-align:center"><button class="linkbtn" id="src" style="padding:0">Where the numbers come from</button></p>`;
 function askHTML(tkt){const l=listById(S.list);
-  return `<p class="t10q">${esc(l.title)}</p>${S.top.length>10?`<p class="hint" style="margin:0">${S.top.length} countries share the places down to 10th: any of them counts. Find 10 to win.</p>`:''}`}
+  return `<p class="t10q">${esc(l.title)}</p>${S.top.length>10?`<p class="hint" style="margin:0">${(t=>`${t.g.length} countries are level at #${t.p}: ${t.n>1?'any '+t.n+' of them count':t.g.length>2?'any one of them counts':'either of them counts'}.`)(tail(l,S.top))}</p>`:''}`}
 // the answer box (and Pass / Give up): right under the ten rows, before the wrong answers
 function controlsHTML(){if(S.over)return '';const on=S.mode==='online',mine=!on||S.turn===S.me;
   if(KB)return `<div class="kbgu">${mine?askBtnHTML():''}${on&&mine?'<button class="ghost" id="opass">Pass</button>':''}</div>`;
@@ -505,9 +510,15 @@ function controlsHTML(){if(S.over)return '';const on=S.mode==='online',mine=!on|
 const KB=SHEETS;
 function listHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries(r.map(x=>[x.c,x.v])),on=S.mode==='online';
   const who=c=>on&&S.by[c]!=null&&S.players[S.by[c]]?S.players[S.by[c]].name:'',pc=c=>`--pc:var(--p${S.by[c]%6})`;
-  const half=Math.ceil(S.top.length/2),ask=KB&&!S.over&&(!on||S.turn===S.me);
-  let h=`<ol class="t10list" style="--rows:${half}">${S.top.map((c,i)=>{const f=S.found.includes(c),show=f||S.over,co=byCode[c];
-    return `<li class="${f?'on':S.over?'miss':''}${f&&on?' by':''}${fresh===c?' new':''}${i>=half?' c2':''}${i===half?' c2top':''}"${ask&&!f?' data-ask':''}${f&&on?` style="${pc(c)};background:var(--p${S.by[c]%6}-soft)" title="${esc(who(c))}"`:''}><span class="rk">${placeOf(l,c)}</span><span class="nm">${show?`<img class="mini" src="${FLAGS[c]}" alt="">${esc(co.n)}`:''}</span>${show?`<span class="val">${esc(l.fmt(val[c]))}</span>`:''}</li>`}).join('')}${S.top.length%2?'<li class="c2 pad" aria-hidden="true"></li>':''}</ol>`;
+  const half=5,ask=KB&&!S.over&&(!on||S.turn===S.me),t=tail(l,S.top);
+  // ten boxes numbered 1 to 10 (Héctor 2026-11-16): countries level with each other share their boxes, the first one found takes
+  // the lower number (two level at #3 fill boxes 3 and 4 in the order you name them); the group at the bottom gets only the boxes left
+  const rows=[],more=[];[...new Set(S.top.map(c=>placeOf(l,c)))].forEach(p=>{const g=S.top.filter(c=>placeOf(l,c)===p),
+      gf=S.found.filter(c=>g.includes(c)),gm=g.filter(c=>!gf.includes(c)),n=p===t.p?t.n:g.length;
+    for(let k=0;k<n;k++)rows.push(gf[k]||(S.over?gm[k-gf.length]:null)||null);if(S.over)more.push(...gm.slice(Math.max(0,n-gf.length)))});
+  let h=`<ol class="t10list" style="--rows:${half}">${rows.map((c,i)=>{if(!c)return `<li class="${i>=half?' c2':''}${i===half?' c2top':''}"${ask?' data-ask':''}><span class="rk">${i+1}</span><span class="nm"></span></li>`;
+    const f=S.found.includes(c),show=f||S.over,co=byCode[c];
+    return `<li class="${f?'on':S.over?'miss':''}${f&&on?' by':''}${fresh===c?' new':''}${i>=half?' c2':''}${i===half?' c2top':''}"${ask&&!f?' data-ask':''}${f&&on?` style="${pc(c)};background:var(--p${S.by[c]%6}-soft)" title="${esc(who(c))}"`:''}><span class="rk">${i+1}</span><span class="nm">${show?`<img class="mini" src="${FLAGS[c]}" alt="">${esc(co.n)}`:''}</span>${show?`<span class="val">${esc(l.fmt(val[c]))}</span>`:''}</li>`}).join('')}</ol>${more.length?`<p class="hint" style="margin:8px 0 0;text-align:center">Also #${t.p}: ${more.map(c=>esc(byCode[c].n)).join(', ')}.</p>`:''}`;
   fresh=null;
   return h}
 // the figure of a wrong answer, short enough to fit its box on one line: big numbers in M / bn, short units
