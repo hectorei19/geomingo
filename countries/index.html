@@ -47,12 +47,7 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .coord{font-family:var(--mono);font-size:.72rem;color:var(--ink-2);letter-spacing:.04em}
 
 .panel{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:16px}
-.field{display:flex;flex-direction:column;gap:8px}
 .label{font-size:.78rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2)}
-.seg{display:flex;border:1px solid var(--rule);border-radius:5px;overflow:hidden}
-.seg button{flex:1;background:transparent;border:0;border-right:1px solid var(--rule);padding:10px 6px;font-weight:600;font-size:1rem}
-.seg button:last-child{border-right:0}
-.seg button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
 .pin{width:14px;height:14px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);flex:none}
 .row-btns{display:flex;gap:8px}
 .sharebig{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;min-height:54px;margin:4px 0 0}
@@ -62,9 +57,7 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .ghost{background:transparent;border:1px solid var(--rule);border-radius:4px;padding:8px 12px;font-weight:600}
 .ghost:disabled{opacity:.4;cursor:default}
 .primary{background:var(--sea);color:var(--sheet);border:0;border-radius:5px;padding:14px;font-weight:700;font-size:1.1rem;letter-spacing:.04em;text-transform:uppercase}
-.code-in{border:1px solid var(--rule);background:var(--paper);border-radius:4px;padding:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;width:100%}
 .hint{font-size:.88rem;color:var(--ink-2);margin:0}
-.rules{margin:0;padding-left:18px;font-size:.93rem;color:var(--ink-2);display:flex;flex-direction:column;gap:4px}
 
 /* game */
 .status{display:flex;align-items:center;gap:10px;background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:10px 12px;box-shadow:var(--shadow);position:relative;overflow:hidden}
@@ -88,11 +81,6 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .cbrand span{color:var(--sea)}
 .b4 .cbrand{font-size:1.05rem}.b5 .cbrand{font-size:.88rem}
 .namecard{display:flex;flex-direction:column;gap:14px}
-.roomcode{font-family:var(--mono);font-size:2.6rem;letter-spacing:.18em;margin:0;color:var(--sea);font-weight:500}
-.lp{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--rule);border-radius:5px;font-weight:600}
-.lp .tag{margin-left:auto;font-family:var(--mono);font-size:.72rem;color:var(--ink-2);font-weight:500}
-.lp.off{opacity:.45}
-.joinrow{display:flex;gap:8px}.joinrow input{flex:1;min-width:0}
 .chip.off{opacity:.45}
 .namecard input{border:1.5px solid var(--ink);background:var(--paper);border-radius:5px;padding:12px;font-size:1.15rem;width:100%}
 .userline{display:flex;align-items:center;gap:8px;font-weight:600}
@@ -246,10 +234,6 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .st{border:1px solid var(--rule);border-radius:6px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
 .st b{font-family:var(--display);font-weight:900;font-size:1.6rem;line-height:1;color:var(--ink)}
 .st span{font-size:.8rem;color:var(--ink-2)}
-.sttab{width:100%;border-collapse:collapse;font-size:.9rem}
-.sttab th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);font-weight:600;text-align:right;padding:4px}
-.sttab td{text-align:right;padding:6px 4px;border-top:1px solid var(--rule);font-family:var(--mono)}
-.sttab td:first-child,.sttab th:first-child{text-align:left;font-family:var(--ui);font-weight:600}
 [data-stats]{cursor:pointer}
 .lbl li[data-stats]:hover{background:var(--sea-soft)}
 .orline{display:flex;align-items:center;gap:10px;color:var(--ink-2);font-size:.9rem}
@@ -599,34 +583,15 @@ function canBlock(ans,c){const A=ans[c];const own=new Map();
   const tryC=(x,seen)=>{for(let d=0;d<ans.length;d++){if(d===c||seen.has(d)||!ans[d].includes(x))continue;seen.add(d);if(!own.has(d)||tryC(own.get(d),seen)){own.set(d,x);return true}}return false};
   for(const x of A)if(!tryC(x,new Set()))return false;return true}
 const isSafe=ans=>ans.every((_,c)=>!canBlock(ans,c));
-/* ---- difficulty ----
-   easy:   well-known categories only; every square has at least 5 sovereign countries that fit
-   normal: every category; every square has at least 2 answers
-   hard:   every category, themes like borders and seas more often; no square has more than 12 answers
-           and at least half the squares have 5 or fewer */
-const EASY_LABELS=new Set(['In Africa','In Europe','In Asia','In Oceania','In North or Central America','In South America',
-  'Landlocked','Island nation (no land borders)','Area over 1 million km²','Population over 100 million','Drives on the left',
-  'Name starts with A','Name starts with B','Name starts with C','Name starts with M','Name starts with S','Name ends in "-ia"','Name ends in "-stan"',
-  'Official language: English','Official language: French','Official language: Spanish','Official language: Arabic','Official language: Portuguese',
-  'Uses the euro','Currency called "dollar"','Flag has blue','Flag has green','Flag has yellow or gold','Flag has black','Flag of exactly 2 colours',
-  'Flag has a star','Flag has a crescent moon','Flag has a cross','Flag has the Union Jack','Flag has a coat of arms or seal',
-  'EU member','NATO member','Monarchy','Hosted the Summer Olympics','Hosted the men\'s World Cup','Won the men\'s World Cup']);
-// specialist categories: only in Hard grids
-const HARD_ONLY=new Set(['Population under 100,000','Capital under 100,000 people',
+/* ---- grid rules: every square has at least 2 answers ---- */
+// specialist categories: never used in grids (they were only in the old Hard level)
+const NOT_IN_GRIDS=new Set(['Population under 100,000','Capital under 100,000 people',
   'HDI 0.95 or higher','GDP per person under $1,000','Life expectancy under 65','CO₂ over 10 t per person',
   'APEC member','Antarctic Treaty party','Under 25% urban population','Coastline under 100 km','500+ Olympic medals']);
-const DIFFS=['easy','normal','hard'];
-const lvOf=d=>d==='hard'?'hard':'normal'; // the level shown in Practice: Easy (old Easy and Normal) or Hard
-let DIFF='normal';
-const sovCount=a=>{let k=0;for(const i of a)if(!C[i].t)k++;return k};
-let HARD_MAX=12,HARD_SMALL=5;
 function evalGrid(rows,cols){
-  const answers=[];let bad=0,small=0;
+  const answers=[];let bad=0;
   for(const rk of rows)for(const ck of cols){const a=inter(rk,ck);answers.push(a);
-    if(a.length<2)bad+=10;if(a.length>C.length*0.5)bad+=10;
-    if(DIFF==='easy'&&sovCount(a)<5)bad+=5;
-    if(DIFF==='hard'){if(a.length>HARD_MAX)bad+=5;if(a.length<=HARD_SMALL)small++}}
-  if(DIFF==='hard'&&small*2<answers.length)bad+=(Math.ceil(answers.length/2)-small)*3;
+    if(a.length<2)bad+=10;if(a.length>C.length*0.5)bad+=10;}
   if(bad)return{answers,score:bad+100};
   let u=0;for(let c=0;c<answers.length;c++)if(canBlock(answers,c))u++;
   return{answers,score:u};
@@ -638,15 +603,13 @@ function famOK(list){const f={};for(const k of list){f[k.fam]=(f[k.fam]||0)+1;if
 const RARE=new Set(['sea','border','sport','geo2','pol']);
 const WILD=new Set(['Drives on the left','Independence from the UK']);
 let AVOID=null;
-const FAMCACHE={};
-// "Name starts with…" squares are trivial with the search box, so they only appear in Easy
-function famsFor(){if(!FAMCACHE[DIFF]){const pool=DIFF==='easy'?POOL.filter(k=>EASY_LABELS.has(k.label)):POOL.filter(k=>!/^Name starts with/.test(k.label)&&(DIFF==='hard'||!HARD_ONLY.has(k.label)));const f={};pool.forEach(k=>(f[k.fam]=f[k.fam]||[]).push(k));FAMCACHE[DIFF]={pool,fams:Object.values(f),rare:pool.filter(k=>RARE.has(k.fam))}}return FAMCACHE[DIFF]}
+let FAMS=null;
+// "Name starts with…" squares are trivial with the search box, so they are not used
+function famsFor(){if(!FAMS){const pool=POOL.filter(k=>!/^Name starts with/.test(k.label)&&!NOT_IN_GRIDS.has(k.label));const f={};pool.forEach(k=>(f[k.fam]=f[k.fam]||[]).push(k));FAMS={pool,fams:Object.values(f),rare:pool.filter(k=>RARE.has(k.fam))}}return FAMS}
 // CATW evens out the search: categories that fit with almost anything were kept far more often than narrow ones
 // (a border, a small sea), so each has a weight measured over 4,000 Normal 4 × 4 grids (labels missing here weigh 1).
-// Only used up to 4 × 4: 5 × 5 grids need the broad categories to be buildable at all
 const CATW={"3 or 4 land neighbours":0.12,"Name ends in \"-ia\"":0.12,"Name has 10+ letters":0.12,"Name of 2+ words":0.12,"Flag has green":0.12,"Flag has yellow or gold":0.12,"No red on the flag":0.12,"Flag of exactly 2 colours":0.12,"Flag of exactly 3 colours":0.12,"Flag has a star":0.12,"Independence from the UK":0.12,"Flag has blue":0.13,"Drives on the left":0.13,"Name has 5 letters or fewer":0.13,"Commonwealth member":0.13,"Played the men's World Cup":0.14,"Official language: English":0.14,"Flag has black":0.14,"Flag has a coat of arms or seal":0.15,"Monarchy":0.15,"Capital over 1 million people":0.15,"Capital starts with same letter":0.15,"Capital starts with B":0.16,"Capital is not the largest city":0.17,"Has a metro system":0.17,"Has 5+ land neighbours":0.17,"Life expectancy over 80":0.18,"Official language: French":0.19,"Forest covers over 60%":0.19,"Centre in the tropics":0.19,"Exactly 2 land neighbours":0.2,"Centre south of the Equator":0.2,"Median age over 40":0.21,"Landlocked":0.21,"In Asia":0.22,"Never won an Olympic medal":0.22,"Forest covers under 5%":0.22,"Area under 30,000 km²":0.22,"Over 90% urban population":0.24,"Capital name has 2+ words":0.24,"Island nation (no land borders)":0.27,"Currency called \"dollar\"":0.27,"Highest point under 500 m":0.28,"Flag has an animal":0.29,"Took part in Eurovision":0.33,"Centre north of 45°N":0.36,"Area over 1 million km²":0.36,"Population over 50 million":0.37,"Capital starts with M":0.37,"Has a peak over 5,000 m":0.38,"In North or Central America":0.39,"Population under 1 million":0.39,"Very high development (HDI 0.9+)":0.4,"In Europe":0.41,"Capital starts with S":0.41,"GDP per person over $50,000":0.44,"Land borders over 5,000 km":0.46,"100+ Olympic medals":0.47,"In Africa":0.5,"Coast on the Mediterranean":0.5,"Exactly 1 land neighbour":0.55,"Has nuclear power plants":0.57,"Flag has a cross":0.6,"Most corrupt (CPI under 25)":0.64,"Coast on the Caribbean Sea":0.66,"Uses the euro":0.75,"Area under 1,000 km²":0.79,"Capital starts with P":0.85,"Independence from Spain":0.86,"NATO member":0.92,"Hosts a Formula 1 race (2026)":0.95};
-let GEN_N=4;
-const catWeight=k=>AVOID&&AVOID.has(k.label)?0:(GEN_N<=4&&CATW[k.label]||1)*(WILD.has(k.label)?0.5:1);
+const catWeight=k=>AVOID&&AVOID.has(k.label)?0:(CATW[k.label]||1)*(WILD.has(k.label)?0.5:1);
 function pickCat(r){const P=famsFor().pool;let t=0;for(const k of P)t+=catWeight(k);let x=r()*t;
   for(const k of P){x-=catWeight(k);if(x<0)return k}return P[P.length-1]}
 function searchGrid(n,r,restarts){
@@ -655,7 +618,7 @@ function searchGrid(n,r,restarts){
     for(const k of cand){if(rows.length<n&&famOK([...rows,k]))rows.push(k);else if(cols.length<n&&!rows.includes(k)&&famOK([...cols,k]))cols.push(k);if(rows.length===n&&cols.length===n)break}
     // anchor one category from a theme that rarely fits (seas, borders, sport...) so those show up too
     let anchor=null;const rare=famsFor().rare;
-    if(rare.length&&r()<(DIFF==='hard'?0.8:DIFF==='easy'?0.3:0.5)){anchor=rare[Math.floor(r()*rare.length)];if(!catWeight(anchor))anchor=null;else
+    if(rare.length&&r()<0.5){anchor=rare[Math.floor(r()*rare.length)];if(!catWeight(anchor))anchor=null;else
       if(!cols.includes(anchor)&&!rows.includes(anchor))rows[0]=anchor;else anchor=null}
     let cur=evalGrid(rows,cols);
     for(let it=0;it<1500&&cur.score>0;it++){
@@ -670,26 +633,18 @@ function searchGrid(n,r,restarts){
   }
   return null;
 }
-const BANK5 = [];
-function generate(n,seed,diff){
-  DIFF=DIFFS.includes(diff)?diff:'normal';
-  HARD_MAX=n===5?15:12;HARD_SMALL=n===5?6:5;GEN_N=n;
-  const r=rngFrom(seed+(DIFF==='easy'?11:DIFF==='hard'?23:0)*7962624);
-  return searchGrid(n,r,n===5?250:80);
-}
+function generate(n,seed){return searchGrid(n,rngFrom(seed),80)}
 
 /* ---- codes ---- */
 const LET='ABCDEFGHJKLMNPQRSTUVWXYZ';
-function makeCode(n,seed,diff){let s='',x=seed;for(let i=0;i<5;i++){s+=LET[x%24];x=Math.floor(x/24)}return n+(diff==='easy'?'E':diff==='hard'?'H':'')+'-'+s}
-function parseCode(t){const m=/^\s*([345])\s*([EH]?)\s*-?\s*([A-Z]{5})\s*$/i.exec(t||'');if(!m)return null;let x=0;const s=m[3].toUpperCase();for(let i=4;i>=0;i--){const v=LET.indexOf(s[i]);if(v<0)return null;x=x*24+v}const d=m[2].toUpperCase();return{n:+m[1],seed:x,diff:d==='E'?'easy':d==='H'?'hard':'normal'}}
+function makeCode(n,seed){let s='',x=seed;for(let i=0;i<5;i++){s+=LET[x%24];x=Math.floor(x/24)}return n+'-'+s}
+function parseCode(t){const m=/^\s*4\s*-?\s*([A-Z]{5})\s*$/i.exec(t||'');if(!m)return null;let x=0;const s=m[1].toUpperCase();for(let i=4;i>=0;i--){const v=LET.indexOf(s[i]);if(v<0)return null;x=x*24+v}return{n:4,seed:x}}
 const randSeed=()=>Math.floor(Math.random()*7962624);
 
 /* ---- state ---- */
 let S = null;
-let setup = {mode:'solo',n:4,timer:0,diff:'normal',code:'',user:''};
-try{const s=JSON.parse(localStorage.getItem('bl-setup')||'null');if(s&&typeof s==='object'){setup={...setup,...s,code:''};delete setup.names;if(setup.mode!=='online')setup.mode='solo';if(setup.diff==='easy')setup.diff='normal'}}catch(e){}
-// 3 × 3 grids were dropped: an old saved choice of 3 becomes 4 × 4
-if(setup.n!==5)setup.n=4;
+let setup = {mode:'solo',code:'',user:''};
+try{const s=JSON.parse(localStorage.getItem('bl-setup')||'null');if(s&&typeof s==='object'){setup={...setup,...s,code:''};delete setup.names;if(setup.mode!=='online')setup.mode='solo';['n','diff','timer','fname','join'].forEach(k=>delete setup[k])}}catch(e){}
 try{setup.user=localStorage.getItem('bl-user')||setup.user||''}catch(e){}
 let editingUser=!setup.user;
 function saveUser(v){
@@ -710,7 +665,7 @@ let tick=null;
 // drop ?grid= from the address once used, so a reload does not bring the friend's grid back
 function clearGridParam(){try{const u=new URL(location.href);if(u.searchParams.has('grid')){u.searchParams.delete('grid');history.replaceState(null,'',u.pathname+u.search+u.hash)}}catch(e){}}
 /* ---- daily grid: one 4×4 Normal grid for everyone, new at midnight in Spain, one try per device ---- */
-const DAILY_N=4,DAILY_DIFF='normal',DAILY_FIRST='2026-10-15';
+const DAILY_N=4,DAILY_FIRST='2026-10-15';
 const madrid=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
 function madridParts(t){const o={};madrid.formatToParts(new Date(t)).forEach(p=>o[p.type]=p.value);return o}
 // hidden test mode: add ?test to the address to replay today's grid; ?test&day=2026-11-20 plays another day's grid
@@ -803,9 +758,9 @@ function loadGames(){try{return JSON.parse(localStorage.getItem('bl-games')||'[]
 function saveGames(g){try{localStorage.setItem('bl-games',JSON.stringify(g.slice(-1000)))}catch(e){}}
 function recordGame(){if(!S||!S.over||S.daily||!S.gid||TEST)return;if(S.mode!=='solo'&&S.mode!=='online')return;
   const games=loadGames();if(games.some(g=>g.id===S.gid))return;let e;
-  if(S.mode==='solo'){const p=S.players[0];e={id:S.gid,m:'s',n:S.n,d:S.diff||'normal',s:p.score||0,c:p.cells||0,t:todayKey()}}
+  if(S.mode==='solo'){const p=S.players[0];e={id:S.gid,m:'s',n:S.n,s:p.score||0,c:p.cells||0,t:todayKey()}}
   else{if(S.me<0)return;const sc=S.players.map(p=>p.score||0),mine=sc[S.me],better=sc.filter(x=>x>mine).length,tie=sc.filter(x=>x===mine).length>1;
-    e={id:S.gid,m:'f',n:S.n,d:S.diff||'normal',s:mine,c:S.players[S.me].cells||0,np:S.players.length,r:better+1,w:better===0&&!tie?1:0,dr:better===0&&tie?1:0,t:todayKey()}}
+    e={id:S.gid,m:'f',n:S.n,s:mine,c:S.players[S.me].cells||0,np:S.players.length,r:better+1,w:better===0&&!tie?1:0,dr:better===0&&tie?1:0,t:todayKey()}}
   games.push(e);saveGames(games);
   if(USER&&db)db.ref('users/'+USER.uid+'/games/'+e.id).set(e).catch(()=>{});
   publishSoon()}
@@ -824,10 +779,9 @@ function computeStats(hist,games){
   const sum=a=>{const sq=a.reduce((x,g)=>x+(g.c||0),0),all=a.reduce((x,g)=>x+g.n*g.n,0);
     return {played:a.length,best:best(a.map(g=>g.s)),avg:avg(a.map(g=>g.s)),perfect:a.filter(g=>g.c===g.n*g.n).length,
       squares:sq,acc:all?Math.round(sq/all*100):0}};
-  const byDiff={};['normal','hard'].forEach(d=>byDiff[d]=sum(solo.filter(g=>lvOf(g.d)===d)));
   const wins=fr.filter(g=>g.w===1).length;
   return {d:{played:days.length,streak:ds.streak,max:maxStreak,best:best(dv.map(e=>e.s||0)),avg:avg(dv.map(e=>e.s||0)),perfect:dv.filter(e=>e.c===(e.n||DAILY_N)*(e.n||DAILY_N)).length},
-    s:{...sum(solo),byDiff},
+    s:sum(solo),
     f:{played:fr.length,wins,draws:fr.filter(g=>g.dr===1).length,pct:fr.length?Math.round(wins/fr.length*100):0,best:best(fr.map(g=>g.s)),
       avg:avg(fr.map(g=>g.s)),place:fr.length?Math.round(fr.reduce((x,g)=>x+(g.r||1),0)/fr.length*10)/10:0}}}
 let pubTimer=null;
@@ -845,8 +799,8 @@ function fixedDaily(key){const ids=DAILY_FIXED.days[key];if(!ids)return null;
   return {rows:rows.map(k=>k.id),cols:cols.map(k=>k.id),answers}}
 function dailyGrid(day){const key=day||todayKey();if(dailyCache&&dailyCache.key===key)return dailyCache;
   const fixed=fixedDaily(key);if(fixed)return dailyCache={key,seed:dailySeed(key),g:fixed};
-  let seed=dailySeed(key),g=generate(DAILY_N,seed,DAILY_DIFF),k=0;
-  while(!g&&k++<50){seed=(seed+1)%7962624;g=generate(DAILY_N,seed,DAILY_DIFF)}
+  let seed=dailySeed(key),g=generate(DAILY_N,seed),k=0;
+  while(!g&&k++<50){seed=(seed+1)%7962624;g=generate(DAILY_N,seed)}
   return dailyCache=g?{key,seed,g}:null}
 function playDaily(){
   if(USER)adoptDaily(ACCT_TODAY); // the account's finished game first, so it can't be started again here
@@ -856,7 +810,7 @@ function playDaily(){
   const dg=dailyGrid();
   if(!dg){toast('Could not build today\'s grid. Try again later.','bad');return}
   const key=dg.key,seed=dg.seed,g=dg.g;
-  S={mode:'solo',daily:key,day:dayNumber(key),n:DAILY_N,seed,diff:DAILY_DIFF,code:makeCode(DAILY_N,seed,DAILY_DIFF),rows:g.rows,cols:g.cols,answers:g.answers,
+  S={mode:'solo',daily:key,day:dayNumber(key),n:DAILY_N,seed,code:makeCode(DAILY_N,seed),rows:g.rows,cols:g.cols,answers:g.answers,
      cells:g.answers.map(()=>({o:-1,c:null})),used:[],players:[{name:setup.user||'You',score:0}],turn:0,
      lives:LIVES,timer:0,deadline:0,passes:0,over:false,wrong:0};
   // a guest's result can join the account later (sign in after playing), but only for the first game of the day on this device
@@ -918,7 +872,7 @@ function playArchive(k){const a=loadArch(),r=(ARCH_REMOTE||{})[k];
   if(a[k]){S=a[k];if(!S.over)startTurn();render();window.scrollTo(0,0);return}
   const dg=dailyGrid(k);if(!dg){toast('Could not build this grid.','bad');return}
   const g=dg.g;
-  S={mode:'solo',daily:k,archive:true,day:dayNumber(k),n:DAILY_N,seed:dg.seed,diff:DAILY_DIFF,code:makeCode(DAILY_N,dg.seed,DAILY_DIFF),rows:g.rows,cols:g.cols,answers:g.answers,
+  S={mode:'solo',daily:k,archive:true,day:dayNumber(k),n:DAILY_N,seed:dg.seed,code:makeCode(DAILY_N,dg.seed),rows:g.rows,cols:g.cols,answers:g.answers,
      cells:g.answers.map(()=>({o:-1,c:null})),used:[],players:[{name:setup.user||'You',score:0}],turn:0,
      lives:LIVES,timer:0,deadline:0,passes:0,over:false,wrong:0};
   startTurn(true);render();window.scrollTo(0,0);
@@ -933,25 +887,21 @@ function showOnDay(k){const e=onDay(k),open=g=>{if(!g||g.daily!==k){toast(e.f===
   try{const d=JSON.parse(localStorage.getItem('bl-daily')||'null');if(d&&d.date===k&&d.S){open(d.S);return}}catch(x){}
   if(USER&&db)db.ref('users/'+USER.uid+'/daily/'+k+'/j').once('value').then(v=>{let g=null;try{g=JSON.parse(v.val())}catch(x){}open(g)}).catch(()=>open(null));
   else open(null)}
-// big or hard grids can take a second to build: show a note first so the screen does not look frozen
-function buildThenStart(){const pc=parseCode(setup.code);if(pc&&(pc.n===5||pc.diff!=='normal'))toast('Building a grid that can always be completed…');setTimeout(startGame,40)}
 function startGame(){
   // Practice has no setup screen (Héctor 2026-11-15): always a grid like the daily one (4 × 4, Easy), with the lives
   // chosen on the home page's Practice screen; a friend's shared grid (?grid=) is played as it was
-  const solo=setup.mode==='solo';
-  let n=solo?DAILY_N:setup.n,seed=randSeed();
-  const pc=parseCode(setup.code);
-  let diff=solo?DAILY_DIFF:setup.diff||'normal';
-  if(setup.code.trim()){if(!pc){toast('That code is not valid. It looks like 4-KQPMT or 4H-KQPMT.','bad');return false}n=pc.n;seed=pc.seed;diff=pc.diff}
-  let g=generate(n,seed,diff),tries=0;
-  while(!g&&!pc&&tries++<20){seed=randSeed();g=generate(n,seed,diff)}
+  setup.mode='solo';
+  const n=DAILY_N,pc=parseCode(setup.code);let seed=randSeed();
+  if(setup.code.trim()){if(!pc){toast('That code is not valid. It looks like 4-KQPMT.','bad');return false}seed=pc.seed}
+  let g=generate(n,seed),tries=0;
+  while(!g&&!pc&&tries++<20){seed=randSeed();g=generate(n,seed)}
   if(!g){toast('Could not build a grid from that code. Try another.','bad');return false}
   try{localStorage.setItem('bl-setup',JSON.stringify({...setup,code:''}))}catch(e){}
   clearGridParam();
   const players=[{name:setup.user||'You',score:0}];
-  S={mode:setup.mode,n,seed,diff,code:makeCode(n,seed,diff),rows:g.rows,cols:g.cols,answers:g.answers,
+  S={mode:'solo',n,seed,code:makeCode(n,seed),rows:g.rows,cols:g.cols,answers:g.answers,
      cells:g.answers.map(()=>({o:-1,c:null})),used:[],players,turn:0,
-     lives:solo?LIVES:null,nolives:solo&&!Geomingo.lives()?1:0,timer:setup.mode==='solo'?0:setup.timer,deadline:0,passes:0,over:false,wrong:0,
+     lives:LIVES,nolives:Geomingo.lives()?0:1,timer:0,deadline:0,passes:0,over:false,wrong:0,
      gid:'s-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7)};
   ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};
   startTurn(true);
@@ -1140,24 +1090,22 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/da
     saveHist(local);if(Object.keys(up).length)ref.update(up).catch(()=>{});publishSoon();render()}).catch(()=>{})}
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
-function gridFor(n,seed,diff){const k=n+':'+seed+':'+(diff||'normal');if(!ansCache[k])ansCache[k]=generate(n,seed,diff);return ansCache[k]}
-const APP_VERSION='202611140900';
+function gridFor(n,seed){const k=n+':'+seed;if(!ansCache[k])ansCache[k]=generate(n,seed);return ansCache[k]}
+const APP_VERSION='202611160600';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
     if(!ansCache[k]){const answers=[];for(const a of r.rows)for(const b of r.cols)answers.push(CATS[a]&&CATS[b]?inter(CATS[a],CATS[b]):[]);ansCache[k]={rows:r.rows,cols:r.cols,answers}}
     return ansCache[k]}
-  return gridFor(r.cfg.n,r.seed,r.cfg.diff);
+  return gridFor(r.cfg.n,r.seed);
 }
 const versionOK=r=>!r.v||r.v===APP_VERSION;
-function freshSeed(n,diff){for(let i=0;i<30;i++){const sd=randSeed();if(gridFor(n,sd,diff))return sd}return 1}
+function freshSeed(n){for(let i=0;i<30;i++){const sd=randSeed();if(gridFor(n,sd))return sd}return 1}
 function lobbyOrder(r){return Object.entries(r.players||{}).sort((a,b)=>(a[1].t||0)-(b[1].t||0)).map(x=>x[0])}
 
-// the name the others see in a room: the account's name, or the one a guest typed on the With friends screen
-const roomName=()=>USER?setup.user:((setup.fname||'').trim()||(Geomingo.party&&Geomingo.party.name())||'');
-function needRoomName(){if(USER)return false;const el=document.getElementById('fname');if(el)setup.fname=el.value.trim().slice(0,16);
-  try{localStorage.setItem('bl-setup',JSON.stringify({...setup,code:''}))}catch(e){}
-  if(roomName())return false;toast("Type your name so your friends know who's playing.",'bad');if(el)el.focus();return true}
+// the name the others see in a room: the account's name, or the one a guest typed in the room on the home page
+const roomName=()=>USER?setup.user:((Geomingo.party&&Geomingo.party.name())||'');
+function needRoomName(){if(roomName())return false;toast("Type your name so your friends know who's playing.",'bad');return true}
 const SIGNED=()=>!!(USER||MAYBE_IN());
 async function createRoom(){if(!SIGNED()){signIn();return}
   if(needRoomName())return;
@@ -1165,7 +1113,7 @@ async function createRoom(){if(!SIGNED()){signIn();return}
   try{
     let code='';
     for(let i=0;i<8;i++){code=randRoom();const ex=await db.ref('rooms/'+code).get();if(!ex.exists())break}
-    await db.ref('rooms/'+code).set({v:APP_VERSION,host:ME,created:TS(),cfg:Geomingo.party&&Geomingo.party.on()?{n:DAILY_N,timer:30,diff:DAILY_DIFF}:{n:setup.n,timer:30,diff:setup.diff||'normal'},status:'lobby',
+    await db.ref('rooms/'+code).set({v:APP_VERSION,host:ME,created:TS(),cfg:{n:DAILY_N,timer:30},status:'lobby',
       players:{[ME]:{name:roomName(),t:TS(),on:true,...(USER?{uid:USER.uid}:{})}}});
     listenRoom(code);
   }catch(e){console.error(e);toast('Could not create the room. Check the connection and try again.','bad')}
@@ -1242,7 +1190,7 @@ function syncRoom(){
   const order=r.order||lobbyOrder(r);
   const cellMap=r.cells||{};
   const cells=g.answers.map((_,i)=>cellMap[i]?{o:cellMap[i].o,c:cellMap[i].c,p:cellMap[i].p||0,sb:cellMap[i].sb||0}:{o:-1,c:null});
-  S={mode:'online',n,seed:r.seed,diff:r.cfg.diff||'normal',code:makeCode(n,r.seed,r.cfg.diff),rows:g.rows,cols:g.cols,answers:g.answers,cells,
+  S={mode:'online',n,seed:r.seed,code:makeCode(n,r.seed),rows:g.rows,cols:g.cols,answers:g.answers,cells,
      used:cells.filter(c=>c.c).map(c=>c.c),
      players:order.map(pid=>({pid,uid:(r.players[pid]||{}).uid||null,name:(r.players[pid]||{}).name||'Gone',on:(r.players[pid]||{}).on!==false,score:0})),
      gid:'f-'+roomCode+'-'+(r.started||r.seed),
@@ -1298,7 +1246,7 @@ async function onlineAct(kind){
       if(r.host!==ME)return;
       const order=kind==='start'?lobbyOrder(r):(r.order||lobbyOrder(r)).filter(pid=>r.players[pid]);
       if(order.length<2)return;
-      r.order=order;r.seed=freshSeed(r.cfg.n,r.cfg.diff);{const gg=gridFor(r.cfg.n,r.seed,r.cfg.diff);r.rows=gg.rows;r.cols=gg.cols}r.v=APP_VERSION;r.cells=null;r.passes=0;r.wrong=0;r.turn=Math.floor(Math.random()*order.length);r.status='playing';
+      r.order=order;r.seed=freshSeed(r.cfg.n);{const gg=gridFor(r.cfg.n,r.seed);r.rows=gg.rows;r.cols=gg.cols}r.v=APP_VERSION;r.cells=null;r.passes=0;r.wrong=0;r.turn=Math.floor(Math.random()*order.length);r.status='playing';
       r.started=Date.now()+offset;
       r.deadline=r.cfg.timer?Date.now()+offset+r.cfg.timer*1000:0;
       r.ev={id:evId(),kind:'',text:(kind==='start'?'Game on. ':'Rematch. New grid. ')+(r.players[order[r.turn]].name)+' starts.'};return r}
@@ -1316,21 +1264,6 @@ async function tryTimeout(turn,deadline){
 // the one room for all nine games (../brand/party.js) drives this game's room
 if(Geomingo.party)Geomingo.party.game({room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
   count:()=>room?lobbyOrder(room).length:0,names:()=>room?lobbyOrder(room).map(k=>room.players[k].name):[],create:createRoom,join:joinRoom,start:()=>onlineAct('start')});
-function lobbyView(){
-  const r=room,order=lobbyOrder(r),isHost=r.host===ME;
-  const link=location.origin+location.pathname+'?room='+roomCode;
-  return `<section class="panel namecard"><span class="label">Room code</span><p class="roomcode">${roomCode}</p>
-    <p class="hint">Friends open this site, choose <b>With friends</b>, then type this code under Join. Or send them the link:</p>
-    <pre class="sharebox" id="linkbox">${esc(link)}</pre>
-    <button class="ghost" id="copylink">Copy link</button>
-    ${versionOK(r)?'':'<p class="hint" style="color:var(--bad)">This room was made with a different version of the game. Reload the page; if it still shows this, ask the host to reload and create a new room.</p>'}
-    <span class="label">Players ${order.length}/6</span>
-    <div class="players">${order.map((pid,i)=>{const p=r.players[pid];return `<div class="lp ${p.on===false?'off':''}" ${p.uid?`data-stats="${esc(p.uid)}" role="button" tabindex="0"`:''}><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)}<span class="tag">${[pid===r.host?'host':'',pid===ME?'you':'',p.on===false?'offline':''].filter(Boolean).join(' · ')}</span></div>`}).join('')}</div>
-    <p class="hint">${r.cfg.n} × ${r.cfg.n} grid · ${DLABEL[r.cfg.diff||'normal']} · ${r.cfg.timer?r.cfg.timer+' s per turn':'no turn timer'}</p>
-    ${isHost?`<button class="primary" id="ostart" ${order.length<2?'disabled style="opacity:.5"':''}>${order.length<2?'Waiting for players…':'Start game'}</button>`:`<p class="hint">Waiting for the host to start the game.</p>`}
-    <button class="ghost" id="leave">Leave room</button></section>`;
-}
-
 /* ---- new version check ---- */
 let newVersion=false;
 async function checkVersion(){
@@ -1379,7 +1312,7 @@ function render(){
     if(S?S.daily===k&&!S.archive&&S.mode==='solo'&&!S.over:screen==='home'&&!(dd&&dd.S.over)&&!(hh&&hh.f===1))Geomingo.clock.start('borderline',k)}
   // Practice (?solo, Play Solo, a shared grid): no setup screen, a grid starts at once
   if(!S&&screen==='solo'&&!roomCode&&!editingUser&&!(USER&&NEEDNAME)){setup.mode='solo';if(startGame())return;screen='home';setup.code=''}
-  const body=screen==='stats'?statsView():screen==='archive'?archiveView():S?gameView():((editingUser||(USER&&NEEDNAME))?nameView():((Geomingo.party&&Geomingo.party.on())&&(screen==='friends'||roomCode)?'':roomCode&&room?lobbyView():setupView()));
+  const body=screen==='stats'?statsView():screen==='archive'?archiveView():S?gameView():((editingUser||(USER&&NEEDNAME))?nameView():((Geomingo.party&&Geomingo.party.on())&&(screen==='friends'||roomCode)?'':homeView()));
   watchResult();
   app.innerHTML=Geomingo.header({game:GAME_NAME,practice:!!(S&&S.mode==='solo'&&!S.daily),coord:S?(S.daily?'Daily #'+S.day:S.code)+(S.mode==='online'?' · room '+roomCode:''):(roomCode?'Room '+roomCode:'')})+(newVersion?`<div class="status" style="border-color:var(--sea)"><span class="who" style="white-space:normal">A new version of the game is available.</span><button class="primary" id="reload" style="padding:8px 12px;font-size:.9rem">Reload</button></div>`:'')+body;
   bind();drawLayer();fitHeaders();saveDaily();recordGame();
@@ -1422,19 +1355,6 @@ try{document.fonts&&document.fonts.ready.then(()=>fitHeaders())}catch(e){}
 addEventListener('resize',()=>{clearTimeout(fitHeaders.t);fitHeaders.t=setTimeout(fitHeaders,120)});
 function onTickVisual(){const left=S.deadline-now();const bar=document.querySelector('.tbar');const sub=document.getElementById('tleft');if(bar){bar.style.width=Math.max(0,left/(S.timer*1000)*100)+'%';bar.classList.toggle('low',left<=5000)}if(sub)sub.textContent=Math.max(0,Math.ceil(left/1000))+'s'}
 
-const MHINT={solo:'1 player.',online:'Play online, 2 to 6 players, each on their own phone.'};
-/* two levels to choose (15 Nov 2026): Easy plays the grids once called Normal (the old Easy is folded in), and Hard.
-   'easy' stays only so old shared codes still open the same grid. */
-const DLABEL={easy:'Easy',normal:'Easy',hard:'Hard'};
-const DHINT={
-  easy:'For everyone. Well-known topics, lots of possible answers.',
-  normal:'For everyone. A wide mix of topics, from well-known to a few tricky squares.',
-  hard:'For experts. Tricky topics, few possible answers.'};
-const DEXAMPLE={
-  easy:'"In Europe" × "Uses the euro", "Flag has a star" × "In Africa"',
-  normal:'"Landlocked" × "Flag has a star", "Coast on the Mediterranean" × "Flag has green"',
-  hard:'"Borders Niger" × "Official language: French", "Coast on the Red Sea" × "Monarchy"'};
-function seg(name,opts,val){return `<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" data-seg="${name}" data-v="${v}" aria-pressed="${String(v)===String(val)}">${l}</button>`).join('')}</div>`}
 // player stats page: your own (from this device and your account) or another player's public summary (profiles/<uid>)
 let STATS_UID=null,statsBack='home';const statsCache={};
 function openStats(uid){STATS_UID=uid||null;if(screen!=='stats')statsBack=screen;screen='stats';ui.reveal=-1;
@@ -1449,21 +1369,18 @@ function statsView(){
     if(p===undefined)return `<section class="panel">${back.replace('%NAME%','Player')}<p class="hint">Loading…</p></section>`;
     if(!p||!p.d)return `<section class="panel">${back.replace('%NAME%','Player')}<p class="hint">No stats yet for this player.</p></section>`;
     st=p;name=p.name||'Player'}
-  const tile=(v,l)=>`<div class="st"><b>${v}</b><span>${l}</span></div>`,D=st.d,So=st.s,F=st.f,bd=So.byDiff||{};
+  const tile=(v,l)=>`<div class="st"><b>${v}</b><span>${l}</span></div>`,D=st.d,So=st.s,F=st.f;
   // your own stats: the same cards as every game (../brand/account.js statsPage): Daily, Solo, With friends
   const A=mine&&window.Geomingo&&Geomingo.account,days=A?Object.keys(loadHist()):[];
   if(A)return `<section class="panel stats">${back.replace('%NAME%','My stats')}${A.statsPage({game:'Countries',dates:days,lbs:[{path:'leaderboard',dates:days}],num:k=>'Grid #'+dayNumber(k),
     daily:{n:D.played,unit:'grid',streak:D.streak,avg:D.avg},
     solo:{n:So.played,unit:'game',medal:So.best,stats:[[So.best,'best'],[(So.acc||0)+'%','accuracy'],[So.perfect,'perfect']]},
-    friends:{n:F.played,w:F.wins,place:(F.place||0)*F.played,third:[F.best,'best']},
-    extra:A.levelBars('Practice by level',['normal','hard'].map((k,i)=>[DLABEL[k],(bd[k]||{}).acc||0,(bd[k]||{}).played||0,['green','coral'][i]]))})}</section>`;
-  const row=k=>{const x=bd[k]||{played:0,best:0,avg:0};return `<tr><td>${DLABEL[k]}</td><td>${x.played}</td><td>${x.best}</td><td>${x.avg}</td></tr>`};
+    friends:{n:F.played,w:F.wins,place:(F.place||0)*F.played,third:[F.best,'best']}})}</section>`;
   return `<section class="panel stats">${back.replace('%NAME%',esc(name))}
     <span class="label">Today's grid</span>
     <div class="stgrid">${tile(D.played,'played')}${tile(D.streak,'streak')}${tile(D.max,'best streak')}${tile(D.best,'best score')}${tile(D.avg,'average')}${tile(D.perfect,'perfect grids')}</div>
     <span class="label">Practice</span>
     <div class="stgrid">${tile(So.played,'games')}${tile(So.best,'best score')}${tile(So.avg,'average')}${tile(So.perfect,'perfect grids')}${tile(So.acc===undefined?'–':So.acc+'%','accuracy')}${tile(So.squares===undefined?'–':So.squares,'squares')}</div>
-    ${So.played?`<table class="sttab"><tr><th></th><th>Games</th><th>Best</th><th>Average</th></tr>${row('normal')}${row('hard')}</table>`:''}
     <span class="label">With friends</span>
     <div class="stgrid">${tile(F.played,'games')}${tile(F.wins,'wins')}${tile(F.pct+'%','win rate')}${tile(F.best,'best score')}${tile(F.avg===undefined?'–':F.avg,'average')}${tile(F.place===undefined||!F.played?'–':String(F.place),'avg. place')}</div>
   </section>`}
@@ -1543,27 +1460,6 @@ function homeView(){
   ${QRULES}`;
 }
 const QRULES=`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Fill each square with a country that fits its row and its column, each country once. Tap <span class="ib">i</span> to see what a category means. Harder squares score more. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
-// the With friends screen (Practice has none: it starts a grid at once)
-function setupView(){
-  if(screen!=='friends')return homeView();
-  setup.mode='online';
-  return `<section class="panel">
-    <div class="backline"><span class="ht">With friends</span></div>
-    <p class="hint">${MHINT.online} The host creates a room and shares its link or code.</p>
-    ${!USER&&!MAYBE_IN()?`<div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||(setup.user==='Guest'?'':setup.user))}"></div>`:''}
-    <div class="field"><span class="label">Difficulty</span>${seg('diff',[['normal','Easy'],['hard','Hard']],lvOf(setup.diff))}<p class="hint">${DHINT[lvOf(setup.diff)]}</p></div>
-    <div class="field"><span class="label">Grid size</span>${seg('n',[[4,'4 × 4'],[5,'5 × 5']],setup.n)}</div>
-    <div class="field">${FB_OK?'':'<p class="hint">Online play only works on the published site with Firebase connected.</p>'}${SIGNED()?'':'<p class="hint">To create a room, sign in. Friends can join with your code or link without an account.</p>'}<button class="primary" id="create" ${FB_OK?'':'disabled style="opacity:.5"'}>${SIGNED()?'Create room':'Sign in to create a room'}</button></div>
-    <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK?'':'disabled'}>Join</button></div></div>
-  </section>
-  <section class="panel"><span class="label">Quick rules</span><ul class="rules">
-    <li>Fill each square with a country that matches its row and its column.</li>
-    <li>Each country once per grid. Tap <span class="ib">i</span> to see what a category means.</li>
-    <li>Everyone on their own phone: the host creates a room and shares the code.</li>
-    <li>Harder squares, quick answers and full lines score more.</li>
-    <li>Full rules in <button type="button" class="qhelp">How to play</button>.</li>
-  </ul></section>`;
-}
 function gameView(){
   // today's daily done: the grid goes inside the result ticket, Next trip and Share under it (Héctor 2026-11-12)
   const n=S.n,done=S.over&&S.daily&&!S.archive&&!S.dayof,solo=S.over&&S.mode==='solo';let h='',mark=0;
@@ -1679,7 +1575,7 @@ function resultsView(body){
     return `${Geomingo.archTicket({id:'borderline',num:S.day,score:EU(p.score)+' points',detail:S.dayof?'Played on its day':p.cells+' of '+n*n+' squares',note:S.dayof?'':undefined,body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns gm-solo-btns"><button class="primary" id="archback" style="flex:1">Back to archive</button>${SHARE_BTN.replace('Share result','Share')}</div>${lbView(S.daily)}`}
   // a finished Solo game: the pink ticket with the grid inside, then New grid and Share (Héctor 2026-11-14)
-  if(S.mode==='solo'){const p=S.players[0],n=S.n,d=lvOf(S.diff),best=Math.max(p.score||0,...loadGames().filter(g=>g.m==='s'&&g.n===n&&lvOf(g.d)===d).map(g=>g.s||0));
+  if(S.mode==='solo'){const p=S.players[0],n=S.n,best=Math.max(p.score||0,...loadGames().filter(g=>g.m==='s'&&g.n===n).map(g=>g.s||0));
     return `${Geomingo.soloTicket({id:'borderline',what:S.nolives?'Unlimited':LIVES+' lives',code:S.code,score:EU(p.score)+' points',best:'Best: '+EU(best),detail:p.cells+' of '+n*n+' squares',body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns gm-solo-btns"><button class="primary" id="again" style="flex:1">New grid</button>${SHARE_BTN.replace('Share result','Share')}</div>`}
   const ranked=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score||b.cells-a.cells);
@@ -1690,7 +1586,7 @@ function resultsView(body){
    <div class="podium">${ranked.map((p,r)=>`<div class="place ${p.score===top?'win':''}" ${p.uid?`data-stats="${esc(p.uid)}" role="button" tabindex="0"`:''}><span class="rk">${r+1}</span><span class="pin" style="${pinStyle(p.i)}"></span><span class="nm">${esc(p.name)}</span><span class="pt">${EU(p.score)}</span></div><div class="bd">${breakdown(p)}</div>`).join('')}</div>
    <pre class="sharebox" id="share">${esc(shareText())}</pre>
    ${SHARE_BTN}<div class="row-btns sharerow">${S.mode==='online'&&!S.host?'':'<button class="primary" id="again" style="flex:1">Rematch, new grid</button>'}</div>
-   ${S.mode==='online'?(S.host?'':(Geomingo.party&&Geomingo.party.on()?'':'<p class="hint">The host can start a rematch.</p>'))+'<button class="ghost" id="newg">Leave room</button>':'<button class="ghost" id="newg">Change settings</button>'}</section>`;
+   ${S.mode==='online'?(S.host?'':(Geomingo.party&&Geomingo.party.on()?'':'<p class="hint">The host can start a rematch.</p>'))+'<button class="ghost" id="newg">Leave room</button>':''}</section>`;
 }
 function answersView(){
   if(ui.reveal<0)return `<p class="hint" style="margin-top:12px">Tap any square to see every country that fits it.</p>`;
@@ -1700,16 +1596,13 @@ function answersView(){
 }
 
 /* ---- guess sheet ---- */
-// The list shows names only, never flags, in every difficulty.
-// Easy: names that start with or contain what you typed.
-// Normal and Hard: only names that start with what you typed, so the list gives less away.
+// The list shows names only, never flags: only names that start with what you typed, so the list gives less away.
 function matches(q){
   const k=N(q);if(!k)return[];
-  const easy=S&&S.diff==='easy';
-  const starts=[],inside=[];
+  const starts=[];
   const terr=S&&oldDay(S.daily); // territories can only be typed in daily grids from before ONLY_COUNTRIES_FROM
-  for(const c of C){if(c.t&&!terr)continue;if(c.ak.some(a=>a.startsWith(k))||c.k.startsWith(k))starts.push(c);else if(easy&&c.k.includes(k))inside.push(c)}
-  return starts.concat(inside).slice(0,8);
+  for(const c of C){if(c.t&&!terr)continue;if(c.ak.some(a=>a.startsWith(k))||c.k.startsWith(k))starts.push(c)}
+  return starts.slice(0,8);
 }
 // line icons for the menu (24×24, drawn with the text colour)
 const ICONS={menu:'M4 6h16M4 12h16M4 18h16',games:'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',help:'M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18M12 17v.01M12 13.5a1.5 1.5 0 0 1 1-1.5a2.6 2.6 0 1 0-3-4',
@@ -1830,8 +1723,6 @@ function bind(){
   Geomingo.where(S?(S.daily?'':S.mode==='solo'?'solo':'friends'):roomCode||screen==='friends'?'friends':screen==='solo'?'solo':'');
   // anonymous counter for geomingo.com/stats: a game seen running on this page that has now ended
   if(S&&!S.over)statLive=true;else if(S&&S.over&&statLive){statLive=false;Geomingo.stat('fin',S.daily?'daily':S.mode==='solo'?'solo':'friends')}else if(!S)statLive=false;
-  app.querySelectorAll('[data-seg]').forEach(b=>b.onclick=()=>{const k=b.dataset.seg,v=b.dataset.v;
-    setup[k]=(k==='mode'||k==='diff')?v:+v;render()});
   const $=id=>document.getElementById(id);
   if($('uname')){const u=$('uname');setTimeout(()=>u.focus(),30);u.onkeydown=e=>{if(e.key==='Enter')saveUser(u.value)};$('savename').onclick=()=>saveUser(u.value)}
   if($('bsignin'))$('bsignin').onclick=signIn;
@@ -1865,18 +1756,11 @@ function bind(){
   else if($('gback')&&S&&S.daily&&!S.archive)$('gback').onclick=toHub;
   else if($('gback'))$('gback').onclick=()=>{screen=screenFor(S);clearInterval(tick);S=null;setup.code='';render();window.scrollTo(0,0)};
   if($('playsolo'))$('playsolo').onclick=()=>{screen='solo';clearInterval(tick);S=null;setup.code='';render();window.scrollTo(0,0)};
-  if($('create'))$('create').onclick=createRoom;
-  if($('reload'))$('reload').onclick=()=>{location.replace(location.pathname+'?v='+Date.now()+(roomCode?'&room='+roomCode:''))};
-  if($('jcode'))$('jcode').oninput=e=>{setup.join=e.target.value};
-  if($('jcode'))$('jcode').onkeydown=e=>{if(e.key==='Enter')joinRoom($('jcode').value)};
-  if($('join'))$('join').onclick=()=>joinRoom($('jcode').value);
-  if($('ostart'))$('ostart').onclick=()=>{toast('Building the grid…');setTimeout(()=>onlineAct('start'),40)};
-  if($('leave'))$('leave').onclick=leaveRoom;
-  if($('copylink'))$('copylink').onclick=()=>{const t=document.getElementById('linkbox').textContent;try{navigator.clipboard.writeText(t).then(()=>toast('Link copied.','good'),()=>toast('Copy blocked. Select the link and copy it.'))}catch(e){}};
+  if($('reload'))$('reload').onclick=()=>{location.replace(location.pathname+'?v='+Date.now())};
   if($('archback'))$('archback').onclick=()=>{location.href=Geomingo.HOME+'#archive'};
   if($('newg')&&S&&S.mode==='online')$('newg').onclick=leaveRoom;
   else if($('newg'))$('newg').onclick=()=>{screen=screenFor(S);clearInterval(tick);S=null;setup.code='';render()};
-  if($('again'))$('again').onclick=()=>{if(S.mode==='online'){onlineAct('rematch');return}setup.code='';buildThenStart()};
+  if($('again'))$('again').onclick=()=>{if(S.mode==='online'){onlineAct('rematch');return}setup.code='';startGame()};
   if($('copy'))$('copy').onclick=shareResult;
   if($('daily'))$('daily').onclick=()=>{const d=loadDaily();if(USER&&otherDevice(ACCT_TODAY)&&!(d&&d.S.over)){toast('Played on another device with this account. Open it there to see the full grid.');return}playDaily()};
   app.querySelectorAll('[data-info]').forEach(b=>{b.onclick=()=>{ui.info=+b.dataset.info;drawLayer()};b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();b.click()}}});
@@ -1903,14 +1787,13 @@ function start(data){
   try{if(new URLSearchParams(location.search).has('friends')&&!S){screen='friends';history.replaceState(null,'',location.pathname)}}catch(e){}
   // ?solo (from Practice on the Geomingo home page) starts a practice grid
   try{if(new URLSearchParams(location.search).has('solo')&&!S){screen='solo';history.replaceState(null,'',location.pathname)}}catch(e){}
-  try{const q=new URLSearchParams(location.search).get('room');if(q&&/^[A-Za-z]{4}$/.test(q)){setup.mode='online';setup.join=q.toUpperCase();screen='friends'}}catch(e){}
   // a shared result link (?grid=4E-KQPMT) starts that same grid
   try{const g=new URLSearchParams(location.search).get('grid');if(g&&parseCode(g)){setup.code=g.trim().toUpperCase();if(setup.mode==='online')setup.mode='solo';screen='solo';if(S&&S.mode!=='online')S=null}}catch(e){}
   // Menu → Archive on the home page: ?day=2026-11-14 opens that past grid (or the Archive list, when it was played on its day)
   {const ak=Geomingo.askedDay(DAILY_FIRST);if(ak){AUTO=0;S=null;screen='archive';playArchive(ak)}}
   initAuth();watchLB();
-  // back in the room after a reload, unless it is an old or finished one (or an invite link to another room was opened)
-  if(FB_OK&&!S){const saved=Geomingo.room.saved('bl-room');
+  // back in the room after a reload (only from the one room on the home page), unless it is an old or finished one
+  if(FB_OK&&!S&&Geomingo.party&&Geomingo.party.on()){const saved=Geomingo.room.saved('bl-room');
     if(saved&&initFB())db.ref('rooms/'+saved).once('value').then(s=>{const r=s.val();
       if(r&&r.players&&r.players[ME]&&!roomCode&&!S&&Geomingo.room.resume('bl-room',r.status==='over'))listenRoom(saved);else if(!roomCode)Geomingo.room.forget('bl-room')}).catch(()=>{})}
   // back from another app after a while with a finished room still open: go to the home screen
