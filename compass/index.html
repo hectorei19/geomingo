@@ -252,8 +252,32 @@ const squaresHTML=G=>`<span class="dsq" aria-hidden="true">${G.qs.map(q=>`<i cla
 const DECK=["abudhabi-are","abuja-nga","accra-gha","addisababa-eth","algiers-dza","amman-jor","amsterdam-nld","ankara-tur","antananari-mdg","ashgabat-tkm","astana-kaz","asuncion-pry","athens-grc","baghdad-irq","baku-aze","bamako-mli","bangkok-tha","bangui-caf","beijing-chn","beirut-lbn","belgrade-srb","berlin-deu","bern-che","bishkek-kgz","bogota-col","brasilia-bra","bratislava-svk","brazzavill-cog","brussels-bel","bucharest-rou","budapest-hun","buenosaire-arg","cairo-egy","canberra-aus","caracas-ven","chisinau-mda","colombo-lka","conakry-gin","copenhagen-dnk","dakar-sen","damascus-syr","delhi-ind","dhaka-bgd","dodoma-tza","dublin-irl","dushanbe-tjk","freetown-sle","gitega-bdi","guatemalac-gtm","hanoi-vnm","harare-zwe","havana-cub","helsinki-fin","islamabad-pak","jakarta-idn","jerusalem-isr","juba-ssd","kabul-afg","kampala-uga","kathmandu-npl","khartoum-sdn","kigali-rwa","kinshasa-cod","kualalumpu-mys","kuwaitcity-kwt","kyiv-ukr","lilongwe-mwi","lima-per","lisbon-prt","ljubljana-svn","lome-tgo","london-gbr","luanda-ago","lusaka-zmb","luxembourg-lux","madrid-esp","managua-nic","manila-phl","maputo-moz","mexicocity-mex","minsk-blr","mogadishu-som","monrovia-lbr","montevideo-ury","moscow-rus","muscat-omn","nairobi-ken","naypyidaw-mmr","ndjamena-tcd","niamey-ner","nicosia-cyp","nouakchott-mrt","oslo-nor","ottawa-can","ouagadougo-bfa","paris-fra","phnompenh-khm","podgorica-mne","portauprin-hti","portmoresb-png","portonovo-ben","prague-cze","pretoria-zaf","pristina-unk","pyongyang-prk","quito-ecu","rabat-mar","ramallah-pse","reykjavik-isl","riga-lva","riyadh-sau","rome-ita","sanaa-yem","sanjose-cri","sansalvado-slv","santiago-chl","santodomin-dom","sarajevo-bih","seoul-kor","singapore-sgp","skopje-mkd","sofia-bgr","stockholm-swe","sucre-bol","taipei-twn","tallinn-est","tashkent-uzb","tbilisi-geo","tegucigalp-hnd","tehran-irn","tirana-alb","tokyo-jpn","tripoli-lby","tunis-tun","valletta-mlt","vienna-aut","vientiane-lao","vilnius-ltu","warsaw-pol","washington-usa","wellington-nzl","yamoussouk-civ","yaounde-cmr","yerevan-arm","zagreb-hrv"];
 function dailyCodes(key){const n=dayNum(key,FIRST)-1,codes=DECK.filter(c=>cityBy[c]).sort(),days=Math.floor(codes.length/PER);
   const cyc=Math.floor(n/days),i=((n%days)+days)%days;return shuffle(codes,rngFrom(seedOf('compass-'+cyc))).slice(i*PER,(i+1)*PER)}
+/* Easier month (Héctor 2026-11-16, players found Compass too hard): from MIX_FROM to MIX_TO each day is
+   2 easy + 2 normal + 1 hard capital, in a random order (Héctor 2026-11-16), from at least 4 parts of the world (Europe, Africa,
+   the Americas, Asia & Oceania). Each list is dealt from its own deck, shuffled once per round. Days before
+   MIX_FROM and after MIX_TO keep the usual DECK. A capital that is back gets other clue cities (q.v). */
+const MIX_FROM='2026-11-17',MIX_TO='2027-01-16';
+const MIX_EASY=["london-gbr","paris-fra","madrid-esp","rome-ita","berlin-deu","lisbon-prt","amsterdam-nld","athens-grc","dublin-irl","vienna-aut","brussels-bel","moscow-rus","oslo-nor","stockholm-swe","copenhagen-dnk","prague-cze","warsaw-pol","tokyo-jpn","beijing-chn","seoul-kor","bangkok-tha","delhi-ind","singapore-sgp","jakarta-idn","tehran-irn","jerusalem-isr","riyadh-sau","cairo-egy","nairobi-ken","washington-usa","ottawa-can","mexicocity-mex","havana-cub","buenosaire-arg","lima-per","santiago-chl","bogota-col","brasilia-bra","canberra-aus","wellington-nzl"];
+const MIX_NORMAL=["helsinki-fin","reykjavik-isl","kyiv-ukr","budapest-hun","bucharest-rou","belgrade-srb","bern-che","ankara-tur","baghdad-irq","damascus-syr","beirut-lbn","kabul-afg","islamabad-pak","kathmandu-npl","dhaka-bgd","hanoi-vnm","manila-phl","kualalumpu-mys","taipei-twn","pyongyang-prk","abudhabi-are","kuwaitcity-kwt","doha-qat","algiers-dza","tunis-tun","rabat-mar","tripoli-lby","khartoum-sdn","addisababa-eth","accra-gha","dakar-sen","pretoria-zaf","abuja-nga","kinshasa-cod","caracas-ven","quito-ecu","montevideo-ury","sofia-bgr","zagreb-hrv","luxembourg-lux"];
+const MIX_HARD=DECK.filter(c=>!MIX_EASY.includes(c)&&!MIX_NORMAL.includes(c));
+const isMix=key=>key>=MIX_FROM&&key<=MIX_TO;
+const partOf=c=>{const r=(coBy[(cityBy[c]||{}).k3]||{}).r;return r==='NA'||r==='SA'?'AM':r==='OC'?'AS':r};
+const MIXK={};
+// the five of a day in the easier month: [{c, v}], v = how many times the capital was in the daily before
+function mixDay(key){if(MIXK[key])return MIXK[key];
+  const seen={};for(let k=FIRST;k<MIX_FROM;k=dayKeyAfter(k))dailyCodes(k).forEach(c=>seen[c]=(seen[c]||0)+1);
+  const tiers={e:MIX_EASY,n:MIX_NORMAL,h:MIX_HARD},deck={},round={e:0,n:0,h:0};
+  const take=(t,used,day)=>{for(;;){deck[t]=deck[t]||[];if(deck[t].length<8)deck[t]=deck[t].concat(shuffle(tiers[t].filter(c=>cityBy[c]).sort(),rngFrom(seedOf('compass-mix-'+t+'-'+round[t]++))));
+      let j=deck[t].findIndex(c=>!day.includes(c)&&(used.size>=4||!used.has(partOf(c))));if(j<0)j=deck[t].findIndex(c=>!day.includes(c));
+      if(j>=0)return deck[t].splice(j,1)[0]}};
+  for(let k=MIX_FROM;k<=key;k=dayKeyAfter(k)){const used=new Set(),day=[];
+    for(const t of ['e','e','n','n','h']){const c=take(t,used,day);day.push(c);used.add(partOf(c))}
+    MIXK[k]=shuffle(day,rngFrom(seedOf('compass-mix-'+k))).map(c=>({c,v:seen[c]||0}));day.forEach(c=>seen[c]=(seen[c]||0)+1)}
+  return MIXK[key]}
+function dayKeyAfter(k){return new Date(Date.parse(k+'T12:00Z')+864e5).toISOString().slice(0,10)}
 // a day's game: in the 2nd round of the list on (cycle 1, from day 30) each capital is back with other clue cities (q.v)
-function dailyNew(key,o){const n=dayNum(key,FIRST)-1,days=Math.floor(DECK.filter(c=>cityBy[c]).length/PER),cyc=Math.max(0,Math.floor(n/days));
+function dailyNew(key,o){if(isMix(key)){const l=mixDay(key),G=newGame(l.map(x=>x.c),o);G.qs.forEach((q,i)=>{if(l[i].v)q.v=l[i].v});return G}
+  const n=dayNum(key,FIRST)-1,days=Math.floor(DECK.filter(c=>cityBy[c]).length/PER),cyc=Math.max(0,Math.floor(n/days));
   const G=newGame(dailyCodes(key),o);if(cyc)G.qs.forEach(q=>q.v=cyc);return G}
 let D=null;
 const isGame=S=>S&&Array.isArray(S.qs);
