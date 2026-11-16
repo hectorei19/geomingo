@@ -288,7 +288,7 @@ function toCl3(S){if(S.over||!Geomingo.cl3(S.date)||S.qs.every(q=>q.x3))return;S
 function dailyGame(){const d=dailySaved();if(d){if(d.S&&d.S.over)d.S.left=null;toCl3(d.S);return d.S}
   return dailyNew(todayKey(),{mode:'daily',date:todayKey(),num:dayNum(todayKey(),FIRST)})}
 function dailySave(){if(!D)return;
-  if(D.mode==='archive'){const a=load('cm-arch',{});a[D.date]=D;store('cm-arch',a);if(D.over)logHist(D);return}
+  if(D.mode==='archive'){const a=load('cm-arch',{});if(D.over&&!D.pd)D.pd=Geomingo.dayKey();a[D.date]=D;store('cm-arch',a);if(D.over)logHist(D);return}
   store('cm-daily',{date:D.date,over:D.over,S:D});
   if(D.over&&logHist(D)&&!TESTDAY){Geomingo.clock.stop('compass',D.date,rightOf(D)/PER);Geomingo.account.done('compass')}}
 // a finished daily (on its day) goes into the history once: {p points, r capitals named, a with the first clue alone, m wrong guesses}

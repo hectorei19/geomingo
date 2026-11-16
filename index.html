@@ -340,12 +340,14 @@ function archCal(P){const t=G.dayKey(),first=A_FIRST(),k0=archDay(),L=P.L,AR={};
     '<button type="button" data-amon="1" aria-label="Next month"'+(mon>=t.slice(0,7)?' disabled':'')+'>›</button></div><div class="g">'+c+'</div></div>'+
     '<p class="aday">'+esc(G.dateText(k0,{weekday:'long',day:'numeric',month:'short'}))+' · tap a game</p>'}
 const AST={no:['NOT YET',''],day:['✓ PLAYED','Played on the day'],arch:['✓ ARCHIVE','Played later'],prog:['IN PROGRESS',''],play:['PLAY','']};
+// the day an archive game was really played (saved since 2026-11-16; older ones show the puzzle's own day)
+const archOn=(g,k,AR)=>{const a=(AR[g.arch]||{})[k];return a&&/^\d{4}-\d\d-\d\d$/.test(a.pd||'')?a.pd:k};
 function archTile(g,P,AR){const k=archDay(),st=archState(g,k,P.L,AR),lk=look(g.id),[lab,h]=AST[st];
   const hint=st==='no'?'From '+esc(G.dateText(g.first,{day:'numeric',month:'short'})):st==='day'&&P.L[k][g.id]!=null?'+'+P.L[k][g.id]+' km on the day':h||esc(HINT3[g.id]||g.hint);
   const top='<span class="tt"><span>TRIP '+g.gate+'</span><span class="s2">'+lab+'</span></span>'+lk.svg+'<b>'+esc(g.name)+'</b><small>'+hint+'</small><span class="s3">'+lab+'</span>';
   if(st==='no')return '<li><div class="tile off'+(lk.ctr?' ctr':'')+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+': not out yet on this day">'+top+'</div></li>';
   // played on its day: it opens that day's result (with links to the calendar and to every day of that game, Héctor 2026-11-16)
-  return '<li><a class="tile'+(lk.ctr?' ctr':'')+(st==='day'||st==='arch'?' done':'')+'" href="'+g.href+'?day='+k+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+', '+esc(G.dateText(k,{weekday:'long',day:'numeric',month:'long'}))+': '+lab.replace('✓ ','').toLowerCase()+'">'+top+(st==='day'?stamp(g.id,k):'')+'</a></li>'}
+  return '<li><a class="tile'+(lk.ctr?' ctr':'')+(st==='day'||st==='arch'?' done':'')+'" href="'+g.href+'?day='+k+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+', '+esc(G.dateText(k,{weekday:'long',day:'numeric',month:'long'}))+': '+lab.replace('✓ ','').toLowerCase()+'">'+top+(st==='day'?stamp(g.id,k):st==='arch'?stamp(g.id,k,archOn(g,k,AR)):'')+'</a></li>'}
 function tile(g,P){if(MODE==='archive')return archTile(g,P,P.AR||(P.AR={}));if(MODE!=='today')return modeTile(g);const r=G.result(g.id),lk=look(g.id),mi=P.today[g.id];
   const state=r.done?'✓ '+(mi!=null?'+'+mi+' KM':esc(r.label)):'TO VISIT',hint=r.done?doneLine(g.id,r.label):esc(HINT3[g.id]||g.hint);
   const lab='aria-label="'+esc(g.name)+', trip '+g.gate+': '+(r.done?'played today, '+esc(r.label):'play')+'"';
@@ -354,8 +356,8 @@ function tile(g,P){if(MODE==='archive')return archTile(g,P,P.AR||(P.AR={}));if(M
 // the passport stamp on a game played today (k: or on that day, in the Archive): always VISITED with the date (Héctor
 // 2026-11-16: the round one had no date); the tilt looks random but stays the same for that game and day
 const MON=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-function stamp(id,k){k=k||G.dayKey();let h=0;for(const ch of id+k)h=Math.imul(h^ch.charCodeAt(0),2654435761)>>>0;h^=h>>>15;
-  const tilt=[-16,-12,-8,-5,6,9,13][(h>>>4)%7],d=k.split('-');
+function stamp(id,k,on){k=k||G.dayKey();let h=0;for(const ch of id+k)h=Math.imul(h^ch.charCodeAt(0),2654435761)>>>0;h^=h>>>15;
+  const tilt=[-16,-12,-8,-5,6,9,13][(h>>>4)%7],d=(on||k).split('-');
   return '<span class="stamp rect" style="--r:'+tilt+'deg" aria-hidden="true">'+G.mingo('head',30)+'<span><b>VISITED</b><i>'+(+d[2])+' '+MON[+d[1]-1]+'</i></span></span>'}
 const SOON=n=>'<li><div class="tile soon ctr" aria-label="Coming soon: a new game"><span class="tt"><span>TRIP '+n+'</span><span class="s2">SOON</span></span>'+
   '<svg viewBox="-14 -9 46 48" preserveAspectRatio="xMidYMid meet" aria-hidden="true" style="stroke:none"><path d="M0 0 H18 M0 30 H18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M2 1 C2 10 8 12 9 15 C10 12 16 10 16 1 Z M2 29 C2 20 8 18 9 15 C10 18 16 20 16 29 Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M5 5 H13 C12 9 10 11 9 13 C8 11 6 9 5 5 Z M4 28 C6 23 12 23 14 28 Z" fill="currentColor"/><path d="M9 15 V24" stroke="currentColor" stroke-width="1" stroke-dasharray="1.5 1.5"/></svg>'+

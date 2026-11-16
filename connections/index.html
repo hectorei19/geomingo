@@ -310,7 +310,7 @@ function save(){if(!S)return;
     keep('cx-online',{code:S.code,round:S.round,S});pushProgress();return}
   if(S.mode==='daily'){store('cx-daily',{date:S.date,over:S.over,S});
     if(S.over){const h=load('cx-hist',{});if(!h[S.date]){h[S.date]={w:S.won?1:0,m:S.mistakes,f:S.found.length};store('cx-hist',h);if(!TESTDAY){Geomingo.clock.stop('connections',S.date,S.found.length/4);Geomingo.account.done('connections')}}}}
-  else if(S.mode==='archive'){const a=load('cx-arch',{});a[S.date]=S;store('cx-arch',a)}
+  else if(S.mode==='archive'){const a=load('cx-arch',{});if(S.over&&!S.pd)S.pd=Geomingo.dayKey();a[S.date]=S;store('cx-arch',a)}
   else{if(S.over&&!S.logged){S.logged=1;logSolo('cx-solo',{w:S.won?1:0,p:S.won&&!S.mistakes?1:0,f:S.found.length})}
     store('cx-free',S)}}
 function openDaily(){view='game';mode='daily';S=dailySaved()||dailyPreview();sel=[];render()}

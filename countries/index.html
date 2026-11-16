@@ -849,7 +849,8 @@ function playDaily(){
    Games are kept in bl-arch on the device and in users/<uid>/archive/<date> (with the whole game, like today's grid).
    They count neither for the daily ranking nor for the streak. ---- */
 function loadArch(){try{return JSON.parse(localStorage.getItem('bl-arch')||'{}')||{}}catch(e){return {}}}
-function saveArchGame(s){const a=loadArch();a[s.daily]=s;try{localStorage.setItem('bl-arch',JSON.stringify(a))}catch(e){}}
+// pd: the day the archive grid was really played (its stamp on the home page's Archive shows it, Héctor 2026-11-16)
+function saveArchGame(s){if(s.over&&!s.pd)s.pd=Geomingo.dayKey();const a=loadArch();a[s.daily]=s;try{localStorage.setItem('bl-arch',JSON.stringify(a))}catch(e){}}
 let ARCH_REMOTE=null,archBack='home';const archUp=new Set();
 function syncArch(){if(!USER||!db)return;const uid=USER.uid;
   db.ref('users/'+uid+'/archive').once('value').then(s=>{if(!USER||USER.uid!==uid)return;ARCH_REMOTE=s.val()||{};
