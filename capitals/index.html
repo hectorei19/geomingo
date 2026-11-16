@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611171700"></script>
+<script src="../brand/mingo.js?v=202611171800"></script>
 <script src="../brand/account.js?v=202611171900"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -1548,7 +1548,7 @@ function resultsView(body){
     <div class="gm-done-btns">${nextGameBtn(next)}${SHARE_BTN.replace('Share result','Share')}</div>`;
     // an archive grid (or one played on its day, opened from the archive): the coral ticket with the grid inside,
     // Back to archive (the calendar of all the games on the home page) and Share under it (Héctor 2026-11-16)
-    return `${Geomingo.archTicket({id:'citygrid',num:S.day,score:EU(p.score)+' points',detail:S.dayof?'Played on its day':p.cells+' of '+n*n+' squares',body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
+    return `${Geomingo.archTicket({id:'citygrid',num:S.day,score:EU(p.score)+' points',detail:S.dayof?'Played on its day':p.cells+' of '+n*n+' squares',note:S.dayof?'':undefined,body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns gm-solo-btns"><button class="primary" id="archback" style="flex:1">Back to archive</button>${SHARE_BTN.replace('Share result','Share')}</div>${lbView(S.daily)}`}
   // a finished Solo game: the pink ticket with the grid inside, then New grid and Share (Héctor 2026-11-14)
   if(S.mode==='solo'){const p=S.players[0],n=S.n,d=lvOf(S.diff),best=Math.max(p.score||0,...loadGames().filter(g=>g.m==='s'&&g.n===n&&lvOf(g.d)===d).map(g=>g.s||0));
