@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="brand/geomingo.css?v=202611191600">
+<link rel="stylesheet" href="brand/geomingo.css?v=202611191700">
 <script src="brand/mingo.js?v=202611181900"></script>
 <script src="brand/account.js?v=202611190700"></script>
 <script src="brand/party.js?v=202611160600"></script>
@@ -344,9 +344,8 @@ function archTile(g,P,AR){const k=archDay(),st=archState(g,k,P.L,AR),lk=look(g.i
   const hint=st==='no'?'From '+esc(G.dateText(g.first,{day:'numeric',month:'short'})):st==='day'&&P.L[k][g.id]!=null?'+'+P.L[k][g.id]+' km on the day':h||esc(HINT3[g.id]||g.hint);
   const top='<span class="tt"><span>TRIP '+g.gate+'</span><span class="s2">'+lab+'</span></span>'+lk.svg+'<b>'+esc(g.name)+'</b><small>'+hint+'</small><span class="s3">'+lab+'</span>';
   if(st==='no')return '<li><div class="tile off'+(lk.ctr?' ctr':'')+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+': not out yet on this day">'+top+'</div></li>';
-  // played on its day: done (one try per day), nothing to open
-  if(st==='day')return '<li><div class="tile done'+(lk.ctr?' ctr':'')+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+': played on the day">'+top+stamp(g.id,k)+'</div></li>';
-  return '<li><a class="tile'+(lk.ctr?' ctr':'')+(st==='day'||st==='arch'?' done':'')+'" href="'+g.href+'?day='+k+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+', '+esc(G.dateText(k,{weekday:'long',day:'numeric',month:'long'}))+': '+lab.replace('✓ ','').toLowerCase()+'">'+top+'</a></li>'}
+  // played on its day: it opens that day's result (with links to the calendar and to every day of that game, Héctor 2026-11-16)
+  return '<li><a class="tile'+(lk.ctr?' ctr':'')+(st==='day'||st==='arch'?' done':'')+'" href="'+g.href+'?day='+k+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+', '+esc(G.dateText(k,{weekday:'long',day:'numeric',month:'long'}))+': '+lab.replace('✓ ','').toLowerCase()+'">'+top+(st==='day'?stamp(g.id,k):'')+'</a></li>'}
 function tile(g,P){if(MODE==='archive')return archTile(g,P,P.AR||(P.AR={}));if(MODE!=='today')return modeTile(g);const r=G.result(g.id),lk=look(g.id),mi=P.today[g.id];
   const state=r.done?'✓ '+(mi!=null?'+'+mi+' KM':esc(r.label)):'TO VISIT',hint=r.done?doneLine(g.id,r.label):esc(HINT3[g.id]||g.hint);
   const lab='aria-label="'+esc(g.name)+', trip '+g.gate+': '+(r.done?'played today, '+esc(r.label):'play')+'"';
