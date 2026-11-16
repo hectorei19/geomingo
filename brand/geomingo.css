@@ -379,6 +379,9 @@ button.hcard:hover,button.hcard:active{border-color:var(--ink);background:var(--
 .arch button{background:var(--page);border:1px solid var(--line);border-radius:10px;min-height:56px}
 .arch button:hover{border-color:var(--ink)}
 .arch .an{font-family:var(--display);font-weight:900;font-stretch:90%;color:var(--coral-text)}
+/* the result column has one fixed width, so the little grids and the points line up in every row (Héctor 2026-11-16) */
+.arch .as{width:9ch;min-width:9ch;flex:none;text-align:right}
+.arch .dsq{flex:none}
 .gbanner{background:var(--sea-soft);border:1px solid var(--blue);border-radius:10px}
 .dsq i{border-radius:3px;background:none;border:1px dashed var(--muted)}
 .dsq i.on{background:var(--green);border:0}
