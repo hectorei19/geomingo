@@ -695,6 +695,9 @@ let dailyUp='';
 // another device only started today's grid and never finished it: a game finished here still counts
 // and replaces it, so the device that opened it shows this result too (Héctor 2026-11-14)
 const emptyStart=e=>!!e&&e.f===0&&!e.c&&!e.s&&!e.j;
+// today's grid is locked only by a game another device finished (or played on): opening it there is not enough,
+// so a phone that only opened today's grid never shows the old "started on another device" screen here (Héctor 2026-11-16)
+const lockedElsewhere=e=>otherDevice(e)&&!emptyStart(e);
 function recordDaily(s){if(TESTDAY)return;if(s.daily===todayKey())Geomingo.clock.stop('borderline',s.daily,(s.players[0].cells||0)/(s.n*s.n));const h=loadHist(),e=dailyEntry(s,1),today=s.daily===todayKey();
   if(USER&&today&&otherDevice(ACCT_TODAY)&&!emptyStart(ACCT_TODAY))return; // the account already used today's try elsewhere
   const old=h[s.daily],same=old&&old.s===e.s&&old.c===e.c&&old.f===1&&old.d===ME;
@@ -805,7 +808,7 @@ function dailyGrid(day){const key=day||todayKey();if(dailyCache&&dailyCache.key=
 function playDaily(){
   if(USER)adoptDaily(ACCT_TODAY); // the account's finished game first, so it can't be started again here
   const saved=loadDaily();
-  if(USER&&otherDevice(ACCT_TODAY)&&!(saved&&saved.S.over)){toast('You already played today\'s grid with this account on another device.','bad');render();return}
+  if(USER&&lockedElsewhere(ACCT_TODAY)&&!(saved&&saved.S.over)){toast('You already played today\'s grid with this account on another device.','bad');render();return}
   if(saved){S=saved.S;ui={sel:-1,query:'',reveal:-1,toast:null,fresh:-1};if(!S.over)startTurn();render();return}
   const dg=dailyGrid();
   if(!dg){toast('Could not build today\'s grid. Try again later.','bad');return}
@@ -821,7 +824,7 @@ function playDaily(){
   // signed in: claim today's try for this device as soon as the game starts; if another device got there first, stop
   if(USER&&db&&!TESTDAY){const mine=S,ref=db.ref('users/'+USER.uid+'/daily/'+key);
     ref.transaction(cur=>!cur||!cur.d?dailyEntry(mine,0):cur.d===ME?cur:undefined).then(r=>{
-      if(!r.committed&&otherDevice(r.snapshot.val())&&S===mine){S=null;try{localStorage.removeItem('bl-daily')}catch(e){}
+      if(!r.committed&&lockedElsewhere(r.snapshot.val())&&S===mine){S=null;try{localStorage.removeItem('bl-daily')}catch(e){}
         toast('You already played today\'s grid with this account on another device.','bad');render()}}).catch(()=>{})}
 }
 /* ---- archive: past daily grids, one try each (per account when signed in, otherwise per device).
@@ -1091,7 +1094,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/da
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed){const k=n+':'+seed;if(!ansCache[k])ansCache[k]=generate(n,seed);return ansCache[k]}
-const APP_VERSION='202611160600';
+const APP_VERSION='202611161400';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
@@ -1300,7 +1303,7 @@ const dailyOver=()=>{const d=loadDaily();return !!(d&&d.S&&d.S.over)};
 const acctWaiting=()=>!!USER&&!ACCT_READY&&!!ACCT_WAIT&&!dailyOver();
 function autoDaily(){if(!AUTO&&!dailyOver()||S||screen!=='home'||editingUser||roomCode||MAYBE_IN()&&AUTH_WAIT||(USER&&NEEDNAME)||acctWaiting())return false;
   AUTO=0;if(USER)adoptDaily(ACCT_TODAY);const d=loadDaily();
-  if(USER&&otherDevice(ACCT_TODAY)&&!(d&&d.S.over))return false;
+  if(USER&&lockedElsewhere(ACCT_TODAY)&&!(d&&d.S.over))return false;
   if(!d&&!dailyGrid())return false;
   playDaily();return true}
 function render(){
@@ -1437,7 +1440,7 @@ function homeView(){
     :USER||MAYBE_IN()?(nPlayers?`<span class="hrank">${nPlayers} player${nPlayers===1?'':'s'} in today's ranking</span>`:'')
     :AUTH_OK?`<span class="hrank">Sign in to join today's ranking${nPlayers?` (${nPlayers} player${nPlayers===1?'':'s'})`:''}.</span>`:'';
   // signed in and today's try was used on another device of the account: show that result instead of the grid
-  const other=!done&&USER&&otherDevice(ACCT_TODAY)?ACCT_TODAY:null;
+  const other=!done&&USER&&lockedElsewhere(ACCT_TODAY)?ACCT_TODAY:null;
   // played: green squares for the answers you got, grey for the rest (like the shared result); tap to see the full grid
   const doneCard=(status,n,got,score,cells,hint)=>`<button class="hcard" id="daily"><span class="hm">Today's grid #${dayNumber(key)} · ${status}</span><span class="dsum"><span class="dsq" style="grid-template-columns:repeat(${n},1fr)" aria-hidden="true">${got.map(x=>`<i class="${x?'on':''}"></i>`).join('')}</span><span class="dtxt"><span class="ht">${EU(score)} points</span><span class="hs">${cells} of ${n*n} squares</span></span>${(st=>`<span class="dstats"><span><b>${st.streak}</b>streak</span><span><b>${st.played}</b>played</span><span><b>${st.avg}</b>average</span></span>`)(dailyStats())}</span>${rankLine}<span class="hs">${hint}</span><span class="hm">Next grid in ${next}</span></button>`;
   const daily=done?doneCard('done',d.S.n,d.S.cells.map(c=>c.o>=0),p.score,p.cells,'Tap to see your grid, the ranking and share it.')
@@ -1762,7 +1765,7 @@ function bind(){
   else if($('newg'))$('newg').onclick=()=>{screen=screenFor(S);clearInterval(tick);S=null;setup.code='';render()};
   if($('again'))$('again').onclick=()=>{if(S.mode==='online'){onlineAct('rematch');return}setup.code='';startGame()};
   if($('copy'))$('copy').onclick=shareResult;
-  if($('daily'))$('daily').onclick=()=>{const d=loadDaily();if(USER&&otherDevice(ACCT_TODAY)&&!(d&&d.S.over)){toast('Played on another device with this account. Open it there to see the full grid.');return}playDaily()};
+  if($('daily'))$('daily').onclick=()=>{const d=loadDaily();if(USER&&lockedElsewhere(ACCT_TODAY)&&!(d&&d.S.over)){toast('Played on another device with this account. Open it there to see the full grid.');return}playDaily()};
   app.querySelectorAll('[data-info]').forEach(b=>{b.onclick=()=>{ui.info=+b.dataset.info;drawLayer()};b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();b.click()}}});
   app.querySelectorAll('[data-cell]').forEach(b=>b.onclick=()=>{
     const ci=+b.dataset.cell;
