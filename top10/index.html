@@ -38,7 +38,7 @@
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611171600"></script>
 <script src="../brand/account.js?v=202611171900"></script>
-<script src="../brand/party.js?v=202611151310"></script>
+<script src="../brand/party.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -86,6 +86,8 @@
 body.kbon .t10list{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(var(--rows,5),auto);grid-auto-flow:column}
 body.kbon .t10list li{display:grid;grid-template-columns:26px 1fr;grid-template-rows:auto auto;align-content:center;column-gap:6px;min-height:46px;padding:4px 8px 4px 10px;min-width:0}
 body.kbon .t10list li.c2top{border-top:0}
+.t10list li.pad{display:none}
+body.kbon .t10list li.pad{display:grid} /* ties make an odd list: an empty box keeps both columns the same height */
 body.kbon .t10list li.c2{border-left:2px dashed var(--line)}
 body.kbon .t10list .rk{grid-row:1/3;width:auto;font-size:1.15rem;align-self:center}
 body.kbon .t10list .nm{font-size:.86rem;line-height:1.15;gap:6px;min-width:0;overflow-wrap:anywhere}
@@ -505,7 +507,7 @@ function listHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries
   const who=c=>on&&S.by[c]!=null&&S.players[S.by[c]]?S.players[S.by[c]].name:'',pc=c=>`--pc:var(--p${S.by[c]%6})`;
   const half=Math.ceil(S.top.length/2),ask=KB&&!S.over&&(!on||S.turn===S.me);
   let h=`<ol class="t10list" style="--rows:${half}">${S.top.map((c,i)=>{const f=S.found.includes(c),show=f||S.over,co=byCode[c];
-    return `<li class="${f?'on':S.over?'miss':''}${f&&on?' by':''}${fresh===c?' new':''}${i>=half?' c2':''}${i===half?' c2top':''}"${ask&&!f?' data-ask':''}${f&&on?` style="${pc(c)};background:var(--p${S.by[c]%6}-soft)" title="${esc(who(c))}"`:''}><span class="rk">${placeOf(l,c)}</span><span class="nm">${show?`<img class="mini" src="${FLAGS[c]}" alt="">${esc(co.n)}`:''}</span>${show?`<span class="val">${esc(l.fmt(val[c]))}</span>`:''}</li>`}).join('')}</ol>`;
+    return `<li class="${f?'on':S.over?'miss':''}${f&&on?' by':''}${fresh===c?' new':''}${i>=half?' c2':''}${i===half?' c2top':''}"${ask&&!f?' data-ask':''}${f&&on?` style="${pc(c)};background:var(--p${S.by[c]%6}-soft)" title="${esc(who(c))}"`:''}><span class="rk">${placeOf(l,c)}</span><span class="nm">${show?`<img class="mini" src="${FLAGS[c]}" alt="">${esc(co.n)}`:''}</span>${show?`<span class="val">${esc(l.fmt(val[c]))}</span>`:''}</li>`}).join('')}${S.top.length%2?'<li class="c2 pad" aria-hidden="true"></li>':''}</ol>`;
   fresh=null;
   return h}
 // the figure of a wrong answer, short enough to fit its box on one line: big numbers in M / bn, short units
@@ -608,7 +610,7 @@ function render(){
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
   // the ticket, as in every game: Mingo on top, then who is travelling, countries found and lives left
   const cell=Geomingo.tk,tk=()=>Geomingo.ticket(moodHTML(tKey(),'pass','10 stamps to win.',S.nolives?'In any order. Unlimited: play until you find them all.':'In any order. A country outside the top 10 costs a life.'),
-    cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Found',S.found.length+'/10')+(S.mode==='daily'?(Geomingo.newKm(S.date)?cell('Points',Geomingo.KM.top10(S.found.length,S.wrong.length),'tk-pts'):cell('km',Geomingo.pts(S.found.length/10),'tk-pts')):cell('Points',Geomingo.KM.top10(S.found.length,S.wrong.length),'tk-pts'))+(S.nolives?cell('Mistakes',S.wrong.length,'tk-gs'):cell('Lives',livesHTML(S.lives,LIVES),'tk-gs')),{mode:S.mode==='free'?'practice':S.mode,num:S.num});
+    cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Found',S.found.length+'/10')+(S.mode==='daily'?(Geomingo.newKm(S.date)?cell('km',Geomingo.KM.top10(S.found.length,S.wrong.length),'tk-pts'):cell('km',Geomingo.pts(S.found.length/10),'tk-pts')):cell('Points',Geomingo.KM.top10(S.found.length,S.wrong.length),'tk-pts'))+(S.nolives?cell('Mistakes',S.wrong.length,'tk-gs'):cell('Lives',livesHTML(S.lives,LIVES),'tk-gs')),{mode:S.mode==='free'?'practice':S.mode,num:S.num});
   // a guess while this list is on screen: only the ticket and the list change. The box you type in stays
   // where it is, so the phone keeps its keyboard open and the page does not jump up and down
   const g=$('t10game'),q=$('q');

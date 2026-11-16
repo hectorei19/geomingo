@@ -23,7 +23,7 @@
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611171600"></script>
 <script src="../brand/account.js?v=202611171900"></script>
-<script src="../brand/party.js?v=202611151310"></script>
+<script src="../brand/party.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -277,7 +277,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     :q.k>1||q.tries.length?['think','Look again.','A new clue is open. Every clue lowers the points.']
     :['pass','A flag in pieces.','These are its colours and how much of it each one covers. Whose flag is it?'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
-    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Flag',(i+1)+'/'+PER)+tk('Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
+    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Flag',(i+1)+'/'+PER)+tk(mode==='daily'?'km':'Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-gs'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Flag Pie',(arch?'Archive #':'Daily #')+D.num);
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
   if(D.over&&D.left==null)return h+resultHTML(D)+(D.mode==='archive'?summaryHTML(D):rankingHTML());

@@ -23,7 +23,7 @@
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611171600"></script>
 <script src="../brand/account.js?v=202611171900"></script>
-<script src="../brand/party.js?v=202611151310"></script>
+<script src="../brand/party.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -261,7 +261,7 @@ function dailyHTML(){let h=header('Silhou<span>ette</span>',(D.arch?'Archive #':
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
   if(D.over)h+=D.arch?dailyResultHTML(D)+`<section class="panel play">${boardHTML(D)}</section>`:dailyResultHTML(D)+rankingHTML();
   else{const q=D.qs[D.sel];
-    h+=Geomingo.ticket(dailyMood(),tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Named',rightOf(D)+'/'+D.qs.length)+(D.arch?tk('Class',DIFF_NAME[DAILY_LV],'tk-pts'):(Geomingo.newKm(D.date)?tk('Points',Geomingo.KM.sil(rightOf(D),D.qs.reduce((n,q)=>n+q.tries.length,0)),'tk-pts'):tk('km',Geomingo.pts(rightOf(D)/D.qs.length),'tk-pts')))+tk('Lives',livesHTML(livesLeft(D.qs),LIVES),'tk-gs'),{mode:D.arch?'archive':'daily',num:D.num})+`<section class="panel">${dailyPlayHTML(D,true)}</section>`+quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}
+    h+=Geomingo.ticket(dailyMood(),tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Named',rightOf(D)+'/'+D.qs.length)+(D.arch?tk('Class',DIFF_NAME[DAILY_LV],'tk-pts'):(Geomingo.newKm(D.date)?tk('km',Geomingo.KM.sil(rightOf(D),D.qs.reduce((n,q)=>n+q.tries.length,0)),'tk-pts'):tk('km',Geomingo.pts(rightOf(D)/D.qs.length),'tk-pts')))+tk('Lives',livesHTML(livesLeft(D.qs),LIVES),'tk-gs'),{mode:D.arch?'archive':'daily',num:D.num})+`<section class="panel">${dailyPlayHTML(D,true)}</section>`+quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}
   return h}
 function dailyMood(){const started=D.qs.some(q=>q.st!=='play');
   return moodHTML(silKey(),started?'think':'pass',started?'Keep going: '+rightOf(D)+' of 9 so far.':'GeoPass ready.',started?'Tap any shape to jump to it.':'Nine shapes, nine stamps to win, the same for everyone. '+LIVES+' lives for the whole board.')}

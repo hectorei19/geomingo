@@ -26,7 +26,7 @@
 <link rel="stylesheet" href="brand/geomingo.css?v=202611171800">
 <script src="brand/mingo.js?v=202611171600"></script>
 <script src="brand/account.js?v=202611171900"></script>
-<script src="brand/party.js?v=202611151310"></script>
+<script src="brand/party.js?v=202611160600"></script>
 <style>
 /* Home page: Sign in and Menu on top, today's games as colour tiles, Practice and With friends, then the GeoPass
    (km, level, today's stamps) and the ranking by km (today, this week, this month) */
@@ -368,7 +368,7 @@ function passHTML(P){const lv=level(P.miles),live=G.live(),played=live.filter(g=
   const st=(n,t)=>'<div class="stat"><b>'+n+'</b><span>'+t+'</span></div>';
   return '<div class="row"><span class="lab">My GeoPass</span><span class="lvl">'+lv.name+'</span></div>'+
     '<button class="who" id="openpass" aria-label="Open your GeoPass: '+fmt(P.miles)+' km, level '+lv.name+'">'+G.mingo(played?'happy':'pass',56)+
-      '<span><span class="km"><span class="mi">'+fmt(P.miles)+'</span><em>km travelled</em></span><span class="sub">Every daily game moves you up to 100 km.</span></span></button>'+
+      '<span><span class="km"><span class="mi">'+fmt(P.miles)+'</span><em>km travelled</em></span><span class="sub">Every daily game moves you up to 100&nbsp;km.</span></span></button>'+
     '<div class="bar" role="img" aria-label="'+(lv.next?lv.pct+'% of the way to '+lv.next[0]:'Top level')+'"><i style="width:'+lv.pct+'%"></i></div>'+
     '<div class="ladder" aria-hidden="true"><b>'+lv.name.toUpperCase()+'</b><span>'+(lv.next?'NEXT · '+lv.next[0].toUpperCase()+' '+fmt(lv.next[1]):'TOP LEVEL')+'</span></div>'+
     '<div class="stats">'+st(fmt(G.stamps()),'stamps<br>(right answers)')+st(G.countriesMine(),'countries<br>unlocked')+st(P.streak,(P.streak===1?'day':'days')+' in<br>a row')+'</div>'+
