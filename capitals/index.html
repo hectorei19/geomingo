@@ -579,7 +579,7 @@ const progS=s=>s.cells.filter(c=>c.o>=0).length+(dailyEntry(s,0).w||0);
 // today's grid half played on this device: keep it in the account, so the other devices show it too
 // the account entry keeps the device that first opened today's grid (d), as the Firebase rules ask
 let progUp='';
-function pushProgress(){if(!USER||!db||TESTDAY||!S||!S.daily||S.archive||S.dayof||S.over||S.guest||S.mode!=='solo'||S.daily!==todayKey())return;
+function pushProgress(){if(!USER||!db||TESTDAY||!S||!S.daily||S.archive||S.dayof||S.over||S.guest&&!S.first||S.mode!=='solo'||S.daily!==todayKey())return;
   const sig=USER.uid+S.daily+':'+progS(S);if(progUp===sig)return;progUp=sig;const mine=S,e={...dailyEntry(mine,0),c:mine.cells.filter(c=>c.o>=0).length,s:liveScore(0)},j=JSON.stringify(mine);
   db.ref('users/'+USER.uid+'/capitals/daily/'+mine.daily).transaction(cur=>cur&&cur.f===1||cur&&progOf(cur)>progOf(e)?undefined:{...e,d:cur&&cur.d||ME,j})
     .catch(()=>{progUp=''})}
@@ -984,7 +984,7 @@ function syncHist(){if(!USER||!db)return;const ref=db.ref('users/'+USER.uid+'/ca
 const randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*24)]).join('');
 const evId=()=>Math.random().toString(36).slice(2,9);
 function gridFor(n,seed){const k=n+':'+seed;if(!ansCache[k])ansCache[k]=generate(n,seed);return ansCache[k]}
-const APP_VERSION='202611161450';
+const APP_VERSION='202611161555';
 // The room stores the exact rows and columns, so every phone shows the host's grid.
 function roomGrid(r){
   if(r.rows&&r.cols){const k='ids:'+r.rows.join(',')+'|'+r.cols.join(',');
