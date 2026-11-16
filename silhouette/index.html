@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611171600"></script>
+<script src="../brand/mingo.js?v=202611171700"></script>
 <script src="../brand/account.js?v=202611171900"></script>
 <script src="../brand/party.js?v=202611151310"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -245,10 +245,9 @@ function verdict(G){const r=rightOf(G),first=G.qs.filter(q=>q.st==='right'&&!q.t
     :r>=6?{pose:'happy',t:'Visited. '+r+' of 9.',s:'Tap a shape to see its name.'}:r>=3?{pose:'think',t:'A few gaps in the pages. '+r+' of 9.',s:'Tap a shape to see its name.'}
     :{pose:'sad',t:'Rough crossing, this one.',s:r+' of 9. Practice helps.'}}
 function dailyResultHTML(G){const r=rightOf(G),v=verdict(G);
-  if(G.arch)return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">Archive · Silhouette #${G.num}</span><p class="big">${r} of 9</p>
-    <p class="hint">${r===9?'Every shape named.':'Tap a shape to see its name.'} Archive games don't count for the ranking or your streak.</p>
-    <pre class="sharebox" id="share">${esc(dailyShareText(G))}</pre>
-    ${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="archback" style="flex:1">Back to archive</button></div></section>`;
+  // an archive game: the coral ticket with the nine shapes inside, Back to archive and Share under it (Héctor 2026-11-16)
+  if(G.arch)return `${Geomingo.archTicket({id:'silhouette',num:G.num,score:r+' of 9',body:`<section class="panel play">${boardHTML(G)}</section>`})}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
+    <div class="gm-done-btns gm-solo-btns"><button class="primary" id="archback" style="flex:1">Back to archive</button>${SHARE_BTN.replace('Share result','Share')}</div>`;
   return `${Geomingo.doneTicket('silhouette',G.num,r+' of 9','next in '+nextIn(),`<section class="panel play">${boardHTML(G)}</section>`)}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns">${nextGameBtn('silhouette')}${SHARE_BTN.replace('Share result','Share')}</div>`}
 // today's ranking (signed-in players, first try of the day): shapes named, then fewer wrong tries, then who finished first
@@ -259,7 +258,7 @@ Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&!D.arch&&D.date===
 function openDaily(){D=dailyGame();query='';view='daily';render();window.scrollTo(0,0)}
 function dailyHTML(){let h=header('Silhou<span>ette</span>',(D.arch?'Archive #':'Daily #')+D.num);
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
-  if(D.over)h+=D.arch?dailyResultHTML(D)+`<section class="panel play">${boardHTML(D)}</section>`:dailyResultHTML(D)+rankingHTML();
+  if(D.over)h+=D.arch?dailyResultHTML(D):dailyResultHTML(D)+rankingHTML();
   else{const q=D.qs[D.sel];
     h+=Geomingo.ticket(dailyMood(),tk('Traveller',esc(Geomingo.traveller()),'tk-name')+tk('Named',rightOf(D)+'/'+D.qs.length)+(D.arch?tk('Class',DIFF_NAME[DAILY_LV],'tk-pts'):(Geomingo.newKm(D.date)?tk('Points',Geomingo.KM.sil(rightOf(D),D.qs.reduce((n,q)=>n+q.tries.length,0)),'tk-pts'):tk('km',Geomingo.pts(rightOf(D)/D.qs.length),'tk-pts')))+tk('Lives',livesHTML(livesLeft(D.qs),LIVES),'tk-gs'),{mode:D.arch?'archive':'daily',num:D.num})+`<section class="panel">${dailyPlayHTML(D,true)}</section>`+quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}
   return h}
