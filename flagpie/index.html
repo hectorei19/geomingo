@@ -53,6 +53,7 @@
 .missed{display:flex;flex-direction:column;gap:2px;margin:0;border:2px solid var(--bad);background:var(--bad-soft);border-radius:12px;padding:9px 12px}
 .missed b{color:var(--bad)}
 .missed span{font-size:.9rem;color:var(--ink-2)}
+.missed.twin{border-color:var(--gold);background:transparent}.missed.twin b{color:var(--gold)}
 .locked{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px dashed var(--line);border-radius:12px;color:var(--ink-2);font-size:.92rem}
 .locked .linkbtn{margin-left:auto}
 .ans{display:flex;flex-direction:column;gap:6px}
@@ -114,7 +115,7 @@
    The pie (pies.js) says how much of the flag each colour covers, coat of arms and all. Four more clues open one at a
    time, from not obvious to obvious: the design (stripes, symbols), the map, population and capital, the flag blurred.
    Right with k clues open = 6 - k points (5 down to 1). A wrong answer opens the next clue; a wrong answer with all
-   five open lets the flag go with 0. A flag with the same pie (SAME) is a right answer too. Best game 25.
+   five open lets the flag go with 0. A flag with the same pie (SAME) is not a miss: try again (it counted as right before TWIN_FROM). Best game 25.
    A game is {qs: five flags, sel: the one on screen, over, left: the one just finished, shown until Next flag};
    a flag is {c: country code, k: clues open, tries: wrong answers, st: 'play' | 'right' | 'wrong', alt: the twin named}. */
 const CLUES=5,PER=5,MAX=CLUES*PER,FIRST='2026-11-04';
@@ -167,21 +168,25 @@ function matches(t){const k=N(t);if(!k)return [];
   return [...ex,...st,...ins].slice(0,6)}
 function suggHTML(q){if(!query)return SHEETS?'<li class="hint" style="padding:8px 2px">Start typing, then tap the country.</li>':'';const res=matches(query);
   if(!res.length)return `<li class="hint" style="padding:8px 2px">No country matches “${esc(query)}”.</li>`;
-  return res.map(c=>{const t=q.tries.includes(c.c);return `<li><button data-g="${c.c}" ${t?'disabled':''}>${esc(c.n)}${t?'<span class="tag">not it</span>':''}</button></li>`}).join('')}
+  return res.map(c=>{const t=q.tries.includes(c.c)||(q.twins||[]).includes(c.c);return `<li><button data-g="${c.c}" ${t?'disabled':''}>${esc(c.n)}${t?'<span class="tag">not it</span>':''}</button></li>`}).join('')}
 function answerBoxHTML(q){
   if(SHEETS)return askBtnHTML();
   return `<div class="ans"><input id="q" placeholder="Type a country…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(query)}" aria-label="Type a country"><ul class="sugg" id="sugg">${suggHTML(q)}</ul></div>`}
 function bindAnswer(G,onPick){const q=G.qs[G.sel];
   if(SHEETS){bindAsk($('askbtn')?{key:q.c+':'+q.k+':'+view+':'+G.sel,back:'Back to the pie',
     head:`<span>Whose flag is this? <i>${worth(q)} point${worth(q)===1?'':'s'}</i></span>`,
-    sugg:t=>{query=t;return suggHTML(q)},first:t=>{const m=matches(t).filter(c=>!q.tries.includes(c.c));return m[0]&&m[0].c},pick:onPick}:null);return}
+    sugg:t=>{query=t;return suggHTML(q)},first:t=>{const m=matches(t).filter(c=>!q.tries.includes(c.c)&&!(q.twins||[]).includes(c.c));return m[0]&&m[0].c},pick:onPick}:null);return}
   const box=$('q');if(!box)return;
   const draw=()=>{const u=$('sugg');if(u){u.innerHTML=suggHTML(q);u.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>onPick(b.dataset.g))}};
   box.oninput=e=>{query=e.target.value;draw()};
-  box.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const m=matches(query).filter(c=>!q.tries.includes(c.c));if(m[0])onPick(m[0].c)}};
+  box.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const m=matches(query).filter(c=>!q.tries.includes(c.c)&&!(q.twins||[]).includes(c.c));if(m[0])onPick(m[0].c)}};
   draw();if(query||typing)setTimeout(()=>{box.focus();box.setSelectionRange(box.value.length,box.value.length)},0)}
-// one answer: 'right' (the country, or one with the same pie), 'wrong' (the next clue opens) or 'out' (all five were open)
-function answer(q,code){if(code===q.c||(SAME[q.c]||[]).includes(code)){q.st='right';q.alt=code===q.c?null:code;return 'right'}
+// one answer: 'right' (the country), 'twin' (a flag with the same pie: try again, no clue opens, from TWIN_FROM),
+// 'wrong' (the next clue opens) or 'out' (all five were open). Before TWIN_FROM a twin counted as right (q.alt).
+const TWIN_FROM='2026-11-16';
+function answer(q,code,date){if(code===q.c){q.st='right';q.alt=null;return 'right'}
+  if((SAME[q.c]||[]).includes(code)){if(date&&date<TWIN_FROM){q.st='right';q.alt=code;return 'right'}
+    q.twins=q.twins||[];if(!q.twins.includes(code))q.twins.push(code);return 'twin'}
   q.tries.push(code);if(q.k>=CLUES){q.st='wrong';return 'out'}q.k++;return 'wrong'}
 // the next clue without answering; with all five open, "I don't know" lets the flag go
 function nextClue(q){if(q.st!=='play')return;if(q.k<CLUES)q.k++;else q.st='wrong'}
@@ -209,6 +214,7 @@ function playHTML(G){let h=deskHTML(G);
   const q=G.qs[G.sel],more=CLUES-q.k;
   return `<div class="play">${h}<span class="label">Flag ${G.sel+1} of ${PER} · worth ${worth(q)} point${worth(q)===1?'':'s'}</span>${pieCardHTML(q.c)}${cluesHTML(q)}
     <div class="locked">${more?'🔒 '+more+' more clue'+(more===1?'':'s')+' locked':'All five clues are open'}<button class="linkbtn" id="nextclue">${more?'Next clue':'I don\'t know'}</button></div>
+    ${(q.twins||[]).length?`<p class="missed twin"><b>≈ Same colours as ${esc(listText(q.twins.map(c=>cByCode[c].n)))}, but not this flag.</b><span>Try again: it does not count as a wrong answer.</span></p>`:''}
     ${q.tries.length?`<p class="missed"><b>✗ Not ${q.tries.map(c=>esc(cByCode[c].n)).join(', not ')}.</b><span>Clue ${q.k} is open. Now worth ${worth(q)}.</span></p>`:''}${answerBoxHTML(q)}${giveUpHTML()}</div>`}
 // after a flag finishes: show it, then the next one still to play, or the game is over
 function advance(G){if(G.qs[G.sel].st==='play')return;G.left=G.sel;const n=G.qs.findIndex(q=>q.st==='play');if(n<0)G.over=true;else G.sel=n}
@@ -248,7 +254,7 @@ function logHist(G){if(G.mode!=='daily')return false;const h=load('fp-hist',{});
   if(h[G.date]&&!(G.date===FIRST&&!h[G.date].n))return false;
   h[G.date]=Object.assign({p:rawOf(G),r:rightOf(G),a:pieOnlyOf(G),m:wrongOf(G),n:PER},isNew(G)?{x3:1}:{});store('fp-hist',h);return true}
 function dailyPick(code){const q=D&&D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;
-  const res=answer(q,code);query='';typing=res==='wrong';feedback(q,res);advance(D);dailySave();render();if(res!=='wrong')showLeft()}
+  const res=answer(q,code,D.date);query='';typing=res==='wrong'||res==='twin';feedback(q,res);advance(D);dailySave();render();if(res==='right'||res==='out')showLeft()}
 function dailyNextClue(){const q=D&&D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;nextClue(q);advance(D);dailySave();render();if(q.st!=='play')showLeft()}
 function dailyShareText(G){return `${Geomingo.share('Flag Pie')} #${G.num}${G.mode==='archive'?' (archive)':''} — ${pointsOf(G)} points\n${G.qs.map(sq).join('')}`}
 const dailyShare=G=>dailyShareText(G)+"\n\nPlay today's Flag Pie: "+pageLink();
@@ -299,7 +305,7 @@ function openSolo(){openTrain()}
 function openTrain(){T=newGame(shuffle(DECK.filter(c=>cByCode[c]),Math.random).slice(0,PER),{mode:'solo'});mood=null;view='train';query='';typing=false;render();window.scrollTo(0,0)}
 function trainEnd(){if(view==='room'||T.logged)return;T.logged=1;logSolo('fp-solo5',{p:pointsOf(T),best:pointsOf(T),r:rightOf(T)})}
 function trainPick(code){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;
-  const res=answer(q,code);query='';typing=res==='wrong';feedback(q,res);advance(T);if(T.over)trainEnd();render();if(res!=='wrong')showLeft()}
+  const res=answer(q,code);query='';typing=res==='wrong'||res==='twin';feedback(q,res);advance(T);if(T.over)trainEnd();render();if(res==='right'||res==='out')showLeft()}
 function trainNextClue(){const q=T&&T.qs[T.sel];if(!q||q.st!=='play'||T.over)return;nextClue(q);advance(T);if(T.over)trainEnd();render();if(q.st!=='play')showLeft()}
 function trainHTML(){let h=header('Flag Pie','',0,true);  // Practice is said once, on the coral ticket (Héctor 2026-11-15)
   // a finished Solo game: the pink ticket with the answers inside, then New game (Héctor 2026-11-14)
@@ -317,7 +323,7 @@ const G0=()=>view==='daily'?D:view==='train'||view==='room'?T:null;
 const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name the country from its flag's colours, shown as a pie. A wrong answer opens one more clue. Fewer clues, more points: ${G0()&&!isNew(G0())?'20, 19, 18, 17, 16':'20, 15, 10, 5, 3'}. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Five flags, one at a time, each shown as a pie of its colours: how much of the flag each colour covers. Name the country.</li>
-  <li>Only the ${SOV.length} independent countries. Flags with the same pie (France, the Netherlands, Russia…) all count as right.</li></ul>
+  <li>Only the ${SOV.length} independent countries. A flag with the same pie (France and the Netherlands…) is not a wrong answer: you just try again.</li></ul>
   <h3>How to play</h3><ul>
   <li>Tap <b>Type a country…</b>, start typing and tap the country in the list. Names in English, one per country (United Kingdom, not UK). Accents and capitals don't matter.</li>
   <li>Clues: <b>1</b> the pie, <b>2</b> the design, <b>3</b> on the map, <b>4</b> people and capital, <b>5</b> the flag, blurred.</li>
