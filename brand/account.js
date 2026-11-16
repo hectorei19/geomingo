@@ -334,7 +334,7 @@ function dailyCard(o){const u=who(),d=o.daily,P=u?places(o.lbs)||[]:[],got=P.fil
   const foot=u===null?'<button class="linkbtn gm-msign" data-gm-signin>Sign in to join the daily ranking</button>'
     :r?'<span class="gm-mfoot">'+ordinal(r)+' of '+b.p[1]+' · '+esc(o.num(b.d))+' · '+(b.d===T()?'today, so far':shortDate(b.d))+'</span>':'';
   return modeCard(cupSVG(r?(r<=3?r:1):0,r?'#'+r:'?',64),'Daily',count,nums(stats)+foot)}
-/* My stats, the same in every game: you (name, games, GeoPass stamps), then one card per way to play:
+/* My stats, the same in every game: you (name, games, GeoPass countries visited), then one card per way to play:
    Daily (the cup), Solo (the medal), With friends (the ring of wins), then anything the game adds (o.extra).
    o: {game, lbs: [{path, dates}], dates, num: date → 'Puzzle #14',
        daily: {n, unit, streak, avg}, solo: {n, unit, medal, stats: [[value, label] ×3]},
@@ -343,7 +343,7 @@ const CARDS={};let cardN=0;
 function statsPage(o){const id='c'+(++cardN);CARDS[id]=o;const s=o.solo,f=o.friends,u=who();
   const all=o.daily.n+s.n+f.n,first=o.dates.slice().sort()[0],nm=(u&&name)||G.traveller();
   const me='<div class="gm-me"><span class="gm-av">'+esc((nm.trim()[0]||'·').toUpperCase())+'</span><div class="gm-mett"><b>'+esc(nm)+'</b><small>'+esc(o.game)+' · '+all+' game'+(all===1?'':'s')+(first?'<br>since '+shortDate(first):'')+'</small></div>'+
-    '<div class="gm-mest"><b>'+EU((G.pass&&G.pass().n)||0)+'</b><small>stamps</small></div></div>';
+    '<div class="gm-mest"><b>'+EU((G.countriesSeen&&G.countriesSeen())||0)+'</b><small>countries</small></div></div>';
   const solo=modeCard(medalSVG(s.n?s.medal:null,64),'Practice',s.n+' '+s.unit+(s.n===1?'':'s'),s.n?nums(s.stats):'<span class="gm-mfoot">Practice at your pace: your best and your accuracy show here.</span>');
   const fr=modeCard(ringSVG(f.n?Math.round(f.w/f.n*100):null,64),'With friends',f.n+' game'+(f.n===1?'':'s'),
     f.n?nums([[f.w,f.w===1?'win':'wins'],[EU(f.place/f.n,1),'avg place'],f.third]):'<span class="gm-mfoot">Play online with 2 to 6 friends: your wins show here.</span>');
@@ -414,7 +414,7 @@ function openMenu(){const u=who();let km=0;try{km=G.geo().km}catch(e){}
   const g=GM,sub=t=>g?'':t,acts={};
   let game='';if(g){g.items.forEach((x,i)=>{acts['g'+i]=()=>{G.closeWindow();x[3]()}});
     game='<h5 class="gh">'+esc(g.name)+'</h5><ul>'+g.items.map((x,i)=>it('g'+i,x[2],x[1],x[0],'')).join('')+'</ul><h5 class="gh">Geomingo</h5>'}
-  mwin('Menu',box+game+'<ul>'+it('gp','#D4AD4B','gp','My GeoPass',sub('Stamps, countries and visas'),'<span class="mt">'+EU(Math.round(km))+' km</span>')+
+  mwin('Menu',box+game+'<ul>'+it('gp','#D4AD4B','gp','My GeoPass',sub('Km, streak, countries and visas'),'<span class="mt">'+EU(Math.round(km))+' km</span>')+
     it('rank','#5FC28F','rank','Ranking',sub('Today, this week, this month'))+
     it('arch','#7FA2F0','cal','Archive',sub('Play past days of all '+G.ALLW+' games'))+
     it('fb','#F07884','mail','Send feedback',sub('Ideas, mistakes, anything'))+'</ul>'+
