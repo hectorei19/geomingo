@@ -249,7 +249,15 @@ const DAILY_LISTS=LISTS.filter(l=>!SOLO_ONLY.includes(l.id));
 // the daily list: lists come in a shuffled order that is the same for everyone, so none repeats until all were used.
 // The first round (2026-10-19 to 2026-11-05) keeps the 18 lists the game began with, in the same order as before.
 const FIRST_ROUND=['pop-hi','pop-lo','area-hi','gdp-hi','gdp-lo','hdi-hi','hdi-lo','life-lo','age-hi','co2-hi','urban-lo','coast-hi','elev-hi','elev-lo','landb-hi','forest-hi','olymp-hi','cap-hi'].map(listById);
-function dailyList(key){const n=dayNum(key,T10_FIRST)-1;
+/* Easier two months (Héctor 2026-11-16, players found it too hard): from EASY_FROM to EASY_TO the daily list is one
+   of the well-known lists below (people, size, names, sport, capitals…), in a shuffled order, none twice until all were
+   used. Other days keep the usual order (those days' lists are simply skipped, nothing moves). */
+const EASY_FROM='2026-11-17',EASY_TO='2027-01-16';
+const EASY_IDS=['pop-hi','pop-lo','area-hi','area-lo','dens-hi','gdptot-hi','olymp-hi','ogold-hi','cap-hi','name-hi','name-lo','wc-hi','mcd-hi','coffee-hi','nobel-hi','lat-hi','lat-lo','temp-lo',
+  ...['eu','as','af','am'].flatMap(g=>['pop-hi','area-hi','area-lo','gdptot-hi','olymp-hi','cap-hi','name-hi','name-lo'].map(id=>id+'-'+g))];
+function easyList(key){const ok=EASY_IDS.filter(id=>LISTS.some(l=>l.id===id)).sort(),n=dayNum(key,EASY_FROM)-1,round=Math.floor(n/ok.length);
+  return listById(shuffle(ok,rngFrom(seedOf('top10-easy-'+round)))[n%ok.length])}
+function dailyList(key){if(key>=EASY_FROM&&key<=EASY_TO)return easyList(key);const n=dayNum(key,T10_FIRST)-1;
   if(n<FIRST_ROUND.length)return shuffle(FIRST_ROUND,rngFrom(seedOf('top10-cycle-0')))[Math.max(n,0)];
   const m=n-FIRST_ROUND.length,r2=round2();
   if(m<r2.length)return listById(r2[m]);
