@@ -24,7 +24,7 @@ function toast(msg,kind){toastMsg={msg,kind};clearTimeout(toastT);toastT=setTime
 function drawToast(){let el=$('toastbox');if(!el){el=document.createElement('div');el.id='toastbox';document.body.appendChild(el)}
   el.innerHTML=toastMsg?`<div class="toast ${toastMsg.kind||''}" role="status">${esc(toastMsg.msg)}</div>`:''}
 // a dialog over the page (rules, a category's meaning); closes with its button, the scrim or Escape
-function dialog(title,html,label){layer.innerHTML=`<div class="infoscrim" id="dscrim"></div><div class="infobox helpbox" role="dialog" aria-modal="true" aria-labelledby="dlgt"><h2 id="dlgt">${title}</h2>${html}<button class="primary" id="dok">${label||'Got it'}</button></div>`;
+function dialog(title,html,label){layer.innerHTML=`<div class="infoscrim" id="dscrim"></div><div class="infobox helpbox" role="dialog" aria-modal="true" aria-labelledby="dlgt"><div class="dlg-head"><h2 id="dlgt">${title}</h2><button class="dlg-x" id="dok">Close</button></div>${html}</div>`;
   const close=()=>{layer.innerHTML=''};$('dok').onclick=$('dscrim').onclick=close;$('dok').focus()}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('dok'))layer.innerHTML=''});
 // Geomingo's shared header (../brand/mingo.js): "‹ geomingo", streak and light/dark on top, then the game's
@@ -116,6 +116,8 @@ const pageLink=q=>location.origin+location.pathname+(q||'');
 // Two taps, like Countries: the first asks to confirm.
 const giveUpHTML=()=>`<button class="linkbtn giveup" id="giveup">Give up</button>`;
 function bindGiveUp(end){const b=$('giveup');if(!b)return;
+  // Give up sits just below the game's box, never inside it, the same in all 9 games (Héctor 2026-11-16)
+  const box=b.closest('.panel');if(box&&!box.classList.contains('t10ask'))box.after(b);
   b.onclick=()=>{if(b.dataset.armed){Geomingo.stat('giveup');end();return}b.dataset.armed='1';b.textContent='Tap again to give up'}}
 // the three numbers under every daily result (and in My stats): days played, the average result, the streak
 const statTiles=(played,avg,streak)=>`<div class="stgrid"><div class="st"><b>${played}</b><span>played</span></div><div class="st"><b>${avg}</b><span>average</span></div><div class="st"><b>${streak}</b><span>streak</span></div></div>`;

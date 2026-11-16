@@ -111,6 +111,10 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .board.b5 .hd .ref{font-size:.58rem}
 .board .corner{padding:2mm}
 .board .hd .ref{line-height:1}
+/* row and column references (A, B, 1, 2…) in a coral box, like a stamp, sized with the grid */
+.board .hd .ref{font-family:var(--display);font-weight:800;font-size:clamp(.72rem,2.6vw,.95rem);color:var(--coral);border:1.5px solid var(--coral);border-radius:5px;padding:2px 6px;letter-spacing:0;margin-bottom:3px;display:inline-block;align-self:center}
+.board.b3 .hd .ref{font-size:clamp(.8rem,3vw,1.05rem)}
+.board.b5 .hd .ref{font-size:clamp(.6rem,2.1vw,.8rem);padding:1px 4px;border-width:1.2px;border-radius:4px}
 /* letter and title travel together (no gap); all squares of the same header line share one top offset,
    so A, B, C (and 1, 2, 3) sit at the same height. The offset is set in fitHeaders(). */
 .board .hd.col,.board .hd.rowh{justify-content:flex-start;gap:1px}
@@ -329,7 +333,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .b5 .cell.flag .gm-stamp.wf .pts{font-size:.6rem;padding:0 3px 1px 4px;border-radius:0 0 0 5px}
 .b5 .cell.flag .gm-stamp.wf .cc{font-size:.6rem;padding:1px 4px 0 3px;border-radius:0 5px 0 0}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611171800">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611180600">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -1612,7 +1616,7 @@ function drawLayer(){
   if(ui.sharing&&S&&S.over)h+=shareView();
   if(ui.credits){
     h+=`<div class="infoscrim" id="credscrim"></div><div class="infobox helpbox credits" role="dialog" aria-modal="true" aria-labelledby="credt">
-      <h2 id="credt">Credits</h2>
+      <div class="dlg-head"><h2 id="credt">Credits</h2><button class="dlg-x" id="credok">Close</button></div>
       <p>Capitals is part of Geomingo, free and independent daily geography games: the sister of <a href="https://geomingo.com/countries/">Countries</a>, with capitals instead of countries. It is not affiliated with any other grid or geography game.</p>
       <dl>
         <dt>City data</dt>
@@ -1630,14 +1634,14 @@ function drawLayer(){
         <dt>Accuracy</dt>
         <dd>City limits, populations and capitals can change and can be disputed. The game follows the data above; if an answer looks wrong, tap the category's <span class="ib">i</span> to see the exact rule used.</dd>
       </dl>
-      <button class="primary" id="credok">Close</button></div>`}
+      </div>`}
   if(ui.help){
     const ks=[2,3,4,5,6,7,8,9,10,12,14,17,20,25,32,45],ev=plainValues(ks.map(k=>Array(k).fill(0)));
     const exr=i=>`<tr><td>${i+1}.</td><td>${ks[i]} capitals fit</td><td>${ev[i]} pts</td></tr>`;
     const ex=[0,1,2].map(exr).join('')+'<tr><td>…</td><td></td><td></td></tr>'+[13,14,15].map(exr).join('');
     const G=DAILY_N*DAILY_N;
     h+=`<div class="infoscrim" id="helpscrim"></div><div class="infobox helpbox" role="dialog" aria-modal="true" aria-labelledby="helpt">
-      <h2 id="helpt">How to play</h2>
+      <div class="dlg-head"><h2 id="helpt">How to play</h2><button class="dlg-x" id="helpok">Close</button></div>
       <h3>The idea</h3><ul>
       <li>Every row and every column has a category, for example "In Europe" or "On the coast".</li>
       <li>Fill each of the ${DAILY_N*DAILY_N} squares with a capital that fits <b>both</b> its row and its column. Lisbon fits "In Europe" and "On the coast".</li>
@@ -1662,9 +1666,9 @@ function drawLayer(){
       <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. You take turns, 30 s each, and a random player starts. A right answer scores; a wrong one, <b>Pass turn</b> or running out of time passes the turn. The game ends when the grid is full or everyone passes in a row.</li>
       <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, points only, no km.</li></ul>
       <p class="hint">Where the data comes from: <b>Menu</b>, Capitals data sources.</p>
-      <button class="primary" id="helpok">Got it</button></div>`}
+      </div>`}
   if(ui.info!=null&&CATS[ui.info]){const k=CATS[ui.info];
-    h+=`<div class="infoscrim" id="infoscrim"></div><div class="infobox" role="dialog" aria-modal="true" aria-labelledby="infot"><span class="label">Category</span><h2 id="infot">${esc(EUT(k.label))}</h2><p>${esc(k.desc)}</p><span class="meta">${k.count} capitals in the game match this on its own.</span><button class="primary" id="infook">Got it</button></div>`}
+    h+=`<div class="infoscrim" id="infoscrim"></div><div class="infobox" role="dialog" aria-modal="true" aria-labelledby="infot"><div class="dlg-head"><h2 id="infot"><span class="label">Category</span><br>${esc(EUT(k.label))}</h2><button class="dlg-x" id="infook">Close</button></div><p>${esc(k.desc)}</p><span class="meta">${k.count} capitals in the game match this on its own.</span></div>`}
   if(ui.toast)h+=`<div class="toast ${ui.toast.kind||''}" role="status">${esc(ui.toast.msg)}</div>`;
   const had=document.getElementById('gq');const caret=had?had.selectionStart:null;
   layer.innerHTML=h;

@@ -82,7 +82,7 @@
 .hcmp .mini{width:52px;height:52px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;color:var(--gold);font-size:1.3rem;background:var(--bg)}
 .hcmp img{width:52px;height:auto;align-self:center;border-radius:3px}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611171800">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611180600">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -94,7 +94,7 @@
 <script src="../capitals/data.js?v=202611121400"></script>
 <script src="clues.js?v=202611100915"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611171800"></script>
+<script src="../shared/minigames.js?v=202611180600"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
@@ -299,7 +299,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     :q.k>1?['think','A new capital on the compass.','Every clue lowers the points. Which capital sits in the middle?']
     :['pass','Where am I?','The mystery capital is in the middle. The city on the rim shows how far it is, and which way.'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
-    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('City',(i+1)+'/'+PER)+tk(mode==='daily'?'km':'Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+show(q.p,q):'0'):'+'+show(worth(q),q),'tk-gs'),{mode,num:G.num})}
+    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('City',(i+1)+'/'+PER)+tk(mode==='daily'?'km':'Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+show(q.p,q):'0'):'+'+show(worth(q),q),'tk-pts'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Compass',(arch?'Archive #':'Daily #')+D.num);
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
   if(D.over&&D.left==null)return h+resultHTML(D)+(D.mode==='archive'?'':rankingHTML());
