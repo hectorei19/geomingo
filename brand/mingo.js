@@ -352,6 +352,12 @@ function doneTicket(id,num,score,next,body){const km=(ledger()[dayKey()]||{})[id
   return '<section class="ticket gm-done"><div class="tk-mode daily"><span>★ '+(g?'Trip '+g.gate+' · ':'')+'Daily #'+esc(String(num))+'</span><span>Done</span></div>'+
     '<div class="gm-done-c"><p class="big">'+esc(String(score))+'</p><p class="gm-done-s">'+(km!=null?'<b>+'+fmt(km)+' km</b>':'')+'<span>'+esc(next)+'</span></p></div>'+
     (body?'<div class="tk-tear"></div><div class="gm-done-a">'+body+'</div>':'')+'</section>'}
+/* a finished Archive game (a past day): the same ticket again, in the archive's coral, the day's answers inside;
+   Back to archive and Share go under it (Héctor 2026-11-16). archTicket({id:'top10', num:28, score:'7 of 10', detail:'3 mistakes', body:'…answers…'}) */
+function archTicket(o){o=o||{};const g=GAMES.find(x=>x.id===o.id);
+  return '<section class="ticket gm-done tk-pink"><div class="tk-mode practice"><span>'+(g?'Trip '+g.gate+' · ':'')+'Archive #'+esc(String(o.num))+'</span><span>Done</span></div>'+
+    '<div class="gm-done-c"><p class="big">'+esc(String(o.score))+'</p><p class="gm-done-s">'+(o.detail?'<b>'+esc(o.detail)+'</b>':'')+'<span>Points only, no km</span></p></div>'+
+    (o.body?'<div class="tk-tear"></div><div class="gm-done-a">'+o.body+'</div>':'')+'</section>'}
 /* a finished Solo (Practice) game: the same ticket as today's result, in Mingo pink (Héctor 2026-11-14).
    soloTicket({id:'borderline', what:'Normal · 4 × 4', score:'804 points', best:'Best: 1.040', detail:'8 of 16 squares', body:'…answers…'}) */
 function soloTicket(o){o=o||{};const g=GAMES.find(x=>x.id===o.id);
@@ -581,6 +587,6 @@ function askedDay(first){try{const q=new URLSearchParams(location.search),k=q.ge
 const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,stale:roomStale};
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
-  days,streak,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
+  days,streak,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,archTicket,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,dayTotal,level,geo,visas,clock,secText,howHTML,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
   openWindow,closeWindow,esc,refreshPass,room,where,mode,askedDay,lives,setLives,stat,statTo,PAGE,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();
