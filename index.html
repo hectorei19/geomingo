@@ -24,7 +24,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
 <link rel="stylesheet" href="brand/geomingo.css?v=202611211900">
-<script src="brand/mingo.js?v=202611211900"></script>
+<script src="brand/mingo.js?v=202611212030"></script>
 <script src="brand/account.js?v=202611211900"></script>
 <script src="brand/party.js?v=202611160600"></script>
 <style>
@@ -439,7 +439,7 @@ const tabDays=t=>t==='day'?[G.dayKey()]:t==='week'?weekDays():monthDays();
 let RANK=(()=>{try{const w=JSON.parse(localStorage.getItem('gm-rank')||'null');return w&&w.ppl&&w.day===G.dayKey()?Object.assign(w,{at:0}):null}catch(e){return null}})(),rankBusy=false;
 function loadRank(){const acc=A();if(rankBusy||!acc||!acc.ready||typeof firebase==='undefined'||!firebase.apps.length)return;
   if(RANK&&RANK.day===G.dayKey()&&Date.now()-RANK.at<5*60e3)return;
-  rankBusy=true;const db=firebase.database(),days=[...new Set([...weekDays(),...monthDays()])],P={},today=G.dayKey(),TD={};
+  rankBusy=true;const db=firebase.database(),days=[...new Set([...weekDays(),...monthDays(),yesterday()])],P={},today=G.dayKey(),TD={};
   Promise.all(days.flatMap(d=>LB.map(([path,id,f])=>db.ref(path+'/'+d).once('value').then(s=>{const v=s.val()||{};
     for(const uid in v){const r=v[uid];if(!r||typeof r!=='object')continue;const p=P[uid]=P[uid]||{name:'',days:{}},day=p.days[d]=p.days[d]||{};
       if(r.name)p.name=String(r.name).slice(0,16);day[id]=Math.max(day[id]||0,f(r,d));
@@ -483,7 +483,18 @@ function duelHTML(p,me){if(TAB!=='day')return periodHTML(p,me);const T=(RANK&&RA
   return '<li class="duel"><div class="dh"><span>'+(self?'Today · your games':'Today · you vs '+esc(nm))+'</span>'+(self?'':'<b>'+w1+' – '+w2+'</b>')+'</div><div class="dg">'+cells+'</div>'+foot+'</li>'}
 function rankRows(t){const ds=tabDays(t);
   return RANK.ppl.map(p=>({id:p.id,name:p.name,mi:ds.reduce((a,d)=>a+(p.km[d]||0),0)})).filter(r=>r.mi>0).sort((a,b)=>b.mi-a.mi||a.name.localeCompare(b.name))}
-function drawWeek(){const el=document.getElementById('week'),acc=A();loadRank();
+/* the line under the logo: "🔥 5 days in a row · yesterday you were 4th of 23" (Héctor 2026-11-16, option C).
+   The streak from 2 days on; yesterday's place in the km ranking when you were in it. Neither: the beta line stays. */
+function yesterday(){return new Date(Date.parse(G.dayKey()+'T12:00Z')-864e5).toISOString().slice(0,10)}
+const nth=n=>n+(n%100>=11&&n%100<=13?'th':['th','st','nd','rd'][n%10]||'th');
+const BETA_LINE=document.querySelector('.gm-betaline')?document.querySelector('.gm-betaline').textContent:'';
+function drawStreak(){const el=document.querySelector('.gm-betaline');if(!el)return;const acc=A(),me=acc&&acc.user&&acc.user.uid;
+  let n=0;try{n=G.streak()}catch(e){}const parts=[];
+  if(n>=2)parts.push('🔥 '+n+' days in a row');
+  if(me&&RANK){const yd=yesterday(),rows=RANK.ppl.filter(p=>(p.km[yd]||0)>0).sort((a,b)=>b.km[yd]-a.km[yd]),i=rows.findIndex(p=>p.id===me);
+    if(i>=0)parts.push('yesterday you were '+nth(i+1)+' of '+rows.length)}
+  const t=parts.length?parts.join(' · '):BETA_LINE;if(el.textContent!==t)el.textContent=t}
+function drawWeek(){const el=document.getElementById('week'),acc=A();loadRank();drawStreak();
   // each player's current name (Héctor 2026-11-16: a new name shows on past days too)
   if(RANK&&acc&&acc.nameOf)RANK.ppl.forEach(p=>{p.name=acc.nameOf(p.id,p.n0||p.name)});
   if(!acc||!acc.ready||!RANK){el.hidden=true;return}
