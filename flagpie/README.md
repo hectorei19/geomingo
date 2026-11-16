@@ -11,7 +11,7 @@ Geography quiz: a pie chart shows the colours of a country's flag and how much o
 
 ## The data
 
-- `flags/<code>.svg`: the flags in their official shapes, from [hjnilsson/country-flags](https://github.com/hjnilsson/country-flags) (npm `svg-country-flags` 1.2.10, from Wikimedia Commons, public domain).
+- `flags/<code>.svg`: the flags in their official shapes, from [hjnilsson/country-flags](https://github.com/hjnilsson/country-flags) (npm `svg-country-flags` 1.2.10, from Wikimedia Commons, public domain). Syria drawn by hand on 2026-11-16 with its new official flag (green, white, black, three red stars); the same in `data/flags.js`.
 - `pies.js`: `PIE`, `LAY`, `SAME`, `UNIQ`, made with the scripts in `tools/`:
   1. `node tools/measure.js <repo> <folder with the svgs named by 2-letter code> raw.json` draws every flag 1.500 pixels wide in Chromium (Playwright) and gives each pixel to the closest colour named in the flag's SVG (so edges and gradients go to a real flag colour).
   2. `node tools/slices.js raw.json pies.json` joins colours that look the same (closer than 30 in RGB), puts specks under 0,5 % into the closest colour, names the colours, rounds to one decimal so they add up to exactly 100,0, and finds the stripes (rows or columns of one colour).
