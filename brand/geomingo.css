@@ -294,6 +294,12 @@ body:has(.ticket .tk-mode.daily,.ticket .tk-mode.practice) .gm-title small{displ
 .gp-sv.lock .md{border:2px dashed #4A5878;color:#6F7C95;background:none}
 .gp-sv.lock b{color:var(--muted)}
 .gp-sv small.pt{font:10.5px var(--type)}
+.gp-sv small.nt{font:700 10.5px var(--type);color:var(--c)}
+.gp-gv{position:relative}
+.gp-gv .st{position:absolute;top:6px;right:8px;font:900 13px var(--display);color:#F3D98B;display:flex;align-items:baseline;gap:1px}
+.gp-gv .st small{font:700 10px var(--type);color:#F3D98B}
+.gp-gv .st.off{color:#3E4A66}
+.gp-rule b.g{color:#F3D98B}
 .gp-how{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
 .gp-how li{display:grid;grid-template-columns:34px 1fr;gap:10px;font-size:14px;color:var(--muted);line-height:1.4}
 .gp-how b{color:var(--ink)}
