@@ -35,9 +35,11 @@ function header(brand,coord,home,practice){const game=brand.replace(/<[^>]*>/g,'
   return Geomingo.header({game,coord,practice})}
 // this game's lines in the one Menu (your initial ▾, brand/account.js): How to play, My stats, and its data sources
 function gameMenu(name){if(!Geomingo.setGameMenu)return;
-  // (the Archive is one line for all the games, in the Geomingo part of the Menu: a calendar on the home page)
+  // (the Archive is one line for all the games, in the Geomingo part of the Menu: a calendar on the home page;
+  // "<Game> archive" lists every past day of this game, as before, Héctor 2026-11-16)
   Geomingo.setGameMenu({name,items:[['How to play','help','#7FA2F0',()=>dialog('How to play',rulesHTML())],
-    ['My stats','stats','#5FC28F',()=>dialog('My stats',myStatsHTML())]],sources:openCredits})}
+    ['My stats','stats','#5FC28F',()=>dialog('My stats',myStatsHTML())],
+    [name+' archive','cal','#D4AD4B',()=>{DAYOF=null;openArchive()}]],sources:openCredits})}
 // Mingo: what he says about your last move, for the game it belongs to (key), or what he says by default
 let mood=null;
 function say(key,pose,t,s){mood={key,pose,t,s}}
@@ -90,7 +92,7 @@ function archiveHTML(o){if(DAYOF)return dayofHTML(o,DAYOF);const items=archDates
     else st=`<span class="as">${g?'In progress':'Play'}</span>`;
     return `<li><button data-arch="${k}"><span class="an">#${n}</span><span class="ad"><b>${o.label} #${n}</b><small>${date}</small></span>${sq}${st}</button></li>`}).join('');
   return `<section class="panel"><div class="backline"><span class="ht">Archive</span></div>
-    <p class="hint">Play the daily ${o.label.toLowerCase()}s you missed. The ones you played on their day are already done. One try each, on this device. Archive games don't count for the daily ranking or your streak.</p>
+    <p class="hint">Play the past ${o.label.toLowerCase()}s you missed. The ones you played on their day are already done. One try each, on this device. Archive games don't count for the daily ranking or your streak.</p>
     ${items?`<ul class="arch">${items}</ul>`:`<p class="hint">No past ${o.label.toLowerCase()}s yet. Come back tomorrow.</p>`}</section>`}
 // Menu → Archive on the home page opens a past day (?day=…): that day's archive game, or its result when it was played on its day
 function openDay(k){if(archDay(k)){DAYOF=k;openArchive();return}playArchive(k)}
