@@ -1,17 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 180 120">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 120">
 <rect width="180" height="120" fill="#000"/>
 <rect width="180" height="80" fill="#fff"/>
-<rect width="180" height="40" fill="#ce1126"/>
-<g id="s" fill="#007a3d">
-<g id="f">
-<g id="t">
-<path d="M54,47v13h8" transform="rotate(18,54,47)" id="o"/>
-<use xlink:href="#o" x="-108" transform="scale(-1,1)"/>
-</g>
-<use xlink:href="#t" transform="rotate(72,54,60)"/>
-</g>
-<use xlink:href="#t" transform="rotate(-72,54,60)"/>
-<use xlink:href="#f" transform="rotate(144,54,60)"/>
-</g>
-<use xlink:href="#s" x="72"/>
+<rect width="180" height="40" fill="#007a3d"/>
+<path fill="#ce1126" d="M45.00,47.00L48.14,56.67L58.31,56.67L50.09,62.65L53.23,72.33L45.00,66.35L36.77,72.33L39.91,62.65L31.69,56.67L41.86,56.67ZM90.00,47.00L93.14,56.67L103.31,56.67L95.09,62.65L98.23,72.33L90.00,66.35L81.77,72.33L84.91,62.65L76.69,56.67L86.86,56.67ZM135.00,47.00L138.14,56.67L148.31,56.67L140.09,62.65L143.23,72.33L135.00,66.35L126.77,72.33L129.91,62.65L121.69,56.67L131.86,56.67Z"/>
 </svg>
