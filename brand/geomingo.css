@@ -15,7 +15,7 @@
   --type:"Courier Prime","Courier New",ui-monospace,monospace;
   --shadow:0 1px 0 rgba(0,0,0,.3),0 16px 36px -20px rgba(0,0,0,.85);
   --scrim:rgba(8,12,22,.55);
-  --veil:rgba(4,7,14,.8); /* behind the Menu and every window: dark + blurred so the window stands out (Héctor 2026-11-16) */
+  --veil:rgba(4,7,14,.5); /* behind the Menu and every window: dimmed, the diagonal lines still show (Héctor 2026-11-16) */
   color-scheme:dark;
 }
 
@@ -201,7 +201,7 @@ body:has(.ticket .tk-mode.daily,.ticket .tk-mode.practice) .gm-title small{displ
 @keyframes gm-thud{from{transform:scale(1.6) rotate(var(--r,0deg));opacity:0}to{transform:scale(1) rotate(var(--r,0deg));opacity:.9}}
 
 /* dialogs: result card, the GeoPass booklet */
-.gm-scrim{position:fixed;inset:0;background:var(--veil);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);z-index:45;display:flex;align-items:flex-end;justify-content:center}
+.gm-scrim{position:fixed;inset:0;background:var(--veil);z-index:45;display:flex;align-items:flex-end;justify-content:center}
 .gm-scrim.center{align-items:center;padding:16px}
 @keyframes gm-up{from{transform:translateY(12px);opacity:.5}to{transform:none;opacity:1}}
 .gm-res{width:100%;max-width:400px;background:var(--page);border-radius:16px;overflow:hidden;animation:gm-up .2s ease;max-height:100%;overflow-y:auto;box-shadow:var(--shadow)}
@@ -465,7 +465,7 @@ button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
 
 /* the answer sheet, dialogs, the Menu and toasts */
 .scrim{background:var(--scrim)}
-.infoscrim{background:var(--veil);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.infoscrim{background:var(--veil)}
 .gm-res{border:1px solid rgba(255,255,255,.14)}
 .sheet{background:var(--page);border:0;border-radius:18px 18px 0 0;max-width:520px;box-shadow:var(--shadow);padding-top:18px;gap:12px}
 .sheet .q{font-family:var(--display);font-weight:900;font-stretch:90%;text-transform:uppercase}
