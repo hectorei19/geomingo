@@ -24,8 +24,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
 <link rel="stylesheet" href="brand/geomingo.css?v=202611251900">
-<script src="brand/mingo.js?v=202611251940"></script>
-<script src="brand/account.js?v=202611251901"></script>
+<script src="brand/mingo.js?v=202611252100"></script>
+<script src="brand/account.js?v=202611252000"></script>
 <script src="brand/party.js?v=202611250700"></script>
 <style>
 /* Home page: Sign in and Menu on top, today's games as colour tiles, Practice and With friends, then the GeoPass
@@ -432,7 +432,7 @@ function draw(){const P=geo();
 const N=G.newKm,K=G.KM;
 // one game gives at most 120 km (100 + 20 perfect): a ranking row can never count for more (Héctor 2026-11-17)
 const kmCap=x=>Math.max(0,Math.min(120,+x||0));
-const GR=(r,d)=>N(d)?K.grid(r.s,r.c,4,r.w):pts((+r.c||0)/16);
+const GR=(r,d)=>N(d)?K.grid(r.s,r.c,4,r.w,d):pts((+r.c||0)/16);
 const LB=[['leaderboard','borderline',GR],['lb/capitals','citygrid',GR],
   ['lb/connections','connections',r=>cxPts(r.s,r.m,r.h)],['lb/top10','top10',(r,d)=>N(d)?K.top10(r.s,r.m):pts((+r.s||0)/10)],
   ...['easy','normal','hard'].map(x=>['lb/sil-'+x,'silhouette',(r,d)=>N(d)?K.sil(r.s,r.m):pts((+r.s||0)/9)]),

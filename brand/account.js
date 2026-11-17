@@ -358,7 +358,7 @@ function mine(g){const me=meId();if(!me)return null;watch(g);const rows=sorted(g
 function rankLine(g){if(TEST||who()===undefined)return '';watch(g);const m=mine(g),n=sorted(g).length;
   return m?'<span class="hrank"><b>#'+m.rank+'</b> of '+m.total+' today · top '+m.top+'%</span>'
     :n?'<span class="hrank">'+n+' player'+(n===1?'':'s')+' in today\'s ranking</span>':''}
-// today's ranking: the top 10, plus your own row further down. o: {title, what ("list"), score: r=>[main, small]}
+// today's ranking: the top 10, plus your own row further down. o: {title, what ("list"), score: r=>[main, small], how: one line on how the km are counted}
 function rankingHTML(g,o){const u=who();if(TEST||u===undefined)return '';o=o||{};watch(g);const L=LB[g],title=o.title||"Today's ranking";
   if(!L||!L.rows)return '<section class="panel lb"><span class="label">'+esc(title)+'</span><p class="hint">'+(L&&L.off?'The ranking is not available right now.':'Loading…')+'</p></section>';
   const rows=sorted(g),me=meId(),i=rows.findIndex(r=>r.id===me),sc=o.score||(r=>[String(r.s),'']);
@@ -367,7 +367,7 @@ function rankingHTML(g,o){const u=who();if(TEST||u===undefined)return '';o=o||{}
   const foot=!u?'<button class="ghost" data-gm-signin>Sign in to join today\'s ranking</button>'+(ADAPT[g]&&ADAPT[g].today()?'<p class="hint">Your result is added when you sign in.</p>':'')
     :i<0?'<p class="hint">Your result joins the ranking when you finish today\'s '+esc(o.what||'game')+' signed in. Only your first try counts.</p>':'';
   return '<section class="panel lb"><span class="label">'+esc(title)+(i>=0?'<b>You: #'+(i+1)+' of '+rows.length+'</b>':rows.length?' · '+rows.length+' player'+(rows.length===1?'':'s'):'')+'</span>'+
-    (rows.length?'<ol class="lbl">'+list+'</ol>':'<p class="hint">Nobody in today\'s ranking yet.</p>')+foot+'</section>'}
+    (rows.length?'<ol class="lbl">'+list+'</ol>'+(o.how?'<p class="hint">'+esc(o.how)+'</p>':''):'<p class="hint">Nobody in today\'s ranking yet.</p>')+foot+'</section>'}
 
 /* ---- the ranking visas of the GeoPass (Gold medal, First to arrive, Fastest of the day…) ----
    For every daily you played, once its day is over, that day's whole ranking is read once and what you did in it is kept

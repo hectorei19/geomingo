@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611251940"></script>
-<script src="../brand/account.js?v=202611251901"></script>
+<script src="../brand/mingo.js?v=202611252100"></script>
+<script src="../brand/account.js?v=202611252000"></script>
 <script src="../brand/party.js?v=202611250700"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -273,7 +273,7 @@ function resultHTML(G){const p=pointsOf(G),v=verdict(G);
   return `${Geomingo.doneTicket('flagpie',G.num,p+' points','next in '+nextIn(),summaryHTML(G))}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns">${nextGameBtn('flagpie')}${SHARE_BTN.replace('Share result','Share')}</div>`}
 // today's ranking (signed-in players, first try of the day): points, then fewer wrong answers, then who finished first
-const rankingHTML=()=>Geomingo.account.rankingHTML('flagpie',{what:'game',score:r=>[Geomingo.KM.cl3(r.r,r.s,todayKey(),r.x3,PER)+' pts',r.m+' wrong']});
+const rankingHTML=()=>Geomingo.account.rankingHTML('flagpie',{what:'game',score:r=>[EU(Geomingo.rowKm('flagpie',r,todayKey()))+' km',(r.r||0)+'/5'+((+r.s||0)>=100?' +20':'')],how:'20, 15, 10, 5 or 3 km an answer, by the clues you needed; +20 km if all 5 at the first clue.'});
 Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&D.mode==='daily'&&D.date===todayKey()){D=dailyGame();liveKey=''}
   if(!typing&&(view==='home'||view==='daily'&&D&&D.over))render()});
 function openDaily(){D=dailyGame();query='';view='daily';render();window.scrollTo(0,0)}

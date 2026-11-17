@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611251940"></script>
-<script src="../brand/account.js?v=202611251901"></script>
+<script src="../brand/mingo.js?v=202611252100"></script>
+<script src="../brand/account.js?v=202611252000"></script>
 <script src="../brand/party.js?v=202611250700"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -271,7 +271,7 @@ function dailyResultHTML(G){const r=rightOf(G),v=verdict(G);
   return `${Geomingo.doneTicket('silhouette',G.num,r+' of 9','next in '+nextIn(),`<section class="panel play">${boardHTML(G)}</section>`)}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns">${nextGameBtn('silhouette')}${SHARE_BTN.replace('Share result','Share')}</div>`}
 // today's ranking (signed-in players, first try of the day): shapes named, then fewer wrong tries, then who finished first
-const rankingHTML=()=>Geomingo.account.rankingHTML('sil-'+DAILY_LV,{what:'board',score:r=>[r.s+'/9',r.m+' wrong '+(r.m===1?'try':'tries')]});
+const rankingHTML=()=>Geomingo.account.rankingHTML('sil-'+DAILY_LV,{what:'board',score:r=>[EU(Geomingo.rowKm('silhouette',r,todayKey()))+' km',r.s+'/9'+(r.s>=9&&!r.m?' +20':'')],how:'10 km a silhouette, +10 km for all 9; +20 km with no wrong tries.'});
 // signed in or out, today's boards arrived from another device, the ranking moved: show it (not while typing)
 Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&!D.arch&&D.date===todayKey()){D=dailyGame();liveKey=''}
   if(!typing&&!roomCode&&(view==='home'||view==='daily'&&D&&D.over))render()});

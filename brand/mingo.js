@@ -207,9 +207,13 @@ const IMP3=[15,10,5,3,1],impRound=q=>q.st!=='right'?0:q.x5?[20,15,10,5,3][q.k-1]
 const CL3_FROM='2026-11-15',cl3=d=>!d||d>=CL3_FROM;
 const clNew=(d,x)=>!d||d>CL3_FROM||d===CL3_FROM&&!!x;
 const CL3=[20,15,10,5,3],clFlag=q=>q.st!=='right'?0:q.x3?CL3[q.k-1]||0:6-q.k;
+// from KMSQ_FROM (Héctor 2026-11-17) the daily Countries and Capitals squares are worth whole km (16 share 100, a hard one up
+// to three times an easy one, no speed): their points ARE km. Days before it (Héctor 2026-11-17: fix the games already
+// played, their speed points gave odd km): 100 km for all the squares, shared evenly by the squares right; +20 perfect
+const KMSQ_FROM='2026-11-18';
 const pf=(all,m)=>all&&!(+m)?20:0;
 const KM={
-  grid:(s,c,n,w)=>{n=(+n||4)*(+n||4);return Math.min(100,Math.round((+s||0)/15))+pf((+c||0)>=n,w)},
+  grid:(s,c,n,w,d)=>{n=(+n||4)*(+n||4);return Math.min(100,d&&d>=KMSQ_FROM?Math.round(+s||0):Math.round(Math.min(+c||0,n)/n*100))+pf((+c||0)>=n,w)},
   top10:(f,m)=>{f=Math.min(+f||0,10);return 10*f+pf(f>=10,m)},
   sil:(r,m)=>{r=Math.min(+r||0,9);return 10*r+(r>=9?10:0)+pf(r>=9,m)},
   clue:(r,p,n)=>{r=+r||0;p=+p||0;n=+n||5;return Math.round((15*r+p)*5/n)+(p>=5*n?20:0)},
@@ -218,7 +222,7 @@ const KM={
 // this device's daily games, from each game's own history: {day: {game id: km}}
 function ledger(){const L={},add=(d,id,mi)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))(L[d]=L[d]||{})[id]=mi};
   [['bl-hist','borderline'],['cc-hist','citygrid']].forEach(([k,id])=>{const h=json(k)||{};
-    for(const d in h){const e=h[d];if(e&&e.f!==0){const n=+e.n||3;add(d,id,newKm(d)?KM.grid(e.s,e.c,n,e.w):pts((+e.c||0)/(n*n)))}}});
+    for(const d in h){const e=h[d];if(e&&e.f!==0){const n=+e.n||3;add(d,id,newKm(d)?KM.grid(e.s,e.c,n,e.w,d):pts((+e.c||0)/(n*n)))}}});
   const cx=json('cx-hist')||{};for(const d in cx)if(cx[d])add(d,'connections',cxPts(cx[d].f!=null?cx[d].f:cx[d].w?4:0,cx[d].m,cx[d].h));
   const t=json('t10-hist')||{};for(const d in t)if(t[d])add(d,'top10',newKm(d)?KM.top10(t[d].f,t[d].l!=null?5-t[d].l:null):pts((+t[d].f||0)/10));
   const s=json('sil-hist')||{},sm=json('sil-miss')||{};for(const d in s){const day=s[d]||{},k=Object.keys(day).filter(x=>typeof day[x]==='number');
@@ -253,7 +257,7 @@ const ARL={
   compass:[()=>'lb/compass',S=>({x3:x3Of(S),s:qsOf(S).reduce((n,q)=>n+(q.st==='right'?+q.p||0:0),0),r:rightN(S),m:triesN(S)})]};
 // a ranking row's km on day d (the home page's ranking counts them the same way)
 function rowKm(id,r,d){const N=newKm(d);
-  if(id==='borderline'||id==='citygrid'){const n=+r.n||4;return N?KM.grid(r.s,r.c,n,r.w):pts((+r.c||0)/(n*n))}
+  if(id==='borderline'||id==='citygrid'){const n=+r.n||4;return N?KM.grid(r.s,r.c,n,r.w,d):pts((+r.c||0)/(n*n))}
   if(id==='connections')return cxPts(r.s,r.m,r.h);
   if(id==='top10')return N?KM.top10(r.s,r.m):pts((+r.s||0)/10);
   if(id==='silhouette')return N?KM.sil(r.s,r.m):pts((+r.s||0)/9);
@@ -665,6 +669,6 @@ const oldName=q=>OLD_NAMES[String(q||'').normalize('NFD').replace(/[\u0300-\u036
 const withOld=(res,q,pool)=>{const o=oldName(q);if(!o||res.some(c=>c.c===o))return res;const c=pool.find(x=>x.c===o);return c?[...res,c]:res};
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
-  days,streak,streakInfo,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,countriesSeen,countriesKnown,EXPERT,CORE,TIERS,gameVisas,specialVisas,challengeVisas,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,archTicket,archListBtn,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,ARL,archDone,rowKm,dayTotal,level,geo,visas,clock,secText,mmss,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
+  days,streak,streakInfo,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,countriesSeen,countriesKnown,EXPERT,CORE,TIERS,gameVisas,specialVisas,challengeVisas,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,archTicket,archListBtn,KM,KM_FROM,KMSQ_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,ARL,archDone,rowKm,dayTotal,level,geo,visas,clock,secText,mmss,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
   openWindow,closeWindow,esc,refreshPass,room,where,mode,askedDay,ARCH_FROM,archNo,lives,setLives,stat,statTo,PAGE,oldName,withOld,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name,fresh:FRESH};
 })();

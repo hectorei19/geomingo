@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611251940"></script>
-<script src="../brand/account.js?v=202611251901"></script>
+<script src="../brand/mingo.js?v=202611252100"></script>
+<script src="../brand/account.js?v=202611252000"></script>
 <script src="../brand/party.js?v=202611250700"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -748,22 +748,28 @@ function lbCached(k){try{const c=JSON.parse(localStorage.getItem('bl-lbc')||'nul
 function watchLB(){if(!FB_OK||TESTDAY||!initFB())return;const k=todayKey();if(lbDate===k)return;
   if(lbRef)lbRef.off();lbDate=k;LB=lbCached(k);lbRef=db.ref('leaderboard/'+k);
   lbRef.on('value',s=>{LB=s.val()||{};try{localStorage.setItem('bl-lbc',JSON.stringify({date:k,rows:LB}))}catch(e){}if(!S||S.daily)render()},()=>{})}
-// ranking order: more points first, then more squares, then whoever finished first
-function lbRows(src){return Object.entries(src||LB||{}).map(([uid,v])=>({uid,...v})).sort((a,b)=>b.s-a.s||b.c-a.c||(a.t||0)-(b.t||0))}
+// ranking order: more km first, then more points, then the faster one, then more squares, then whoever finished first
+// a row's km that day, the same number as the home page's ranking (+20 km for a perfect grid)
+const rowKm=(r,d)=>Geomingo.rowKm('borderline',r,d||todayKey());
+// small text of a row: points and the perfect-grid +20 km (Héctor 17 Nov: show how the points become km)
+const lbPerfect=r=>(+r.c||0)>=DAILY_N*DAILY_N&&!(+r.w);
+const lbSmall=(r,d)=>{d=d||todayKey();return `${r.c}/${DAILY_N*DAILY_N}${Geomingo.newKm(d)&&lbPerfect(r)?' +20':''}`};
+const lbHow=d=>{d=d||todayKey();return `<p class="hint">${isKm(d)?'Squares are worth 3 to 10 km, more the harder they are (100 km for all 16); +20 km for a perfect grid with no mistakes. A tie: the faster one first.':'100 km for all 16 squares, +20 km for a perfect grid with no mistakes.'}</p>`};
+function lbRows(src,d){return Object.entries(src||LB||{}).map(([uid,v])=>({uid,...v,km:rowKm(v,d)})).sort((a,b)=>b.km-a.km||b.s-a.s||(a.sec||1e9)-(b.sec||1e9)||b.c-a.c||(a.t||0)-(b.t||0))}
 // a past day's ranking (archive games): read once, only to look at it
 const LBD={};
 function pastLB(date){if(LBD[date]===undefined&&initFB()){LBD[date]=null;db.ref('leaderboard/'+date).once('value').then(s=>{LBD[date]=s.val()||{};if(S&&S.daily===date)render()}).catch(()=>{})}return LBD[date]}
 // ranking table: the top 10, plus your own row if you are further down (today's, or a past day's for archive games)
 function lbView(date){if(!FB_OK||TESTDAY)return '';
   if(date){const src=pastLB(date);if(!src)return `<section class="panel lb"><span class="label">Ranking of grid #${dayNumber(date)}</span><p class="hint">Loading…</p></section>`;
-    const rows=lbRows(src),me=USER&&USER.uid,i=rows.findIndex(r=>r.uid===me);
-    const row=(r,k)=>`<li class="${r.uid===me?'me':''}" data-stats="${esc(r.uid)}" role="button" tabindex="0"><span class="rk">${k+1}</span><span class="nm">${esc(pname(r.uid,r.name))}</span><span class="sq">${r.c}/${DAILY_N*DAILY_N}</span><span class="pt">${EU(r.s)}</span></li>`;
-    return `<section class="panel lb"><span class="label">Ranking of grid #${dayNumber(date)}${rows.length?` · ${rows.length} player${rows.length===1?'':'s'}`:''}</span>${rows.length?`<ol class="lbl">${rows.slice(0,10).map(row).join('')+(i>=10?`<li class="gap">…</li>`+row(rows[i],i):'')}</ol>`:'<p class="hint">Nobody played this grid on its day.</p>'}<p class="hint">How the players did on the day. Archive games are not added.</p></section>`}
+    const rows=lbRows(src,date),me=USER&&USER.uid,i=rows.findIndex(r=>r.uid===me);
+    const row=(r,k)=>`<li class="${r.uid===me?'me':''}" data-stats="${esc(r.uid)}" role="button" tabindex="0"><span class="rk">${k+1}</span><span class="nm">${esc(pname(r.uid,r.name))}</span><span class="sq">${lbSmall(r,date)}</span><span class="pt">${EU(r.km)} km</span></li>`;
+    return `<section class="panel lb"><span class="label">Ranking of grid #${dayNumber(date)}${rows.length?` · ${rows.length} player${rows.length===1?'':'s'}`:''}</span>${rows.length?`<ol class="lbl">${rows.slice(0,10).map(row).join('')+(i>=10?`<li class="gap">…</li>`+row(rows[i],i):'')}</ol>`:'<p class="hint">Nobody played this grid on its day.</p>'}${rows.length&&Geomingo.newKm(date)?lbHow(date):''}<p class="hint">How the players did on the day. Archive games are not added.</p></section>`}
   const rows=lbRows(),me=USER&&USER.uid,i=rows.findIndex(r=>r.uid===me);
-  const row=(r,k)=>`<li class="${r.uid===me?'me':''}" data-stats="${esc(r.uid)}" role="button" tabindex="0"><span class="rk">${k+1}</span><span class="nm">${esc(pname(r.uid,r.name))}</span><span class="sq">${r.c}/${DAILY_N*DAILY_N}</span><span class="pt">${EU(r.s)}</span></li>`;
+  const row=(r,k)=>`<li class="${r.uid===me?'me':''}" data-stats="${esc(r.uid)}" role="button" tabindex="0"><span class="rk">${k+1}</span><span class="nm">${esc(pname(r.uid,r.name))}</span><span class="sq">${lbSmall(r)}</span><span class="pt">${EU(r.km)} km</span></li>`;
   const list=rows.slice(0,10).map(row).join('')+(i>=10?`<li class="gap">…</li>`+row(rows[i],i):'');
   const foot=!USER&&!MAYBE_IN()?(AUTH_OK?`<button class="ghost" id="signin2">Sign in to join today's ranking</button>${carryable(loadDaily())?'<p class="hint">Your result is added when you sign in.</p>':''}`:''):i<0?`<p class="hint">Your result joins the ranking when you finish today's grid signed in.</p>`:'';
-  return `<section class="panel lb"><span class="label">Today's ranking${i>=0?`<b>You: #${i+1} of ${rows.length}</b>`:rows.length?` · ${rows.length} player${rows.length===1?'':'s'}`:''}</span>${rows.length?`<ol class="lbl">${list}</ol>`:`<p class="hint">Nobody in today's ranking yet.</p>`}${foot}</section>`}
+  return `<section class="panel lb"><span class="label">Today's ranking${i>=0?`<b>You: #${i+1} of ${rows.length}</b>`:rows.length?` · ${rows.length} player${rows.length===1?'':'s'}`:''}</span>${rows.length?`<ol class="lbl">${list}</ol>`+lbHow():`<p class="hint">Nobody in today's ranking yet.</p>`}${foot}</section>`}
 function lbMine(){const id=USER?USER.uid:MAYBE_IN()&&(Geomingo.account.user||{}).uid;if(!id||!LB)return null;const rows=lbRows(),i=rows.findIndex(r=>r.uid===id);
   return i<0?null:{rank:i+1,total:rows.length,top:Math.max(1,Math.round((i+1)/rows.length*100))}}
 function dailyStats(){return dailyStatsFrom(loadHist())}
@@ -877,9 +883,9 @@ function archiveView(){const a=loadArch(),rem=ARCH_REMOTE||{};
   const items=archDates().map(k=>{const g=a[k],r=rem[k],n=dayNumber(k),
       date=new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
     let st,sq='';
-    if(g&&g.over){st=`<span class="as done">${EU(g.players[0].score)} pts</span>`;
+    if(g&&g.over){st=`<span class="as done">${showKm(k)?EU(stateKm(g))+' km':EU(g.players[0].score)+' pts'}</span>`;
       sq=`<span class="dsq" style="grid-template-columns:repeat(${g.n},1fr)" aria-hidden="true">${g.cells.map(c=>`<i class="${c.o>=0?'on':''}"></i>`).join('')}</span>`}
-    else if(onDay(k)){const e=onDay(k);st=`<span class="as done">${e.f===0?'Started on its day':EU(e.s)+' pts'}</span>`;
+    else if(onDay(k)){const e=onDay(k);st=`<span class="as done">${e.f===0?'Started on its day':showKm(k)?EU(Geomingo.KM.grid(e.s,e.c,e.n||DAILY_N,e.w,k))+' km':EU(e.s)+' pts'}</span>`;
       if(e.g&&e.f!==0)sq=`<span class="dsq" style="grid-template-columns:repeat(${e.n},1fr)" aria-hidden="true">${[...e.g].map(x=>`<i class="${x==='1'?'on':''}"></i>`).join('')}</span>`}
     else if(USER&&r&&otherDevice(r))st=`<span class="as">${r.f===1?'Played on another device':'Started on another device'}</span>`;
     else st=`<span class="as">${g?'In progress':'Play'}</span>`;
@@ -992,10 +998,19 @@ function valuesFor(answers){if(!valCache.has(answers))valCache.set(answers,cellV
    20 km more), so a fast full grid reaches the 100 km top. With friends keeps 0-100 squares, its speed and lines. */
 const PLAIN_FROM='2026-11-16',PLAIN_TOTAL=1200,PLAIN_SPEED=20,plainCache=new WeakMap();
 const plain=()=>!!S&&S.mode==='solo'&&(!S.daily||S.daily>=PLAIN_FROM);
-function plainValues(answers){if(plainCache.has(answers))return plainCache.get(answers);
-  const w=valuesFor(answers).map(x=>1+x/SQ_MAX),t=w.reduce((a,b)=>a+b,0),raw=w.map(x=>x*PLAIN_TOTAL/t),v=raw.map(Math.floor);
-  let left=PLAIN_TOTAL-v.reduce((a,b)=>a+b,0);raw.map((x,i)=>[x-v[i],i]).sort((a,b)=>b[0]-a[0]||a[1]-b[1]).forEach(([,i])=>{if(left>0){v[i]++;left--}});
-  plainCache.set(answers,v);return v}
+/* From Geomingo.KMSQ_FROM (Héctor 2026-11-17), daily and Practice: the squares share KMSQ_TOTAL whole km (Practice: points),
+   a hard square worth up to KMSQ_HARD times an easy one, no speed; +20 km for a perfect grid. Points are km. */
+const KMSQ_TOTAL=100,KMSQ_HARD=3,kmCache=new WeakMap();
+const kmsq=()=>plain()&&(!S.daily||S.daily>=Geomingo.KMSQ_FROM||!!S.archive);
+const isKm=d=>!!d&&d>=Geomingo.KMSQ_FROM;
+// a finished daily's km (squares, +20 for a perfect grid); a game state's score text: km from KMSQ_FROM, points before
+const stateKm=st=>{const e=dailyEntry(st,1);return Geomingo.KM.grid(e.s,e.c,e.n,e.w,st.daily)};
+const showKm=d=>!!d&&Geomingo.newKm(d);
+const scoreTxt=st=>showKm(st.daily)?EU(stateKm(st))+' km':EU(st.players[0].score)+' points';
+function plainValues(answers,km){const C=km?kmCache:plainCache,T=km?KMSQ_TOTAL:PLAIN_TOTAL,H=km?KMSQ_HARD-1:1;if(C.has(answers))return C.get(answers);
+  const w=valuesFor(answers).map(x=>1+H*x/SQ_MAX),t=w.reduce((a,b)=>a+b,0),raw=w.map(x=>x*T/t),v=raw.map(Math.floor);
+  let left=T-v.reduce((a,b)=>a+b,0);raw.map((x,i)=>[x-v[i],i]).sort((a,b)=>b[0]-a[0]||a[1]-b[1]).forEach(([,i])=>{if(left>0){v[i]++;left--}});
+  C.set(answers,v);return v}
 function speedPts(elapsedMs,timer){const win=timer||SPEED_WINDOW;return SPEED_PER_SEC*Math.max(0,Math.floor(win-elapsedMs/1000))}
 function lineCounts(){
   const n=S.n,b=S.players.map(()=>0);
@@ -1030,12 +1045,12 @@ function guess(ci,cid){
   const ok=S.answers[ci].includes(c.i);
   const p=S.players[S.turn];
   if(ok){
-    const pts=plain()?plainValues(S.answers)[ci]:valuesFor(S.answers)[ci],sb=plain()?Math.max(0,Math.floor(PLAIN_SPEED-(now()-(S.turnStart||now()))/1000)):speedPts(now()-(S.turnStart||now()),S.timer);
+    const pts=plain()?plainValues(S.answers,kmsq())[ci]:valuesFor(S.answers)[ci],sb=kmsq()?0:plain()?Math.max(0,Math.floor(PLAIN_SPEED-(now()-(S.turnStart||now()))/1000)):speedPts(now()-(S.turnStart||now()),S.timer);
     const before=lineCounts()[S.turn];
     S.cells[ci]={o:S.turn,c:cid,p:pts,sb};S.used.push(cid);S.passes=0;ui.fresh=ci;
     const nl=lineCounts()[S.turn]-before;
     Geomingo.stamp('borderline',c.n,'',c.c);
-    say('happy','Stamped: '+c.n+'.','+'+pts+' pts'+(sb?' · +'+sb+' speed':'')+(nl&&!plain()?' · +'+nl*LINE_BONUS+' for the line':'')+(S.mode==='solo'?'':' for '+p.name+'.'));
+    say('happy','Stamped: '+c.n+'.','+'+pts+(kmsq()&&S.daily?' km':' pts')+(sb?' · +'+sb+' speed':'')+(nl&&!plain()?' · +'+nl*LINE_BONUS+' for the line':'')+(S.mode==='solo'?'':' for '+p.name+'.'));
   }else{
     S.wrong++;loseLife();
     const left=S.mode==='solo'?livesLeft():0;
@@ -1483,7 +1498,7 @@ function homeView(){
     :other?doneCard(other.f===0?'started on another device':'played on another device',other.n||DAILY_N,[...(other.g||'').padEnd((other.n||DAILY_N)**2,'0')].map(x=>x==='1'),other.s||0,other.c||0,other.f===0?'You started it on another device with this account. One try per account.':'You played it on another device with this account.')
     :`<div class="hcard ac"><span class="hm">#${dayNumber(key)} · ${date}</span><span class="ht">Today's grid</span><span class="hs">${d?'You started it: tap a square to continue.':'Compete with everyone: the same grid, one try. Tap a square to start.'}</span>${dailyBoard(d&&d.S)}</div>`;
   const st=Geomingo.streak();
-  const hi=done?(p.score>0?Geomingo.hello('happy','Stamped for today.'+(st>1?' '+st+'-day streak.':''),`Today's grid: ${EU(p.score)} points. Next grid in ${next}.`):Geomingo.hello('sad','Rough crossing today.',`Today's grid: 0 points. Next grid in ${next}.`))
+  const hi=done?(p.score>0?Geomingo.hello('happy','Stamped for today.'+(st>1?' '+st+'-day streak.':''),`Today's grid: ${scoreTxt(d.S)}. Next grid in ${next}.`):Geomingo.hello('sad','Rough crossing today.',`Today's grid: 0 ${showKm(key)?'km':'points'}. Next grid in ${next}.`))
     :other?Geomingo.hello('think','Played on another device.',`Next grid in ${next}.`)
     :d?Geomingo.hello('think','Your grid is waiting.','Tap a square to carry on. One try.')
     :Geomingo.hello('pass','GeoPass ready.','Tap a square to start. Every right answer is a stamp. One try, the same grid for everyone.');
@@ -1521,7 +1536,7 @@ function gameView(){
     const stub=S.mode==='solo'
       ?cell('Traveller',esc(S.players[0].name),'tk-name')+cell('Stamps',S.cells.filter(c=>c.o===0).length+'/'+S.n*S.n)
         // the same four boxes in every game (Héctor, 2026-11-10): today's km in the daily, points in Practice and the archive (no class: Practice has no levels)
-        +(S.daily&&!S.archive?cell('km',Geomingo.newKm(S.daily)?Geomingo.KM.grid(liveScore(0),S.cells.filter(c=>c.o===0).length,S.n,LIVES-livesLeft()):Geomingo.pts(S.cells.filter(c=>c.o===0).length/(S.n*S.n)),'tk-pts'):cell('Points',EU(liveScore(0)),'tk-pts'))+(S.nolives?cell('Mistakes',S.wrong,'tk-gs'):cell('Lives',livesDots(livesLeft(),LIVES),'tk-gs'))+time
+        +(S.daily&&!S.archive?cell('km',Geomingo.newKm(S.daily)?Geomingo.KM.grid(liveScore(0),S.cells.filter(c=>c.o===0).length,S.n,LIVES-livesLeft(),S.daily):Geomingo.pts(S.cells.filter(c=>c.o===0).length/(S.n*S.n)),'tk-pts'):cell('Points',EU(liveScore(0)),'tk-pts'))+(S.nolives?cell('Mistakes',S.wrong,'tk-gs'):cell('Lives',livesDots(livesLeft(),LIVES),'tk-gs'))+time
       :S.players.map((q,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${q.on===false?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(q.name)}</i><b>${liveScore(i)}</b></div>`).join('')+time;
     h+=Geomingo.ticket(say,stub,{timer:S.timer,color:S.mode==='solo'?'':`var(--p${S.turn})`,mode:S.daily?(S.archive?'archive':'daily'):S.mode==='solo'?'practice':'friends',num:S.day});
   }
@@ -1551,7 +1566,7 @@ function gameView(){
 function shareText(){
   const n=S.n;let g='';
   for(let i=0;i<n;i++){for(let j=0;j<n;j++){const o=S.cells[i*n+j].o;g+=o<0?'⬜':(S.mode==='solo'?'🟩':['🟥','🟦','🟨','🟪','🟩','🟫'][o])}g+='\n'}
-  const head=S.daily?`${Geomingo.share(GAME_NAME)} #${S.day} — ${EU(S.players[0].score)} pts (${S.players[0].cells}/${n*n})`:S.mode==='solo'?`${Geomingo.share(GAME_NAME)} ${S.code} — ${EU(S.players[0].score)} pts (${S.players[0].cells}/${n*n})`:`${Geomingo.share(GAME_NAME)} ${S.code} — `+S.players.map(p=>p.name+' '+p.score).join(', ');
+  const head=S.daily?`${Geomingo.share(GAME_NAME)} #${S.day} — ${showKm(S.daily)?EU(stateKm(S))+' km':EU(S.players[0].score)+' pts'} (${S.players[0].cells}/${n*n})`:S.mode==='solo'?`${Geomingo.share(GAME_NAME)} ${S.code} — ${EU(S.players[0].score)} pts (${S.players[0].cells}/${n*n})`:`${Geomingo.share(GAME_NAME)} ${S.code} — `+S.players.map(p=>p.name+' '+p.score).join(', ');
   return head+'\n'+g.trim();
 }
 // link that opens this exact grid (?grid=4E-KQPMT), sent together with the result
@@ -1607,11 +1622,11 @@ function watchResult(){if(!S){liveKey='';return}const k=gameKey();
   setTimeout(()=>window.scrollTo({top:0,behavior:'smooth'}),50)}
 function resultsView(body){
   if(S.daily){const p=S.players[0],n=S.n,ms=msToNextDay(),next=S.archive?null:Geomingo.nextGame('borderline');
-    if(!S.archive&&!S.dayof)return `${Geomingo.doneTicket('borderline',S.day,EU(p.score)+' points',`next in ${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min`,body)}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
+    if(!S.archive&&!S.dayof)return `${Geomingo.doneTicket('borderline',S.day,scoreTxt(S),`next in ${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min`,body)}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns">${nextGameBtn(next)}${SHARE_BTN.replace('Share result','Share')}</div>`;
     // an archive grid (or one played on its day, opened from the archive): the coral ticket with the grid inside,
     // Back to archive (the calendar of all the games on the home page) and Share under it (Héctor 2026-11-16)
-    return `${Geomingo.archTicket({id:'borderline',num:S.day,day:S.dayof?'':S.daily,state:S,score:EU(p.score)+' points',detail:S.dayof?'Played on its day':p.cells+' of '+n*n+' squares',note:S.dayof?'':undefined,body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
+    return `${Geomingo.archTicket({id:'borderline',num:S.day,day:S.dayof?'':S.daily,state:S,score:scoreTxt(S),detail:S.dayof?'Played on its day':p.cells+' of '+n*n+' squares',note:S.dayof?'':undefined,body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns gm-solo-btns"><button class="primary" id="archback" style="flex:1">Back to calendar</button>${SHARE_BTN.replace('Share result','Share')}</div>${Geomingo.archListBtn()}${lbView(S.daily)}`}
   // a finished Solo game: the pink ticket with the grid inside, then New grid and Share (Héctor 2026-11-14)
   if(S.mode==='solo'){const p=S.players[0],n=S.n,best=Math.max(p.score||0,...loadGames().filter(g=>g.m==='s'&&g.n===n).map(g=>g.s||0));
@@ -1700,9 +1715,7 @@ function drawLayer(){
       </dl>
       </div>`}
   if(ui.help){
-    const ks=[2,3,4,5,6,7,8,9,10,12,14,17,20,25,32,45],ev=plainValues(ks.map(k=>Array(k).fill(0)));
-    const exr=i=>`<tr><td>${i+1}.</td><td>${ks[i]} countries fit</td><td>${ev[i]} pts</td></tr>`;
-    const ex=[0,1,2].map(exr).join('')+'<tr><td>…</td><td></td><td></td></tr>'+[13,14,15].map(exr).join('');
+    const ks=[2,3,4,5,6,7,8,9,10,12,14,17,20,25,32,45],ev=plainValues(ks.map(k=>Array(k).fill(0)),true);
     const G=DAILY_N*DAILY_N;
     h+=`<div class="infoscrim" id="helpscrim"></div><div class="infobox helpbox" role="dialog" aria-modal="true" aria-labelledby="helpt">
       <div class="dlg-head"><h2 id="helpt">How to play</h2><button class="dlg-x" id="helpok">Close</button></div>
@@ -1715,15 +1728,13 @@ function drawLayer(){
       <li>Tap an empty square, start typing a country and tap it in the list. The list only finds names from their first letters.</li>
       <li>Right: it goes in the square. Wrong: the square stays empty and you lose one of your <b>5 lives</b>.</li>
       <li>The game ends when the grid is full or you run out of lives. <b>Give up</b> ends it early.</li></ul>
-      <h3>Points</h3><ul>
-      <li><b>Square</b>: the ${DAILY_N*DAILY_N} squares share ${EU(PLAIN_TOTAL)} points. Hard squares (few countries fit) are worth more, up to twice an easy one.</li>
-      <li><b>Speed</b>: +1 for every second under ${PLAIN_SPEED} s.</li>
-      <li><b>Km</b> (daily): 1 km for every 15 points, up to 100. <b>Perfect grid</b> (all ${DAILY_N*DAILY_N}, no life lost): +20 km.</li>
+      <h3>Km</h3><ul>
+      <li><b>Square</b>: the ${DAILY_N*DAILY_N} squares share ${KMSQ_TOTAL} km. Hard squares (few countries fit) are worth more, up to three times an easy one.</li>
+      <li><b>Perfect grid</b> (all ${DAILY_N*DAILY_N}, no life lost): +20 km.</li>
+      <li><b>Practice</b>: the same, counted as points.</li>
       <li><b>With friends</b>: a square is worth 0 to ${SQ_MAX}, +${SPEED_PER_SEC} for every second under ${SPEED_WINDOW} s, and +${LINE_BONUS} for every full row or column that is all yours.</li></ul>
-      <h3>Example: a ${DAILY_N} × ${DAILY_N} grid</h3>
-      <p class="hint">The ${G} squares are ranked from hardest to easiest, and the points go down in equal steps. Squares with the same number of countries share the same points.</p>
-      <table class="ptable">${ex}</table>
-      <p class="hint">All ${G} squares together: ${EU(PLAIN_TOTAL)} points (80 km). Speed adds up to 20 km more.</p>
+      <h3>Example</h3>
+      <p class="hint">A square where only ${ks[0]} countries fit: ${ev[0]} km. Where ${ks[8]} fit: ${ev[8]} km. Where ${ks[15]} fit: ${ev[15]} km. All ${G} squares together: ${KMSQ_TOTAL} km.</p>
       <h3>Modes</h3><ul>
       <li><b>Daily</b>: one ${DAILY_N} × ${DAILY_N} grid, the same for everyone, new every day at midnight CET. One try. Its km go to your GeoPass.</li>
       <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. 5 lives or <b>Unlimited</b>: pick it next to Practice on the home page. Points only, no km.</li>
