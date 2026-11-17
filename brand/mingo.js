@@ -181,7 +181,8 @@ const pts=f=>{f=Math.max(0,Math.min(1,+f||0));return Math.round(f*100)+(f>=1?20:
 // r right answers out of n, p points (5 for the first clue down to 1 for the fifth)
 const clPts=(r,p,n)=>{r=+r||0;p=+p||0;n=+n||0;if(!n)return 0;const f=Math.max(0,Math.min(1,(.75*r+.05*p)/n));return Math.round(f*100)+(r>=n?20:0)};
 // f groups found out of 4, m mistakes
-const cxPts=(f,m)=>{f=Math.max(0,Math.min(4,+f||0));m=+m||0;return Math.max(0,25*f-10*m)+(f>=4&&!m?20:0)};
+// h: categories shown with the hint button (from 2026-11-18): 10 less each, and no +20 for a perfect game
+const cxPts=(f,m,h)=>{f=Math.max(0,Math.min(4,+f||0));m=+m||0;h=+h||0;return Math.max(0,25*f-10*m-10*h)+(f>=4&&!m&&!h?20:0)};
 /* From KM_FROM (Héctor 2026-11-14) every game uses the same table: up to 100 points, +20 for a perfect game (not one
    mistake), and the daily's points are its km. Days before keep the km they had (the formulas above).
    Countries, Capitals keep their own points (hard squares, speed, lines): 1 km for every 15 points, up to 100, +20 for
@@ -218,7 +219,7 @@ const KM={
 function ledger(){const L={},add=(d,id,mi)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))(L[d]=L[d]||{})[id]=mi};
   [['bl-hist','borderline'],['cc-hist','citygrid']].forEach(([k,id])=>{const h=json(k)||{};
     for(const d in h){const e=h[d];if(e&&e.f!==0){const n=+e.n||3;add(d,id,newKm(d)?KM.grid(e.s,e.c,n,e.w):pts((+e.c||0)/(n*n)))}}});
-  const cx=json('cx-hist')||{};for(const d in cx)if(cx[d])add(d,'connections',cxPts(cx[d].f!=null?cx[d].f:cx[d].w?4:0,cx[d].m));
+  const cx=json('cx-hist')||{};for(const d in cx)if(cx[d])add(d,'connections',cxPts(cx[d].f!=null?cx[d].f:cx[d].w?4:0,cx[d].m,cx[d].h));
   const t=json('t10-hist')||{};for(const d in t)if(t[d])add(d,'top10',newKm(d)?KM.top10(t[d].f,t[d].l!=null?5-t[d].l:null):pts((+t[d].f||0)/10));
   const s=json('sil-hist')||{},sm=json('sil-miss')||{};for(const d in s){const day=s[d]||{},k=Object.keys(day).filter(x=>typeof day[x]==='number');
     if(!k.length)continue;if(!newKm(d)){add(d,'silhouette',pts(Math.max(...k.map(x=>day[x]))/9));continue}
@@ -253,7 +254,7 @@ const ARL={
 // a ranking row's km on day d (the home page's ranking counts them the same way)
 function rowKm(id,r,d){const N=newKm(d);
   if(id==='borderline'||id==='citygrid'){const n=+r.n||4;return N?KM.grid(r.s,r.c,n,r.w):pts((+r.c||0)/(n*n))}
-  if(id==='connections')return cxPts(r.s,r.m);
+  if(id==='connections')return cxPts(r.s,r.m,r.h);
   if(id==='top10')return N?KM.top10(r.s,r.m):pts((+r.s||0)/10);
   if(id==='silhouette')return N?KM.sil(r.s,r.m):pts((+r.s||0)/9);
   if(id==='impostor')return N?KM.imp(r.r,r.s,d,r.x3):clPts(r.r,r.s,6);

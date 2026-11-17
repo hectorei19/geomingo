@@ -47,7 +47,7 @@ function silhouette(L){return {
     if(JSON.stringify(x[L])===JSON.stringify(j))return false;x[L]=j;x.over=true;put('sil-daily',x);return true}}}
 // ranking score: s more is better, m fewer is better (then whoever finished first)
 const ADAPT={
-  connections:simple('cx-hist','cx-daily',S=>({s:(S.found||[]).length,m:S.mistakes||0})),
+  connections:simple('cx-hist','cx-daily',S=>({s:(S.found||[]).length,m:S.mistakes||0,h:+S.hc||0})),
   top10:simple('t10-hist','t10-daily',S=>({s:(S.found||[]).length,m:(S.wrong||[]).length})),
   'sil-easy':silhouette('easy'),'sil-normal':silhouette('normal'),'sil-hard':silhouette('hard'),
   customs:simple('cu-hist','cu-daily',S=>({x3:(S.qs||[]).some(q=>q.x3)?1:0,s:(S.qs||[]).reduce((n,q)=>n+G.clFlag(q),0),r:(S.qs||[]).filter(q=>q.st==='right').length,m:(S.qs||[]).reduce((n,q)=>n+(q.tries||[]).length,0)})),
@@ -347,7 +347,7 @@ function watch(g){if(!ok||TEST)return;const k=T();if(lbRef[g]&&lbRef[g].day===k)
   if(lbRef[g])lbRef[g].off();if(!(LB[g]&&LB[g].date===k))LB[g]={date:k,rows:null};lbRef[g]=db.ref('lb/'+g+'/'+k);lbRef[g].day=k;
   lbRef[g].on('value',s=>{LB[g]={date:k,rows:s.val()||{}};keepLB(g);backfill(Object.entries(LB[g].rows).map(([id,r])=>[id,r&&r.name]));changed()},()=>{LB[g]={date:k,rows:null,off:true};changed()})}
 // from G.KM_FROM the ranking is by the game's points (the same table as the km), then fewer mistakes, then who finished first
-const PTS={connections:r=>G.cxPts(r.s,r.m),top10:r=>G.KM.top10(r.s,r.m),'sil-easy':r=>G.KM.sil(r.s,r.m),'sil-normal':r=>G.KM.sil(r.s,r.m),'sil-hard':r=>G.KM.sil(r.s,r.m),
+const PTS={connections:r=>G.cxPts(r.s,r.m,r.h),top10:r=>G.KM.top10(r.s,r.m),'sil-easy':r=>G.KM.sil(r.s,r.m),'sil-normal':r=>G.KM.sil(r.s,r.m),'sil-hard':r=>G.KM.sil(r.s,r.m),
   customs:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),flagpie:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),compass:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),impostor:r=>G.KM.imp(r.r,r.s,T(),r.x3)};
 const rankPts=(g,r)=>PTS[g]&&G.newKm(T())?PTS[g](r):r.s;
 const sorted=g=>Object.entries((LB[g]&&LB[g].rows)||{}).map(([id,v])=>Object.assign({id},v)).sort((a,b)=>rankPts(g,b)-rankPts(g,a)||b.s-a.s||(a.m||0)-(b.m||0)||(a.t||0)-(b.t||0));
