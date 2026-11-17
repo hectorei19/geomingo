@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611250700"></script>
-<script src="../brand/account.js?v=202611251300"></script>
+<script src="../brand/mingo.js?v=202611251300"></script>
+<script src="../brand/account.js?v=202611251500"></script>
 <script src="../brand/party.js?v=202611250700"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -309,7 +309,7 @@ function save(){if(!S)return;
   if(S.mode==='online'){if(S.over&&S.ms==null)S.ms=Math.max(0,now()-((room&&room.startAt)||now()));
     keep('cx-online',{code:S.code,round:S.round,S});pushProgress();return}
   if(S.mode==='daily'){store('cx-daily',{date:S.date,over:S.over,S});
-    if(S.over){const h=load('cx-hist',{});if(!h[S.date]){h[S.date]={w:S.won?1:0,m:S.mistakes,f:S.found.length};store('cx-hist',h);if(!TESTDAY){Geomingo.clock.stop('connections',S.date,S.found.length/4);Geomingo.account.done('connections')}}}}
+    if(S.over){const h=load('cx-hist',{});if(!h[S.date]){h[S.date]={w:S.won?1:0,m:S.mistakes,f:S.found.length,h:+S.hc||0};store('cx-hist',h);if(!TESTDAY){Geomingo.clock.stop('connections',S.date,S.found.length/4);Geomingo.account.done('connections')}}}}
   else if(S.mode==='archive'){const a=load('cx-arch',{});if(S.over&&!S.pd)S.pd=Geomingo.dayKey();a[S.date]=S;store('cx-arch',a)}
   else{if(S.over&&!S.logged){S.logged=1;logSolo('cx-solo',{w:S.won?1:0,p:S.won&&!S.mistakes?1:0,f:S.found.length})}
     store('cx-free',S)}}
@@ -499,7 +499,7 @@ function turnOver(cs,t,done){const els=cs.map(c=>app.querySelector(`.cx-grid [da
 function shareText(){const rows=S.guesses.map(g=>g.map(c=>TEMOJI[S.groups[groupOf(S,c)].t]).join(''));
   const G=Geomingo.share('Connections'),head=S.mode==='daily'?`${G} #${S.num}`:S.mode==='archive'?`${G} ${Geomingo.archNo(S.num)} (archive)`:S.mode==='online'?`${G} (with friends)`:`${G} (practice)`;
   const sum=S.groups.map((g,i)=>S.found.includes(i)?TEMOJI[g.t]:'⬜').join('');
-  return head+(S.hint?' · categories shown':'')+' — '+(S.won?`solved with ${S.mistakes} mistake${S.mistakes===1?'':'s'}`:`${S.found.length}/4 groups`)+'\n'+sum+(rows.length?'\n\n'+rows.join('\n'):'')}
+  return head+(hintsShown()?' · '+hintsShown()+' categor'+(hintsShown()===1?'y':'ies')+' shown':'')+' — '+(S.won?`solved with ${S.mistakes} mistake${S.mistakes===1?'':'s'}`:`${S.found.length}/4 groups`)+'\n'+sum+(rows.length?'\n\n'+rows.join('\n'):'')}
 const shareLink=()=>S.mode==='free'?pageLink('?p='+S.seed):pageLink();
 const shareMessage=()=>shareText()+'\n\n'+(S.mode==='daily'?"Play today's puzzle: ":S.mode==='free'?'Play this puzzle: ':'Play Connections: ')+shareLink();
 
@@ -566,7 +566,7 @@ function render(keepShake){
   else{const cell=Geomingo.tk,left=MAX_MISTAKES-S.mistakes;
     // the ticket, as in every game: Mingo on top, then who is travelling, groups found and mistakes left
     h+=Geomingo.ticket(moodHTML(cxKey(),'pass','4 stamps to win.','Pick four countries that share something, then Submit.'),
-      cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Groups',S.found.length+'/4')+cell(S.mode==='daily'?'km':'Points',Geomingo.cxPts(S.found.length,S.mistakes),'tk-pts')+(on||S.nolives?cell('Mistakes',S.mistakes,'tk-gs'):cell('Lives',livesHTML(left,MAX_MISTAKES),'tk-gs')),{mode:S.mode==='free'?'practice':S.mode==='online'?'friends':S.mode,num:S.num})}
+      cell('Traveller',esc(Geomingo.traveller()),'tk-name')+cell('Groups',S.found.length+'/4')+cell(S.mode==='daily'?'km':'Points',Geomingo.cxPts(S.found.length,S.mistakes,S.hc),'tk-pts')+(on||S.nolives?cell('Mistakes',S.mistakes,'tk-gs'):cell('Lives',livesHTML(left,MAX_MISTAKES),'tk-gs')),{mode:S.mode==='free'?'practice':S.mode==='online'?'friends':S.mode,num:S.num})}
   h+=`<div class="cx-board">`;
   S.found.forEach(g=>h+=groupHTML(S.groups[g]));
   if(S.over)S.groups.forEach((g,i)=>{if(!S.found.includes(i))h+=groupHTML(g,true)});
@@ -575,13 +575,19 @@ function render(keepShake){
   if(S.over&&!on&&S.mode==='daily')h+=rankingHTML();
   if(!S.over){
     h+=`<div class="cx-actions"><button class="ghost" id="shuf">Shuffle</button><button class="ghost" id="desel" ${sel.length?'':'disabled'}>Deselect all</button><button class="primary" id="submit" ${sel.length===4?'':'disabled'}>Submit</button></div>${on?'':giveUpHTML()}
-    ${catsHTML()}${rulesPanel(on)}`}
+    ${on?'':catsHTML()}${rulesPanel(on)}`}
   app.innerHTML=h;bind();
 }
-// optional help: the names of the four categories, in no particular order (not which country goes where)
-function catsHTML(){if(!S.hint)return `<button class="linkbtn cx-hintbtn" id="hint">Stuck? Show the 4 categories</button>`;
-  const ks=S.groups.map(g=>CATS[g.k]).sort((a,b)=>a.label.localeCompare(b.label));
-  return `<section class="panel cx-cats"><span class="label">The 4 categories</span><ul>${ks.map(k=>`<li>${esc(EUT(k.label))} <button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></li>`).join('')}</ul></section>`}
+// optional help: the categories, one at a time, easiest (yellow) first. From HINT_COST_FROM each one costs 10 points
+// (S.hc counts them) and there is no +20 for a perfect game. Older games (S.hint === true) showed all four, free.
+const HINT_COST_FROM='2026-11-18';
+const hintsShown=()=>S.hint===true?4:+S.hint||0;
+const hintCosts=()=>!(S.mode==='daily'||S.mode==='archive')||S.date>=HINT_COST_FROM;
+function hintOrder(){return S.groups.map((g,i)=>i).sort((a,b)=>S.groups[a].t-S.groups[b].t)}
+function catsHTML(){const n=hintsShown(),shown=hintOrder().slice(0,n),left=hintOrder().filter(i=>!shown.includes(i)&&!S.found.includes(i));
+  const btn=left.length?`<button class="linkbtn cx-hintbtn" id="hint">${n?'Show another category':'Stuck? Show a category'}${hintCosts()?' (−10 points)':''}</button>`:'';
+  if(!n)return btn;
+  return `<section class="panel cx-cats"><span class="label">Categories shown</span><ul>${shown.map(i=>CATS[S.groups[i].k]).map(k=>`<li>${esc(EUT(k.label))} <button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></li>`).join('')}</ul>${btn}</section>`}
 // Mingo's verdict, for the result panel
 function verdict(){const n=S.mistakes;
   return S.won?(n?{pose:'happy',t:'Visited. All four groups.',s:'All four groups, '+n+' mistake'+(n===1?'':'s')+'.'}:{pose:'happy',t:'Full page. Not a single mistake.',s:'All four groups found.'})
@@ -630,11 +636,12 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>How to play</h3><ul>
   <li>Tap four countries, then <b>Submit</b>.</li>
   <li>Wrong: you lose one of your <b>${MAX_MISTAKES} lives</b>. "One away" means three of the four belong together.</li>
-  <li><b>Shuffle</b> moves the countries. <b>Show the 4 categories</b> gives the group names if you are stuck.</li>
+  <li><b>Shuffle</b> moves the countries. Stuck? <b>Show a category</b> gives one group name, easiest first. Each one costs 10 points.</li>
   <li>The game ends when you find all four groups or run out of lives. <b>Give up</b> ends it early.</li></ul>
   <h3>Points</h3><ul>
   <li>25 for every group: all four, 100. Every mistake: 10 less.</li>
-  <li><b>Perfect game</b> (all four, no mistake): +20.</li></ul>
+  <li>Every category shown: 10 less.</li>
+  <li><b>Perfect game</b> (all four, no mistake, no category shown): +20.</li></ul>
   <h3>Modes</h3><ul>
   <li><b>Daily</b>: one puzzle, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
   <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. 5 lives or <b>Unlimited</b>: pick it next to Practice on the home page. Points only, no km.</li>
@@ -662,7 +669,9 @@ function bind(){
   // give up: the game ends as it stands, the groups not found are shown
   bindGiveUp(()=>{if(!S||S.over||S.mode==='online')return;S.over=true;S.won=false;sel=[];
     say(cxKey(),'sad','Gave up.',`${S.found.length} of 4 groups found.`);save();render();window.scrollTo(0,0)});
-  if($('hint'))$('hint').onclick=()=>{S.hint=true;save();render()};
+  if($('hint'))$('hint').onclick=()=>{const n=hintsShown(),left=hintOrder().slice(n).filter(i=>!S.found.includes(i));if(!left.length)return;
+    // skip groups already found: the next category shown is the easiest one still hidden
+    S.hint=hintOrder().indexOf(left[0])+1;if(hintCosts())S.hc=(+S.hc||0)+1;save();render()};
   if($('copy'))$('copy').onclick=()=>share(shareMessage());
   if($('again'))$('again').onclick=()=>openFree(Math.floor(Math.random()*1e9));
   // With friends
