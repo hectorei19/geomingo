@@ -356,7 +356,7 @@ const stamps=()=>pass().n;
 function stampHTML(t,sub,cls,flag){const r=(hsh(t)%15)-7,own=/\bc\d\b/.test(cls||'');
   const L=Math.max(...String(t).split(' ').map(w=>w.length)),fs=L>11?10:L>8?12:14; // long names get smaller, never cut in half
   return '<span class="gm-stamp '+(cls||'')+'" style="'+(own?'':'color:'+INK[hsh(t)%4]+';')+'--r:'+r+'deg">'+(flag?'<img class="sf" src="'+esc(flag)+'" alt="">':'')+'<b class="sn" style="font-size:'+fs+'px">'+esc(t)+'</b>'+(sub?'<small>'+esc(sub)+'</small>':'')+'</span>'}
-function refreshPass(){const n=geo().km;document.querySelectorAll('[data-gm-pass]').forEach(b=>{const x=b.querySelector('b');if(x)x.textContent=fmt(n);b.setAttribute('aria-label','Open your GeoPass: '+fmt(n)+' km')})}
+function refreshPass(){const n=geo().km;document.querySelectorAll('[data-gm-pass]').forEach(b=>{const x=b.querySelector('b');if(x)x.textContent=fmt(n)+' km';b.setAttribute('aria-label','Open your GeoPass: '+fmt(n)+' km')})}
 addEventListener('storage',e=>{if(e.key==='gm-pass')refreshPass()});
 
 /* ---------- Mingo: a flat, grown-up flamingo who carries the GeoPass ----------
@@ -450,7 +450,7 @@ function traveller(){const a=window.Geomingo&&window.Geomingo.account;return ((a
 const ICO={back:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>'};
 const logo='<span class="gm-logo">geo<span>mingo</span></span>';
 // the GeoPass button shows your km (2026-11-16: stamps, one per right answer, are no longer shown)
-const passBtn=()=>{const n=geo().km;return '<button class="gm-pass" data-gm-pass aria-label="Open your GeoPass: '+fmt(n)+' km" title="Your GeoPass"><i aria-hidden="true">✦</i><span class="gm-pw">GEOPASS</span><b>'+fmt(n)+'</b></button>'};
+const passBtn=()=>{const n=geo().km;return '<button class="gm-pass" data-gm-pass aria-label="Open your GeoPass: '+fmt(n)+' km" title="Your GeoPass"><i aria-hidden="true">✦</i><span class="gm-pw">GEOPASS</span><b>'+fmt(n)+' km</b></button>'};
 // the account button (Sign in, or your initial): ../brand/account.js fills it in once it knows who is playing
 const acctSlot=()=>'<span class="gm-acctslot" data-gm-acctslot>'+(window.Geomingo&&Geomingo.acctHTML?Geomingo.acctHTML():'')+'</span>';
 function header(o){o=o||{};
