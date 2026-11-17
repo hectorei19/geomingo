@@ -625,7 +625,17 @@ function askedDay(first){try{const q=new URLSearchParams(location.search),k=q.ge
   return /^\d{4}-\d{2}-\d{2}$/.test(k)&&k>=(first<ARCH_FROM?first:ARCH_FROM)&&k<dayKey()?k:null}catch(e){return null}}
 const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,stale:roomStale};
 
+/* Search help, never an answer: a common older or everyday name ("Turkey", "USA", "UK") gives the country's code,
+   so the answer list can show the one official name (Türkiye, United States…). The game still takes only that name. */
+const OLD_NAMES={turkey:'TUR',usa:'USA',us:'USA',america:'USA',unitedstatesofamerica:'USA',uk:'GBR',britain:'GBR',greatbritain:'GBR',
+  england:'GBR',scotland:'GBR',wales:'GBR',northernireland:'GBR',holland:'NLD',thenetherlands:'NLD',burma:'MMR',swaziland:'SWZ',
+  czechrepublic:'CZE',easttimor:'TLS',macedonia:'MKD',drc:'COD',zaire:'COD',congokinshasa:'COD',congobrazzaville:'COG',uae:'ARE',
+  emirates:'ARE',cotedivoire:'CIV',caboverde:'CPV',holysee:'VAT'};
+const oldName=q=>OLD_NAMES[String(q||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z]/g,'')]||null;
+// adds that country to a game's answer list (pool: the game's countries, with .c codes), if it isn't there yet
+const withOld=(res,q,pool)=>{const o=oldName(q);if(!o||res.some(c=>c.c===o))return res;const c=pool.find(x=>x.c===o);return c?[...res,c]:res};
+
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
   days,streak,streakInfo,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,countriesSeen,countriesKnown,EXPERT,CORE,TIERS,gameVisas,specialVisas,challengeVisas,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,archTicket,archListBtn,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,ARL,archDone,rowKm,dayTotal,level,geo,visas,clock,secText,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
-  openWindow,closeWindow,esc,refreshPass,room,where,mode,askedDay,ARCH_FROM,archNo,lives,setLives,stat,statTo,PAGE,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name,fresh:FRESH};
+  openWindow,closeWindow,esc,refreshPass,room,where,mode,askedDay,ARCH_FROM,archNo,lives,setLives,stat,statTo,PAGE,oldName,withOld,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name,fresh:FRESH};
 })();

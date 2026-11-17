@@ -47,7 +47,8 @@ function searchCountries(q, pool, max) {
     else if (c.k.startsWith(k) || c.ak.some(a => a.startsWith(k))) starts.push(c);
     else if (k.length >= 3 && (c.k.includes(k) || c.ak.some(a => a.includes(k)))) inside.push(c);
   }
-  return [...exact, ...starts, ...inside].slice(0, max || 6);
+  const res = [...exact, ...starts, ...inside].slice(0, max || 6);
+  return window.Geomingo && Geomingo.withOld ? Geomingo.withOld(res, q, list) : res;
 }
 
 // seeded random numbers (mulberry32): the same seed always gives the same picks

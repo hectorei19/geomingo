@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611231200"></script>
+<script src="../brand/mingo.js?v=202611241000"></script>
 <script src="../brand/account.js?v=202611231200"></script>
 <script src="../brand/party.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -165,7 +165,7 @@ function cluesHTML(q){return `<ol class="clues">${[2,3,4,5].map(i=>{if(i>q.k)ret
 /* answering: the same box as in the other games */
 function matches(t){const k=N(t);if(!k)return [];
   const ex=[],st=[],ins=[];for(const c of SOV){if(c.k===k||c.ak.includes(k))ex.push(c);else if(c.k.startsWith(k)||c.ak.some(a=>a.startsWith(k)))st.push(c);else if(k.length>=3&&(c.k.includes(k)||c.ak.some(a=>a.includes(k))))ins.push(c)}
-  return [...ex,...st,...ins].slice(0,6)}
+  return (window.Geomingo&&Geomingo.withOld||(r=>r))([...ex,...st,...ins].slice(0,6),t,SOV)}
 function suggHTML(q){if(!query)return SHEETS?'<li class="hint" style="padding:8px 2px">Start typing, then tap the country.</li>':'';const res=matches(query);
   if(!res.length)return `<li class="hint" style="padding:8px 2px">No country matches “${esc(query)}”.</li>`;
   return res.map(c=>{const t=q.tries.includes(c.c)||(q.twins||[]).includes(c.c);return `<li><button data-g="${c.c}" ${t?'disabled':''}>${esc(c.n)}${t?'<span class="tag">not it</span>':''}</button></li>`}).join('')}
