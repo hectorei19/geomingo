@@ -1019,6 +1019,10 @@ function endGame(){
   if(S.daily&&!S.archive)saveDaily(); // today's km are saved before the done ticket is drawn, so it shows "+N km" at once like the other games
   render();
 }
+// a wrong answer says which category it misses, so the player learns something (Héctor 2026-11-17)
+function whyNot(ci,c){const n=S.n,ks=[S.rows[Math.floor(ci/n)],S.cols[ci%n]],miss=ks.filter(k=>!(CATS[k].set[c.i]||CATS[k].setAll[c.i]));
+  const q=k=>'“'+EUT(CATS[k].label)+'”';
+  return miss.length===2?c.n+' fits neither '+q(miss[0])+' nor '+q(miss[1])+'.':miss.length?c.n+" doesn't fit "+q(miss[0])+'.':c.n+" doesn't fit that square."}
 function guess(ci,cid){
   const c=byCode[cid];if(!c||S.over)return;
   if(S.mode==='online'){ui.sel=-1;ui.query='';drawLayer();onlineGuess(ci,cid);return}
@@ -1035,7 +1039,7 @@ function guess(ci,cid){
   }else{
     S.wrong++;loseLife();
     const left=S.mode==='solo'?livesLeft():0;
-    say('sad','Denied entry.',c.n+" doesn't fit that square."+(S.mode==='solo'?(S.nolives?' Mistakes: '+S.wrong+'.':left>0?' '+livesWord(left)+' left.':''):' Turn passes.'));
+    say('sad','Denied entry.',whyNot(ci,c)+(S.mode==='solo'?(S.nolives?' Mistakes: '+S.wrong+'.':left>0?' '+livesWord(left)+' left.':''):' Turn passes.'));
   }
   ui.sel=-1;ui.query='';
   nextTurn(ok);
