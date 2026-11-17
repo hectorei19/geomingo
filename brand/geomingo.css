@@ -593,7 +593,7 @@ button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
 .hw .priv p,.hw .priv li{margin:0;color:var(--ink);font-size:15px;line-height:1.5}.hw .priv ul{margin:0;padding-left:20px}.hw .priv li+li{margin-top:6px}
 .hw .priv .box{border:1px solid var(--line);border-radius:12px;background:var(--guil);padding:12px 14px}.hw .priv a{color:#F3D98B}
 .hw .fb{display:flex;flex-direction:column;gap:12px}.hw .fb p{margin:0;color:var(--ink);font-size:15px;line-height:1.5}
-.hw .fb a.gm-big{text-decoration:none;font-weight:700}.hw .fb a.gm-big.tip{background:#FFDD00;color:#14161C;box-shadow:none}.hw .fb .fbm{text-align:center;color:var(--muted);font-size:13px}
+.hw .fb a.gm-big{text-decoration:none;font-weight:700}.hw .fb a.gm-big.tip{background:var(--gold);color:#16202F;box-shadow:none}.hw .fb .fbm{text-align:center;color:var(--muted);font-size:13px}
 /* About & FAQ: a box with what Geomingo is, then numbered questions that open on tap */
 .hw .faq{display:flex;flex-direction:column;gap:16px}
 .hw .fqa{border:1.5px solid var(--line);border-radius:12px;background:var(--guil);padding:14px 16px;box-shadow:4px 4px 0 var(--coral-deep);margin-right:4px}
