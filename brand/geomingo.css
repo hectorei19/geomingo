@@ -628,7 +628,7 @@ button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
 /* the day complete window (Héctor 2026-11-17): the day's card, then Share my day */
 .gm-dcw .dlg-head{margin:-18px -18px 0;padding:14px 14px 4px 18px;top:-18px}
 .gm-dcw .dlg-head h2{font-family:var(--display);font-weight:900;font-size:19px;text-transform:uppercase;color:#F3D98B}
-.gm-dc{border-radius:16px;background:linear-gradient(160deg,#2A2414,#16202F 65%);border:2px solid var(--gold);padding:16px;color:var(--ink)}
+.gm-dc{position:relative;border-radius:16px;background:linear-gradient(160deg,#2A2414,#16202F 65%);border:2px solid var(--gold);padding:16px;color:var(--ink)}
 .gm-dc-l{font:900 20px var(--display)}.gm-dc-l span{color:#F07884}
 .gm-dc-d{color:#F3D98B;font:400 12px var(--type);letter-spacing:.1em;margin-top:2px}
 .gm-dc-k{font:900 46px/1 var(--display);color:#F3D98B;margin:12px 0 2px}.gm-dc-k small{font-size:20px}
@@ -638,3 +638,4 @@ button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
 .gm-dc-f{margin:12px 0 0;font:400 12px var(--type);color:var(--muted);text-align:center}
 .gm-dc-sh{background:var(--gold);color:#16202F;font:900 16px var(--display);text-transform:uppercase;letter-spacing:.06em}
 .gm-dc-ok{margin:0;text-align:center;font-size:13px;color:var(--muted)}
+.gm-dc>svg.mingo{position:absolute;top:10px;right:14px}

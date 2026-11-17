@@ -426,11 +426,13 @@ function doneTicket(id,num,score,next,body){setTimeout(refreshPass,0);setTimeout
    When today's last daily is done (all of them played on their day), a window pops up once, with the day's card:
    date, streak, the day's km and the nine games in their colours. "Share my day" shares the card as a picture
    (the phone's share sheet; on a computer the picture is saved and the line copied). gm-dayfull: the day it was shown. */
+// Mingo's colours for the picture (the page's .mg-* rules in geomingo.css)
+const MG_CSS='.mg-body{fill:#F07884}.mg-deep{fill:#D85C69}.mg-neck{stroke:#F07884;fill:none}.mg-leg{stroke:#D85C69;fill:none}.mg-beak{fill:#F6F1E4}.mg-tip{fill:#16202F}.mg-eye{fill:#16202F}.mg-eyel{stroke:#16202F;fill:none}.mg-pass{fill:#24365F}.mg-gold{fill:none;stroke:#D4AD4B}';
 const DCOL={borderline:'#F07884',citygrid:'#D4AD4B',connections:'#7FA2F0',top10:'#5FC28F',silhouette:'#A98BE0',customs:'#E39A5C',flagpie:'#5CC2C2',impostor:'#E58BC8',compass:'#B5D46A'};
 function dayInfo(k){k=k||dayKey();const day=ledger()[k]||{},g=live();let st=0;try{st=streak()}catch(e){}
   return {k,km:dayTotal(day),st,games:g.map(x=>({id:x.id,name:x.name,km:day[x.id]})),all:g.every(x=>day[x.id]!=null)}}
 const dayDate=k=>dateText(k,{weekday:'short',day:'numeric',month:'short'}).toUpperCase();
-function dayCardHTML(D){return '<div class="gm-dc"><div class="gm-dc-l">geo<span>mingo</span></div><div class="gm-dc-d">'+esc(dayDate(D.k))+(D.st>=2?' · 🔥 '+D.st+' DAYS':'')+'</div>'+
+function dayCardHTML(D){return '<div class="gm-dc">'+mingo('happy',58)+'<div class="gm-dc-l">geo<span>mingo</span></div><div class="gm-dc-d">'+esc(dayDate(D.k))+(D.st>=2?' · 🔥 '+D.st+' DAYS':'')+'</div>'+
   '<p class="gm-dc-k">'+fmt(D.km)+' <small>km</small></p><p class="gm-dc-s">All '+ALLW+' trips · +'+ALL5+' Grand tour</p>'+
   '<div class="gm-dc-g">'+D.games.map(x=>'<b style="background:'+(DCOL[x.id]||'#9AA6B6')+'">'+esc(x.name)+'<br>'+fmt(x.km||0)+' km</b>').join('')+'</div>'+
   '<p class="gm-dc-f">Play today\'s trips at geomingo.com</p></div>'}
@@ -449,7 +451,10 @@ function dayCardPNG(D){return new Promise(res=>{const W=1080,H=1350,c=document.c
     x.fillStyle=DCOL[g.id]||'#9AA6B6';rr(X,Y,cw,ch,22);x.fill();x.fillStyle='#16202F';x.textAlign='center';
     x.font='800 34px '+type;x.fillText(g.name.toUpperCase(),X+cw/2,Y+64);x.font='800 40px '+type;x.fillText(fmt(g.km||0)+' km',X+cw/2,Y+116);x.textAlign='left'});
   x.font='400 38px '+type;x.fillStyle='#9AA6B6';x.textAlign='center';x.fillText("Play today's trips at geomingo.com",W/2,H-110);
-  c.toBlob(b=>res(b),'image/png')})}
+  // Mingo, happy with his GeoPass, top right (Héctor 2026-11-17: "¿y Mingo no sale?")
+  const svg=mingo('happy',300).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" ').replace('aria-hidden="true" focusable="false">','aria-hidden="true" focusable="false"><style>'+MG_CSS+'</style>');
+  const im=new Image();im.onload=()=>{x.drawImage(im,W-110-260,70,260,Math.round(260*160/120));c.toBlob(b=>res(b),'image/png')};
+  im.onerror=()=>c.toBlob(b=>res(b),'image/png');im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)})}
 async function shareDay(D){stat('share');const line='Geomingo · '+dateText(D.k,{day:'numeric',month:'short'})+' · '+fmt(D.km)+' km'+(D.st>=2?' · 🔥 '+D.st:'')+'\nhttps://geomingo.com';
   try{if(document.fonts&&document.fonts.ready)await document.fonts.ready}catch(e){}
   const b=await dayCardPNG(D),f=b&&typeof File==='function'?new File([b],'geomingo-'+D.k+'.png',{type:'image/png'}):null;
