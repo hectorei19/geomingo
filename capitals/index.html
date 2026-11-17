@@ -857,7 +857,8 @@ function checkEnd(){
            countries fit them and get evenly spaced points, 100 for the fewest options, 0 for the most
    speed:  +2 for every whole second left (the turn timer, or a 30-second window when the timer is off)
    lines:  +50 for every full row or column that is all yours */
-const LINE_BONUS=50,SQ_MAX=100,SPEED_PER_SEC=2,SPEED_WINDOW=30;
+// With friends (Héctor 2026-11-17): squares share 100 like the daily (plainValues km), no speed, +10 a full row or column all yours
+const LINE_BONUS=10,SQ_MAX=100,SPEED_PER_SEC=2,SPEED_WINDOW=30;
 function cellValues(answers){
   // ranking: sort squares from fewest to most options and give them evenly spaced points,
   // 100 for the hardest down to 0 for the easiest; squares with the same count share their average place
@@ -1150,7 +1151,7 @@ async function onlineGuess(ci,cid){
       if(Object.values(r.cells).some(x=>x.c===cid)){note='used';return}
       const g=roomGrid(r);const ok=g.answers[ci].includes(c.i);
       const nm=(r.players[ME]||{}).name||'Someone';
-      if(ok){const pts=valuesFor(g.answers)[ci],sb=speedPts(Date.now()+offset-(r.started||Date.now()+offset),r.cfg.timer);
+      if(ok){const pts=plainValues(g.answers,true)[ci],sb=0;
         r.cells[ci]={o:r.turn||0,c:cid,p:pts,sb};r.passes=0;r.ev={id:evId(),kind:'good',ci,text:nm+': '+c.n+' fits. +'+pts+(sb?' +'+sb+' speed':'')}}
       else{r.wrong=(r.wrong||0)+1;r.ev={id:evId(),kind:'bad',text:nm+': '+c.n+" doesn't fit there."}}
       advance(r,order.length);return r;
@@ -1477,7 +1478,7 @@ function shareView(){const enc=encodeURIComponent;
     <a class="primary" href="https://t.me/share/url?url=${enc(gridLink())}&text=${enc(shareText())}" target="_blank" rel="noopener">Telegram</a>
     <button class="ghost" id="sharecopy">Copy result and link</button></div>
     <button class="linkbtn" id="shareclose">Close</button></div>`}
-function breakdown(p){return `<p class="hint bdline">${p.cells} squares ${p.base} · speed ${p.speed} · lines ${p.lines}×${LINE_BONUS} = ${p.bonus}</p>`}
+function breakdown(p){return `<p class="hint bdline">${p.cells} squares ${p.base} · lines ${p.lines}×${LINE_BONUS} = ${p.bonus}</p>`}
 // Mingo's verdict on a finished game: {pose, t, s}
 function verdict(){const n=S.n;
   if(S.mode==='solo'){const p=S.players[0],f=p.cells/(n*n),st=S.daily&&!S.archive?Geomingo.streak():0;
@@ -1517,8 +1518,8 @@ function resultsView(body){
     return `${Geomingo.soloTicket({id:'citygrid',what:S.nolives?'Unlimited':LIVES+' lives',code:S.code,score:EU(p.score)+' points',best:'Best: '+EU(best),detail:p.cells+' of '+n*n+' squares',body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns gm-solo-btns"><button class="primary" id="again" style="flex:1">New grid</button>${SHARE_BTN.replace('Share result','Share')}</div>`}
   const ranked=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score||b.cells-a.cells);
-  // the one room for all nine games: these points as km (15 points = 1 km, up to 100, as in the daily)
-  if(S.mode==='online'&&S.over&&Geomingo.party)Geomingo.party.result(ranked.map(p=>({n:p.name,p:Math.min(100,Math.round((p.score||0)/15))})));
+  // the one room for all nine games: these points as they are (squares share 100, +10 a line)
+  if(S.mode==='online'&&S.over&&Geomingo.party)Geomingo.party.result(ranked.map(p=>({n:p.name,p:Math.max(0,Math.round(p.score||0))})));
   const top=ranked[0].score,winners=ranked.filter(p=>p.score===top);
   return `<section class="panel respanel">${verdictHTML()}<p class="big">${winners.length>1?'Draw at '+top+' points':esc(winners[0].name)+' wins'}</p>
    <div class="podium">${ranked.map((p,r)=>`<div class="place ${p.score===top?'win':''}" ${p.uid?`data-stats="${esc(p.uid)}" role="button" tabindex="0"`:''}><span class="rk">${r+1}</span><span class="pin" style="${pinStyle(p.i)}"></span><span class="nm">${esc(p.name)}</span><span class="pt">${EU(p.score)}</span></div><div class="bd">${breakdown(p)}</div>`).join('')}</div>
@@ -1610,7 +1611,7 @@ function drawLayer(){
       <li><b>Square</b>: the ${DAILY_N*DAILY_N} squares share ${KMSQ_TOTAL} km. Hard squares (few capitals fit) are worth more, up to three times an easy one.</li>
       <li><b>Perfect grid</b> (all ${DAILY_N*DAILY_N}, no life lost): +20 km.</li>
       <li><b>Practice</b>: the same, counted as points.</li>
-      <li><b>With friends</b>: a square is worth 0 to ${SQ_MAX}, +${SPEED_PER_SEC} for every second under ${SPEED_WINDOW} s, and +${LINE_BONUS} for every full row or column that is all yours.</li></ul>
+      <li><b>With friends</b>: the same square values, counted as points, and +${LINE_BONUS} for every full row or column that is all yours.</li></ul>
       <h3>Example</h3>
       <p class="hint">A square where only ${ks[0]} capitals fit: ${ev[0]} km. Where ${ks[8]} fit: ${ev[8]} km. Where ${ks[15]} fit: ${ev[15]} km. All ${G} squares together: ${KMSQ_TOTAL} km.</p>
       <h3>Modes</h3><ul>
