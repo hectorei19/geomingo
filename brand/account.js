@@ -500,20 +500,24 @@ function acctHTML(){const u=who();if(u===undefined)return '';
    FAQ, Contact, Privacy and Sources are in the line of links at the bottom of the home page (G.openFaq, G.openFeedback, G.openCredits).
    Each game's own "Menu" button keeps How to play, its stats and its sources. */
 const CONTACT_EMAIL='hello@geomingo.com';
+// Buy me a coffee (Héctor 2026-11-17): a tip by card or PayPal, through Ko-fi (no fee); our own yellow button, not Ko-fi's logo
+const TIP_URL='https://ko-fi.com/geomingo';
 const HOME_URL=(()=>{try{const s=document.querySelector('script[src*="brand/account.js"]');return new URL('../',s.src).href}catch(e){return '/'}})();
 const MICO={help:'<circle cx="12" cy="12" r="9"/><path d="M12 17v.01M12 13.5a1.5 1.5 0 0 1 1-1.5a2.6 2.6 0 1 0-3-4"/>',
   cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
   stats:'<path d="M4 20h16M7 16v-4M12 16V8M17 16v-6"/>',gp:'<rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="11" r="3.5"/><path d="M9 17h6"/>',
   rank:'<path d="M6 20V11M12 20V5M18 20v-6"/>',
-  mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',ch:'<path d="M9 6l6 6-6 6"/>'};
+  mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  cup:'<path d="M4 10h13v4a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H16M8 3v3M12 3v3"/>',ch:'<path d="M9 6l6 6-6 6"/>'};
 const mico=(k,n)=>'<svg width="'+(n||20)+'" height="'+(n||20)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+MICO[k]+'</svg>';
 // the gold line icon in a window's top band (Héctor 2026-11-15, option C: no Mingo head there)
 const BICO={menu:'<path d="M4 7h16M4 12h16M4 17h16"/>',faq:'<circle cx="12" cy="12" r="9"/><path d="M12 17v.01M12 13.5a1.5 1.5 0 0 1 1-1.5a2.6 2.6 0 1 0-3-4"/>',
   mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',shield:'<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9c-4.6-1-8-4.5-8-9V6z"/>',
+  cup:'<path d="M4 10h13v4a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H16M8 3v3M12 3v3"/>',
   book:'<path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 2z"/>',
   user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'};
 const bico=k=>'<svg class="gm-bico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+BICO[k]+'</svg>';
-const WICO={'Menu':'menu','FAQ':'faq','Contact':'mail','Send feedback':'mail','Privacy':'shield','Sources':'book'};
+const WICO={'Menu':'menu','FAQ':'faq','Contact':'mail','Send feedback':'mail','Privacy':'shield','Sources':'book','Buy me a coffee':'cup'};
 function mwin(title,body,acts){const box=G.openWindow('<div class="gm-res hw"><div class="gm-band">'+(WICO[title]?bico(WICO[title]):'')+'<b>'+esc(title)+'</b></div><div class="gm-rbody">'+body+
   '<button class="gm-text" data-gm-act="close">Close</button></div></div>',title);
   box._acts=acts||{};box.addEventListener('click',e=>{if(e.target.closest('[data-gm-signin],[data-gm-signout]'))G.closeWindow()});
@@ -530,9 +534,10 @@ function openMenu(){const u=who();let km=0;try{km=G.geo().km}catch(e){}
   mwin('Menu',box+game+'<ul>'+it('gp','#D4AD4B','gp','My GeoPass',sub('Km, streak, countries and visas'),'<span class="mt">'+EU(Math.round(km))+' km</span>')+
     it('rank','#5FC28F','rank','Ranking',sub('Today, this week, this month'))+
     it('arch','#7FA2F0','cal','Archive',sub('Play past days of all '+G.ALLW+' games'))+
-    it('fb','#F07884','mail','Send feedback',sub('Ideas, mistakes, anything'))+'</ul>'+
+    it('fb','#F07884','mail','Send feedback',sub('Ideas, mistakes, anything'))+
+    it('tip','#FFDD00','cup','Buy me a coffee',sub('Geomingo is free and ad-free'))+'</ul>'+
     (g&&g.sources?'<button class="gm-text msrc" data-gm-act="gsrc">'+esc(g.name)+' data sources</button>':''),
-    Object.assign(acts,{chname:changeMyName,gp:()=>G.openPass('passport'),fb:openFeedback,gsrc:()=>{G.closeWindow();g.sources()},
+    Object.assign(acts,{chname:changeMyName,gp:()=>G.openPass('passport'),fb:openFeedback,tip:openTip,gsrc:()=>{G.closeWindow();g.sources()},
      // Archive: a calendar of past days on the home page, for all the games (Héctor 2026-11-15); from a game it opens the home page there
      arch:()=>{G.closeWindow();if(typeof G.showArchive==='function')G.showArchive();else location.href=HOME_URL+'#archive'},
      // the ranking is on the home page: there it scrolls to it, from a game it opens the home page at the ranking
@@ -543,6 +548,8 @@ let GM=null;function setGameMenu(o){GM=o}
 function openFeedback(title){const m='mailto:'+CONTACT_EMAIL+'?subject='+encodeURIComponent('Geomingo feedback');
   mwin(typeof title==='string'?title:'Send feedback','<div class="fb"><p>Found a mistake, have an idea for a game or just want to say hi? We read every message.</p>'+
     '<a class="gm-big coral" href="'+m+'">Write to us</a><p class="fbm">'+esc(CONTACT_EMAIL)+'</p></div>')}
+function openTip(){mwin('Buy me a coffee','<div class="fb"><p>Geomingo is free, with no ads. If you enjoy your daily trips, you can buy us a coffee. Thank you!</p>'+
+    '<a class="gm-big tip" href="'+TIP_URL+'" target="_blank" rel="noopener">'+mico('cup',22)+'Buy me a coffee</a><p class="fbm">Card or PayPal, via Ko-fi.</p></div>')}
 // Privacy: the same window as FAQ and Sources, filled from the privacy/ page (the one text; that page keeps its own address for Google)
 function openPrivacy(){fetch(HOME_URL+'privacy/').then(r=>{if(!r.ok)throw 0;return r.text()}).then(t=>{
   const d=new DOMParser().parseFromString(t,'text/html'),w=d.querySelector('.wrap');if(!w)throw 0;
@@ -581,7 +588,7 @@ function changed(why){trialCheck();document.querySelectorAll('[data-gm-acctslot]
   const a=document.activeElement,typing=a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA')&&!a.closest('#gm-window');
   watchers.forEach(f=>{try{f(why||'',typing)}catch(e){console.error(e)}})}
 
-G.acctHTML=acctHTML;G.openMenu=openMenu;G.openFaq=openFaq;G.openCredits=openCredits;G.openFeedback=openFeedback;G.openPrivacy=openPrivacy;G.setGameMenu=setGameMenu;
+G.acctHTML=acctHTML;G.openMenu=openMenu;G.openFaq=openFaq;G.openCredits=openCredits;G.openFeedback=openFeedback;G.openPrivacy=openPrivacy;G.openTip=openTip;G.setGameMenu=setGameMenu;
 // ready/user: known for sure, or the last account seen on this device until Firebase answers (wasSignedIn: that last one)
 G.account={get ready(){return who()!==undefined},get user(){return who()||null},get name(){return name},
   wasSignedIn:!!(LAST&&LAST.u),get trial(){return trialState()},trialLine,
