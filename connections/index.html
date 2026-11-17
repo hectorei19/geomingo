@@ -117,9 +117,13 @@
 /* ---- the puzzle ----
    Four hidden categories from Countries' CATS, four countries each. Every country fits its own category and
    none of the other three, so there is only one way to split the 16 into groups.
-   Colour = difficulty: yellow (well-known themes), green, blue, purple (the trickiest: names and capitals, and from version 5 also history, politics and sport). */
+   Difficulty (t): 0 well-known themes … 3 the trickiest (names and capitals, and from version 5 also history, politics and sport).
+   Until 17 Nov 2026 the colour showed the difficulty: yellow, green, blue, purple. Since COLOUR_FROM each game gives the four
+   colours to the four groups in a random order made from its seed (g.c), so the colour no longer gives the easy group away. */
 const CX_FIRST='2026-10-19',MAX_MISTAKES=5;
-const TEMOJI=['🟨','🟩','🟦','🟪'];
+const TEMOJI=['🟨','🟩','🟦','🟪'],COLOUR_FROM='2026-11-18';
+// a group's colour: g.c in games made since COLOUR_FROM, the difficulty in older saved games
+const gcol=g=>g.c==null?g.t:g.c;
 const TIER_OF={region:0,lang:0,money:0,pol:0,flagc:1,flags:1,sea:1,border:1,sport:1,hist:1,geo2:1,geo:2,people:2,dev:2,geo3:2,sport2:2,pol2:2,misc:2,name:3,cap:3};
 const TIER0=new Set(['Landlocked','Island nation (no land borders)']);
 const SKIP=new Set(['Is a territory (not independent)']);
@@ -290,7 +294,9 @@ function fixedPuzzle(seed,date){const f=typeof CX_FIXED!=='undefined'&&date>=FIX
 function newGame(mode,seed,day){const date=day||todayKey(),dated=mode==='daily'||mode==='archive';
   const fx=dated&&fixedPuzzle(seed,date);
   const v=fx?6:verOf(dated?'daily':mode,date),p=fx||buildPuzzle(seed,v);if(!p)return null;
-  const S={v,mode,seed,groups:p.groups,left:p.order,found:[],guesses:[],mistakes:0,over:false,won:false};
+  // colours shuffled by the seed (the same for everyone on a daily or in a room); dailies and archive days before COLOUR_FROM keep colour = difficulty
+  const cp=dated&&date<COLOUR_FROM?null:shuffle([0,1,2,3],rngFrom((seed^0xc0105)>>>0));
+  const S={v,mode,seed,groups:cp?p.groups.map(g=>({...g,c:cp[g.t]})):p.groups,left:p.order,found:[],guesses:[],mistakes:0,over:false,won:false};
   if(dated){S.date=date;S.num=archNum(S.date,CX_FIRST)}
   // Practice can be Unlimited (the home page's Practice screen): mistakes are only counted
   else if(mode==='free'&&!Geomingo.lives())S.nolives=1;
@@ -325,7 +331,7 @@ function openArchive(){view='archive';render();window.scrollTo(0,0)}
 function playArchive(k){if(archDay(k)){toast('You played this puzzle on its day.');return}
   const a=load('cx-arch',{});view='game';mode='archive';
   S=a[k]||newGame('archive',seedOf('connections-daily-'+k),k);sel=[];save();render();window.scrollTo(0,0)}
-const archSquares=g=>`<span class="dsq" style="grid-template-columns:repeat(4,1fr)" aria-hidden="true">${[0,1,2,3].map(i=>`<i class="${g.found.includes(i)?'g'+g.groups[i].t:''}"></i>`).join('')}</span>`;
+const archSquares=g=>`<span class="dsq" style="grid-template-columns:repeat(4,1fr)" aria-hidden="true">${[0,1,2,3].map(i=>`<i class="${g.found.includes(i)?'g'+gcol(g.groups[i]):''}"></i>`).join('')}</span>`;
 const archiveView=()=>header('Connec<span>tions</span>','Archive')+archiveHTML({first:CX_FIRST,label:'Puzzle',num:k=>archNum(k,CX_FIRST),
   played:archDay,saved:k=>load('cx-arch',{})[k]||null,done:g=>[g.found.length+'/4',archSquares(g)]});
 // today's puzzle before it is started, for the home screen
@@ -479,7 +485,7 @@ function submit(){if(!S||S.over||turning||sel.length!==4)return;
     const left=4-S.found.length;
     Geomingo.stamp('connections',CATS[S.groups[g].k].label);
     say(cxKey(),'happy','Stamped: '+CATS[S.groups[g].k].label+'.',left?left+' group'+(left===1?'':'s')+' to go.':'All four groups found.');
-    save();turnOver(picked,S.groups[g].t,()=>{popped=S.groups[g];render();popped=null});return}
+    save();turnOver(picked,gcol(S.groups[g]),()=>{popped=S.groups[g];render();popped=null});return}
   S.mistakes++;
   if(S.mode!=='online'&&!S.nolives&&S.mistakes>=MAX_MISTAKES){S.over=true;S.won=false;sel=[];save();render();return}
   if(best===3)say(cxKey(),'think','One away.','Three of these four belong together. '+leftTxt());
@@ -496,9 +502,9 @@ function turnOver(cs,t,done){const els=cs.map(c=>app.querySelector(`.cx-grid [da
   setTimeout(()=>{turning=false;done()},1100)}
 
 /* ---- share ---- */
-function shareText(){const rows=S.guesses.map(g=>g.map(c=>TEMOJI[S.groups[groupOf(S,c)].t]).join(''));
+function shareText(){const rows=S.guesses.map(g=>g.map(c=>TEMOJI[gcol(S.groups[groupOf(S,c)])]).join(''));
   const G=Geomingo.share('Connections'),head=S.mode==='daily'?`${G} #${S.num}`:S.mode==='archive'?`${G} ${Geomingo.archNo(S.num)} (archive)`:S.mode==='online'?`${G} (with friends)`:`${G} (practice)`;
-  const sum=S.groups.map((g,i)=>S.found.includes(i)?TEMOJI[g.t]:'⬜').join('');
+  const sum=S.groups.map((g,i)=>S.found.includes(i)?TEMOJI[gcol(g)]:'⬜').join('');
   return head+(hintsShown()?' · '+hintsShown()+' categor'+(hintsShown()===1?'y':'ies')+' shown':'')+' — '+(S.won?`solved with ${S.mistakes} mistake${S.mistakes===1?'':'s'}`:`${S.found.length}/4 groups`)+'\n'+sum+(rows.length?'\n\n'+rows.join('\n'):'')}
 const shareLink=()=>S.mode==='free'?pageLink('?p='+S.seed):pageLink();
 const shareMessage=()=>shareText()+'\n\n'+(S.mode==='daily'?"Play today's puzzle: ":S.mode==='free'?'Play this puzzle: ':'Play Connections: ')+shareLink();
@@ -509,7 +515,7 @@ let popped=null;
 // a flag stretched to one standard 3:2 size (an <image> inside an <svg> may ignore the flag's own proportions; an <img> may not)
 const flag32=(c,cls)=>`<svg class="${cls}" viewBox="0 0 3 2" preserveAspectRatio="none" aria-hidden="true"><image href="../flagpie/flags/${c}.svg" width="3" height="2" preserveAspectRatio="none"/></svg>`;
 const groupHTML=(g,miss)=>{const k=CATS[g.k];
-  return `<div class="grp g${g.t}${miss?' miss':''}${g===popped?' new':''}"><span class="gl">${esc(EUT(k.label))}<button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></span>
+  return `<div class="grp g${gcol(g)}${miss?' miss':''}${g===popped?' new':''}"><span class="gl">${esc(EUT(k.label))}<button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></span>
     <span class="gm">${g.m.map(c=>`<span class="gi">${flag32(c,"gf")}<span>${esc(byCode[c].n)}</span></span>`).join('')}</span></div>`};
 const tileHTML=(c,attr)=>{const n=byCode[c].n,on=attr==='data-c'&&sel.includes(c);
   return `<button class="tile${on?' on':''}${n.length>12||n.split(' ').some(w=>w.length>=10)?' long':''}${n.length>20?' xl':''}" ${attr}="${c}" aria-pressed="${on}" lang="en">${flag32(c,"tfl")}<span class="tn">${esc(n)}</span></button>`};
@@ -527,7 +533,7 @@ function dailyBoard(d){const g=d||dailyPreview();if(!g)return '';
 function homeHTML(){const key=todayKey(),num=dayNum(key,CX_FIRST),d=dailySaved(),h=load('cx-hist',{}),days=Object.keys(h);
   const daily=d&&d.over
     // played: one row per guess in the colours of its groups, like the shared result; tap to see the groups
-    ?`<button class="hcard" id="daily"><span class="hm">Today's puzzle #${num} · done</span><span class="dsum"><span class="dsq" style="grid-template-columns:repeat(4,1fr)" aria-hidden="true">${d.guesses.flat().map(c=>`<i class="g${d.groups[groupOf(d,c)].t}"></i>`).join('')}</span><span class="dtxt"><span class="ht">${d.won?'Solved':d.found.length+' of 4'}</span><span class="hs">${d.won?`${d.mistakes} mistake${d.mistakes===1?'':'s'}`:'groups found'}</span></span>${dstatsHTML(streakOf(h),days.length,cxAverage(h))}</span><span class="hs">Tap to see the groups and share your result.</span><span class="hm">Next puzzle in ${nextIn()}</span></button>`
+    ?`<button class="hcard" id="daily"><span class="hm">Today's puzzle #${num} · done</span><span class="dsum"><span class="dsq" style="grid-template-columns:repeat(4,1fr)" aria-hidden="true">${d.guesses.flat().map(c=>`<i class="g${gcol(d.groups[groupOf(d,c)])}"></i>`).join('')}</span><span class="dtxt"><span class="ht">${d.won?'Solved':d.found.length+' of 4'}</span><span class="hs">${d.won?`${d.mistakes} mistake${d.mistakes===1?'':'s'}`:'groups found'}</span></span>${dstatsHTML(streakOf(h),days.length,cxAverage(h))}</span><span class="hs">Tap to see the groups and share your result.</span><span class="hm">Next puzzle in ${nextIn()}</span></button>`
     :`<div class="hcard ac"><span class="hm">#${num} · ${dateLabel(key)}</span><span class="ht">Today's puzzle</span><span class="hs">${d?'You started it: tap a country to continue.':'The same 16 countries for everyone, one try. Tap a country to start.'}</span>${dailyBoard(d)}</div>`;
   const st=Geomingo.streak();
   const hi=d&&d.over?Geomingo.hello(d.found.length?'happy':'sad',d.found.length?'Stamped for today.'+(st>1?' '+st+'-day streak.':''):'Rough crossing today.',`Today's puzzle is done. Next one in ${nextIn()}.`)
@@ -632,7 +638,7 @@ if(Geomingo.party)Geomingo.party.game({room:()=>roomCode,host:()=>!!room&&room.h
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>16 countries make <b>four groups of four</b>. Each group shares something, for example "Uses the euro".</li>
   <li>There is only one way to split them. Broad things (a flag colour…) are never a group, so four blue flags are a trap.</li>
-  <li>Groups go from easiest to trickiest: ${TEMOJI.join(' ')}. Tap <span class="ib">i</span> on a found group to see what it means.</li></ul>
+  <li>Tap <span class="ib">i</span> on a found group to see what it means.</li></ul>
   <h3>How to play</h3><ul>
   <li>Tap four countries, then <b>Submit</b>.</li>
   <li>Wrong: you lose one of your <b>${MAX_MISTAKES} lives</b>. "One away" means three of the four belong together.</li>
