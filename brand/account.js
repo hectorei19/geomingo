@@ -489,10 +489,11 @@ function changeName(then){const cur=G.traveller()==='Guest'?'':G.traveller();
   const inp=box.querySelector('#gm-gname'),save=()=>{const n=inp.value.trim().slice(0,16);if(!n){say('Type a name to continue.');return}
     ls.set('bl-user',n);ls.set('cc-user',n);G.closeWindow();G.refreshPass();if(typeof then==='function')then(n);changed('name')};
   box._acts={saveg:save};inp.addEventListener('keydown',e=>{if(e.key==='Enter')save()});setTimeout(()=>inp.focus(),50)}
-// the ONE header button (Héctor 2026-11-15, option A with ▾): your initial, or "Sign in" for a guest; both open the Menu
+// the ONE header button (Héctor 2026-11-15, option A with ▾): your initial, or "Menu" for a guest (was "Sign in" until
+// 2026-11-17: guests didn't find GeoPass, Ranking and Archive behind it; Google sign-in is the Menu's first line); both open the Menu
 const CHEV='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 function acctHTML(){const u=who();if(u===undefined)return '';
-  if(!u)return '<button class="gm-acct" data-gm-acctmenu aria-haspopup="dialog" aria-label="Menu and sign in">Sign in'+CHEV+'</button>';
+  if(!u)return '<button class="gm-acct" data-gm-acctmenu aria-haspopup="dialog" aria-label="Menu and sign in">Menu'+CHEV+'</button>';
   const n=name||u.displayName||'';
   return '<button class="gm-acct me" data-gm-acctmenu aria-haspopup="dialog" aria-label="Menu. Your account: '+esc(n)+'" title="'+esc(n)+'"><span class="av">'+esc((n.trim()[0]||'·').toUpperCase())+'</span>'+CHEV+'</button>'}
 /* the Menu, the same on the home page and in every game (Héctor 2026-11-15, option D): your account on top, then GeoPass, Ranking, Archive, Send feedback.
