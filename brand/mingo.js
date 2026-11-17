@@ -387,8 +387,8 @@ function hello(pose,title,sub,o){o=o||{};const key=o.key||'main',txt=pose+title,
 /* the in-game ticket, the same in every game while you play: Mingo's message (a hello()) on top, a tear line,
    then the stub with the game's numbers, one tk(label, value, class) each (tk-pts gold, tk-gs coral, tk-name wider).
    Values are HTML: escape names before passing them. o.timer adds the countdown bar along the bottom (.tbar);
-   o.color paints it, the ticket's edge and the playing traveller's box in the colour of the player whose turn it is
-   (e.g. 'var(--p1)'); in the last 5 seconds the bar pulses a glow, staying full colour (.tbar.low, set by the game's tick). */
+   o.color (With friends games with turns) gives the turn layout: whose turn + the clock (the game's Time box) on one line,
+   a thin blue line that runs down, the players as pills; in the last 5 seconds the clock pulses (.tbar.low, set by the game's tick). */
 /* the result of today's daily, when it is over (right after playing, or opening the game again later): the gold ticket with
    the score, the km it earned and when the next one comes; Next trip and Share go under it (Héctor 2026-11-10: less is more) */
 /* body: the day's answers, shown inside the same ticket under a tear line (Héctor 2026-11-12: one card, buttons below) */
@@ -455,9 +455,13 @@ const acctSlot=()=>'<span class="gm-acctslot" data-gm-acctslot>'+(window.Geoming
 function header(o){o=o||{};
   if(!o.game)return '<header class="gm-top"><h1 class="gm-logo">geo<span>mingo</span></h1><span class="gm-beta" title="Still in testing. Official launch coming soon.">BETA</span><span class="gm-spacer"></span>'+passBtn()+acctSlot()+'</header>';
   // Practice (o.practice): nothing under the name; the trip and the grid code go in the ticket's coral strip (Héctor 2026-11-15)
-  const g=GAMES.find(x=>x.name===o.game),gate=g?'Trip '+g.gate:'',sub=o.practice?'':[gate,o.coord].filter(Boolean).join(' · ');
+  // a game opened from the With friends room (brand/party.js): no second room code under the name; the room's strip
+  // (Room ABCD · Game 2 · Exit), or the result ticket at the end, goes right under the bar (Héctor 2026-11-17)
+  const pt=window.Geomingo&&window.Geomingo.party&&window.Geomingo.party.on()?window.Geomingo.party:null;
+  const coord=pt&&o.coord?String(o.coord).replace(/(^|\s*·\s*)room [A-Z]{4}/i,'').replace(/^\s*·\s*/,''):o.coord;
+  const g=GAMES.find(x=>x.name===o.game),gate=g?'Trip '+g.gate:'',sub=o.practice?'':[gate,coord].filter(Boolean).join(' · ');
   return '<header class="gm-top"><a class="gm-home" href="'+HOME+'" aria-label="All Geomingo games">'+ICO.back+logo+'<span class="gm-beta" title="Still in testing. Official launch coming soon.">BETA</span></a><span class="gm-spacer"></span>'+passBtn()+acctSlot()+'</header>'+
-    '<div class="gm-bar"><h2 class="gm-title" id="brand" role="link" tabindex="0" title="'+esc(o.game)+' home">'+esc(o.game)+(sub?'<small>'+esc(sub)+'</small>':'')+'</h2><span class="gm-spacer"></span>'+(o.menu||'')+'</div>'}
+    '<div class="gm-bar"><h2 class="gm-title" id="brand" role="link" tabindex="0" title="'+esc(o.game)+' home">'+esc(o.game)+(sub?'<small>'+esc(sub)+'</small>':'')+'</h2><span class="gm-spacer"></span>'+(o.menu||'')+'</div>'+(pt?pt.slot():'')}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-gm-pass]');if(!t)return;e.preventDefault();openPass()});
 
 /* ---------- windows: the result card and the GeoPass booklet (one at a time, Escape closes) ---------- */
