@@ -542,12 +542,6 @@ button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
 .gm-mnums b{font-family:var(--display);font-weight:800;font-size:20px;line-height:1.1;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
 .gm-mfoot{font-size:13px;color:var(--muted);line-height:1.35}
 .gm-msign{align-self:flex-start;font-size:13px;padding:0}
-.gm-levels{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:14px;padding:14px}
-.gm-lv{display:grid;grid-template-columns:60px 1fr auto;align-items:center;gap:10px;font-family:var(--type);font-size:13px}
-.gm-lv span{color:var(--muted)}
-.gm-lv i{height:20px;border-radius:5px;background:var(--line);overflow:hidden;display:block}
-.gm-lv i b{display:block;height:100%;border-radius:5px}
-.gm-lv small{font-size:12.5px;min-width:64px;text-align:right}
 /* one traveller (not a room): the whole stub stays on one line, even on narrow phones; the boxes shrink instead */
 .tk-stub:not(:has(.pl)){flex-wrap:nowrap;gap:2px}
 .tk-stub:not(:has(.pl)) .tk-c{min-width:0;padding:4px 6px}

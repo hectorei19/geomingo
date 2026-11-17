@@ -37,7 +37,7 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611252100"></script>
-<script src="../brand/account.js?v=202611251902"></script>
+<script src="../brand/account.js?v=202611251903"></script>
 <script src="../brand/party.js?v=202611250700"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -95,7 +95,7 @@ body.kbon .t10list .mini{width:18px;height:18px}
 body.kbon .kbgu{display:flex;flex-direction:column;align-items:center;gap:14px}
 body.kbon .kbgu #src{align-self:center!important}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611251900">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611251901">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -587,27 +587,12 @@ function homeHTML(){const key=todayKey(),num=dayNum(key,T10_FIRST),d=dailySaved(
     ${quickRules(' Full rules in <button type="button" class="qhelp">How to play</button>.')}`}
 function goHome(){if(roomCode){if(!confirm('Leave the room and go to the home screen?'))return;leaveRoom().then(()=>{view='home';render()});return}
   view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
-function friendsHTML(){if(Geomingo.party&&Geomingo.party.on())return header('Top <span>10</span>','');
-  return header('Top <span>10</span>','')+`<section class="panel">
-    <div class="backline"><span class="ht">With friends</span></div>
-    <p class="hint">2 to ${MAXP} players, each on their own phone. The host creates a room and shares its link or code.</p>
-    ${ACN()?'':`<div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||(Geomingo.traveller()==='Guest'?'':Geomingo.traveller()))}"></div>`}
-    <div class="field">${FB_OK()?'':'<p class="hint">Online play needs a connection: reload the page when you are online.</p>'}${SIGNED()?'':'<p class="hint">To create a room, sign in. Friends can join with your code or link without an account.</p>'}<button class="primary" id="create" ${FB_OK()?'':'disabled style="opacity:.5"'}>${SIGNED()?'Create room':'Sign in to create a room'}</button></div>
-    <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK()?'':'disabled'}>Join</button></div></div>
-  </section>
-  <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Everyone plays the same ranking and takes turns naming one country. A country in the top 10 scores 10 points for you; one outside just passes the turn. No lives: you play until the ten are found. Most points win; if level, fewer wrong answers, then the higher places found.</p></section>`}
+// the room's own screen (../brand/party.js) shows the players and the code: this game shows only its header there
+function friendsHTML(){return header('Top <span>10</span>','')}
 // the one room for all nine games (../brand/party.js) drives this game's room
 if(Geomingo.party)Geomingo.party.game({room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
   count:()=>room?lobbyOrder(room).length:0,names:()=>room?lobbyOrder(room).map(k=>room.players[k].name):[],create:createRoom,join:joinRoom,start:()=>onlineAct('start')});
-function lobbyHTML(){if(Geomingo.party&&Geomingo.party.on())return header('Top <span>10</span>','');const r=room,order=lobbyOrder(r),link=pageLink('?room='+roomCode);
-  return header('Top <span>10</span>','room '+roomCode)+`<section class="panel namecard"><span class="label">Room code</span><p class="roomcode">${roomCode}</p>
-    <p class="hint">Friends open Top 10, choose <b>With friends</b>, then type this code under Join. Or send them the link:</p>
-    <pre class="sharebox" id="linkbox">${esc(link)}</pre><button class="ghost" id="copylink">Copy link</button>
-    <span class="label">Players ${order.length}/${MAXP}</span>
-    <div class="players">${order.map((pid,i)=>{const p=r.players[pid];return `<div class="lp ${p.on===false?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)}<span class="tag">${[pid===r.host?'host':'',pid===ME?'you':'',p.on===false?'offline':''].filter(Boolean).join(' · ')}</span></div>`}).join('')}</div>
-    <p class="hint">${r.cfg.timer?r.cfg.timer+' s per turn':'No turn timer'} · a random list for each game</p>
-    ${r.host===ME?`<button class="primary" id="ostart" ${order.length<2?'disabled style="opacity:.5"':''}>${order.length<2?'Waiting for players…':'Start game'}</button>`:'<p class="hint">Waiting for the host to start the game.</p>'}
-    <button class="ghost" id="leave">Leave room</button></section>`}
+function lobbyHTML(){return header('Top <span>10</span>','')}
 function onlineHTML(){const cur=S.players[S.turn]||{};
   let h=header('Top <span>10</span>','room '+roomCode);
   if(!S.over){const cell=Geomingo.tk;
@@ -719,7 +704,6 @@ function bind(){
   if($('soloback'))$('soloback').onclick=openSolo;
   if($('archback'))$('archback').onclick=toArchive;
   app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
-  app.querySelectorAll('[data-go="friends"]').forEach(b=>b.onclick=()=>{view='friends';render();window.scrollTo(0,0)});
   if($('home'))$('home').onclick=toHub;
   if($('rules'))$('rules').onclick=()=>dialog('How to play',rulesHTML());
   // give up: the list ends as it stands and the full ranking is shown
@@ -740,17 +724,7 @@ function bind(){
   if($('copy'))$('copy').onclick=()=>share(shareMessage());
   if($('again'))$('again').onclick=()=>openFree(null,true);
   // With friends
-  app.querySelectorAll('[data-seg="timer"]').forEach(b=>b.onclick=()=>{saveSetup();setup.timer=+b.dataset.v;saveSetup();render()});
-  if($('fname'))$('fname').onchange=saveSetup;
-  if($('jcode'))$('jcode').oninput=e=>{setup.join=e.target.value};
-  if($('create'))$('create').onclick=createRoom;
-  if($('join'))$('join').onclick=()=>joinRoom($('jcode').value);
-  if($('jcode'))$('jcode').onkeydown=e=>{if(e.key==='Enter')joinRoom(e.target.value)};
-  if($('copylink'))$('copylink').onclick=()=>{const t=pageLink('?room='+roomCode);
-    if(navigator.share&&TOUCH){navigator.share({text:'Play Top 10 with me: '+t}).catch(()=>{});return}
-    try{navigator.clipboard.writeText(t).then(()=>toast('Link copied.','good'),()=>toast('Copy the link above.'))}catch(e){toast('Copy the link above.')}};
   if($('leave'))$('leave').onclick=()=>{if(S&&S.mode==='online'&&!S.over&&!confirm('Leave the room? The game goes on without you.'))return;leaveRoom()};
-  if($('ostart'))$('ostart').onclick=()=>onlineAct('start');
   if($('orematch'))$('orematch').onclick=()=>onlineAct('rematch');
   if($('olobby'))$('olobby').onclick=()=>onlineAct('lobby');
   if($('oend'))$('oend').onclick=()=>{if(confirm('End the game for everyone?'))onlineAct('end')};
@@ -758,17 +732,14 @@ function bind(){
   if($('oskip'))$('oskip').onclick=()=>onlineAct('skip');
 }
 
-/* ---- start: today's list on the home screen; ?l=pop-hi opens that list in Solo (a shared link), ?room=ABCD a friend's room, ?friends With friends ---- */
+/* ---- start: today's list on the home screen; ?l=pop-hi opens that list in Solo (a shared link). Old ?room= and ?friends links go home (../brand/party.js) ---- */
 (()=>{const ak=Geomingo.askedDay(T10_FIRST);if(ak){openDay(ak);return}
-  const id=TESTQ.get('l'),rm=(TESTQ.get('room')||'').toUpperCase();
+  const id=TESTQ.get('l');
   if(id&&listById(id)){openFree(id);try{history.replaceState(null,'',location.pathname)}catch(e){}return}
-  if(/^[A-Z]{4}$/.test(rm)){view='friends';setup.join=rm}
-  else if(TESTQ.has('friends')){view='friends';try{history.replaceState(null,'',location.pathname)}catch(e){}}
   render()})();
-// back in a room after a reload (the online scripts load after the page)
+// back in a room after a reload, inside the one room for all nine games (the online scripts load after the page)
 window.addEventListener('DOMContentLoaded',()=>{const code=Geomingo.room.saved('t10-room'); // an old or finished room is not reopened
-  if(view==='friends')render(); // the Create and Join buttons were drawn before Firebase loaded
-  if(!code||!initFB())return;
+  if(!code||!(Geomingo.party&&Geomingo.party.on())||!initFB())return;
   db.ref('rooms/'+code).once('value').then(s=>{const r=s.val();
     if(r&&r.game==='top10'&&r.players&&r.players[ME]&&!roomCode&&Geomingo.room.resume('t10-room',r.status==='over'))listenRoom(code);else if(!roomCode)Geomingo.room.forget('t10-room')}).catch(()=>{})});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&roomCode&&room&&Geomingo.room.stale(room.status==='over')){leaveRoom().then(()=>{view='home';render()});return}

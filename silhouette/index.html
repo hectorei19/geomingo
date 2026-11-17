@@ -22,7 +22,7 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611252100"></script>
-<script src="../brand/account.js?v=202611251902"></script>
+<script src="../brand/account.js?v=202611251903"></script>
 <script src="../brand/party.js?v=202611250700"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -79,7 +79,7 @@
 .ready{display:flex}
 @media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611251900">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611251901">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -103,7 +103,6 @@
 const LIVES=5,DIFF_NAME={easy:'Easy',normal:'Easy',hard:'Hard'};
 /* two levels to choose (15 Nov 2026): Easy = all 197 countries north up (the old Easy and Normal together), and Hard.
    'easy' (the 54 best-known) stays only inside "Getting harder" rooms and in old saves. */
-const lvOf=d=>d==='hard'?'hard':'normal';
 const newQ=(c,rot)=>({c,rot:rot||0,tries:[],st:'play'});
 const flagSrc=c=>'../flagpie/flags/'+c+'.svg';
 const contName={EU:'Europe',AS:'Asia',AF:'Africa',NA:'North and Central America',SA:'South America',OC:'Oceania'};
@@ -295,15 +294,7 @@ function myStatsHTML(){const h=load('sil-hist',{}),days=Object.keys(h),tr=load('
   return statsPageHTML({game:'Silhouette',hist:h,unit:'board',avg:silAverage(h),num:k=>'Board #'+dayNum(k,DAILY_FIRST),
     lbs:()=>['easy','normal','hard'].map(v=>({path:'lb/sil-'+v,dates:days.filter(k=>h[k]&&h[k][v]!=null)})),
     solo:{n,unit:'shape',medal:run,stats:[[run,'best game'],[n?Math.round(ok/n*100)+'%':'–','right'],[ok,'named']]},
-    friends:Object.assign(fr,{third:[fr.best,'best']}),
-    extra:Geomingo.account?Geomingo.account.levelBars('Practice by level',[soloLv(tr,'normal'),soloLv(tr,'hard')].map((s,i)=>[i?'Hard':'Easy',s.n?Math.round(s.ok/s.n*100):0,s.n,['green','coral'][i]])):''})}
-// Solo stats of a level: Easy adds up the old Easy and Normal shapes
-function soloLv(tr,v){const z={n:0,ok:0,best:0},a=v==='hard'?[tr.hard||z]:[tr.easy||z,tr.normal||z];
-  return {n:a.reduce((x,s)=>x+(s.n||0),0),ok:a.reduce((x,s)=>x+(s.ok||0),0),best:Math.max(0,...a.map(s=>s.best||0))}}
-function statsHTML(short){const h=load('sil-hist',{}),days=Object.keys(h);
-  const tr=load('sil-train',{});
-  return statTiles(days.length,silAverage(h),streakOf(h))+(short?'':`
-    <table class="sttab"><tr><th>Practice</th><th>Shapes</th><th>Right</th><th>Best game</th></tr>${['normal','hard'].map(v=>{const s=soloLv(tr,v);return `<tr><td>${DIFF_NAME[v]}</td><td>${s.n}</td><td>${s.n?Math.round(s.ok/s.n*100)+'%':'–'}</td><td>${s.best}</td></tr>`}).join('')}</table>`)}
+    friends:Object.assign(fr,{third:[fr.best,'best']})})}
 const quickRules=extra=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name the country from its shape. Size is no clue: every shape fills the same frame. ${LIVES} lives for the whole board. 10 points a shape.${extra||''}</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Each shape is the outline of a country, north up. Name it.</li>
@@ -334,12 +325,11 @@ function creditsHTML(){return `<ul style="padding-left:18px">
    goes to the faster one). Each phone writes only its own answer (ans/<round>/<player>); whoever is online moves the room on. */
 const FB_OK=()=>typeof firebase!=='undefined'&&typeof firebase.database==='function'&&!!(window.FIREBASE_CONFIG&&/^https:\/\//.test(FIREBASE_CONFIG.databaseURL||''));
 const ROOM_V='sil-202611020600',MAXP=6,ROUNDS=10,SECS=20,READY_MS=3000,REVEAL_MS=6000;
-const CONTS=[['all','The whole world'],['EU','Europe'],['AS','Asia'],['AF','Africa'],['NA','North and Central America'],['SA','South America'],['OC','Oceania']];
 let db=null,room=null,roomRef=null,roomCode=null,joining=false,offset=0,tick=null,O=null;
 const now=()=>Date.now()+offset;
 let ME=load('sil-pid','');if(!ME){ME='p'+Math.random().toString(36).slice(2,10);store('sil-pid',ME)}
 // the name the others see: the one typed here before, or the one used in the other games' rooms on this device
-const setup={fname:'',fmt:'ramp',cont:'all',diff:'normal',join:'',...load('sil-setup',{})};setup.diff=lvOf(setup.diff);
+const setup={fname:'',...load('sil-setup',{})};
 if(!setup.fname)try{setup.fname=(JSON.parse(localStorage.getItem('t10-setup')||'{}')||{}).fname||(JSON.parse(localStorage.getItem('bl-setup')||'{}')||{}).fname||localStorage.getItem('bl-user')||''}catch(e){}
 function initFB(){if(db)return true;if(!FB_OK())return false;
   try{if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);db=firebase.database();db.ref('.info/serverTimeOffset').on('value',s=>{offset=s.val()||0})}catch(e){console.error(e);return false}
@@ -348,26 +338,21 @@ const TS=()=>firebase.database.ServerValue.TIMESTAMP;
 const LET='ABCDEFGHJKLMNPQRSTUVWXYZ',randRoom=()=>[...Array(4)].map(()=>LET[Math.floor(Math.random()*LET.length)]).join('');
 const pinStyle=i=>`background:var(--p${i%6})`;
 const lobbyOrder=r=>Object.entries(r.players||{}).sort((a,b)=>(a[1].t||0)-(b[1].t||0)).map(x=>x[0]);
-function saveSetup(){const el=$('fname');if(el)setup.fname=el.value.trim().slice(0,16);store('sil-setup',{fname:setup.fname,fmt:setup.fmt,cont:setup.cont,diff:setup.diff})}
+function saveSetup(){const el=$('fname');if(el)setup.fname=el.value.trim().slice(0,16);store('sil-setup',{fname:setup.fname})}
 const ACN=()=>{const a=window.Geomingo&&Geomingo.account;return a&&a.user&&a.name?String(a.name).trim().slice(0,16):(Geomingo.party&&Geomingo.party.name())||''};
 function needName(){saveSetup();const an=ACN();if(an){setup.fname=an;return false}if(setup.fname)return false;
   toast("Type your name so your friends know who's playing.",'bad');const el=$('fname');if(el)el.focus();return true}
-const cfgText=c=>c.fmt==='ramp'?'10 rounds, getting harder: 7 Easy, then 3 Hard':`10 rounds · ${CONTS.find(x=>x[0]===c.cont)[1]} · ${DIFF_NAME[c.diff]}`;
-// the ten shapes of a game. Getting harder: three Easy, then four Normal countries not in the Easy list, then three turned.
-// Chosen continent and level: from that continent; when Easy has fewer than ten there, the rest of the continent fills in.
-function dealShapes(cfg){const pick=(pool,n,not)=>shuffled(pool.map(c=>c.c).filter(c=>!not.includes(c)),Math.random).slice(0,n);
-  if(cfg.fmt==='ramp'){const a=pick(poolOf('easy'),3,[]),b=pick(poolOf('normal').filter(c=>!c.e),4,a),h=pick(poolOf('normal'),3,[...a,...b]);
-    return [...a.map(c=>({c,rot:0,d:'easy'})),...b.map(c=>({c,rot:0,d:'normal'})),...h.map(c=>({c,rot:hardTurn(Math.random),d:'hard'}))]}
-  let codes=pick(poolOf(lvOf(cfg.diff),cfg.cont),ROUNDS,[]);
-  if(codes.length<ROUNDS)codes=[...codes,...pick(poolOf('normal',cfg.cont),ROUNDS-codes.length,codes)];
-  return codes.map(c=>({c,rot:cfg.diff==='hard'?hardTurn(Math.random):0,d:cfg.diff}))}
+// the ten shapes of a game, getting harder: three Easy, then four Normal countries not in the Easy list, then three turned
+function dealShapes(){const pick=(pool,n,not)=>shuffled(pool.map(c=>c.c).filter(c=>!not.includes(c)),Math.random).slice(0,n);
+  const a=pick(poolOf('easy'),3,[]),b=pick(poolOf('normal').filter(c=>!c.e),4,a),h=pick(poolOf('normal'),3,[...a,...b]);
+  return [...a.map(c=>({c,rot:0,d:'easy'})),...b.map(c=>({c,rot:0,d:'normal'})),...h.map(c=>({c,rot:hardTurn(Math.random),d:'hard'}))]}
 const SIGNED=()=>!!(window.Geomingo&&Geomingo.account&&Geomingo.account.user);
 async function createRoom(){if(!SIGNED()){Geomingo.account.signIn();return}
   if(needName())return;
   if(!initFB()){toast('Online play is not available right now. Check the connection and reload.','bad');return}
   try{let code='';
     for(let i=0;i<8;i++){code=randRoom();const ex=await db.ref('rooms/'+code).get();if(!ex.exists())break}
-    await db.ref('rooms/'+code).set({game:'silhouette',v:ROOM_V,host:ME,created:TS(),cfg:Geomingo.party&&Geomingo.party.on()?{fmt:'ramp',cont:'all',diff:'normal'}:{fmt:setup.fmt,cont:setup.cont,diff:setup.diff},status:'lobby',
+    await db.ref('rooms/'+code).set({game:'silhouette',v:ROOM_V,host:ME,created:TS(),cfg:{fmt:'ramp',cont:'all',diff:'normal'},status:'lobby',
       players:{[ME]:{name:setup.fname,t:TS(),on:true}}});
     listenRoom(code)}catch(e){console.error(e);toast('Could not create the room. Check the connection and try again.','bad')}}
 async function joinRoom(raw){
@@ -394,7 +379,7 @@ async function joinRoom(raw){
   finally{joining=false}}
 function listenRoom(code){
   if(roomRef)roomRef.off();
-  roomCode=code;roomRef=db.ref('rooms/'+code);view='friends';setup.join='';
+  roomCode=code;roomRef=db.ref('rooms/'+code);view='friends';
   try{localStorage.setItem('sil-room',code)}catch(e){}Geomingo.room.seen('sil-room');
   try{const u=new URL(location.href);if(u.searchParams.has('room')){u.searchParams.delete('room');history.replaceState(null,'',u.pathname+u.search)}}catch(e){}
   const me=roomRef.child('players/'+ME+'/on');me.onDisconnect().set(false);
@@ -470,41 +455,20 @@ function onTick(){if(!O){clearInterval(tick);return}const t=now();
 async function onlineAct(kind){
   try{await roomRef.transaction(r=>{
     if(!r)return r;
-    if(kind==='cfg'){if(r.host!==ME||r.status!=='lobby')return;r.cfg={fmt:setup.fmt,cont:setup.cont,diff:setup.diff};return r}
     if(kind==='start'||kind==='rematch'){if(r.host!==ME)return;
       const order=(kind==='start'?lobbyOrder(r):(r.order||lobbyOrder(r))).filter(pid=>r.players[pid]&&(kind==='start'||r.players[pid].on!==false));
       if(order.length<2)return;
-      r.order=order;r.v=ROOM_V;r.qs=dealShapes(r.cfg);r.ans=null;r.round=0;r.status='round';r.start=now()+READY_MS;r.end=r.start+SECS*1000;r.revealEnd=0;return r}
+      r.order=order;r.v=ROOM_V;r.qs=dealShapes();r.ans=null;r.round=0;r.status='round';r.start=now()+READY_MS;r.end=r.start+SECS*1000;r.revealEnd=0;return r}
     if(kind==='end'){if(r.host!==ME||r.status==='lobby')return;r.status='over';return r}
     if(kind==='lobby'){if(r.host!==ME)return;r.status='lobby';r.order=null;r.qs=null;r.ans=null;r.round=0;return r}
   })}catch(e){console.error(e);toast('That did not go through. Check the connection.','bad')}}
 const ranked=()=>[...O.players].sort((a,b)=>b.total-a.total||a.ms-b.ms||a.i-b.i);
-function friendsHTML(){if(Geomingo.party&&Geomingo.party.on())return header('Silhou<span>ette</span>','');
-  return header('Silhou<span>ette</span>','')+`<section class="panel">
-    <div class="backline"><span class="ht">With friends</span></div>
-    <p class="hint">2 to ${MAXP} players, each on their own phone. The host creates a room and shares its link or code.</p>
-    ${ACN()?'':`<div class="field"><label class="label" for="fname">Your name in the room</label><input id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(setup.fname||(Geomingo.traveller()==='Guest'?'':Geomingo.traveller()))}"></div>`}
-    <div class="field">${FB_OK()?'':'<p class="hint">Online play needs a connection: reload the page when you are online.</p>'}${SIGNED()?'':'<p class="hint">To create a room, sign in. Friends can join with your code or link without an account.</p>'}<button class="primary" id="create" ${FB_OK()?'':'disabled style="opacity:.5"'}>${SIGNED()?'Create room':'Sign in to create a room'}</button></div>
-    <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(setup.join||'')}" autocomplete="off"><button class="ghost" id="join" ${FB_OK()?'':'disabled'}>Join</button></div></div>
-  </section>
-  <section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Everyone gets the same shape at the same time, ${SECS} seconds each. No lives: try as many countries as you like until the time runs out. A right answer scores 10 points. Ten shapes, most points wins; if level, the faster one.</p></section>`}
+// the room's own screen (../brand/party.js) shows the players and the code: this game shows only its header there
+function friendsHTML(){return header('Silhou<span>ette</span>','')}
 // the one room for all nine games (../brand/party.js) drives this game's room
 if(Geomingo.party)Geomingo.party.game({room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
   count:()=>room?lobbyOrder(room).length:0,names:()=>room?lobbyOrder(room).map(k=>room.players[k].name):[],create:createRoom,join:joinRoom,start:()=>onlineAct('start')});
-function lobbyHTML(){if(Geomingo.party&&Geomingo.party.on())return header('Silhou<span>ette</span>','');const r=room,order=lobbyOrder(r),link=pageLink('?room='+roomCode),host=r.host===ME;
-  const c=host?setup:r.cfg;
-  return header('Silhou<span>ette</span>','room '+roomCode)+`<section class="panel namecard"><span class="label">Room code</span><p class="roomcode">${roomCode}</p>
-    <p class="hint">Friends open Silhouette, choose <b>With friends</b>, then type this code under Join. Or send them the link:</p>
-    <pre class="sharebox" id="linkbox">${esc(link)}</pre><button class="ghost" id="copylink">Copy link</button>
-    <span class="label">Players ${order.length}/${MAXP}</span>
-    <div class="players">${order.map((pid,i)=>{const p=r.players[pid];return `<div class="lp ${p.on===false?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)}<span class="tag">${[pid===r.host?'host':'',pid===ME?'you':'',p.on===false?'offline':''].filter(Boolean).join(' · ')}</span></div>`}).join('')}</div>
-    <span class="label">Game</span>
-    ${host?`<div class="field">${seg('fmt',[['ramp','Getting harder'],['pick','Choose']],c.fmt)}
-      ${c.fmt==='pick'?`<label class="label" for="ocont">Continent</label><select id="ocont" class="osel">${CONTS.map(([v,l])=>`<option value="${v}"${v===c.cont?' selected':''}>${l}</option>`).join('')}</select>
-      ${seg('odiff',[['normal','Easy'],['hard','Hard']],lvOf(c.diff))}`:''}</div>`:''}
-    <p class="hint">${esc(cfgText(r.cfg))} · ${SECS} s per shape</p>
-    ${host?`<button class="primary" id="ostart" ${order.length<2?'disabled style="opacity:.5"':''}>${order.length<2?'Waiting for players…':'Start game'}</button>`:'<p class="hint">Waiting for the host to start the game.</p>'}
-    <button class="ghost" id="leave">Leave room</button></section>`}
+function lobbyHTML(){return header('Silhou<span>ette</span>','')}
 function boardRowsHTML(roundPts){const me=ME;
   return `<table class="sttab rank"><tr><th>#</th><th>Player</th>${roundPts?'<th>Shape</th>':''}<th>Total</th></tr>${ranked().map((p,k)=>`<tr class="${p.pid===me?'me':''}"><td>${k+1}</td><td><span class="pin" style="${pinStyle(p.i)}"></span> ${esc(p.name)}${p.on?'':' <span class="tag">offline</span>'}</td>${roundPts?`<td>${p.cur.ok?'+'+p.cur.pts:p.cur.tries&&p.cur.tries.length?'✗':'–'}</td>`:''}<td>${p.total}</td></tr>`).join('')}</table>`}
 // a chip per player: total so far, a tick once they are done with this shape
@@ -528,19 +492,7 @@ function onlineHTML(){const q=O.q,t=now(),ready=O.status==='round'&&t<O.start;
   h+=`</section><div class="row-btns">${O.host?'<button class="ghost" id="oend" style="flex:1">End game</button>':''}<button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;
   return h}
 function bindOnline(){
-  if($('fname'))$('fname').onchange=saveSetup;
-  if($('jcode'))$('jcode').oninput=e=>{setup.join=e.target.value};
-  if($('create'))$('create').onclick=createRoom;
-  if($('join'))$('join').onclick=()=>joinRoom($('jcode').value);
-  if($('jcode'))$('jcode').onkeydown=e=>{if(e.key==='Enter')joinRoom(e.target.value)};
-  if($('copylink'))$('copylink').onclick=()=>{const t=pageLink('?room='+roomCode);
-    if(navigator.share&&TOUCH){navigator.share({text:'Play Silhouette with me: '+t}).catch(()=>{});return}
-    try{navigator.clipboard.writeText(t).then(()=>toast('Link copied.','good'),()=>toast('Copy the link above.'))}catch(e){toast('Copy the link above.')}};
-  app.querySelectorAll('[data-seg="fmt"]').forEach(b=>b.onclick=()=>{setup.fmt=b.dataset.v;saveSetup();onlineAct('cfg')});
-  app.querySelectorAll('[data-seg="odiff"]').forEach(b=>b.onclick=()=>{setup.diff=b.dataset.v;saveSetup();onlineAct('cfg')});
-  if($('ocont'))$('ocont').onchange=e=>{setup.cont=e.target.value;saveSetup();onlineAct('cfg')};
   if($('leave'))$('leave').onclick=()=>{if(O&&O.status!=='over'&&!confirm('Leave the room? The game goes on without you.'))return;leaveRoom()};
-  if($('ostart'))$('ostart').onclick=()=>onlineAct('start');
   if($('orematch'))$('orematch').onclick=()=>onlineAct('rematch');
   if($('olobby'))$('olobby').onclick=()=>onlineAct('lobby');
   if($('oend'))$('oend').onclick=()=>{if(confirm('End the game for everyone?'))onlineAct('end')};
@@ -600,7 +552,6 @@ function bind(){
   if($('archback'))$('archback').onclick=toArchive;
   app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
   app.querySelectorAll('[data-dtile]').forEach(b=>b.onclick=()=>{D=dailyGame();const i=+b.dataset.dtile;if(D.qs[i].st==='play')D.sel=i;query='';typing=false;view='daily';render();window.scrollTo(0,0)});
-  app.querySelectorAll('[data-go="friends"]').forEach(b=>b.onclick=()=>{view='friends';render();window.scrollTo(0,0)});
   if(roomCode||view==='friends'){bindOnline();return}
   if($('daily'))$('daily').onclick=()=>openDaily();
   if($('copy'))$('copy').onclick=()=>share(view==='train'&&T?soloShare():dailyShare(D));
@@ -615,15 +566,12 @@ function bind(){
   else if(view==='daily'&&D&&!D.over)bindAnswer(D.qs[D.sel],dailyPick)}
 // once the flags have loaded, show the one of a revealed shape
 window.addEventListener('load',()=>{if(document.querySelector('.reveal .flag'))render()},{once:true});
-/* ---- start: today's board on the home screen; ?room=ABCD opens a friend's room, ?friends opens With friends ---- */
+/* ---- start: today's board on the home screen. Old ?room= and ?friends links go home (../brand/party.js) ---- */
 (()=>{const ak=Geomingo.askedDay(DAILY_FIRST);if(ak){openDay(ak);return}
-  const rm=(TESTQ.get('room')||'').toUpperCase();if(/^[A-Z]{4}$/.test(rm)){view='friends';setup.join=rm}
-  else if(TESTQ.has('friends')){view='friends';try{history.replaceState(null,'',location.pathname)}catch(e){}}
   render()})();
-// back in a room after a reload (the online scripts load after the page)
+// back in a room after a reload, inside the one room for all nine games (the online scripts load after the page)
 window.addEventListener('DOMContentLoaded',()=>{const code=Geomingo.room.saved('sil-room'); // an old or finished room is not reopened
-  if(view==='friends')render(); // the Create and Join buttons were drawn before Firebase loaded
-  if(!code||!initFB())return;
+  if(!code||!(Geomingo.party&&Geomingo.party.on())||!initFB())return;
   db.ref('rooms/'+code).once('value').then(s=>{const r=s.val();
     if(r&&r.game==='silhouette'&&r.players&&r.players[ME]&&!roomCode&&Geomingo.room.resume('sil-room',r.status==='over'))listenRoom(code);else if(!roomCode)Geomingo.room.forget('sil-room')}).catch(()=>{})});
 // a new day while the page was in the background: today's new board

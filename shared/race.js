@@ -123,29 +123,9 @@ window.GeoRace=function(cfg){
   R.inGame=()=>R.screen==='room'&&R.room&&R.room.status==='play'&&!!R.G;
   // the chips above the game: everyone's points and where they are
   R.scoresHTML=()=>`<div class="scores" aria-label="Players">${players().map(p=>`<span class="chip${p.cur&&p.done?' done':''}${p.on===false?' off':''}"><span class="pin" style="${pinStyle(p.i)}"></span>${esc(p.name)}<small>${!p.cur?'joining':(p.s||0)+' pts'+(p.done?' ✓':' · '+(p.at||1)+'/'+cfg.total)}</small></span>`).join('')}</div>`;
-  // in the one room for all nine games (../brand/party.js) the room's own screen takes over: nothing of this game's
-  R.friendsHTML=()=>(Geomingo.party&&Geomingo.party.on())?cfg.header(cfg.name,''):cfg.header(cfg.name,'')+`<section class="panel">
-    <div class="backline"><span class="ht">With friends</span></div>
-    <p class="hint">Play online, 2 to ${MAX} players, each on their own phone. Everyone gets ${cfg.what} at the same time and sees how the others are doing.</p>
-    ${ACN()?'':`<div class="field"><label class="label" for="fname">Your name in the room</label><input class="nameinp" id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(myName)}"></div>`}
-    ${FB_OK?'':'<p class="hint">Online play could not load. Check the connection and reload the page.</p>'}
-    <div class="field">${SIGNED()?'':'<p class="hint">To create a room, sign in. Friends can join with your code or link without an account.</p>'}<button class="primary" id="create" ${FB_OK?'':'disabled'}>${SIGNED()?'Create room':'Sign in to create a room'}</button></div>
-    <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(joinCode)}" autocomplete="off"><button class="ghost" id="join" ${FB_OK?'':'disabled'}>Join</button></div></div>
-  </section>`;
-  R.lobbyHTML=()=>{const r=R.room;if(Geomingo.party&&Geomingo.party.on())return cfg.header(cfg.name,'');
-    if(!r)return cfg.header(cfg.name,'')+'<section class="panel"><p class="hint">Connecting to the room…</p></section>';
-    const o=order(r),host=r.host===ME;
-    return cfg.header(cfg.name,'Room '+R.code)+`<section class="panel namecard">
-    <div class="backline"><button class="linkbtn" id="leave">← Leave</button><span class="ht">With friends</span></div>
-    <span class="label">Room code</span><p class="roomcode">${R.code}</p>
-    <p class="hint">Friends open ${esc(cfg.name)}, choose <b>With friends</b> and type this code. Or send them the link:</p>
-    <pre class="sharebox" id="linkbox">${esc(pageLink('?room='+R.code))}</pre>
-    <button class="ghost" id="copylink">Copy link</button>
-    <span class="label">Players ${o.length}/${MAX}</span>
-    <div class="players">${o.map((pid,i)=>{const p=r.players[pid];return `<div class="lp ${p.on===false?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)}<span class="tag">${[pid===r.host?'host':'',pid===ME?'you':'',p.on===false?'offline':''].filter(Boolean).join(' · ')}</span></div>`}).join('')}</div>
-    <p class="hint">Everyone gets ${cfg.what} at the same time. No lives: play to the end at your own pace. Most points win, then the fastest.</p>
-    ${host?`<button class="primary" id="ostart" ${o.length<2?'disabled':''}>${o.length<2?'Waiting for players…':'Start game'}</button>`:'<p class="hint">Waiting for the host to start the game.</p>'}
-  </section>`};
+  // the room's own screen (../brand/party.js) shows the players and the code: this game shows only its header there
+  R.friendsHTML=()=>cfg.header(cfg.name,'');
+  R.lobbyHTML=()=>cfg.header(cfg.name,'');
   R.backHTML=()=>`<div class="backline"><button class="linkbtn" id="leave">${R.armed?'Tap again to leave':'← Leave'}</button><span class="ht">Room ${R.code} · game ${R.G?R.G.round:''}</span></div>`;
   R.shareText=()=>{const G=R.G;return Geomingo.share(cfg.name)+' (with friends) — '+cfg.points(G)+' points, '+cfg.right(G)+' of '+cfg.total+'\n'+cfg.shareLine(G)};
   // the room's ranking, live while the others finish; the next game starts when everyone still here is done
@@ -160,26 +140,15 @@ window.GeoRace=function(cfg){
     <pre class="sharebox" id="share">${esc(R.shareText())}</pre>
     ${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="rematch" style="flex:1" ${waiting?'disabled':''}>${waiting?'Waiting for the others…':'Play again'}</button></div>
   </section>`};
-  function copyText(t,ok){const manual=()=>{const el=$('linkbox');if(el){const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r)}toast('Select the link and copy it.')};
-    try{navigator.clipboard.writeText(t).then(()=>toast(ok,'good'),manual)}catch(e){manual()}}
   // the buttons of these screens (call from the page's bind())
   R.bind=()=>{
-    if($('fname'))$('fname').oninput=e=>{myName=e.target.value.trim().slice(0,16)};
-    if($('create'))$('create').onclick=create;
-    if($('jcode')){$('jcode').oninput=e=>{joinCode=e.target.value};$('jcode').onkeydown=e=>{if(e.key==='Enter')join($('jcode').value)}}
-    if($('join'))$('join').onclick=()=>join($('jcode').value);
-    if($('copylink'))$('copylink').onclick=()=>copyText(pageLink('?room='+R.code),'Link copied.');
-    if($('ostart'))$('ostart').onclick=start;
     if($('rematch'))$('rematch').onclick=start;
     if(R.screen==='room'&&R.G&&R.G.over&&$('copy'))$('copy').onclick=()=>share(R.shareText()+'\n\nPlay '+cfg.name+': '+pageLink());
     // leaving in the middle of a game asks first
     if($('leave'))$('leave').onclick=()=>{if(R.G&&!R.G.over&&!R.armed){R.armed=true;cfg.render();return}leave()}};
-  // start: ?room=ABCD joins that room (invite links), ?friends opens With friends, else the room this phone was in
-  R.boot=()=>{let q='',fr=false;try{const u=new URLSearchParams(location.search);q=u.get('room')||'';fr=u.has('friends')}catch(e){}
-    const back=Geomingo.room.saved(ROOMKEY),clean=()=>{try{history.replaceState(null,'',location.pathname)}catch(e){}};
-    if(q&&/^[A-Za-z]{4}$/.test(q)){clean();joinCode=q.toUpperCase();R.screen='friends';if(myName||ACN())join(joinCode);return true}
-    if(back&&initFB()){listen(back,true);return true}
-    if(fr){clean();R.screen='friends';return true}
+  // start: back into the room this phone was in, only inside the one room for all nine games (old ?room= and ?friends links go home, ../brand/party.js)
+  R.boot=()=>{const back=Geomingo.room.saved(ROOMKEY);
+    if(back&&Geomingo.party&&Geomingo.party.on()&&initFB()){listen(back,true);return true}
     return false};
   R.leaveHome=()=>{if(R.code){leave();return true}R.screen=null;return false};
   // back from another app with a finished room still on screen a long time: leave it
