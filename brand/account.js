@@ -85,10 +85,22 @@ const TS=()=>firebase.database.ServerValue.TIMESTAMP;
    st/<day>/_hour/h<0-23>. Nothing about the person is sent or kept on the device: no name, no account, no id.
    Only on geomingo.com and never in test mode. */
 const COUNT=!TEST&&/(^|\.)geomingo\.com$/.test(location.hostname);let seen=0;
-function count(page,k){if(!COUNT||!db||page==='stats')return;db.ref('st/'+T()+'/'+page+'/'+k).set(firebase.database.ServerValue.increment(1)).catch(()=>{})}
-function statsOn(){if(!COUNT||!G.statTo)return;G.statTo(count);const p=G.PAGE;
+function count(page,k,day){if(!COUNT||!db||page==='stats')return;db.ref('st/'+(day||T())+'/'+page+'/'+k).set(firebase.database.ServerValue.increment(1)).catch(()=>{})}
+function statsOn(){if(!COUNT||!G.statTo)return;G.statTo((p,k)=>{count(p,k);if(k==='fin-daily')setTimeout(dayDone,1500)});const p=G.PAGE;
   let phone=false;try{phone=matchMedia('(pointer:coarse)').matches}catch(e){}
-  count(p,'view');count(p,phone?'phone':'computer');if(p!=='stats')count('_hour','h'+(+G.madridParts(Date.now()).hour))}
+  count(p,'view');count(p,phone?'phone':'computer');if(p!=='stats')count('_hour','h'+(+G.madridParts(Date.now()).hour));
+  // a new browser: on the home page or straight into a game (a shared link almost always opens a game)
+  if(G.fresh)count('_day',p==='home'?'new-home':p==='stats'?'new-other':'new-game')}
+/* today's game of this page just ended (once per game and day; gm-stx {d: day, g: [game ids]} remembers which):
+   its km in steps of 25 and perfect (st/<day>/<page>/km0…km100, perfect), the clue each round was found at in the clue games
+   (c1…c5, cx = not found), and for the day: the Nth game of the day (_day/g1…g9) and, with the first one, the streak (s3, s7) */
+const CLUEKEY={customs:'cu-daily',flagpie:'fp-daily',compass:'cm-daily',impostor:'im-daily'};
+function dayDone(){const p=G.PAGE,g=(G.GAMES.find(x=>x.path.replace(/\/$/,'')===p)||{}).id,k=T();if(!g||!G.playedToday(g))return;
+  let x=json('gm-stx');if(!x||x.d!==k||!Array.isArray(x.g))x={d:k,g:[]};if(x.g.includes(g))return;x.g.push(g);put('gm-stx',x);
+  const km=+((G.geo().today||{})[g])||0;count(p,'km'+Math.min(100,25*Math.floor(km/25)));if(km>100)count(p,'perfect');
+  const d=CLUEKEY[g]&&json(CLUEKEY[g]);if(d&&d.date===k&&d.S&&Array.isArray(d.S.qs))d.S.qs.forEach(q=>count(p,q.st==='right'&&q.k>=1&&q.k<=5?'c'+q.k:'cx'));
+  count('_day','g'+Math.min(9,x.g.length));
+  if(x.g.length===1){const n=G.streak();if(n>=3)count('_day','s3');if(n>=7)count('_day','s7')}}
 const uid=()=>user&&user.uid;
 
 // signing out (here, or from Countries' menu) leaves the device clean, as Countries always did:
@@ -277,10 +289,22 @@ G.onStamp(x=>{const id=uid(),p=json('gm-pass');if(!id||!db||!p||p.u!==id)return;
 // the days you played (the streak): every device's, together
 function syncDays(){const id=uid(),ref=db.ref('users/'+id+'/days');
   ref.once('value').then(s=>{if(uid()!==id)return;const R=s.val()||{},L=G.days(),up={};
-    L.forEach(d=>{if(!R[d])up[d]=1});put('gm-days',[...new Set([...Object.keys(R),...L])].sort().slice(-400));
+    L.forEach(d=>{if(!R[d])up[d]=1});if(up[T()]&&marked!==id+T()){marked=id+T();firstToday(R,T())}put('gm-days',[...new Set([...Object.keys(R),...L])].sort().slice(-400));
     if(Object.keys(up).length)ref.update(up).catch(()=>{});changed()}).catch(()=>{})}
 let marked='';
-function markToday(){const k=T();if(!uid()||marked===uid()+k)return;marked=uid()+k;db.ref('users/'+uid()+'/days/'+k).set(1).catch(()=>{})}
+function markToday(){const k=T(),id=uid();if(!id||marked===id+k)return;marked=id+k;const ref=db.ref('users/'+id+'/days');
+  // the first game of the day of a signed-in player: counted for /stats (played today · first day ever · back after 7+ days away)
+  ref.once('value').then(s=>{const R=s.val()||{};if(R[k])return;
+    firstToday(R,k);ref.child(k).set(1).catch(()=>{})}).catch(()=>{ref.child(k).set(1).catch(()=>{})})}
+// (the last day before today comes from the streak days and the GeoPass stamps, which go back further)
+function firstToday(R,k){count('_players','play');
+  db.ref('users/'+uid()+'/pass').once('value').then(s=>{const P=s.val()||{},ds=Object.keys(R).concat(asList(P.list).map(x=>x&&x.d));
+    const prev=ds.filter(d=>d&&d<k).sort().pop()||(P.since&&P.since<k?P.since:'');
+    if(!prev)count('_players','new');else if((Date.parse(k)-Date.parse(prev))/864e5>=7)count('_players','back');
+    // coming back after the first day: day 1 = the next day, week = any day 7 to 13 days after it (counted on the first day)
+    const first=ds.concat(P.since||[]).filter(d=>d&&d<k).sort()[0],gap=first?Math.round((Date.parse(k)-Date.parse(first))/864e5):0;
+    if(gap===1)count('_players','d1',first);
+    if(gap>=7&&gap<=13&&!ds.some(d=>d&&d<k&&Math.round((Date.parse(d)-Date.parse(first))/864e5)>=7))count('_players','d7',first)}).catch(()=>{})}
 // a game's daily results: the account's days come here, this device's other days go there;
 // today's game played here joins the account (and the ranking) unless the account already played it
 function syncGame(g){const id=uid(),A=ADAPT[g],ref=db.ref('users/'+id+'/hist/'+g),k=T();
