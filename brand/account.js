@@ -250,7 +250,7 @@ function changeMyName(){const id=uid();if(!id||!db){say('One moment, signing you
   db.ref('pnames/'+id).once('value').then(s=>{if(uid()!==id)return;MYP=s.val();nameWindow(false)}).catch(()=>nameWindow(false))}
 
 /* ---- keeping the account and this device in step ---- */
-function syncAll(){if(!uid()||!db)return;syncPass();syncDays();if(!OWN){Object.keys(ADAPT).forEach(syncGame);syncGrid('daily','bl-hist');syncGrid('capitals/daily','cc-hist')}}
+function syncAll(){if(!uid()||!db)return;syncPass();syncDays();archRank();if(!OWN){Object.keys(ADAPT).forEach(syncGame);syncGrid('daily','bl-hist');syncGrid('capitals/daily','cc-hist')}}
 // Countries and Capitals keep their days in the account themselves (users/<uid>/daily, users/<uid>/capitals/daily), but only
 // when you open them: here (the home page, the other games) the account's days are copied to this device too,
 // so a grid played on another device shows as played everywhere at once. Only the stats line, never the whole game (j).
@@ -298,6 +298,19 @@ function record(g){const id=uid(),A=ADAPT[g],k=T(),t=A&&A.today();if(!id||!db||T
   db.ref('users/'+id+'/hist/'+g+'/'+k).transaction(cur=>cur?undefined:entry)
     .then(x=>{if(x.committed)submit(g,k,t.r);else syncGame(g)}).catch(()=>{})}
 function done(g){G.stat('fin','daily');if(uid())record(g);else changed()}
+/* ---- archive games join the ranking of their own day (Héctor 2026-11-16: "suman puntos para el día que tocaba") ----
+   every finished archive game on this device (G.ARL: its ranking path and row) goes once to lb/<game>/<day>/<uid>, marked
+   ar:1 with pd (the day it was played). The rules keep one row per account and day, so a day already there stays as it is.
+   gm-archlb {u, s: {path/day: 1}}: what was sent (or refused) from here. Rows marked ar give no medal or place (featsOf, placeIn). */
+let archBusy=false;
+function archRank(){const id=uid();if(!id||!db||TEST||!name||archBusy||!G.ARL)return;const k=T(),c=json('gm-archlb'),S=c&&c.u===id&&c.s?c:{u:id,s:{}},todo=[];
+  G.GAMES.forEach(g=>{const f=G.ARL[g.id],a=f&&g.arch&&json(g.arch);if(!a||typeof a!=='object')return;
+    for(const d in a){const x=a[d];if(!G.archDone(x)||!/^\d{4}-\d{2}-\d{2}$/.test(d)||d>=k)continue;const key=f[0](x)+'/'+d;if(!S.s[key])todo.push([key,f[1](x),x.pd])}});
+  if(!todo.length)return;archBusy=true;
+  const mark=key=>{const c2=json('gm-archlb'),M=c2&&c2.u===id&&c2.s?c2:{u:id,s:{}};M.s[key]=1;put('gm-archlb',M)};
+  Promise.all(todo.map(([key,r,pd])=>db.ref(key+'/'+id).set(Object.assign({name:name.slice(0,16),t:TS(),ar:1},r,/^\d{4}-\d{2}-\d{2}$/.test(pd||'')?{pd}:{}))
+    .then(()=>mark(key),e=>{if(/permission/i.test(String(e&&(e.code||e.message))))mark(key)})))
+    .then(()=>{archBusy=false;if(uid()===id)changed()})}
 
 /* ---- opening a game on a device that was signed in last time: today's game stays behind "Opening today's game…"
    until the account's game of today has come (at most 5 s), so an empty game never flashes before the one played
@@ -361,7 +374,7 @@ const FEATS=[['borderline','leaderboard','bl-hist',r=>(+r.c||0)>=8,e=>e&&e.f!==0
   ['compass','lb/compass','cm-hist',(r,d)=>(+r.s||0)>=(G.clNew(d,r.x3)?50:13),e=>!!e]];
 let featBusy=false;
 const featStore=me=>{const c=json('gm-feats');return c&&c.u===me&&c.r?c:{u:me,r:{}}};
-function featsOf(rows,me,half){const L=Object.entries(rows||{}).map(([id,v])=>Object.assign({id},v)),i=L.slice().sort(lbOrder).findIndex(r=>r.id===me);
+function featsOf(rows,me,half){const L=Object.entries(rows||{}).map(([id,v])=>Object.assign({id},v)).filter(r=>!r.ar),i=L.slice().sort(lbOrder).findIndex(r=>r.id===me);
   const q=L.filter(half),mine=L.find(r=>r.id===me),ok=!!mine&&half(mine),two=q.length>=2;
   const first=ok&&two&&q.reduce((a,b)=>(+b.t||Infinity)<(+a.t||Infinity)?b:a).id===me;
   const tq=q.filter(r=>typeof r.sec==='number'&&r.sec>0);
@@ -383,7 +396,7 @@ function scanFeats(){const me=uid();if(!me||!db||TEST||featBusy)return;const c=f
 const RK={};
 function ranksStore(){const id=meId(),c=json('gm-ranks');return c&&c.u===id&&c.r?c:{u:id,r:{}}}
 const lbOrder=(a,b)=>b.s-a.s||(a.m||0)-(b.m||0)||(b.c||0)-(a.c||0)||(a.t||0)-(b.t||0);
-function placeIn(rows,me){const l=Object.entries(rows||{}).map(([id,v])=>Object.assign({id},v)).sort(lbOrder),i=l.findIndex(r=>r.id===me);
+function placeIn(rows,me){const l=Object.entries(rows||{}).map(([id,v])=>Object.assign({id},v)).filter(r=>!r.ar).sort(lbOrder),i=l.findIndex(r=>r.id===me);
   return [i<0?0:i+1,l.length]}
 // every day you played: [place (0: not in it), players], today's from the live ranking; null while the account is unknown
 function places(lbs){const me=meId();if(!me||!ok)return null;const c=ranksStore(),k=T(),out=[];let ask=false;
@@ -565,6 +578,6 @@ G.acctHTML=acctHTML;G.openMenu=openMenu;G.openFaq=openFaq;G.openCredits=openCred
 // ready/user: known for sure, or the last account seen on this device until Firebase answers (wasSignedIn: that last one)
 G.account={get ready(){return who()!==undefined},get user(){return who()||null},get name(){return name},
   wasSignedIn:!!(LAST&&LAST.u),get trial(){return trialState()},trialLine,
-  signIn,signOut,done,userHTML,changeName,nameOf,fmtName,backfill,firstName,nameProblem,nameFree,changeMyName,rankingHTML,rankLine,mine,statsPage,levelBars,bestRun,onChange:f=>watchers.push(f)};
+  signIn,signOut,done,archRank,userHTML,changeName,nameOf,fmtName,backfill,firstName,nameProblem,nameFree,changeMyName,rankingHTML,rankLine,mine,statsPage,levelBars,bestRun,onChange:f=>watchers.push(f)};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();

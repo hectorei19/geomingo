@@ -221,7 +221,37 @@ function ledger(){const L={},add=(d,id,mi)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(d))(L
   const f=json('fp-hist')||{};for(const d in f)if(f[d])add(d,'flagpie',newKm(d)?KM.cl3(f[d].r,f[d].p,d,f[d].x3,+f[d].n||5):clPts(f[d].r,f[d].p,+f[d].n||5));
   const im=json('im-hist')||{};for(const d in im)if(im[d])add(d,'impostor',newKm(d)?KM.imp(im[d].r,im[d].p,d,im[d].x3):clPts(im[d].r,im[d].p,6));
   const cm=json('cm-hist')||{};for(const d in cm)if(cm[d])add(d,'compass',newKm(d)?KM.cl3(cm[d].r,cm[d].p,d,cm[d].x3,5):clPts(cm[d].r,cm[d].p,5));
+  // archive games: a past daily played later counts on its own day (archive games below)
+  GAMES.forEach(g=>{const f=ARL[g.id],a=f&&g.arch&&json(g.arch);if(!a||typeof a!=='object')return;
+    for(const d in a){const S=a[d];if(!archDone(S)||(L[d]&&L[d][g.id]!=null))continue;add(d,g.id,rowKm(g.id,f[1](S),d))}});
   return L}
+/* ---------- archive games (Héctor 2026-11-16): a past daily played later, from the Archive, counts like that daily ----------
+   Its km go to the day of the puzzle (not the day it was played): in the GeoPass (ledger above) and, signed in, in that day's
+   public ranking (../brand/account.js archRank, the row marked ar). The streak only counts days played on their day.
+   ARL: game id → [its ranking path, the ranking row of a finished archive game (the same row as the daily's)] */
+const archDone=S=>!!S&&typeof S==='object'&&!!S.over;
+const gridRow=S=>{const p=(S.players||[])[0]||{};return {s:+p.score||0,c:+p.cells||0,n:+S.n||4,w:S.lives!=null?Math.max(0,5-S.lives):(+S.wrong||0)}};
+const qsOf=S=>Array.isArray(S.qs)?S.qs:[],rightN=S=>qsOf(S).filter(q=>q.st==='right').length,triesN=S=>qsOf(S).reduce((n,q)=>n+(q.tries||[]).length,0);
+const x3Of=S=>qsOf(S).some(q=>q.x3)?1:0;
+const clRow=S=>({x3:x3Of(S),s:qsOf(S).reduce((n,q)=>n+clFlag(q),0),r:rightN(S),m:triesN(S)});
+const ARL={
+  borderline:[()=>'leaderboard',gridRow],
+  citygrid:[()=>'lb/capitals',gridRow],
+  connections:[()=>'lb/connections',S=>({s:(S.found||[]).length,m:+S.mistakes||0})],
+  top10:[()=>'lb/top10',S=>({s:(S.found||[]).length,m:(S.wrong||[]).length})],
+  silhouette:[S=>'lb/sil-'+(S.diff||'normal'),S=>({s:rightN(S),m:triesN(S)})],
+  customs:[()=>'lb/customs',clRow],
+  flagpie:[()=>'lb/flagpie',clRow],
+  impostor:[()=>'lb/impostor',S=>({x3:x3Of(S),s:qsOf(S).reduce((n,q)=>n+impRound(q),0),r:rightN(S),m:qsOf(S).filter(q=>q.st==='wrong'&&q.pick).length})],
+  compass:[()=>'lb/compass',S=>({x3:x3Of(S),s:qsOf(S).reduce((n,q)=>n+(q.st==='right'?+q.p||0:0),0),r:rightN(S),m:triesN(S)})]};
+// a ranking row's km on day d (the home page's ranking counts them the same way)
+function rowKm(id,r,d){const N=newKm(d);
+  if(id==='borderline'||id==='citygrid'){const n=+r.n||4;return N?KM.grid(r.s,r.c,n,r.w):pts((+r.c||0)/(n*n))}
+  if(id==='connections')return cxPts(r.s,r.m);
+  if(id==='top10')return N?KM.top10(r.s,r.m):pts((+r.s||0)/10);
+  if(id==='silhouette')return N?KM.sil(r.s,r.m):pts((+r.s||0)/9);
+  if(id==='impostor')return N?KM.imp(r.r,r.s,d,r.x3):clPts(r.r,r.s,6);
+  return N?KM.cl3(r.r,r.s,d,r.x3,5):clPts(r.r,r.s,5)}
 const dayTotal=day=>{const v=Object.values(day||{});return v.reduce((a,b)=>a+b,0)+(v.length>=ALLN?ALL5:0)};
 function level(km){let i=0;LEVELS.forEach((l,k)=>{if(km>=l[1])i=k});const next=LEVELS[i+1];
   return {i,name:LEVELS[i][0],next,pct:next?Math.round((km-LEVELS[i][1])/(next[1]-LEVELS[i][1])*100):100}}
@@ -365,12 +395,17 @@ function doneTicket(id,num,score,next,body){setTimeout(refreshPass,0);const km=(
     (body?'<div class="tk-tear"></div><div class="gm-done-a">'+body+'</div>':'')+'</section>'}
 /* a finished Archive game (a past day): the same ticket again, in the archive's coral, the day's answers inside;
    Back to archive and Share go under it (Héctor 2026-11-16). archTicket({id:'top10', num:28, score:'7 of 10', detail:'3 mistakes', body:'…answers…'});
-   note:'' hides the "Points only, no km" line (a day played on its day, which did earn km) */
+   day:'2026-11-13' adds "+86 km for 13 Nov" (the km of that day, archive games count since 2026-11-16); note:'' shows no line */
 // under an archive game's result: the list of every past day of this game (Héctor 2026-11-16: the calendar and the lists link both ways)
 function archListBtn(){const g=GAMES.find(x=>x.path===PAGE+'/');return '<button type="button" class="gm-text" id="archlist">All '+esc(g?g.name:'')+' days</button>'}
 function archTicket(o){o=o||{};const g=GAMES.find(x=>x.id===o.id);
+  // its km count for the puzzle's own day (Héctor 2026-11-16): "+86 km for 13 Nov"; signed in, it joins that day's ranking too
+  if(o.note===undefined&&o.day){let km=(ledger()[o.day]||{})[o.id];
+    if(km==null&&o.state&&ARL[o.id]&&archDone(o.state))km=rowKm(o.id,ARL[o.id][1](o.state),o.day);   /* shown before the game is saved */
+   o.note=km!=null?'+'+fmt(km)+' km for '+dateText(o.day,{day:'numeric',month:'short'}):''}
+  setTimeout(()=>{refreshPass();const a=window.Geomingo&&window.Geomingo.account;if(a&&a.archRank)a.archRank()},0);
   return '<section class="ticket gm-done tk-pink"><div class="tk-mode practice"><span>'+(g?'Trip '+g.gate+' · ':'')+'Archive #'+esc(String(o.num))+'</span><span>Done</span></div>'+
-    '<div class="gm-done-c"><p class="big">'+esc(String(o.score))+'</p><p class="gm-done-s">'+(o.detail?'<b>'+esc(o.detail)+'</b>':'')+(o.note===''?'':'<span>'+esc(o.note||'Points only, no km')+'</span>')+'</p></div>'+
+    '<div class="gm-done-c"><p class="big">'+esc(String(o.score))+'</p><p class="gm-done-s">'+(o.detail?'<b>'+esc(o.detail)+'</b>':'')+(o.note?'<span>'+esc(o.note)+'</span>':'')+'</p></div>'+
     (o.body?'<div class="tk-tear"></div><div class="gm-done-a">'+o.body+'</div>':'')+'</section>'}
 /* a finished Solo (Practice) game: the same ticket as today's result, in Mingo pink (Héctor 2026-11-14).
    soloTicket({id:'borderline', what:'Normal · 4 × 4', score:'804 points', best:'Best: 1.040', detail:'8 of 16 squares', body:'…answers…'}) */
@@ -585,6 +620,6 @@ function askedDay(first){try{const q=new URLSearchParams(location.search),k=q.ge
 const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,stale:roomStale};
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
-  days,streak,streakInfo,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,countriesSeen,countriesKnown,EXPERT,CORE,TIERS,gameVisas,specialVisas,challengeVisas,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,archTicket,archListBtn,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,dayTotal,level,geo,visas,clock,secText,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
+  days,streak,streakInfo,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,countriesSeen,countriesKnown,EXPERT,CORE,TIERS,gameVisas,specialVisas,challengeVisas,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,archTicket,archListBtn,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,ARL,archDone,rowKm,dayTotal,level,geo,visas,clock,secText,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
   openWindow,closeWindow,esc,refreshPass,room,where,mode,askedDay,lives,setLives,stat,statTo,PAGE,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();
