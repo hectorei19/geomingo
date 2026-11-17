@@ -109,7 +109,7 @@ body.kbon .kbgu #src{align-self:center!important}
 <script src="../data/countries.js?v=202611100900"></script>
 <script src="../data/flags.js?v=202611160500"></script>
 <script src="../shared/data.js?v=202611141100"></script>
-<script src="extra-data.js?v=202611081900"></script>
+<script src="extra-data.js?v=202611162100"></script>
 <script src="../shared/games.js?v=202611141100"></script>
 <script src="../shared/minigames.js?v=202611221000"></script>
 <script>
@@ -138,7 +138,7 @@ const L=(id,title,get,dir,fmt,src)=>({id,title,get,dir,fmt,src});
 // figures only Top 10 uses (top10/extra-data.js)
 const X=k=>c=>num(XDATA[k][c.c]);
 // Credits: the countries' data, plus the sources of the figures only Top 10 uses
-function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Top 10's other figures, downloaded in November 2026 and each checked against a second source: McDonald's restaurants (McDonald's, with Wikipedia), coffee (FAO via Our World in Data), and Wikipedia lists (CC BY-SA 4.0) for World Cups (FIFA), temperature (World Bank) and Nobel Prizes; nuclear reactors: World Nuclear Association; Olympic golds: Wikipedia and Olympedia. Gaps in Countries' figures used only here: life expectancy (UN World Population Prospects 2024, checked with the World Bank) and CO₂ per person (Global Carbon Project via Our World in Data).</li></ul>`)}
+function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Top 10's other figures, downloaded in November 2026 and each checked against a second source: McDonald's restaurants (McDonald's, with Wikipedia), coffee (FAO via Our World in Data), and Wikipedia lists (CC BY-SA 4.0) for World Cups (FIFA), temperature (World Bank) and Nobel Prizes; capitals' height (Wikipedia, with WorldAtlas); volcanoes (Smithsonian Global Volcanism Program); sheep (FAO, via World Population Review and Worldostats); immigrants (UN, via the World Bank and Wikipedia); nuclear reactors: World Nuclear Association; Olympic golds: Wikipedia and Olympedia. Gaps in Countries' figures used only here: life expectancy (UN World Population Prospects 2024, checked with the World Bank) and CO₂ per person (Global Carbon Project via Our World in Data).</li></ul>`)}
 const BEERNOTE='Litres of beer per person in 2022. Source: Kirin Holdings, "Global Beer Consumption by Country in 2022", which gives the top 35 countries and a few others; the rest have no figure.';
 const MCDNOTE='Restaurants open on 31 December 2025. Source: McDonald\'s, "Restaurants by Market 2025" (the same numbers as Wikipedia, "List of countries with McDonald\'s restaurants"). Small markets it does not list separately come from Wikipedia, "List of countries with McDonald\'s restaurants" (Andorra 5, Fiji 5, Monaco 1, Liechtenstein 1, Samoa 1). Countries with no McDonald\'s count as 0 (the one in Cuba is on the US base at Guantánamo, so Cuba counts as 0).';
 const TEMPNOTE=NOTE('World Bank Climate Change Knowledge Portal, average for 1991–2020','List of countries by average yearly temperature');
@@ -207,6 +207,13 @@ const WORLD_LISTS=[
   L('mil-hi','The 10 countries that spend the most on their armed forces',X('mil'),-1,v=>'$'+d1(v)+' bn','Military spending in 2025, in US dollars. Source: SIPRI, "Trends in World Military Expenditure, 2025" (April 2026), the same as Wikipedia, "List of countries with highest military expenditures".'),
   L('ogold-hi','The 10 countries with the most Olympic gold medals',Z(X('ogold')),-1,PL('gold'),'Gold medals at all Summer and Winter Olympics together, up to the 2026 Winter Games. Source: Wikipedia, "All-time Olympic Games medal table"; Olympedia gives the same top 10. Medals won as part of a former team (Soviet Union, East Germany...) are not added.'),
   L('tower-hi','The 10 countries with the tallest building',X('tower'),-1,v=>n0(v)+' m','Height of the tallest finished building in each country. Source: Wikipedia, "List of tallest buildings by country", checked against the Council on Tall Buildings and Urban Habitat (CTBUH), which gives the same top 10. Buildings only planned or being built do not count.'),
+  // six more lists (Héctor, 16 November 2026): each top 10 checked against a second source
+  L('ll-area-hi','The 10 largest countries with no coast',c=>c.ll?AREA(c):undefined,-1,v=>n0(v)+' km²','Only countries with no coast on the open sea (the Caspian Sea counts as a lake, so Kazakhstan has none). '+AREANOTE),
+  L('temp-hi','The 10 hottest countries (average yearly temperature)',X('temp'),-1,v=>d1(v)+' °C',TEMPNOTE),
+  L('capel-hi','The 10 countries with the highest capital city',X('capel'),-1,v=>n0(v)+' m','Height of the capital above sea level. Bolivia counts with Sucre, its official capital (2.790 m); La Paz, the seat of government, is higher (3.640 m). Source: Wikipedia, "List of capital cities by elevation"; WorldAtlas, "The highest capital cities in the world", gives the same top 10.'),
+  L('volc-hi','The 10 countries with the most volcanoes',Z(X('volc')),-1,v=>n0(v)+' volcano'+(+v===1?'':'es'),'Volcanoes active in the last 12.000 years (the Holocene), as counted by the Smithsonian Institution\'s Global Volcanism Program, "Countries with Holocene volcanoes"; articles citing the same program give the same leaders (an older count put the Philippines 8th, before some were moved). Countries with none count as 0.'),
+  L('imm-hi','The 10 countries with the most immigrants (share of population)',X('imm'),-1,v=>d1(v)+'%','People born in another country, as a share of the population, in 2024. Source: UN international migrant stock, as published by the World Bank; Vatican City and Taiwan, missing there, from the UN figures in Wikipedia, "List of sovereign states by immigrant and emigrant population", which gives the same top 10.'),
+  L('sheeppc-hi','The 10 countries with the most sheep per person',c=>X('sheep')(c)!==undefined&&D('pop')(c)?X('sheep')(c)/D('pop')(c):undefined,-1,v=>EU(+v,2)+' sheep per person','Live sheep in 2024 (FAO, FAOSTAT, as listed by World Population Review) divided by population. '+POPNOTE),
 ];
 // lists where a country missing from the source has none of it, so it counts as 0
 const ZERO_NOTE={'olymp-hi':'Countries that never won a medal count as 0.','olympc-hi':'Countries that never won a medal count as 0.','wc-hi':'Countries that never played a World Cup count as 0.','nobel-hi':'Countries with no winner in that list count as 0.','nuke-hi':'Countries with no reactor count as 0.','ogold-hi':'Countries that never won a gold count as 0.','coffee-hi':'Countries that grow no coffee count as 0.'};
@@ -227,7 +234,7 @@ const REGIONS=[
 // lists that come up in Solo and With friends but never as the daily list. Empty for now: every list is also a daily one.
 // Lists added once a daily round has begun can go here, so they don't change the order of that round's daily lists.
 const SOLO_ONLY=[];
-const WORLD_ONLY=['beer-hi','tour-hi','wc-hi','mcd-hi','mcdpc-hi','temp-lo','nobel-hi','gold-hi','wine-hi','coffee-hi','rice-hi','oil-hi','gas-hi','steel-hi','cars-hi','nuke-hi','mil-hi','ogold-hi','tower-hi'];
+const WORLD_ONLY=['ll-area-hi','temp-hi','capel-hi','volc-hi','imm-hi','sheeppc-hi','beer-hi','tour-hi','wc-hi','mcd-hi','mcdpc-hi','temp-lo','nobel-hi','gold-hi','wine-hi','coffee-hi','rice-hi','oil-hi','gas-hi','steel-hi','cars-hi','nuke-hi','mil-hi','ogold-hi','tower-hi'];
 const ALL_LISTS=[...WORLD_LISTS,...REGIONS.flatMap(g=>WORLD_LISTS.filter(l=>!WORLD_ONLY.includes(l.id)).map(l=>({...l,id:l.id+'-'+g.k,reg:g,
   title:l.title.replace(' countries',' countries in '+g.name),
   src:'Only countries in '+g.name+', as the country data used in Countries groups them. '+l.src})))];
@@ -271,8 +278,12 @@ function dailyList(key){if(key>=EASY_FROM&&key<=EASY_TO)return easyList(key);if(
 const R2_CHANGE='2026-11-07';
 const ROUND2_ORDER=["beer-hi","forest-lo-as","age-lo-af","cpi-hi-af","dens-lo-eu","hdi-hi-eu","elev-hi-eu","elev-lo-am","lat-lo-am","landb-hi-as","co2tot-hi-as","gdptot-hi-eu","life-hi-af","name-hi-eu","area-lo-eu","life-lo","name-lo-as","pop-hi-af","wine-hi","forestkm-hi-as","rice-hi","capshare-hi-am","urban-hi-as","area-hi-af","age-lo","nuke-hi","capshare-hi-eu","dens-hi-af","olympc-hi-as","age-lo-eu","hdi-hi-as","area-lo-am","coffee-hi","olymp-hi-as","cap-hi-eu","urban-lo-am","pop-lo-eu","pop-lo-as","elev-hi-am","mil-hi","landb-lo","urban-hi-eu","pop-hi","gdptot-lo-as","pop-hi-am","life-lo-as","gdptot-hi-am","olymp-hi-af","urban-hi-am","co2-hi","lat-hi-eu","life-hi-as","coast-hi-eu","age-hi-am","gdptot-lo-eu","cap-hi-as","hdi-hi-af","hdi-hi","forest-hi","lat-lo-as","coast-lo-as","cars-hi","landb-lo-eu","co2-lo-as","forestkm-hi-am","elev-lo-eu","lat-hi-as","mcdpc-hi","olympc-hi","forest-lo","nb-hi","cap-lo-as","dens-hi-as","tour-hi","life-lo-eu","gdptot-lo-af","hdi-lo-as","life-hi-eu","forest-hi-as","gas-hi","elev-lo","cpi-lo-eu","name-hi","life-lo-af","mcd-hi","tower-hi","age-hi-as","cap-lo-eu","co2-lo","forest-hi-eu","hdi-hi-am","lat-lo-eu","lat-lo-af","nb-hi-am","olymp-hi","gdp-lo-as","forestkm-hi","age-hi-af","area-hi-am","pop-lo","landb-lo-as","dens-lo","age-lo-as","forestkm-hi-af","gdptot-lo-am","gdp-lo","forest-hi-am","pop-lo-af","elev-lo-af","area-hi-as","co2-hi-as","forest-lo-am","life-lo-am","coast-hi-as","hdi-lo-af","cpi-hi-as","coast-hi-am","olympc-hi-af","urban-lo-as","coast-lo","urban-lo-eu","dens-hi","gdp-lo-am","olymp-hi-am","capshare-hi","forest-lo-af","gdp-hi-af","cap-lo-af","cpi-hi-eu","urban-lo-af","forest-hi-af","area-lo","area-lo-af","landb-lo-af","capshare-hi-as","capshare-hi-af","dens-hi-eu","elev-lo-as","hdi-lo-eu","age-hi-eu","cap-lo-am","landb-hi-af","gold-hi","co2tot-hi-am","gdp-hi-am","cap-hi-af","co2-hi-af","elev-hi-as","hdi-lo-am","area-lo-as","area-hi-eu","co2tot-hi","cpi-lo-af","gdp-hi-as","cap-hi-am","temp-lo","nobel-hi","forest-lo-eu","cpi-hi-am","forestkm-hi-eu","cpi-lo-as","landb-lo-am","cap-hi","ogold-hi","olympc-hi-eu","landb-hi-am","gdp-hi-eu","co2tot-hi-eu","steel-hi","coast-hi","dens-lo-af","landb-hi","elev-hi-af","landb-hi-eu","elev-hi","coast-hi-af","co2-lo-am","gdptot-hi-as","gdptot-lo","area-hi","gdptot-hi","gdp-hi","lat-hi-am","wc-hi","hdi-lo","lat-lo","life-hi","pop-hi-as","co2tot-hi-af","name-lo","co2-lo-eu","pop-lo-am","urban-hi-af","name-lo-am","gdp-lo-eu","age-lo-am","coast-lo-am","co2-hi-am","coast-lo-af","pop-hi-eu","gdptot-hi-af","olymp-hi-eu","cpi-lo-am","cap-lo","coast-lo-eu","name-lo-af","cpi-lo","lat-hi-af","oil-hi","urban-hi","urban-lo","age-hi","dens-hi-am","gdp-lo-af","dens-lo-am","dens-lo-as","life-hi-am","lat-hi","cpi-hi","olympc-hi-am","co2-hi-eu","co2-lo-af"];
 let R2=null;
+// the six lists added on 16 November 2026 join the daily round from NEW6_FROM (after the easier two months), one every 5 days
+const NEW6_FROM='2027-01-17',NEW6=['capel-hi','temp-hi','ll-area-hi','volc-hi','sheeppc-hi','imm-hi'];
 function round2(){if(R2)return R2;const k=dayNum(R2_CHANGE,T10_FIRST)-1-FIRST_ROUND.length,ok=new Set(DAILY_LISTS.map(l=>l.id));
-  return R2=[...ROUND2_ORDER.slice(0,k),...ROUND2_ORDER.slice(k).filter(id=>ok.has(id))]}
+  R2=[...ROUND2_ORDER.slice(0,k),...ROUND2_ORDER.slice(k).filter(id=>ok.has(id)&&!NEW6.includes(id))];
+  const k6=dayNum(NEW6_FROM,T10_FIRST)-1-FIRST_ROUND.length;NEW6.filter(id=>ok.has(id)).forEach((id,i)=>R2.splice(k6+i*5,0,id));
+  return R2}
 // Solo: a random list you have not played on this device yet (never today's daily); when all were played, they all come back
 function soloList(){const seen=new Set(load('t10-seen',[])),cur=S&&S.list,today=(dailyList(todayKey())||{}).id;
   let o=LISTS.filter(x=>!seen.has(x.id)&&x.id!==cur&&x.id!==today);
@@ -541,6 +552,7 @@ function shortFig(t){return t.replace(/\d{1,3}(?:\.\d{3}){2,}(?:,\d+)?/g,m=>{con
 // why a country has no figure in a list, shown instead of a number
 function noFigure(l,code){const id=l.id.replace(/-(eu|as|af|am)$/,''),c=byCode[code];
   if(id==='coast-lo'&&D('coast')(c)===0)return 'landlocked';
+  if(id==='ll-area-hi'&&!c.ll)return 'has a coast';
   if(id==='landb-lo'&&D('landb')(c)===0)return 'no land border';
   if((id==='cap-hi'||id==='cap-lo'||id==='capshare-hi')&&DATA.cap_skip.includes(code))return 'two capitals';
   if(id==='capshare-hi'&&D('pop')(c)&&num(DATA.cappop[code]))return 'city-state';
