@@ -339,7 +339,7 @@ function archCal(P){const t=G.dayKey(),first=A_FIRST(),k0=archDay(),L=P.L,AR={};
     if(k===t){c+='<button type="button" class="d today" data-aday="today" aria-label="Today: today\'s games">'+d+'<small>TODAY</small></button>';continue}
     if(k>t||k<first){c+='<span class="d off" aria-hidden="true">'+d+'</span>';continue}
     const gs=G.live().filter(g=>g.first&&k>=A_FROM(g)),n=gs.filter(g=>{const s=archState(g,k,L,AR);return s==='day'||s==='arch'}).length;
-    c+='<button type="button" class="d'+(n===gs.length?' full':'')+(k===k0?' sel':'')+'" data-aday="'+k+'" aria-pressed="'+(k===k0)+'" aria-label="'+esc(G.dateText(k,{weekday:'long',day:'numeric',month:'long'}))+': '+n+' of '+gs.length+' played">'+d+'<small>'+n+'/'+gs.length+'</small></button>'}
+    c+='<button type="button" class="d'+(n===gs.length?' full':'')+(k===k0?' sel':'')+'" data-aday="'+k+'" aria-pressed="'+(k===k0)+'" aria-label="'+esc(G.dateText(k,{weekday:'long',day:'numeric',month:'long'}))+': '+n+' of '+gs.length+' played">'+d+'<small>'+(n?n+'/'+gs.length:'&nbsp;')+'</small></button>'} // a day not played yet shows no count (a red 0/9 looked like a fail, Héctor 2026-11-17)
   const name=new Date(Date.UTC(y,m-1,15)).toLocaleDateString('en-GB',{month:'long',year:'numeric',timeZone:'UTC'});
   return '<div class="acal"><div class="mh"><button type="button" data-amon="-1" aria-label="Previous month"'+(mon<=first.slice(0,7)?' disabled':'')+'>‹</button><span>'+name+'</span>'+
     '<button type="button" data-amon="1" aria-label="Next month"'+(mon>=t.slice(0,7)?' disabled':'')+'>›</button></div><div class="g">'+c+'</div></div>'+
