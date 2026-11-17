@@ -349,7 +349,8 @@ function watch(g){if(!ok||TEST)return;const k=T();if(lbRef[g]&&lbRef[g].day===k)
 // from G.KM_FROM the ranking is by the game's points (the same table as the km), then fewer mistakes, then who finished first
 const PTS={connections:r=>G.cxPts(r.s,r.m,r.h),top10:r=>G.KM.top10(r.s,r.m),'sil-easy':r=>G.KM.sil(r.s,r.m),'sil-normal':r=>G.KM.sil(r.s,r.m),'sil-hard':r=>G.KM.sil(r.s,r.m),
   customs:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),flagpie:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),compass:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),impostor:r=>G.KM.imp(r.r,r.s,T(),r.x3)};
-const rankPts=(g,r)=>PTS[g]&&G.newKm(T())?PTS[g](r):r.s;
+// a row never counts for more than one game can give (120 km: 100 + 20 perfect)
+const rankPts=(g,r)=>PTS[g]&&G.newKm(T())?Math.max(0,Math.min(120,+PTS[g](r)||0)):r.s;
 const sorted=g=>Object.entries((LB[g]&&LB[g].rows)||{}).map(([id,v])=>Object.assign({id},v)).sort((a,b)=>rankPts(g,b)-rankPts(g,a)||b.s-a.s||(a.m||0)-(b.m||0)||(a.t||0)-(b.t||0));
 function mine(g){const me=meId();if(!me)return null;watch(g);const rows=sorted(g),i=rows.findIndex(r=>r.id===me);
   return i<0?null:{rank:i+1,total:rows.length,top:Math.max(1,Math.round((i+1)/rows.length*100))}}

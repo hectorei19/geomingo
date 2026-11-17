@@ -430,6 +430,8 @@ function draw(){const P=geo();
    Countries and Capitals: the daily grid is 4 x 4, so km come from right answers out of 16 (like GeoPass) */
 // from G.KM_FROM every game uses the same table (G.KM, as the GeoPass); days before keep their old km
 const N=G.newKm,K=G.KM;
+// one game gives at most 120 km (100 + 20 perfect): a ranking row can never count for more (Héctor 2026-11-17)
+const kmCap=x=>Math.max(0,Math.min(120,+x||0));
 const GR=(r,d)=>N(d)?K.grid(r.s,r.c,4,r.w,d):pts((+r.c||0)/16);
 const LB=[['leaderboard','borderline',GR],['lb/capitals','citygrid',GR],
   ['lb/connections','connections',r=>cxPts(r.s,r.m,r.h)],['lb/top10','top10',(r,d)=>N(d)?K.top10(r.s,r.m):pts((+r.s||0)/10)],
@@ -453,8 +455,8 @@ function loadRank(){const acc=A();if(rankBusy||!acc||!acc.ready||typeof firebase
   rankBusy=true;const db=firebase.database(),days=[...new Set([...weekDays(),...monthDays()])],P={},today=G.dayKey(),TD={};
   Promise.all(days.flatMap(d=>LB.map(([path,id,f])=>db.ref(path+'/'+d).once('value').then(s=>{const v=s.val()||{};
     for(const uid in v){const r=v[uid];if(!r||typeof r!=='object')continue;const p=P[uid]=P[uid]||{name:'',days:{}},day=p.days[d]=p.days[d]||{};
-      if(r.name)p.name=String(r.name).slice(0,16);day[id]=Math.max(day[id]||0,f(r,d));
-      if(d===today){const g=TD[id]=TD[id]||{},k=f(r,d);if(!g[uid]||k>g[uid].km)g[uid]={km:k,s:+r.s||0,c:+r.c||0}}}}).catch(()=>{}))))
+      if(r.name)p.name=String(r.name).slice(0,16);day[id]=Math.max(day[id]||0,kmCap(f(r,d)));
+      if(d===today){const g=TD[id]=TD[id]||{},k=kmCap(f(r,d));if(!g[uid]||k>g[uid].km)g[uid]={km:k,s:+r.s||0,c:+r.c||0}}}}).catch(()=>{}))))
   .then(()=>{const ppl=Object.entries(P).map(([id,p])=>{const km={};for(const d in p.days)km[d]=dayTotal(p.days[d]);return{id,n0:p.name||'Player',name:p.name||'Player',km,g:p.days}});
     RANK={day:G.dayKey(),at:Date.now(),ppl,today:TD};rankBusy=false;if(acc.backfill)acc.backfill(ppl.map(p=>[p.id,p.n0]));try{localStorage.setItem('gm-rank',JSON.stringify(RANK))}catch(e){}drawWeek()})}
 /* tap a name in the ranking: the row opens with today's daily results, you vs them, game by game.
