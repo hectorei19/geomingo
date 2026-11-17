@@ -8,6 +8,8 @@ window.EU=(n,d)=>Number(n||0).toLocaleString('de-DE',d==null?{maximumFractionDig
 window.EUT=s=>String(s).replace(/(\d),(?=\d{3}(?!\d))/g,'$1\u0001').replace(/(\d)\.(?=\d)/g,'$1,').replace(/\u0001/g,'.');
 (function(){
 'use strict';
+// a browser that has never opened Geomingo: nothing saved yet (read before anything below saves) — counted in /stats
+let FRESH=false;try{FRESH=!localStorage.length}catch(e){}
 const SRC=document.currentScript&&document.currentScript.src||location.href;
 const HOME=new URL('../',SRC).href;          // the Geomingo home page (geomingo.com/)
 const ROOT=HOME;                             // the games live in folders of the home page
@@ -625,5 +627,5 @@ const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,st
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
   days,streak,streakInfo,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,countriesSeen,countriesKnown,EXPERT,CORE,TIERS,gameVisas,specialVisas,challengeVisas,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,archTicket,archListBtn,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,ARL,archDone,rowKm,dayTotal,level,geo,visas,clock,secText,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
-  openWindow,closeWindow,esc,refreshPass,room,where,mode,askedDay,ARCH_FROM,archNo,lives,setLives,stat,statTo,PAGE,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
+  openWindow,closeWindow,esc,refreshPass,room,where,mode,askedDay,ARCH_FROM,archNo,lives,setLives,stat,statTo,PAGE,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name,fresh:FRESH};
 })();
