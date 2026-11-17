@@ -751,6 +751,9 @@ function watchLB(){if(!FB_OK||TESTDAY||!initFB())return;const k=todayKey();if(lb
 // ranking order: more km first, then more points, then more squares, then whoever finished first
 // a row's km that day, the same number as the home page's ranking (points ÷ 15, +20 km for a perfect grid)
 const rowKm=(r,d)=>Geomingo.rowKm('borderline',r,d||todayKey());
+// small text of a row: points and the perfect-grid +20 km (Héctor 17 Nov: show how the points become km)
+const lbSmall=(r,d)=>Geomingo.newKm(d||todayKey())?`${EU(r.s)} pts${r.km>Math.min(100,Math.round((+r.s||0)/15))?' +20':''}`:`${r.c}/${DAILY_N*DAILY_N}`;
+const LB_HOW='<p class="hint">Km = points ÷ 15 (up to 100 km), +20 km for a perfect grid with no mistakes.</p>';
 function lbRows(src,d){return Object.entries(src||LB||{}).map(([uid,v])=>({uid,...v,km:rowKm(v,d)})).sort((a,b)=>b.km-a.km||b.s-a.s||b.c-a.c||(a.t||0)-(b.t||0))}
 // a past day's ranking (archive games): read once, only to look at it
 const LBD={};
@@ -759,13 +762,13 @@ function pastLB(date){if(LBD[date]===undefined&&initFB()){LBD[date]=null;db.ref(
 function lbView(date){if(!FB_OK||TESTDAY)return '';
   if(date){const src=pastLB(date);if(!src)return `<section class="panel lb"><span class="label">Ranking of grid #${dayNumber(date)}</span><p class="hint">Loading…</p></section>`;
     const rows=lbRows(src,date),me=USER&&USER.uid,i=rows.findIndex(r=>r.uid===me);
-    const row=(r,k)=>`<li class="${r.uid===me?'me':''}" data-stats="${esc(r.uid)}" role="button" tabindex="0"><span class="rk">${k+1}</span><span class="nm">${esc(pname(r.uid,r.name))}</span><span class="sq">${r.c}/${DAILY_N*DAILY_N}</span><span class="pt">${EU(r.km)} km</span></li>`;
-    return `<section class="panel lb"><span class="label">Ranking of grid #${dayNumber(date)}${rows.length?` · ${rows.length} player${rows.length===1?'':'s'}`:''}</span>${rows.length?`<ol class="lbl">${rows.slice(0,10).map(row).join('')+(i>=10?`<li class="gap">…</li>`+row(rows[i],i):'')}</ol>`:'<p class="hint">Nobody played this grid on its day.</p>'}<p class="hint">How the players did on the day. Archive games are not added.</p></section>`}
+    const row=(r,k)=>`<li class="${r.uid===me?'me':''}" data-stats="${esc(r.uid)}" role="button" tabindex="0"><span class="rk">${k+1}</span><span class="nm">${esc(pname(r.uid,r.name))}</span><span class="sq">${lbSmall(r,date)}</span><span class="pt">${EU(r.km)} km</span></li>`;
+    return `<section class="panel lb"><span class="label">Ranking of grid #${dayNumber(date)}${rows.length?` · ${rows.length} player${rows.length===1?'':'s'}`:''}</span>${rows.length?`<ol class="lbl">${rows.slice(0,10).map(row).join('')+(i>=10?`<li class="gap">…</li>`+row(rows[i],i):'')}</ol>`:'<p class="hint">Nobody played this grid on its day.</p>'}${rows.length&&Geomingo.newKm(date)?LB_HOW:''}<p class="hint">How the players did on the day. Archive games are not added.</p></section>`}
   const rows=lbRows(),me=USER&&USER.uid,i=rows.findIndex(r=>r.uid===me);
-  const row=(r,k)=>`<li class="${r.uid===me?'me':''}" data-stats="${esc(r.uid)}" role="button" tabindex="0"><span class="rk">${k+1}</span><span class="nm">${esc(pname(r.uid,r.name))}</span><span class="sq">${r.c}/${DAILY_N*DAILY_N}</span><span class="pt">${EU(r.km)} km</span></li>`;
+  const row=(r,k)=>`<li class="${r.uid===me?'me':''}" data-stats="${esc(r.uid)}" role="button" tabindex="0"><span class="rk">${k+1}</span><span class="nm">${esc(pname(r.uid,r.name))}</span><span class="sq">${lbSmall(r)}</span><span class="pt">${EU(r.km)} km</span></li>`;
   const list=rows.slice(0,10).map(row).join('')+(i>=10?`<li class="gap">…</li>`+row(rows[i],i):'');
   const foot=!USER&&!MAYBE_IN()?(AUTH_OK?`<button class="ghost" id="signin2">Sign in to join today's ranking</button>${carryable(loadDaily())?'<p class="hint">Your result is added when you sign in.</p>':''}`:''):i<0?`<p class="hint">Your result joins the ranking when you finish today's grid signed in.</p>`:'';
-  return `<section class="panel lb"><span class="label">Today's ranking${i>=0?`<b>You: #${i+1} of ${rows.length}</b>`:rows.length?` · ${rows.length} player${rows.length===1?'':'s'}`:''}</span>${rows.length?`<ol class="lbl">${list}</ol>`:`<p class="hint">Nobody in today's ranking yet.</p>`}${foot}</section>`}
+  return `<section class="panel lb"><span class="label">Today's ranking${i>=0?`<b>You: #${i+1} of ${rows.length}</b>`:rows.length?` · ${rows.length} player${rows.length===1?'':'s'}`:''}</span>${rows.length?`<ol class="lbl">${list}</ol>`+LB_HOW:`<p class="hint">Nobody in today's ranking yet.</p>`}${foot}</section>`}
 function lbMine(){const id=USER?USER.uid:MAYBE_IN()&&(Geomingo.account.user||{}).uid;if(!id||!LB)return null;const rows=lbRows(),i=rows.findIndex(r=>r.uid===id);
   return i<0?null:{rank:i+1,total:rows.length,top:Math.max(1,Math.round((i+1)/rows.length*100))}}
 function dailyStats(){return dailyStatsFrom(loadHist())}
