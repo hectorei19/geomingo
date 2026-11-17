@@ -212,7 +212,7 @@ function playHTML(G){let h=deskHTML(G);
   if(G.left!=null)return `<div class="play">${h}${leftHTML(G,G.left)}</div>`;
   if(G.over)return `<div class="play">${h}</div>`;
   const q=G.qs[G.sel],more=CLUES-q.k;
-  return `<div class="play">${h}<span class="label">Flag ${G.sel+1} of ${PER} · worth ${worth(q)} point${worth(q)===1?'':'s'}</span>${pieCardHTML(q.c)}${cluesHTML(q)}
+  return `<div class="play">${h}${pieCardHTML(q.c)}${cluesHTML(q)}
     <div class="locked">${more?'🔒 '+more+' more clue'+(more===1?'':'s')+' locked':'All five clues are open'}<button class="linkbtn" id="nextclue">${more?'Next clue':'I don\'t know'}</button></div>
     ${(q.twins||[]).length?`<p class="missed twin"><b>≈ Same colours as ${esc(listText(q.twins.map(c=>cByCode[c].n)))}, but not this flag.</b><span>Try again: it does not count as a wrong answer.</span></p>`:''}
     ${q.tries.length?`<p class="missed"><b>✗ Not ${q.tries.map(c=>esc(cByCode[c].n)).join(', not ')}.</b><span>Clue ${q.k} is open. Now worth ${worth(q)}.</span></p>`:''}${answerBoxHTML(q)}${giveUpHTML()}</div>`}
