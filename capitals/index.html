@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611222200"></script>
+<script src="../brand/mingo.js?v=202611231000"></script>
 <script src="../brand/account.js?v=202611222200"></script>
 <script src="../brand/party.js?v=202611160600"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -545,6 +545,8 @@ const TESTQ=(()=>{try{return new URLSearchParams(location.search)}catch(e){retur
 const TEST=TESTQ.has('test'),TESTDAY=TEST&&/^\d{4}-\d{2}-\d{2}$/.test(TESTQ.get('day')||'')?TESTQ.get('day'):null;
 function todayKey(){if(TESTDAY)return TESTDAY;const p=madridParts(now());return p.year+'-'+p.month+'-'+p.day}
 function dayNumber(key){return Math.round((Date.parse(key+'T00:00Z')-Date.parse(DAILY_FIRST+'T00:00Z'))/864e5)+1}
+// an Archive grid's number: its daily number, or its date ("15 Oct") for a day before Grid #1 (Geomingo.ARCH_FROM, Héctor 2026-11-17)
+function archNumber(key){const n=dayNumber(key);return n>=1?n:Geomingo.dateText(key,{day:'numeric',month:'short'})}
 function msToNextDay(){const p=madridParts(now());return (24*3600-(+p.hour*3600+ +p.minute*60+ +p.second))*1000}
 // the same seed for everyone on a given day; step on until the seed gives a grid that can be completed
 function dailySeed(key){let h=2166136261;for(const ch of 'citycross-daily-'+key){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)>>>0}return h%7962624}
@@ -740,13 +742,13 @@ function recordArchive(s){if(!USER||!db||TESTDAY||archUp.has(s.daily))return;
 const onDay=k=>loadHist()[k]||null;
 // the guest banner on the home screen, once closed, stays closed on this device
 const noBanner=()=>{try{return localStorage.getItem('cc-nobanner')==='1'}catch(e){return false}};
-function archDates(){const out=[],end=Date.parse(todayKey()+'T12:00Z');let d=Date.parse(DAILY_FIRST+'T12:00Z');
+function archDates(){const out=[],end=Date.parse(todayKey()+'T12:00Z');let d=Date.parse((Geomingo.ARCH_FROM||DAILY_FIRST)+'T12:00Z');
   while(d<end){out.push(new Date(d).toISOString().slice(0,10));d+=864e5}
   // today's grid joins the list as soon as you have finished it, so the archive lists every grid you played
   const t=onDay(todayKey());if(t&&t.f!==0&&!TESTDAY)out.push(todayKey());return out.reverse()}
 function openArchive(){if(screen!=='archive')archBack=screen;screen='archive';ui.reveal=-1;if(USER)syncArch();render();window.scrollTo(0,0)}
 function archiveView(){const a=loadArch(),rem=ARCH_REMOTE||{};
-  const items=archDates().map(k=>{const g=a[k],r=rem[k],n=dayNumber(k),
+  const items=archDates().map(k=>{const g=a[k],r=rem[k],n=archNumber(k),
       date=new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
     let st,sq='';
     if(g&&g.over){st=`<span class="as done">${EU(g.players[0].score)} pts</span>`;
@@ -755,7 +757,7 @@ function archiveView(){const a=loadArch(),rem=ARCH_REMOTE||{};
       if(e.g&&e.f!==0)sq=`<span class="dsq" style="grid-template-columns:repeat(${e.n},1fr)" aria-hidden="true">${[...e.g].map(x=>`<i class="${x==='1'?'on':''}"></i>`).join('')}</span>`}
     else if(USER&&r&&otherDevice(r))st=`<span class="as">${r.f===1?'Played on another device':'Started on another device'}</span>`;
     else st=`<span class="as">${g?'In progress':'Play'}</span>`;
-    return `<li><button data-arch="${k}"><span class="an">#${n}</span><span class="ad"><b>Grid #${n}</b><small>${date}</small></span>${sq}${st}</button></li>`}).join('');
+    return `<li><button data-arch="${k}"><span class="an">${typeof n==='number'?'#'+n:'·'}</span><span class="ad"><b>Grid ${Geomingo.archNo(n)}</b><small>${date}</small></span>${sq}${st}</button></li>`}).join('');
   return `<section class="panel"><a class="linkbtn" href="${Geomingo.HOME}#archive" style="display:inline-block;margin-bottom:6px">← Calendar of all games</a><div class="backline"><span class="ht">Archive</span></div>
     <p class="hint">Play the daily grids you missed. Grids you played on their day are already done. One try per grid${USER?' with your account':' on this device'}. Their km count for their own day, in your GeoPass and the ranking, but not for your streak.</p>
     ${items?`<ul class="arch">${items}</ul>`:'<p class="hint">No past grids yet. Come back tomorrow.</p>'}</section>`}
@@ -766,7 +768,7 @@ function playArchive(k){const a=loadArch(),r=(ARCH_REMOTE||{})[k];
   if(a[k]){S=a[k];if(!S.over)startTurn();render();window.scrollTo(0,0);return}
   const dg=dailyGrid(k);if(!dg){toast('Could not build this grid.','bad');return}
   const g=dg.g;
-  S={mode:'solo',daily:k,archive:true,day:dayNumber(k),n:DAILY_N,seed:dg.seed,code:makeCode(DAILY_N,dg.seed),rows:g.rows,cols:g.cols,answers:g.answers,
+  S={mode:'solo',daily:k,archive:true,day:archNumber(k),n:DAILY_N,seed:dg.seed,code:makeCode(DAILY_N,dg.seed),rows:g.rows,cols:g.cols,answers:g.answers,
      cells:g.answers.map(()=>({o:-1,c:null})),used:[],players:[{name:setup.user||'You',score:0}],turn:0,
      lives:LIVES,timer:0,deadline:0,passes:0,over:false,wrong:0};
   startTurn(true);render();window.scrollTo(0,0);
@@ -1218,7 +1220,7 @@ function render(){
   if(!S&&screen==='solo'&&!roomCode&&!editingUser&&!(USER&&NEEDNAME)){setup.mode='solo';if(startGame())return;screen='home';setup.code=''}
   const body=screen==='stats'?statsView():screen==='archive'?archiveView():S?gameView():((editingUser||(USER&&NEEDNAME))?nameView():((Geomingo.party&&Geomingo.party.on())&&(screen==='friends'||roomCode)?'':homeView()));
   watchResult();
-  app.innerHTML=Geomingo.header({game:GAME_NAME,practice:!!(S&&S.mode==='solo'&&!S.daily),coord:S?(S.daily?'Daily #'+S.day:S.code)+(S.mode==='online'?' · room '+roomCode:''):(roomCode?'Room '+roomCode:'')})+(newVersion?`<div class="status" style="border-color:var(--sea)"><span class="who" style="white-space:normal">A new version of the game is available.</span><button class="primary" id="reload" style="padding:8px 12px;font-size:.9rem">Reload</button></div>`:'')+body;
+  app.innerHTML=Geomingo.header({game:GAME_NAME,practice:!!(S&&S.mode==='solo'&&!S.daily),coord:S?(S.daily?'Daily '+Geomingo.archNo(S.day):S.code)+(S.mode==='online'?' · room '+roomCode:''):(roomCode?'Room '+roomCode:'')})+(newVersion?`<div class="status" style="border-color:var(--sea)"><span class="who" style="white-space:normal">A new version of the game is available.</span><button class="primary" id="reload" style="padding:8px 12px;font-size:.9rem">Reload</button></div>`:'')+body;
   bind();drawLayer();fitHeaders();saveDaily();recordGame();
   if(S&&!S.over&&S.timer)onTickVisual();
 }
@@ -1317,7 +1319,7 @@ function nameView(){
 let screen='home';
 const screenFor=s=>!s?'home':s.archive?'archive':s.daily?'home':s.mode==='solo'?'solo':'friends';
 // top-left corner of a board: the daily grid shows its number (GRID #10), other games their grid code, as in Countries
-const cornerHTML=(day,code)=>day?`<div class="corner dnum" aria-label="Grid number ${day}"><span class="dl">Grid</span><span class="dn${day>=100?' long':''}">#${day}</span></div>`
+const cornerHTML=(day,code)=>day?`<div class="corner dnum" aria-label="Grid number ${day}"><span class="dl">Grid</span><span class="dn${day>=100||typeof day==='string'?' long':''}">${Geomingo.archNo(day)}</span></div>`
   :`<div class="corner dnum" aria-label="Grid ${esc(code||'')}"><span class="dl">Grid</span><span class="dn code">${esc(code||'')}</span></div>`;
 // flags of the countries: the Geomingo flags, ../data/flags.js (loaded after the page, so the game never waits for it)
 const flagSrc=k=>typeof FLAGS!=='undefined'&&FLAGS[k]||'';
@@ -1381,7 +1383,7 @@ function gameView(){
   // today's daily done: the grid goes inside the result ticket, Next trip and Share under it (Héctor 2026-11-12)
   const n=S.n,done=S.over&&S.daily&&!S.archive&&!S.dayof,solo=S.over&&S.mode==='solo';let h='',mark=0;
   // the title (in a room also ← Leave); the back is the "‹ geomingo" on top, as in every game (Héctor 2026-11-15)
-  const title=S.daily?(S.archive?'Grid #'+S.day:"Today's grid"):S.mode==='online'?'With friends':'Practice';
+  const title=S.daily?(S.archive?'Grid '+Geomingo.archNo(S.day):"Today's grid"):S.mode==='online'?'With friends':'Practice';
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
   // only a room has a title line (← Leave); today's grid, the archive and Practice say it in the ticket's strip (Héctor 2026-11-15)
   if(S.mode==='online')h+=`<div class="backline">${S.mode==='online'?'<button class="linkbtn" id="gback">← Leave</button>':''}<span class="ht">${title}</span></div>`;
@@ -1429,7 +1431,7 @@ function gameView(){
 function shareText(){
   const n=S.n;let g='';
   for(let i=0;i<n;i++){for(let j=0;j<n;j++){const o=S.cells[i*n+j].o;g+=o<0?'⬜':(S.mode==='solo'?'🟩':['🟥','🟦','🟨','🟪','🟩','🟫'][o])}g+='\n'}
-  const head=S.daily?`${Geomingo.share(GAME_NAME)} #${S.day} — ${EU(S.players[0].score)} pts (${S.players[0].cells}/${n*n})`:S.mode==='solo'?`${Geomingo.share(GAME_NAME)} ${S.code} — ${EU(S.players[0].score)} pts (${S.players[0].cells}/${n*n})`:`${Geomingo.share(GAME_NAME)} ${S.code} — `+S.players.map(p=>p.name+' '+p.score).join(', ');
+  const head=S.daily?`${Geomingo.share(GAME_NAME)} ${Geomingo.archNo(S.day)} — ${EU(S.players[0].score)} pts (${S.players[0].cells}/${n*n})`:S.mode==='solo'?`${Geomingo.share(GAME_NAME)} ${S.code} — ${EU(S.players[0].score)} pts (${S.players[0].cells}/${n*n})`:`${Geomingo.share(GAME_NAME)} ${S.code} — `+S.players.map(p=>p.name+' '+p.score).join(', ');
   return head+'\n'+g.trim();
 }
 // link that opens this exact grid (?grid=4E-KQPMT), sent together with the result

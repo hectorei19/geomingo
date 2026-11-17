@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611222200"></script>
+<script src="../brand/mingo.js?v=202611231000"></script>
 <script src="../brand/account.js?v=202611222200"></script>
 <script src="../brand/party.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -89,7 +89,7 @@
 <script src="countries.js?v=202611120800"></script>
 <script src="silhouette.js?v=202611141100"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611212100"></script>
+<script src="../shared/minigames.js?v=202611221000"></script>
 <!-- online rooms (With friends): Firebase, loaded after the page so today's board shows at once -->
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -238,7 +238,7 @@ function dailyPick(code){const q=D.qs[D.sel];if(!q||q.st!=='play'||D.over)return
   render();if(D.over)window.scrollTo(0,0)}
 const rightOf=G=>G.qs.filter(q=>q.st==='right').length;
 const sq=q=>q.st==='right'?(q.tries.length?'🟨':'🟩'):'🟥';
-function dailyShareText(G){return `${Geomingo.share('Silhouette')} #${G.num}${G.arch?' (archive)':''} — ${rightOf(G)}/9\n${[0,3,6].map(i=>G.qs.slice(i,i+3).map(sq).join('')).join('\n')}`}
+function dailyShareText(G){return `${Geomingo.share('Silhouette')} ${Geomingo.archNo(G.num)}${G.arch?' (archive)':''} — ${rightOf(G)}/9\n${[0,3,6].map(i=>G.qs.slice(i,i+3).map(sq).join('')).join('\n')}`}
 const dailyShare=G=>dailyShareText(G)+"\n\nPlay today's Silhouette: "+pageLink();
 // a finished Solo game (Héctor 2026-11-14: Share in every Solo result)
 const soloShare=()=>`${Geomingo.share('Silhouette')} (practice) — ${rightOf(T)}/9\n${[0,3,6].map(i=>T.qs.slice(i,i+3).map(sq).join('')).join('\n')}\n\nPlay Silhouette: `+pageLink();
@@ -246,10 +246,10 @@ const soloShare=()=>`${Geomingo.share('Silhouette')} (practice) — ${rightOf(T)
 const archDay=k=>{const e=load('sil-hist',{})[k];if(!e)return null;const n=Math.max(0,...Object.values(e).filter(x=>typeof x==='number'));return n+'/9'};
 function openArchive(){view='archive';query='';typing=false;render();window.scrollTo(0,0)}
 function playArchive(k){if(archDay(k)){toast('You played this board on its day.');return}
-  const a=load('sil-arch',{});D=noLives(a[k]||{diff:DAILY_LV,date:k,num:dayNum(k,DAILY_FIRST),qs:dailyBoard(k,DAILY_LV),sel:0,over:false,arch:true});
+  const a=load('sil-arch',{});D=noLives(a[k]||{diff:DAILY_LV,date:k,num:archNum(k,DAILY_FIRST),qs:dailyBoard(k,DAILY_LV),sel:0,over:false,arch:true});
   query='';typing=false;view='daily';dailySave();render();window.scrollTo(0,0)}
 const archSq=G=>`<span class="dsq" aria-hidden="true">${G.qs.map(q=>`<i class="${q.st==='right'?(q.tries.length?'mid':'on'):q.st==='wrong'?'bad':''}"></i>`).join('')}</span>`;
-const archiveView=()=>header('Silhou<span>ette</span>','Archive')+archiveHTML({first:DAILY_FIRST,label:'Board',num:k=>dayNum(k,DAILY_FIRST),
+const archiveView=()=>header('Silhou<span>ette</span>','Archive')+archiveHTML({first:DAILY_FIRST,label:'Board',num:k=>archNum(k,DAILY_FIRST),
   played:archDay,saved:k=>load('sil-arch',{})[k]||null,done:g=>[rightOf(g)+'/9',archSq(g)]});
 function boardHTML(G){const sel=G.over?-1:G.sel;
   return `<div class="board9" role="group" aria-label="Today's nine shapes">${G.qs.map((q,i)=>{const cls=[i===sel?'sel':'',q.st==='right'?'right':q.st==='wrong'?'wrong':''].join(' ');
@@ -276,7 +276,7 @@ const rankingHTML=()=>Geomingo.account.rankingHTML('sil-'+DAILY_LV,{what:'board'
 Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&!D.arch&&D.date===todayKey()){D=dailyGame();liveKey=''}
   if(!typing&&!roomCode&&(view==='home'||view==='daily'&&D&&D.over))render()});
 function openDaily(){D=dailyGame();query='';view='daily';render();window.scrollTo(0,0)}
-function dailyHTML(){let h=header('Silhou<span>ette</span>',(D.arch?'Archive #':'Daily #')+D.num);
+function dailyHTML(){let h=header('Silhou<span>ette</span>',(D.arch?'Archive ':'Daily ')+Geomingo.archNo(D.num));
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
   if(D.over)h+=D.arch?dailyResultHTML(D):dailyResultHTML(D)+rankingHTML();
   else{const q=D.qs[D.sel];

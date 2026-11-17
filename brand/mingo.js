@@ -28,6 +28,11 @@ const GAMES=[
   {id:'impostor',first:'2026-11-08',arch:'im-arch',name:'Impostor',path:'impostor/',gate:'8',hint:'Find the country that doesn\'t fit'},
   {id:'compass',first:'2026-11-10',arch:'cm-arch',name:'Compass',path:'compass/',gate:'9',hint:'Find the capital with a compass'}];
 // first: the day of the game's daily #1; arch: where its Archive games are kept on this device (Menu → Archive reads both)
+/* ARCH_FROM: the Archive offers every game from Countries' first daily (Héctor 2026-11-17: "como si estuvieran los 9 juegos").
+   Days before a game's own first daily are dealt by its usual daily rules (its puzzles and numbers from its first day on
+   stay as they are); they have no number, so they show their date instead ("Archive 15 Oct", archNo) */
+const ARCH_FROM='2026-10-15';
+const archNo=n=>typeof n==='string'&&!/^\d+$/.test(n)?n:'#'+n;
 GAMES.forEach(g=>g.href=ROOT+g.path);
 const live=()=>GAMES.filter(g=>!g.soon);
 const game=id=>GAMES.find(g=>g.id===id);
@@ -403,7 +408,7 @@ function archTicket(o){o=o||{};const g=GAMES.find(x=>x.id===o.id);
     if(km==null&&o.state&&ARL[o.id]&&archDone(o.state))km=rowKm(o.id,ARL[o.id][1](o.state),o.day);   /* shown before the game is saved */
    o.note=km!=null?'+'+fmt(km)+' km for '+dateText(o.day,{day:'numeric',month:'short'}):''}
   setTimeout(()=>{refreshPass();const a=window.Geomingo&&window.Geomingo.account;if(a&&a.archRank)a.archRank()},0);
-  return '<section class="ticket gm-done tk-pink"><div class="tk-mode practice"><span>'+(g?'Trip '+g.gate+' · ':'')+'Archive #'+esc(String(o.num))+'</span><span>Done</span></div>'+
+  return '<section class="ticket gm-done tk-pink"><div class="tk-mode practice"><span>'+(g?'Trip '+g.gate+' · ':'')+'Archive '+esc(archNo(o.num))+'</span><span>Done</span></div>'+
     '<div class="gm-done-c"><p class="big">'+esc(String(o.score))+'</p><p class="gm-done-s">'+(o.detail?'<b>'+esc(o.detail)+'</b>':'')+(o.note?'<span>'+esc(o.note)+'</span>':'')+'</p></div>'+
     (o.body?'<div class="tk-tear"></div><div class="gm-done-a">'+o.body+'</div>':'')+'</section>'}
 /* a finished Solo (Practice) game: the same ticket as today's result, in Mingo pink (Héctor 2026-11-14).
@@ -416,7 +421,7 @@ function tk(k,v,c){return '<div class="tk-c'+(c?' '+c:'')+'"><i>'+k+'</i><b>'+v+
 /* o.mode puts a coloured strip on top so you always know what you are playing:
    'daily' (gold, "★ Daily #N · Counts for ranking"), 'practice' (Mingo pink, "Practice") or 'archive' (Mingo pink, "Archive #N"); o.num is the number.
    Practice and archive also turn the ticket's edge Mingo pink. 'friends' (or 'online'): blue strip "With friends" and blue edge (games with turns too: whose turn it is shows only in that player's box and the time bar). */
-function ticket(say,stub,o){o=o||{};const m=o.mode,n=o.num!=null?' #'+o.num:'',pg=GAMES.find(x=>x.path===PAGE+'/');
+function ticket(say,stub,o){o=o||{};const m=o.mode,n=o.num!=null?' '+archNo(o.num):'',pg=GAMES.find(x=>x.path===PAGE+'/');
   const tr=pg?'Trip '+pg.gate+' · ':'';
   const strip=m==='daily'?'<div class="tk-mode daily"><span>★ '+tr+'Daily'+n+'</span><span>Counts for ranking</span></div>'
     :m==='practice'?'<div class="tk-mode practice"><span>'+tr+'Practice</span>'+(o.code?'<span>'+esc(String(o.code))+'</span>':'')+'</div>'
@@ -612,13 +617,13 @@ try{if(CF_TOKEN&&/(^|\.)geomingo\.com$/.test(location.hostname)&&!new URLSearchP
   const s=document.createElement('script');s.defer=true;s.src='https://static.cloudflareinsights.com/beacon.min.js';
   s.setAttribute('data-cf-beacon',JSON.stringify({token:CF_TOKEN}));document.head.appendChild(s)}}catch(e){}
 /* Menu → Archive opens a game on a past day with ?day=2026-11-14: the day asked for, when it is one of that game's
-   past dailies (from its first to yesterday), else null. The ?day is taken off the address. */
+   past days (from the Archive's first day, ARCH_FROM, to yesterday), else null. The ?day is taken off the address. */
 function askedDay(first){try{const q=new URLSearchParams(location.search),k=q.get('day');if(k==null)return null;q.delete('day');
   history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:''));
-  return /^\d{4}-\d{2}-\d{2}$/.test(k)&&k>=first&&k<dayKey()?k:null}catch(e){return null}}
+  return /^\d{4}-\d{2}-\d{2}$/.test(k)&&k>=(first<ARCH_FROM?first:ARCH_FROM)&&k<dayKey()?k:null}catch(e){return null}}
 const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,stale:roomStale};
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
   days,streak,streakInfo,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,countriesSeen,countriesKnown,EXPERT,CORE,TIERS,gameVisas,specialVisas,challengeVisas,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,archTicket,archListBtn,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,ARL,archDone,rowKm,dayTotal,level,geo,visas,clock,secText,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
-  openWindow,closeWindow,esc,refreshPass,room,where,mode,askedDay,lives,setLives,stat,statTo,PAGE,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
+  openWindow,closeWindow,esc,refreshPass,room,where,mode,askedDay,ARCH_FROM,archNo,lives,setLives,stat,statTo,PAGE,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name};
 })();
