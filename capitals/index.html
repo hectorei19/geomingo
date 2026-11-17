@@ -1593,8 +1593,6 @@ function drawLayer(){
       </div>`}
   if(ui.help){
     const ks=[2,3,4,5,6,7,8,9,10,12,14,17,20,25,32,45],ev=plainValues(ks.map(k=>Array(k).fill(0)),true);
-    const exr=i=>`<tr><td>${i+1}.</td><td>${ks[i]} capitals fit</td><td>${ev[i]} km</td></tr>`;
-    const ex=[0,1,2].map(exr).join('')+'<tr><td>…</td><td></td><td></td></tr>'+[13,14,15].map(exr).join('');
     const G=DAILY_N*DAILY_N;
     h+=`<div class="infoscrim" id="helpscrim"></div><div class="infobox helpbox" role="dialog" aria-modal="true" aria-labelledby="helpt">
       <div class="dlg-head"><h2 id="helpt">How to play</h2><button class="dlg-x" id="helpok">Close</button></div>
@@ -1612,10 +1610,8 @@ function drawLayer(){
       <li><b>Perfect grid</b> (all ${DAILY_N*DAILY_N}, no life lost): +20 km.</li>
       <li><b>Practice</b>: the same, counted as points.</li>
       <li><b>With friends</b>: a square is worth 0 to ${SQ_MAX}, +${SPEED_PER_SEC} for every second under ${SPEED_WINDOW} s, and +${LINE_BONUS} for every full row or column that is all yours.</li></ul>
-      <h3>Example: a ${DAILY_N} × ${DAILY_N} grid</h3>
-      <p class="hint">The ${G} squares are ranked from hardest to easiest, and the km go down in steps. Squares with the same number of capitals share the same km.</p>
-      <table class="ptable">${ex}</table>
-      <p class="hint">All ${G} squares together: ${KMSQ_TOTAL} km.</p>
+      <h3>Example</h3>
+      <p class="hint">A square where only ${ks[0]} capitals fit: ${ev[0]} km. Where ${ks[8]} fit: ${ev[8]} km. Where ${ks[15]} fit: ${ev[15]} km. All ${G} squares together: ${KMSQ_TOTAL} km.</p>
       <h3>Modes</h3><ul>
       <li><b>Daily</b>: one ${DAILY_N} × ${DAILY_N} grid, the same for everyone, new every day at midnight CET. One try. Its km go to your GeoPass.</li>
       <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. 5 lives or <b>Unlimited</b>: pick it next to Practice on the home page. Points only, no km.</li>
