@@ -269,10 +269,10 @@ body:has(.ticket .tk-mode.daily,.ticket .tk-mode.practice) .gm-title small{displ
 .gp-cont i s{position:absolute;left:0;top:0;bottom:0;background:#B4566A}
 .gp-cont i b{position:absolute;left:0;top:0;bottom:0;background:var(--coral)}
 .gp-cont small{font:12px var(--type);color:var(--muted);text-align:right;white-space:nowrap}
-.gp-key{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--muted);margin:10px 0 0}
+.gp-key{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12.5px;color:var(--muted);margin:10px 0 0}
 .gp-key i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 .gp-key i.v{background:color-mix(in srgb,var(--coral) 38%,var(--line))}.gp-key i.k{background:#B4566A}.gp-key i.m{background:var(--coral)}
-.gp-key .r{margin-left:auto;font:11px var(--type)}
+.gp-key .r{margin-left:auto;font:10px var(--type);white-space:nowrap}
 .gp-more{display:block;margin:10px auto 0;background:none;border:0;color:var(--ink);font:700 13px var(--type);text-decoration:underline;min-height:40px;cursor:pointer}
 .gp-allc{display:flex;flex-direction:column;gap:10px}.gp-allc:empty{display:none}
 .gp-info{display:none;font-size:14px;line-height:1.45;color:var(--muted);background:var(--guil);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
@@ -314,7 +314,7 @@ body:has(.ticket .tk-mode.daily,.ticket .tk-mode.practice) .gm-title small{displ
 .gp-gv .st.off{color:#3E4A66}
 .gp-rule b.g{color:#F3D98B}
 .gp-steps{list-style:none;margin:-4px 2px 8px;padding:0;display:grid;gap:4px;font-size:14px;color:var(--muted)}
-.gp-steps li{display:flex;align-items:center;gap:8px}.gp-steps b{color:var(--ink)}
+.gp-steps li{display:flex;align-items:center;gap:8px}.gp-steps em{margin-left:auto;font:700 13px var(--type);font-style:normal;color:var(--ink)}.gp-steps b{color:var(--ink)}
 .gp-steps i{flex:none;width:10px;height:10px;border-radius:3px}
 .gp-steps i.v{background:color-mix(in srgb,var(--coral) 38%,var(--line))}.gp-steps i.k{background:#B4566A}.gp-steps i.m{background:var(--coral)}
 .gp-steps+.gp-rule{margin-top:0;font-size:13px}
