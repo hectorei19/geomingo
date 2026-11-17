@@ -157,12 +157,11 @@ function atlas(p){p=p||pass();if(!p.atlas||typeof p.atlas!=='object'){p.atlas=at
   return p.atlas}
 // one country: {have: the games it was right in (bits), n: how many, seen: visited, step / of: on the way to expert
 // (one for each core game, one more for any of the others), mine: expert, core: the core games it needs}
-function country(code,a){const h=(a||atlas())[code]||0,n=bits(h),core=coreOf(code),of=bits(core)+1,step=bits(h&core)+(h&OTHER?1:0);
+// (Héctor 2026-11-17: any games count; visited 1, known 3, expert 5 different games)
+function country(code,a){const h=(a||atlas())[code]||0,n=bits(h),core=coreOf(code),of=EXPERT,step=Math.min(n,EXPERT);
   return {have:h,n,seen:n>0,step,of,core,known:step>=KNOWN,mine:step>=of}}
 // what a country still needs to be expert: "Capitals and Silhouette", "one more game (Top 10, Customs…)"
-const OTHERS='Customs, Flag Pie, Impostor or Compass';
-function missing(h,core){const m=[['borderline','Countries'],['citygrid','Capitals'],['silhouette','Silhouette'],['top10','Top 10']].filter(([g])=>core&GBIT[g]&&!(h&GBIT[g])).map(g=>g[1]);
-  if(!(h&OTHER))m.push(m.length?'one of '+OTHERS:'one more game: '+OTHERS);return andList(m)}
+function missing(h){const k=Math.max(0,EXPERT-bits(h));return k+' more game'+(k===1?'':'s')}
 const countriesMine=a=>{a=a||atlas();return Object.keys(ATLAS).filter(c=>country(c,a).mine).length};
 const countriesSeen=a=>{a=a||atlas();return Object.keys(ATLAS).filter(c=>country(c,a).seen).length};
 const countriesKnown=a=>{a=a||atlas();return Object.keys(ATLAS).filter(c=>{const x=country(c,a);return x.known&&!x.mine}).length};
@@ -529,7 +528,7 @@ const svHTML=([ink,mk,n,what,ok,pr,txt,note])=>'<div class="gp-sv'+(ok?'':' lock
 function howHTML(){return '<ul class="gp-how">'+
   '<li><span class="n">km</span><span><b>How well you play.</b> Each daily gives up to 100&nbsp;km, +20 if perfect, +'+ALL5+' for all '+ALLW+' in a day. Km take you up the levels: '+LEVELS.map(l=>l[0]).join(', ')+'.</span></li>'+
   '<li><span class="n">7</span><span><b>How often you play.</b> One daily a day keeps your streak. Miss a day and a rest day saves it, one a week.</span></li>'+
-  '<li><span class="n">197</span><span><b>What you know.</b> Only the daily counts. '+'Right once in any daily: visited. Expert: right in Countries, Capitals, Silhouette, Top 10 and one more game. Known: 3 of those 5 steps.'+'</span></li>'+
+  '<li><span class="n">197</span><span><b>What you know.</b> Only the daily counts. '+'Visited: right in 1 game. Known: right in 3 games. Expert: right in 5 games.'+'</span></li>'+
   '<li><span class="n">◎</span><span><b>Visas.</b> One a game, moved up by the days you play it: '+TIERS.map(t=>t[0]+' '+t[1]).join(', ')+'. A ★ on it for a perfect daily. Plus '+ALLW+' special ones and 12 hard challenges.</span></li></ul>'}
 function openPass(){
   const P=geo(),lv=level(P.km),name=traveller(),a=atlas(),S=streakInfo(),GV=gameVisas(P.L),SV=specialVisas(P.L,S),CV=challengeVisas();
@@ -546,8 +545,8 @@ function openPass(){
     '<div class="gp-h"><h4>This week</h4><span>'+(S.restLeft?'1 rest day left':'Rest day used')+'</span></div>'+
     '<div class="gp-card">'+weekHTML(S)+'<p class="gp-rule">Play any daily to keep your streak. Miss a day and a <b class="b">rest day</b> saves it (one a week).</p></div>'+
     '<div class="gp-h"><h4>Next up</h4></div>'+nextHTML(GV,SV,S,a)+
-    '<div class="gp-h"><h4>Countries</h4><span>'+seen+' visited · '+known+' known · '+mine+' expert</span></div>'+
-    '<p class="gp-rule">Right once in any daily: <b>visited</b>. <b>Expert</b>: right in Countries, Capitals, Silhouette, Top 10 and one more game. <b>Known</b>: 3 of those 5 steps.</p>'+contHTML(a)+
+    '<div class="gp-h"><h4>Countries</h4><span>of 197</span></div>'+
+    '<ul class="gp-steps"><li><i class="v"></i><span><b>Visited</b>: right in 1 game</span><em>'+seen+'</em></li><li><i class="k"></i><span><b>Known</b>: right in 3 games</span><em>'+known+'</em></li><li><i class="m"></i><span><b>Expert</b>: right in 5 games</span><em>'+mine+'</em></li></ul><p class="gp-rule">Different games, daily only.</p>'+contHTML(a)+
     '<button class="gp-more" data-gp-all aria-expanded="'+gpAll+'">'+(gpAll?'Hide the list':'See all '+Object.keys(ATLAS).length+' ›')+'</button><div class="gp-allc">'+(gpAll?allHTML(a):'')+'</div>'+
     '<div class="gp-h"><h4>Game visas</h4><span>'+GV.filter(x=>x.tier).length+' of '+GV.length+' · '+GV.filter(x=>x.pf).length+' ★</span></div>'+
     '<p class="gp-rule">Each daily you play moves its visa up: '+TIERS.map(t=>'<b style="color:'+t[2]+'">'+t[0]+'</b> '+t[1]).join(' · ')+'. <b class="g">★</b> a perfect daily in that game.</p>'+
