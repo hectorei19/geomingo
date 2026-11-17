@@ -208,11 +208,12 @@ const CL3_FROM='2026-11-15',cl3=d=>!d||d>=CL3_FROM;
 const clNew=(d,x)=>!d||d>CL3_FROM||d===CL3_FROM&&!!x;
 const CL3=[20,15,10,5,3],clFlag=q=>q.st!=='right'?0:q.x3?CL3[q.k-1]||0:6-q.k;
 // from KMSQ_FROM (Héctor 2026-11-17) the daily Countries and Capitals squares are worth whole km (16 share 100, a hard one up
-// to three times an easy one, no speed): their points ARE km. Before it: 15 points a km
+// to three times an easy one, no speed): their points ARE km. Days before it (Héctor 2026-11-17: fix the games already
+// played, their speed points gave odd km): 100 km for all the squares, shared evenly by the squares right; +20 perfect
 const KMSQ_FROM='2026-11-18';
 const pf=(all,m)=>all&&!(+m)?20:0;
 const KM={
-  grid:(s,c,n,w,d)=>{n=(+n||4)*(+n||4);return Math.min(100,Math.round((+s||0)/(d&&d>=KMSQ_FROM?1:15)))+pf((+c||0)>=n,w)},
+  grid:(s,c,n,w,d)=>{n=(+n||4)*(+n||4);return Math.min(100,d&&d>=KMSQ_FROM?Math.round(+s||0):Math.round(Math.min(+c||0,n)/n*100))+pf((+c||0)>=n,w)},
   top10:(f,m)=>{f=Math.min(+f||0,10);return 10*f+pf(f>=10,m)},
   sil:(r,m)=>{r=Math.min(+r||0,9);return 10*r+(r>=9?10:0)+pf(r>=9,m)},
   clue:(r,p,n)=>{r=+r||0;p=+p||0;n=+n||5;return Math.round((15*r+p)*5/n)+(p>=5*n?20:0)},
