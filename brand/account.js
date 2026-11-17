@@ -119,11 +119,9 @@ function signIn(){if(!ok){say('Sign-in is not available right now. Check the con
   firebase.auth().signInWithPopup(p).catch(e=>{if(e&&e.code==='auth/popup-blocked')firebase.auth().signInWithRedirect(p);else authError(e)})}
 function signOut(){if(ok)firebase.auth().signOut().catch(()=>{})}
 
-/* ---- 3 guest days: a guest can play for 3 days, then every page asks to sign in ----
-   gm-trial: the days (dayKey) a guest opened a game page, at most 3. On a 4th day the sign-in screen covers the page
-   (home and games) and can't be closed; signing in takes it away. The home page alone doesn't use up a day.
-   An invite link (?room=) always opens, so a friend can join a room without an account; nor does test mode (?test) show it.
-   Signing out keeps gm-trial (it is not in DEVICE_KEYS), so the free days are not given again. */
+/* ---- guests: every game is free without an account, forever (Héctor 2026-11-17: the old sign-in wall after
+   3 guest days is gone). gm-trial still counts the first 3 days a guest opened a game page (trialState), but nothing
+   is blocked: guests only see a friendly line asking them to sign in to keep their GeoPass and join the ranking. */
 const TRIAL=3;
 const GAME_PAGE=/\/(countries|capitals|connections|top10|silhouette|customs|flagpie|impostor|compass)\//.test(location.pathname);
 const ROOM_LINK=(()=>{try{return new URLSearchParams(location.search).has('room')}catch(e){return false}})();
@@ -131,25 +129,8 @@ const trialDays=()=>{const d=json('gm-trial');return Array.isArray(d)?d.filter(x
 // day: which free day today is (1-3, or the one it would be), left: free days still to come after today, over: no free day left
 function trialState(){const d=trialDays(),k=T(),i=d.indexOf(k);
   return {day:i>=0?i+1:Math.min(d.length+1,TRIAL+1),left:Math.max(0,TRIAL-(i>=0?i+1:d.length+1)),over:i<0&&d.length>=TRIAL,max:TRIAL}}
-function trialCheck(){const u=who(),free=u!==null||ROOM_LINK||TEST||failed;
-  if(free){wall(false);return}
-  const d=trialDays(),k=T();if(GAME_PAGE&&!d.includes(k)&&d.length<TRIAL){d.push(k);put('gm-trial',d)}
-  wall(trialState().over)}
-function wall(on){let w=document.getElementById('gm-wall');
-  if(!on){if(w){w.remove();document.documentElement.classList.remove('gm-walled')}return}
-  if(w||!document.body)return;
-  let km=0,st=0;try{const g=G.geo();km=g.km;st=g.streak}catch(e){}
-  const have=km>0?'<p>You\'ve flown <b>'+EU(km)+' km</b>'+(st>1?' and have a <b>'+st+'-day streak</b>':'')+'. Sign in to keep them and keep playing. Geomingo is free, always.</p>'
-    :'<p>Sign in to keep playing every day. Geomingo is free, always: no payments, just one tap.</p>';
-  w=document.createElement('div');w.id='gm-wall';w.setAttribute('role','dialog');w.setAttribute('aria-modal','true');w.setAttribute('aria-labelledby','gm-wall-t');
-  w.innerHTML='<div class="gm-wallcard">'+G.mingo('head',44)+'<h2 id="gm-wall-t">Your '+TRIAL+' days as a guest are over</h2>'+
-    '<div class="gm-walldots" aria-hidden="true">'+'<i></i>'.repeat(TRIAL)+'</div>'+have+
-    '<ul><li>Your GeoPass, km and streak, on any phone</li><li>Your name in the daily rankings</li><li>Every game, every day</li></ul>'+
-    '<button class="gm-wallg" data-gm-signin><i aria-hidden="true">G</i>Continue with Google</button>'+
-    '<p class="gm-wallnote">Got an invite link from a friend? Open it to join their room.</p></div>';
-  document.body.appendChild(w);document.documentElement.classList.add('gm-walled');
-  const b=w.querySelector('button');if(b)setTimeout(()=>b.focus(),50)}
-
+function trialCheck(){const u=who(),free=u!==null||ROOM_LINK||TEST||failed;if(free)return;
+  const d=trialDays(),k=T();if(GAME_PAGE&&!d.includes(k)&&d.length<TRIAL){d.push(k);put('gm-trial',d)}}
 /* ---- the name: kept in the account, shown in every ranking ----
    One name per player, nobody else can have it, and it can be changed from the Menu once every 30 days (Héctor 2026-11-16).
    names/<key> = uid: who holds a name. key = the name in small letters without accents or spaces ("Héctor M" = "hectorm").
@@ -492,7 +473,7 @@ function bestRun(dates){const n=k=>Math.round(Date.parse(k+'T12:00Z')/864e5),ds=
 const noBanner=()=>ls.get('gm-nobanner')==='1';
 // under Mingo on a game's home screen: who's playing, and the sign-in banner for guests (as in Countries).
 // A guest plays with the name typed in any game (bl-user, the same everywhere) and can change it here.
-function trialLine(){const t=trialState();return t.over?'Sign in to keep playing. Geomingo is free.':'Guest day '+t.day+' of '+t.max+'. After that, sign in to keep playing. Geomingo is free.'}
+function trialLine(){return 'Free, no account needed. Sign in to keep your GeoPass on any phone and join the ranking.'}
 function userHTML(){const u=who();
   if(u)return '<div class="userline"><span class="pin" style="background:var(--sea)"></span>Playing as '+esc(name||'…')+'</div>';
   const signin=u===null;
@@ -573,7 +554,7 @@ const FAQ=[
   ['What is in my GeoPass?','Four things. Km take you up 7 levels, from Tourist to Legend (250.000 km). Your streak: one daily a day, with one rest day a week. Countries, from the daily only: visited when you get one right in 1 game, known in 3 different games, expert in 5. Visas: one per game (Bronze, Silver, Gold, Platinum by days played), special ones and hard challenges.'],
   ['Is there an unlimited mode?','Yes, Practice. Random puzzles with the daily rules, as many as you like, with 5 lives or unlimited. Practice gives points but no km.'],
   ['Can I play with friends?','Yes. Tap With friends, create a room (you need to sign in) and share the code. Up to 6 players, the host picks the game and the points add up.'],
-  ['Do I need an account?','Not at first: you can play 3 days as a guest. Then sign in with Google to keep playing. It\'s free, and your GeoPass follows you to any phone.'],
+  ['Do I need an account?','No. Every game is free without an account. Sign in with Google to keep your GeoPass on any phone and to join the ranking.'],
   ['Is there an app?','Not yet. Add geomingo.com to your home screen and it opens like an app.']];
 function openFaq(){mwin('FAQ','<div class="faq"><div class="fqa"><h3>What is Geomingo?</h3><p>Geomingo is a free daily geography game: nine short games every day, from naming countries and capitals to guessing a country by its shape or spotting the lie about it. Every daily game moves you up to 100 km in your GeoPass. Play today\'s trip alone, practise as much as you like, or open a room and play with friends.</p></div>'+
   '<div class="fql">'+FAQ.map((q,i)=>'<details><summary><i>'+String(i+1).padStart(2,'0')+'</i><span>'+esc(q[0])+'</span></summary><p>'+esc(q[1])+'</p></details>').join('')+'</div></div>')}
