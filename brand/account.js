@@ -533,7 +533,7 @@ const FAQ=[
   ['When do new games come out?','Every day at midnight CET. Everyone in the world gets the same puzzles that day.'],
   ['How do I play?','Tap a game in Today\'s itinerary. Inside a game, Menu → How to play has its rules.'],
   ['What are the km?','Each daily game moves you up to 100 km, +20 km for a perfect game and +50 km for playing all nine. Your km fill your GeoPass and count for the ranking.'],
-  ['What is in my GeoPass?','Four things. Km take you up 7 levels, from Tourist to Legend (250.000 km). Your streak: one daily a day, with one rest day a week. Countries, from the daily only: visited when you get one right once, known at 3 of 5 steps, expert when you get it right in Countries, Capitals, Silhouette, Top 10 and one more game. Visas: one per game (Bronze, Silver, Gold, Platinum by days played), special ones and hard challenges.'],
+  ['What is in my GeoPass?','Four things. Km take you up 7 levels, from Tourist to Legend (250.000 km). Your streak: one daily a day, with one rest day a week. Countries, from the daily only: visited when you get one right in 1 game, known in 3 different games, expert in 5. Visas: one per game (Bronze, Silver, Gold, Platinum by days played), special ones and hard challenges.'],
   ['Is there an unlimited mode?','Yes, Practice. Random puzzles with the daily rules, as many as you like, with 5 lives or unlimited. Practice gives points but no km.'],
   ['Can I play with friends?','Yes. Tap With friends, create a room (you need to sign in) and share the code. Up to 6 players, the host picks the game and the points add up.'],
   ['Do I need an account?','Not at first: you can play 3 days as a guest. Then sign in with Google to keep playing. It\'s free, and your GeoPass follows you to any phone.'],
