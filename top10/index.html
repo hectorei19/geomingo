@@ -111,7 +111,7 @@ body.kbon .kbgu #src{align-self:center!important}
 <script src="../shared/data.js?v=202611141100"></script>
 <script src="extra-data.js?v=202611081900"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611181900"></script>
+<script src="../shared/minigames.js?v=202611212100"></script>
 <script>
 /* ---- the rankings ----
    Numbers Countries already uses (DATA and the country data), plus a few figures only Top 10 uses (XDATA,
@@ -653,7 +653,7 @@ function resultHTML(body){const v=verdict();
   if(S.mode==='daily')return `${Geomingo.doneTicket('top10',S.num,S.found.length+' of 10','next in '+nextIn(),body)}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns">${nextGameBtn('top10')}${SHARE_BTN.replace('Share result','Share')}</div>`;
   // an archive game: the coral ticket with the answers inside, Back to archive and Share under it (Héctor 2026-11-16)
-  if(S.mode==='archive'&&body!==undefined)return `${Geomingo.archTicket({id:'top10',num:S.num,score:S.found.length+' of 10',detail:S.wrong.length+' mistake'+(S.wrong.length===1?'':'s'),body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
+  if(S.mode==='archive'&&body!==undefined)return `${Geomingo.archTicket({id:'top10',num:S.num,day:S.date,state:S,score:S.found.length+' of 10',detail:S.wrong.length+' mistake'+(S.wrong.length===1?'':'s'),body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns gm-solo-btns"><button class="primary" id="archback" style="flex:1">Back to calendar</button>${SHARE_BTN.replace('Share result','Share')}</div>${Geomingo.archListBtn()}`;
   // a finished Solo list: the pink ticket with the list inside, then New list and Share (Héctor 2026-11-14)
   if(S.mode==='free'){const st=load('t10-solo',{n:0}),m=S.wrong.length;
@@ -687,7 +687,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li><b>Daily</b>: one list, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
   <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. 5 lives or <b>Unlimited</b>: pick it next to Practice on the home page. Points only, no km.</li>
   <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. You take turns, 30 s each, and a random player starts. A country in the top 10 scores 10; one outside, <b>Pass</b> or running out of time passes the turn. The game ends when the ten are found or everyone passes in a row. Most points win.</li>
-  <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, points only, no km.</li></ul>`}
+  <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, and its km count for that day.</li></ul>`}
 // tapping a suggestion does not take the focus from the box, so the phone keyboard stays open
 function drawSugg(){const u=$('sugg');if(u){u.innerHTML=suggHTML();u.querySelectorAll('[data-g]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>guess(b.dataset.g)})}}
 function bind(){

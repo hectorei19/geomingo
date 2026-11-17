@@ -93,7 +93,7 @@ function archiveHTML(o){if(DAYOF)return dayofHTML(o,DAYOF);const items=archDates
     else st=`<span class="as">${g?'In progress':'Play'}</span>`;
     return `<li><button data-arch="${k}"><span class="an">#${n}</span><span class="ad"><b>${o.label} #${n}</b><small>${date}</small></span>${sq}${st}</button></li>`}).join('');
   return `<section class="panel"><a class="linkbtn" href="${Geomingo.HOME}#archive" style="display:inline-block;margin-bottom:6px">← Calendar of all games</a><div class="backline"><span class="ht">Archive</span></div>
-    <p class="hint">Play the past ${o.label.toLowerCase()}s you missed. The ones you played on their day are already done. One try each, on this device. Archive games don't count for the daily ranking or your streak.</p>
+    <p class="hint">Play the past ${o.label.toLowerCase()}s you missed. The ones you played on their day are already done. One try each, on this device. Their km count for their own day, in your GeoPass and the ranking, but not for your streak.</p>
     ${items?`<ul class="arch">${items}</ul>`:`<p class="hint">No past ${o.label.toLowerCase()}s yet. Come back tomorrow.</p>`}</section>`}
 // Menu → Archive on the home page opens a past day (?day=…): that day's archive game, or its result when it was played on its day
 function openDay(k){if(archDay(k)){DAYOF=k;openArchive();return}playArchive(k)}
