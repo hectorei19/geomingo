@@ -142,7 +142,7 @@ button.gm-home{background:none;border:0;font:inherit;cursor:pointer}
 .pass .acct{font-size:14px;color:var(--ink);margin:0}
 .gbtn{min-height:50px;border-radius:12px;border:0;background:#F6F8F5;color:#16202F;display:flex;align-items:center;justify-content:center;gap:10px;font-family:var(--body);font-weight:700;font-size:16px;cursor:pointer}
 .gbtn i{width:22px;height:22px;border-radius:50%;border:2px solid #2A56B8;color:#2A56B8;font-style:normal;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
-/* a guest's box under Travel with friends: guest day N of 3 and the Google button */
+/* a guest's box under Travel with friends: free without an account, and the Google button */
 .guest{border-radius:16px;background:var(--guil);border:1.5px solid var(--gold);padding:14px 16px;display:flex;flex-direction:column;gap:12px}
 .guest[hidden]{display:none}
 .guest .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -385,11 +385,10 @@ function passHTML(P){const lv=level(P.miles),live=G.live(),played=live.filter(g=
 function myPassHTML(P){const lv=level(P.miles);
   return '<svg viewBox="0 0 22 28" aria-hidden="true"><rect x="1" y="1" width="20" height="26" rx="3" fill="#0A1328" stroke="#D4AD4B" stroke-width="1.5"/><circle cx="11" cy="12" r="5" fill="none" stroke="#D4AD4B" stroke-width="1.2"/><path d="M6 12h10M11 7c-2 3-2 7 0 10M11 7c2 3 2 7 0 10" fill="none" stroke="#D4AD4B" stroke-width=".9"/><path d="M6 22h10" stroke="#D4AD4B" stroke-width="1.2"/></svg>'+
     '<span><small>My pass</small><b>'+fmt(P.miles)+' km</b><em>'+lv.name+'</em></span>'}
-// a guest (not signed in): which guest day this is, out of 3, and the Google button
-function guestHTML(){const acc=A();if(!acc||!acc.ready||acc.user||!acc.trial)return '';const t=acc.trial;
-  const dots=Array.from({length:t.max},(_,i)=>'<i'+(i<t.day?' class="on"':'')+'></i>').join('');
-  return '<div class="row"><span class="lab">Playing as a guest</span><span class="gdots" aria-hidden="true">'+dots+'</span></div>'+
-    '<p class="acct"><b>'+esc(acc.trialLine())+'</b> Your GeoPass follows you to any phone, and you join the ranking.</p>'+
+// a guest (not signed in): playing is free without an account (Héctor 2026-11-17); a friendly line and the Google button
+function guestHTML(){const acc=A();if(!acc||!acc.ready||acc.user||!acc.trial)return '';
+  return '<div class="row"><span class="lab">Playing as a guest</span></div>'+
+    '<p class="acct"><b>Geomingo is free, no account needed.</b> Your km are saved on this phone only. Sign in to keep your GeoPass on any phone and join the ranking.</p>'+
     '<button class="gbtn" data-gm-signin><i aria-hidden="true">G</i>Continue with Google</button>'}
 function draw(){const P=geo();
   document.querySelectorAll('.hmingo').forEach(el=>{if(!el.firstChild)el.innerHTML=G.mingo('pass',56)});
