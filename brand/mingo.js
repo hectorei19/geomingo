@@ -283,14 +283,26 @@ const secText=s=>s<60?s+'″':Math.floor(s/60)+'′'+String(s%60).padStart(2,'0'
 
 /* ---------- visas (Héctor 2026-11-16) ----------
    One visa a game, moved up by the days you play its daily: Bronze 1, Silver 7, Gold 30, Platinum 100.
-   Nine special visas: [ink, mark, name, what it takes, done?, progress 0..1 (null: no bar), progress text].
+   Twelve special visas: [ink, mark, name, what it takes, done?, progress 0..1 (null: no bar), progress text].
    Gold medal comes from the daily rankings (gm-feats, read by account.js once a day is over, signed in only). */
 const TIERS=[['Bronze',1,'#C98B5A'],['Silver',7,'#B9C2CF'],['Gold',30,'#D4AD4B'],['Platinum',100,'#9FE3E0']];
 function gameVisas(L){L=L||ledger();return live().map(g=>{const n=Object.values(L).filter(d=>d[g.id]!=null).length;
   let t=-1;TIERS.forEach((x,k)=>{if(n>=x[1])t=k});const next=TIERS[t+1];
   const pf=Object.values(L).filter(d=>d[g.id]>=120).length;   // perfect dailies (★): 100 + 20 for not one mistake
   return {g,n,t,tier:t>=0?TIERS[t]:null,next,pr:next?Math.min(1,n/next[1]):1,left:next?next[1]-n:0,pf}})}
-function specialVisas(L,S){L=L||ledger();S=S||streakInfo();const H=k=>json(k)||{},a=atlas();
+/* the official launch day (Héctor 2026-11-17): the beta ends the day before. Everyone keeps everything; three special
+   visas that can only be won at that time: Beta traveller (every game's daily 3 times before it), Opening day (all the dailies on it), Launch week (every day of its first week) */
+// days with a daily played on its own day: the streak's list (last 400 days) plus every game's own history, so the beta
+// visa stays after a year too
+function playedDays(){const s=new Set(days());['bl-hist','cc-hist','cx-hist','t10-hist','sil-hist','cu-hist','fp-hist','im-hist','cm-hist'].forEach(k=>{const h=json(k)||{};
+  Object.keys(h).forEach(x=>{if(h[x]&&h[x].f!==0&&/^\d{4}-\d{2}-\d{2}$/.test(x))s.add(x)})});return [...s]}
+// Beta traveller (Héctor 2026-11-17): every game's daily played on its own day at least 3 times before the launch
+const HIST={borderline:'bl-hist',citygrid:'cc-hist',connections:'cx-hist',top10:'t10-hist',silhouette:'sil-hist',customs:'cu-hist',flagpie:'fp-hist',impostor:'im-hist',compass:'cm-hist'};
+// Opening day (Héctor 2026-11-17): all the dailies on the launch day itself
+function openGames(){return live().filter(g=>{const h=json(HIST[g.id])||{};return h[LAUNCH]&&h[LAUNCH].f!==0}).length}
+function betaGames(){return live().filter(g=>{const h=json(HIST[g.id])||{};return Object.keys(h).filter(d=>d<LAUNCH&&h[d]&&h[d].f!==0).length>=3}).length}
+const LAUNCH='2027-01-01',LAUNCH_TXT='1 January 2027',LAUNCH_WEEK=['01','02','03','04','05','06','07'].map(x=>'2027-01-'+x);
+function specialVisas(L,S){L=L||ledger();S=S||streakInfo();const dd=playedDays(),beta=betaGames(),open=openGames(),H=k=>json(k)||{},a=atlas();
   const up=(n,of)=>[n>=of,Math.min(1,n/of),fmt(Math.min(n,of))+' / '+fmt(of)];
   const full=Object.values(L).filter(d=>Object.keys(d).length>=ALLN);
   const perfect=full.some(d=>Object.values(d).every(v=>v>=120));
@@ -308,7 +320,11 @@ function specialVisas(L,S){L=L||ledger();S=S||streakInfo();const H=k=>json(k)||{
     ['#A98BE0','6','Six continents','An expert country on every continent',...up(conts,6)],
     ['#6FC7C7','100','World expert','100 expert countries',...up(expert.length,100)],
     ['#D4AD4B','1st','Gold medal','1st in a daily ranking',gold>0,null,''],
-    ['#7FA2F0','2+','Good company','A game with friends',fr,null,'']]}
+    ['#7FA2F0','2+','Good company','A game with friends',fr,null,''],
+    // the official launch (Héctor 2026-11-17): only dailies played on their own day count (playedDays), never Archive games
+    ['#9FE3E0','β','Beta traveller','Every game\'s daily 3 times before '+LAUNCH_TXT,beta>=ALLN,dayKey()<LAUNCH?beta/ALLN:null,beta+' / '+ALLN],
+    ['#D4AD4B','1/1','Opening day','All '+ALLW+' dailies on '+LAUNCH_TXT,open>=ALLN,null,''],
+    ['#F07884','1–7','Launch week','A daily every day, 1 to 7 January 2027',LAUNCH_WEEK.every(d=>dd.includes(d)),null,'']]}
 /* Challenges (Héctor 2026-11-16, back from the GeoPass before the redesign: "the hard ones that make you come back"):
    the daily rankings (gm-feats, signed in only; a ranking needs 2 players or more), the clock (gm-times) and rare moments.
    Same shape as the special visas plus [7]: a note shown once done (how many times, or your best time).
@@ -454,14 +470,14 @@ const passBtn=()=>{const n=geo().km;return '<button class="gm-pass" data-gm-pass
 // the account button (Sign in, or your initial): ../brand/account.js fills it in once it knows who is playing
 const acctSlot=()=>'<span class="gm-acctslot" data-gm-acctslot>'+(window.Geomingo&&Geomingo.acctHTML?Geomingo.acctHTML():'')+'</span>';
 function header(o){o=o||{};
-  if(!o.game)return '<header class="gm-top"><h1 class="gm-logo">geo<span>mingo</span></h1><span class="gm-beta" title="Still in testing. Official launch coming soon.">BETA</span><span class="gm-spacer"></span>'+passBtn()+acctSlot()+'</header>';
+  if(!o.game)return '<header class="gm-top"><h1 class="gm-logo">geo<span>mingo</span></h1><span class="gm-beta" title="Still in testing. Official launch on 1 January 2027.">BETA</span><span class="gm-spacer"></span>'+passBtn()+acctSlot()+'</header>';
   // Practice (o.practice): nothing under the name; the trip and the grid code go in the ticket's coral strip (Héctor 2026-11-15)
   // a game opened from the With friends room (brand/party.js): no second room code under the name; the room's strip
   // (Room ABCD · Game 2 · Exit), or the result ticket at the end, goes right under the bar (Héctor 2026-11-17)
   const pt=window.Geomingo&&window.Geomingo.party&&window.Geomingo.party.on()?window.Geomingo.party:null;
   const coord=pt&&o.coord?String(o.coord).replace(/(^|\s*·\s*)room [A-Z]{4}/i,'').replace(/^\s*·\s*/,''):o.coord;
   const g=GAMES.find(x=>x.name===o.game),gate=g?'Trip '+g.gate:'',sub=o.practice?'':[gate,coord].filter(Boolean).join(' · ');
-  return '<header class="gm-top"><a class="gm-home" href="'+HOME+'" aria-label="All Geomingo games">'+ICO.back+logo+'<span class="gm-beta" title="Still in testing. Official launch coming soon.">BETA</span></a><span class="gm-spacer"></span>'+passBtn()+acctSlot()+'</header>'+
+  return '<header class="gm-top"><a class="gm-home" href="'+HOME+'" aria-label="All Geomingo games">'+ICO.back+logo+'<span class="gm-beta" title="Still in testing. Official launch on 1 January 2027.">BETA</span></a><span class="gm-spacer"></span>'+passBtn()+acctSlot()+'</header>'+
     '<div class="gm-bar"><h2 class="gm-title" id="brand" role="link" tabindex="0" title="'+esc(o.game)+' home">'+esc(o.game)+(sub?'<small>'+esc(sub)+'</small>':'')+'</h2><span class="gm-spacer"></span>'+(o.menu||'')+'</div>'+(pt?pt.slot():'')}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-gm-pass]');if(!t)return;e.preventDefault();openPass()});
 
@@ -482,7 +498,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElement
 /* ---------- the GeoPass: one page, the same from the home page and from every game (Héctor 2026-11-16) ----------
    Dark like the rest of Geomingo. Four things, each with one rule: km (how well you play: levels), the streak (how often:
    one daily a day, a rest day a week), countries (what you know: visited, then expert) and visas (one a game that moves up
-   with the days you play it, plus nine special ones). On top, "Next up": the three goals closest to you. */
+   with the days you play it, plus twelve special ones). On top, "Next up": the three goals closest to you. */
 const GCOL={borderline:'#7FA2F0',citygrid:'#5FC28F',connections:'#D4AD4B',top10:'#A98BE0',silhouette:'#C99B78',customs:'#F07884',flagpie:'#6FC7C7',impostor:'#E58FC0',compass:'#B5D46A'};
 const SHORT={borderline:'COUN',citygrid:'CAPS',connections:'CONN',top10:'TOP10',silhouette:'SILH',customs:'CUST',flagpie:'PIE',impostor:'IMP',compass:'COMP'};
 // the games that count for a country, in the order of the trips
@@ -544,7 +560,7 @@ function howHTML(){return '<ul class="gp-how">'+
   '<li><span class="n">km</span><span><b>How well you play.</b> Each daily gives up to 100&nbsp;km, +20 if perfect, +'+ALL5+' for all '+ALLW+' in a day. Km take you up the levels: '+LEVELS.map(l=>l[0]).join(', ')+'.</span></li>'+
   '<li><span class="n">7</span><span><b>How often you play.</b> One daily a day keeps your streak. Miss a day and a rest day saves it, one a week.</span></li>'+
   '<li><span class="n">197</span><span><b>What you know.</b> Only the daily counts. '+'Visited: right in 1 game. Known: right in 3 games. Expert: right in 5 games.'+'</span></li>'+
-  '<li><span class="n">◎</span><span><b>Visas.</b> One a game, moved up by the days you play it: '+TIERS.map(t=>t[0]+' '+t[1]).join(', ')+'. A ★ on it for a perfect daily. Plus '+ALLW+' special ones and 12 hard challenges.</span></li></ul>'}
+  '<li><span class="n">◎</span><span><b>Visas.</b> One a game, moved up by the days you play it: '+TIERS.map(t=>t[0]+' '+t[1]).join(', ')+'. A ★ on it for a perfect daily. Plus 12 special ones and 12 hard challenges.</span></li></ul>'}
 function openPass(){
   const P=geo(),lv=level(P.km),name=traveller(),a=atlas(),S=streakInfo(),GV=gameVisas(P.L),SV=specialVisas(P.L,S),CV=challengeVisas();
   const seen=countriesSeen(a),mine=countriesMine(a),known=countriesKnown(a),got=GV.filter(x=>x.tier).length+SV.filter(v=>v[4]).length+CV.filter(v=>v[4]).length,all=GV.length+SV.length+CV.length;
