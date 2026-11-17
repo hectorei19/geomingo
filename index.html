@@ -290,7 +290,7 @@ function rightOf(id){const k=G.dayKey(),q=d=>{const a=(d&&d.S&&d.S.qs)||[];retur
   const key={customs:'cu-daily',impostor:'im-daily',compass:'cm-daily'}[id];return key?q(json(key)):''}
 function doneLine(id,label){const r=rightOf(id);return r?'Right · '+r:esc(label)}
 // short line under the name, one line in a box a third of the width
-const HINT3={borderline:'Fill a country grid',citygrid:'Fill a capital grid',connections:'Find 4 groups',top10:'Name the top 10',silhouette:'Guess the country',customs:'Guess from clues',flagpie:'Guess from colours',impostor:'Find the odd one',compass:'Find the capital'};
+const HINT3={borderline:'Fill a country grid',citygrid:'Fill a capital grid',connections:'Find 4 groups',top10:'Name the top 10',silhouette:'Guess the country',customs:'Guess from clues',flagpie:'Guess from colours',impostor:'Find the liar',compass:'Find the capital'};
 // Practice / With friends: a screen of the games (kept while the visit lasts, so Back from a game comes back to it);
 // it has its own history step, so the phone's back gesture returns to today's games
 let MODE='today';const SCREENS=['practice','friends','archive'];try{const t=sessionStorage.getItem('gm-tab');if(SCREENS.includes(t))MODE=t}catch(e){}
