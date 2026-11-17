@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611231000"></script>
+<script src="../brand/mingo.js?v=202611241000"></script>
 <script src="../brand/account.js?v=202611222200"></script>
 <script src="../brand/party.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1631,13 +1631,14 @@ function answersView(){
 }
 
 /* ---- guess sheet ---- */
-// The list shows names only, never flags: only names that start with what you typed, so the list gives less away.
+// The list shows names only, never flags: only names (or one of their words) that start with what you typed, so the list gives less away.
+const wordKeys=c=>c.wk||(c.wk=c.n.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().split(/[^a-z]+/).filter(Boolean).map((w,i,a)=>a.slice(i).join('')).slice(1));
 function matches(q){
   const k=N(q);if(!k)return[];
-  const starts=[];
+  const starts=[],words=[]; // words: the name from its 2nd, 3rd… word on, so "Korea" finds North and South Korea
   const terr=S&&oldDay(S.daily); // territories can only be typed in daily grids from before ONLY_COUNTRIES_FROM
-  for(const c of C){if(c.t&&!terr)continue;if(c.ak.some(a=>a.startsWith(k))||c.k.startsWith(k))starts.push(c)}
-  return starts.slice(0,8);
+  for(const c of C){if(c.t&&!terr)continue;if(c.ak.some(a=>a.startsWith(k))||c.k.startsWith(k))starts.push(c);else if(k.length>=3&&wordKeys(c).some(w=>w.startsWith(k)))words.push(c)}
+  return (window.Geomingo&&Geomingo.withOld||(r=>r))([...starts,...words].slice(0,8),q,C.filter(c=>!c.t||terr));
 }
 // line icons for the menu (24×24, drawn with the text colour)
 const ICONS={menu:'M4 6h16M4 12h16M4 18h16',games:'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',help:'M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18M12 17v.01M12 13.5a1.5 1.5 0 0 1 1-1.5a2.6 2.6 0 1 0-3-4',

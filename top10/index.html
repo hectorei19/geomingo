@@ -36,7 +36,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611231000"></script>
+<script src="../brand/mingo.js?v=202611241000"></script>
 <script src="../brand/account.js?v=202611222200"></script>
 <script src="../brand/party.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -333,9 +333,14 @@ const archiveView=()=>header('Top <span>10</span>','Archive')+archiveHTML({first
   done:g=>[g.found.length+'/10',`<span class="dsq" style="grid-template-columns:repeat(5,1fr)" aria-hidden="true">${tiles(g).map(on=>`<i class="${on?'on':''}"></i>`).join('')}</span>`]});
 
 /* ---- the search box: names only, found by their first letters, like Countries ---- */
-function matches(q){const k=N(q),l=listById(S.list);if(!k)return[];return SOVC.filter(c=>(!l.reg||l.reg.in(c))&&(c.k.startsWith(k)||c.ak.some(a=>a.startsWith(k)))).slice(0,8)}
+// a name matches from its first letters, or from the start of one of its words ("Korea" finds North and South Korea);
+// a common older name ("USA", "Turkey") adds the country with its official name (brand/mingo.js withOld)
+const wordKeys=c=>c.wk||(c.wk=c.n.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().split(/[^a-z]+/).filter(Boolean).map((w,i,a)=>a.slice(i).join('')).slice(1));
+const hit=(c,k)=>c.k.startsWith(k)||c.ak.some(a=>a.startsWith(k))||(k.length>=3&&wordKeys(c).some(w=>w.startsWith(k)));
+const WO=(r,q,p)=>window.Geomingo&&Geomingo.withOld?Geomingo.withOld(r,q,p):r;
+function matches(q){const k=N(q),l=listById(S.list);if(!k)return[];const pool=SOVC.filter(c=>!l.reg||l.reg.in(c));return WO(pool.filter(c=>hit(c,k)).slice(0,8),q,pool)}
 function suggHTML(){if(!query)return KB?'<li class="hint">Type the first letters of a country, then tap it here.</li>':'';const res=matches(query);
-  if(!res.length){const l=listById(S.list),k=N(query),out=l.reg&&SOVC.find(c=>c.k.startsWith(k)||c.ak.some(a=>a.startsWith(k)));
+  if(!res.length){const l=listById(S.list),k=N(query),out=l.reg&&(SOVC.find(c=>hit(c,k))||WO([],query,SOVC)[0]);
     return `<li class="hint" style="padding:8px 2px">${out?`${esc(out.n)} is not in ${esc(l.reg.name)}: only countries in ${esc(l.reg.name)} count in this list.`:`No country matches “${esc(query)}”.`}</li>`}
   return res.map(c=>{const f=S.found.includes(c.c),w=S.wrong.includes(c.c);
     return `<li><button data-g="${c.c}" ${f||w?'disabled':''}>${esc(c.n)}${f?'<span class="tag">found</span>':w?'<span class="tag">not in it</span>':''}</button></li>`}).join('')}
