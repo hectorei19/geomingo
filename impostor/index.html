@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611181900"></script>
-<script src="../brand/account.js?v=202611201600"></script>
+<script src="../brand/mingo.js?v=202611231000"></script>
+<script src="../brand/account.js?v=202611222200"></script>
 <script src="../brand/party.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -99,7 +99,7 @@
 .claim:disabled{cursor:default}
 .frow .rpts{margin-left:auto;font-family:var(--mono);color:var(--gold);white-space:nowrap}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611201600">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611222100">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -110,7 +110,7 @@
 <script src="../shared/data.js?v=202611141100"></script>
 <script src="../top10/extra-data.js?v=202611162100"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611181900"></script>
+<script src="../shared/minigames.js?v=202611221000"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
@@ -227,7 +227,7 @@ function toImp3(S){if(S.over||!Geomingo.imp3(S.date)||S.qs.every(q=>q.x3)||S.qs.
 function dailyGame(){const d=dailySaved();if(d){if(d.S&&d.S.over)d.S.left=null;toImp3(d.S);return d.S}
   return newGame(dailyDeal(todayKey()),{mode:'daily',date:todayKey(),num:dayNum(todayKey(),FIRST)})}
 function dailySave(){if(!D)return;
-  if(D.mode==='archive'){const a=load('im-arch',{});a[D.date]=D;store('im-arch',a);if(D.over)logHist(D);return}
+  if(D.mode==='archive'){const a=load('im-arch',{});if(D.over&&!D.pd)D.pd=Geomingo.dayKey();a[D.date]=D;store('im-arch',a);if(D.over)logHist(D);return}
   store('im-daily',{date:D.date,over:D.over,S:D});
   if(D.over&&logHist(D)&&!TESTDAY){Geomingo.clock.stop('impostor',D.date,rightOf(D)/nOf(D));Geomingo.account.done('impostor')}}
 // a finished daily (on its day) goes into the history once: {p points, r impostors caught, a caught with one sentence, m wrong picks}
@@ -236,7 +236,7 @@ function logHist(G){if(G.mode!=='daily')return false;const h=load('im-hist',{});
 function dailyPick(){const q=D&&D.qs[D.sel];if(!q||q.st!=='play'||D.over||!chosen)return;
   const res=answer(q,chosen);chosen=null;feedback(q,res);advance(D);dailySave();render();showLeft()}
 function dailyMore(){const q=D&&D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;chosen=null;moreFacts(q);advance(D);dailySave();render();if(q.st!=='play')showLeft()}
-function dailyShareText(G){return `${Geomingo.share('Impostor')} #${G.num}${G.mode==='archive'?' (archive)':''} — ${pointsOf(G)} points\n${G.qs.map(sq).join('')}`}
+function dailyShareText(G){return `${Geomingo.share('Impostor')} ${Geomingo.archNo(G.num)}${G.mode==='archive'?' (archive)':''} — ${pointsOf(G)} points\n${G.qs.map(sq).join('')}`}
 const dailyShare=G=>dailyShareText(G)+"\n\nPlay today's Impostor: "+pageLink();
 // a finished Solo game (Héctor 2026-11-14: Share in every Solo result)
 const soloShare=G=>`${Geomingo.share('Impostor')} (practice) — ${pointsOf(G)} points\n${G.qs.map(sq).join('')}\n\nPlay Impostor: `+pageLink();
@@ -248,7 +248,7 @@ function verdict(G){const p=pointsOf(G),r=rightOf(G);
 const imAverage=()=>{const v=Object.entries(load('im-hist',{}));return v.length?EU(v.reduce((a,[d,e])=>a+Geomingo.KM.imp(e.r,e.p,d,e.x3),0)/v.length,1):'–'};
 function resultHTML(G){const p=pointsOf(G),v=verdict(G);
   // an archive game: the coral ticket with the day's answers inside, Back to archive and Share under it (Héctor 2026-11-16)
-  if(G.mode==='archive')return `${Geomingo.archTicket({id:'impostor',num:G.num,score:p+' points',detail:rightOf(G)+' of '+nOf(G)+' caught',body:summaryHTML(G).replace("Today's impostors",'The impostors')})}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
+  if(G.mode==='archive')return `${Geomingo.archTicket({id:'impostor',num:G.num,day:G.date,state:G,score:p+' points',detail:rightOf(G)+' of '+nOf(G)+' caught',body:summaryHTML(G).replace("Today's impostors",'The impostors')})}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns gm-solo-btns"><button class="primary" id="archback" style="flex:1">Back to calendar</button>${SHARE_BTN.replace('Share result','Share')}</div>${Geomingo.archListBtn()}`;
   return `${Geomingo.doneTicket('impostor',G.num,p+' points','next in '+nextIn(),summaryHTML(G))}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns">${nextGameBtn('impostor')}${SHARE_BTN.replace('Share result','Share')}</div>`}
@@ -264,7 +264,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     :['pass','One of them is lying.','Every sentence fits all of these countries but one. Find the one it doesn\'t fit.'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
     tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Round',(i+1)+'/'+nOf(G))+tk(mode==='daily'?'km':'Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-pts'),{mode,num:G.num})}
-function dailyHTML(){const arch=D.mode==='archive';let h=header('Impostor',(arch?'Archive #':'Daily #')+D.num);
+function dailyHTML(){const arch=D.mode==='archive';let h=header('Impostor',(arch?'Archive ':'Daily ')+Geomingo.archNo(D.num));
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
   if(D.over&&D.left==null)return h+resultHTML(D)+(D.mode==='archive'?'':rankingHTML());
   return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel">${playHTML(D)}</section>`+quickRules()}
@@ -273,9 +273,9 @@ function dailyHTML(){const arch=D.mode==='archive';let h=header('Impostor',(arch
 const archDay=k=>{const e=load('im-hist',{})[k];return e?Geomingo.KM.imp(e.r,e.p,k,e.x3)+' pts':null};
 function openArchive(){view='archive';chosen=null;render();window.scrollTo(0,0)}
 function playArchive(k){if(archDay(k)){toast('You played this day already.');return}
-  const a=load('im-arch',{});D=isGame(a[k])?a[k]:newGame(dailyDeal(k),{mode:'archive',date:k,num:dayNum(k,FIRST)});
+  const a=load('im-arch',{});D=isGame(a[k])?a[k]:newGame(dailyDeal(k),{mode:'archive',date:k,num:archNum(k,FIRST)});
   chosen=null;view='daily';dailySave();render();window.scrollTo(0,0)}
-const archiveView=()=>header('Impostor','Archive')+archiveHTML({first:FIRST,label:'Day',num:k=>dayNum(k,FIRST),
+const archiveView=()=>header('Impostor','Archive')+archiveHTML({first:FIRST,label:'Day',num:k=>archNum(k,FIRST),
   played:archDay,saved:k=>{const g=load('im-arch',{})[k];return isGame(g)?g:null},done:g=>[pointsOf(g)+' pts',squaresHTML(g)]});
 
 /* ---- Solo: six random countries a game, as many games as you like (im-solo keeps the numbers) ----
@@ -318,7 +318,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li><b>Daily</b>: five rounds, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
   <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. Points only, no km.</li>
   <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Everyone gets the same five rounds and plays at their own pace. Most points win, then the fastest.</li>
-  <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, points only, no km.</li></ul>`}
+  <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, and its km count for that day.</li></ul>`}
 function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Impostor: the sentences are written for Geomingo and checked against encyclopedias and official sources (older days: made from the same data as Countries, Connections and Top 10). Flags in their official shapes from <a href="https://github.com/hjnilsson/country-flags" target="_blank" rel="noopener">hjnilsson/country-flags</a> (from Wikimedia Commons, public domain).</li></ul>`)}
 
 /* ---- home: today's countries on top, then Solo and With friends, as in the other games ---- */

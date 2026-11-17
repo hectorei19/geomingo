@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611181900"></script>
-<script src="../brand/account.js?v=202611201600"></script>
+<script src="../brand/mingo.js?v=202611231000"></script>
+<script src="../brand/account.js?v=202611222200"></script>
 <script src="../brand/party.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -79,7 +79,7 @@
 .ready{display:flex}
 @media (prefers-reduced-motion:no-preference){.silbox.pop{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611201600">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611222100">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -89,7 +89,7 @@
 <script src="countries.js?v=202611120800"></script>
 <script src="silhouette.js?v=202611141100"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611181900"></script>
+<script src="../shared/minigames.js?v=202611221000"></script>
 <!-- online rooms (With friends): Firebase, loaded after the page so today's board shows at once -->
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -225,7 +225,7 @@ function dailyGame(){const d=dailyAll(),diff=DAILY_LV;
 // a board with no lives left is over: the shapes not named yet count as missed (also a board started before the five shared lives)
 function noLives(G){if(!G.over&&!livesLeft(G.qs)){G.qs.forEach(q=>{if(q.st==='play')q.st='wrong'});G.over=true;G.ended=true}return G}
 function dailySave(){if(!D)return;
-  if(D.arch){const a=load('sil-arch',{});a[D.date]=D;store('sil-arch',a);return}
+  if(D.arch){const a=load('sil-arch',{});if(D.over&&!D.pd)D.pd=Geomingo.dayKey();a[D.date]=D;store('sil-arch',a);return}
   const d=dailyAll();d[D.diff]=D;d.over=d.over||D.over;store('sil-daily',d);
   if(D.over){const h=load('sil-hist',{}),day=h[D.date]||{};if(day[D.diff]==null){day[D.diff]=D.qs.filter(q=>q.st==='right').length;h[D.date]=day;store('sil-hist',h);{const mm=load('sil-miss',{});(mm[D.date]=mm[D.date]||{})[D.diff]=D.qs.reduce((n,q)=>n+q.tries.length,0);store('sil-miss',mm)}if(!TESTDAY){Geomingo.clock.stop('silhouette',D.date,rightOf(D)/9);Geomingo.account.done('sil-'+D.diff)}}}}
 function dailyPick(code){const q=D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;
@@ -238,7 +238,7 @@ function dailyPick(code){const q=D.qs[D.sel];if(!q||q.st!=='play'||D.over)return
   render();if(D.over)window.scrollTo(0,0)}
 const rightOf=G=>G.qs.filter(q=>q.st==='right').length;
 const sq=q=>q.st==='right'?(q.tries.length?'🟨':'🟩'):'🟥';
-function dailyShareText(G){return `${Geomingo.share('Silhouette')} #${G.num}${G.arch?' (archive)':''} — ${rightOf(G)}/9\n${[0,3,6].map(i=>G.qs.slice(i,i+3).map(sq).join('')).join('\n')}`}
+function dailyShareText(G){return `${Geomingo.share('Silhouette')} ${Geomingo.archNo(G.num)}${G.arch?' (archive)':''} — ${rightOf(G)}/9\n${[0,3,6].map(i=>G.qs.slice(i,i+3).map(sq).join('')).join('\n')}`}
 const dailyShare=G=>dailyShareText(G)+"\n\nPlay today's Silhouette: "+pageLink();
 // a finished Solo game (Héctor 2026-11-14: Share in every Solo result)
 const soloShare=()=>`${Geomingo.share('Silhouette')} (practice) — ${rightOf(T)}/9\n${[0,3,6].map(i=>T.qs.slice(i,i+3).map(sq).join('')).join('\n')}\n\nPlay Silhouette: `+pageLink();
@@ -246,10 +246,10 @@ const soloShare=()=>`${Geomingo.share('Silhouette')} (practice) — ${rightOf(T)
 const archDay=k=>{const e=load('sil-hist',{})[k];if(!e)return null;const n=Math.max(0,...Object.values(e).filter(x=>typeof x==='number'));return n+'/9'};
 function openArchive(){view='archive';query='';typing=false;render();window.scrollTo(0,0)}
 function playArchive(k){if(archDay(k)){toast('You played this board on its day.');return}
-  const a=load('sil-arch',{});D=noLives(a[k]||{diff:DAILY_LV,date:k,num:dayNum(k,DAILY_FIRST),qs:dailyBoard(k,DAILY_LV),sel:0,over:false,arch:true});
+  const a=load('sil-arch',{});D=noLives(a[k]||{diff:DAILY_LV,date:k,num:archNum(k,DAILY_FIRST),qs:dailyBoard(k,DAILY_LV),sel:0,over:false,arch:true});
   query='';typing=false;view='daily';dailySave();render();window.scrollTo(0,0)}
 const archSq=G=>`<span class="dsq" aria-hidden="true">${G.qs.map(q=>`<i class="${q.st==='right'?(q.tries.length?'mid':'on'):q.st==='wrong'?'bad':''}"></i>`).join('')}</span>`;
-const archiveView=()=>header('Silhou<span>ette</span>','Archive')+archiveHTML({first:DAILY_FIRST,label:'Board',num:k=>dayNum(k,DAILY_FIRST),
+const archiveView=()=>header('Silhou<span>ette</span>','Archive')+archiveHTML({first:DAILY_FIRST,label:'Board',num:k=>archNum(k,DAILY_FIRST),
   played:archDay,saved:k=>load('sil-arch',{})[k]||null,done:g=>[rightOf(g)+'/9',archSq(g)]});
 function boardHTML(G){const sel=G.over?-1:G.sel;
   return `<div class="board9" role="group" aria-label="Today's nine shapes">${G.qs.map((q,i)=>{const cls=[i===sel?'sel':'',q.st==='right'?'right':q.st==='wrong'?'wrong':''].join(' ');
@@ -266,7 +266,7 @@ function verdict(G){const r=rightOf(G),first=G.qs.filter(q=>q.st==='right'&&!q.t
     :{pose:'sad',t:'Rough crossing, this one.',s:r+' of 9. Practice helps.'}}
 function dailyResultHTML(G){const r=rightOf(G),v=verdict(G);
   // an archive game: the coral ticket with the nine shapes inside, Back to archive and Share under it (Héctor 2026-11-16)
-  if(G.arch)return `${Geomingo.archTicket({id:'silhouette',num:G.num,score:r+' of 9',body:`<section class="panel play">${boardHTML(G)}</section>`})}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
+  if(G.arch)return `${Geomingo.archTicket({id:'silhouette',num:G.num,day:G.date,state:G,score:r+' of 9',body:`<section class="panel play">${boardHTML(G)}</section>`})}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns gm-solo-btns"><button class="primary" id="archback" style="flex:1">Back to calendar</button>${SHARE_BTN.replace('Share result','Share')}</div>${Geomingo.archListBtn()}`;
   return `${Geomingo.doneTicket('silhouette',G.num,r+' of 9','next in '+nextIn(),`<section class="panel play">${boardHTML(G)}</section>`)}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns">${nextGameBtn('silhouette')}${SHARE_BTN.replace('Share result','Share')}</div>`}
@@ -276,7 +276,7 @@ const rankingHTML=()=>Geomingo.account.rankingHTML('sil-'+DAILY_LV,{what:'board'
 Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&!D.arch&&D.date===todayKey()){D=dailyGame();liveKey=''}
   if(!typing&&!roomCode&&(view==='home'||view==='daily'&&D&&D.over))render()});
 function openDaily(){D=dailyGame();query='';view='daily';render();window.scrollTo(0,0)}
-function dailyHTML(){let h=header('Silhou<span>ette</span>',(D.arch?'Archive #':'Daily #')+D.num);
+function dailyHTML(){let h=header('Silhou<span>ette</span>',(D.arch?'Archive ':'Daily ')+Geomingo.archNo(D.num));
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
   if(D.over)h+=D.arch?dailyResultHTML(D):dailyResultHTML(D)+rankingHTML();
   else{const q=D.qs[D.sel];
@@ -320,7 +320,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li><b>Daily</b>: nine shapes, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
   <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. 5 lives or <b>Unlimited</b>: pick it next to Practice on the home page. Points only, no km.</li>
   <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Ten shapes, getting harder: 7 north up (the first 3 well known), then 3 turned at a random angle. Everyone gets the same shape at the same time, ${{SECS}} seconds each, and can try as many countries as they like. 10 points a shape; level on points, the faster ranks first.</li>
-  <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, points only, no km.</li></ul>`}
+  <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, and its km count for that day.</li></ul>`}
 function creditsHTML(){return `<ul style="padding-left:18px">
   <li>Borders: <a href="https://github.com/topojson/world-atlas" target="_blank" rel="noopener">world-atlas</a>, from <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> 1:10m (public domain); Vatican City from <a href="https://www.geoboundaries.org" target="_blank" rel="noopener">geoBoundaries</a> (public domain). Each country is drawn on its own map centred on itself, so no shape is stretched or cut by the date line.</li>
   <li>Country names and continents: Countries' data, from <a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a> (ODbL 1.0).</li>

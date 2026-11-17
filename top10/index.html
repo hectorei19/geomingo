@@ -36,8 +36,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611181900"></script>
-<script src="../brand/account.js?v=202611201600"></script>
+<script src="../brand/mingo.js?v=202611231000"></script>
+<script src="../brand/account.js?v=202611222200"></script>
 <script src="../brand/party.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -63,7 +63,7 @@
 .lives i{width:12px;height:12px;border-radius:50%;background:var(--bad)}
 .lives i.off{background:transparent;box-shadow:inset 0 0 0 1.5px var(--rule)}
 .lives .cnt{margin-left:auto;font-family:var(--mono);font-size:.8rem}
-.wrongs{margin:0;font-size:.92rem;color:var(--ink-2)}
+.wrongs{margin:22px 0 0;font-size:.92rem;color:var(--ink-2)}
 .modes{max-width:320px;width:100%;align-self:center}
 /* Geomingo look for the list */
 .t10q{font-family:var(--display);font-weight:600;text-transform:none;letter-spacing:0;font-size:1.6rem;line-height:1.1}
@@ -95,7 +95,7 @@ body.kbon .t10list .mini{width:18px;height:18px}
 body.kbon .kbgu{display:flex;flex-direction:column;align-items:center;gap:14px}
 body.kbon .kbgu #src{align-self:center!important}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611201600">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611222100">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -111,7 +111,7 @@ body.kbon .kbgu #src{align-self:center!important}
 <script src="../shared/data.js?v=202611141100"></script>
 <script src="extra-data.js?v=202611162100"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611181900"></script>
+<script src="../shared/minigames.js?v=202611221000"></script>
 <script>
 /* ---- the rankings ----
    Numbers Countries already uses (DATA and the country data), plus a few figures only Top 10 uses (XDATA,
@@ -264,7 +264,11 @@ const EASY_IDS=['pop-hi','pop-lo','area-hi','area-lo','dens-hi','gdptot-hi','oly
   ...['eu','as','af','am'].flatMap(g=>['pop-hi','area-hi','area-lo','gdptot-hi','olymp-hi','cap-hi','name-hi','name-lo'].map(id=>id+'-'+g))];
 function easyList(key){const ok=EASY_IDS.filter(id=>LISTS.some(l=>l.id===id)).sort(),n=dayNum(key,EASY_FROM)-1,round=Math.floor(n/ok.length);
   return listById(shuffle(ok,rngFrom(seedOf('top10-easy-'+round)))[n%ok.length])}
-function dailyList(key){if(key>=EASY_FROM&&key<=EASY_TO)return easyList(key);const n=dayNum(key,T10_FIRST)-1;
+// Archive days before List #1 (Héctor 2026-11-17: the Archive starts with Countries' first day for every game): easy lists,
+// counted back from the day before List #1
+function beforeList(key){const ok=EASY_IDS.filter(id=>LISTS.some(l=>l.id===id)).sort(),n=dayNum(T10_FIRST,key)-2;
+  return listById(shuffle(ok,rngFrom(seedOf('top10-before')))[n%ok.length])}
+function dailyList(key){if(key>=EASY_FROM&&key<=EASY_TO)return easyList(key);if(key<T10_FIRST)return beforeList(key);const n=dayNum(key,T10_FIRST)-1;
   if(n<FIRST_ROUND.length)return shuffle(FIRST_ROUND,rngFrom(seedOf('top10-cycle-0')))[Math.max(n,0)];
   const m=n-FIRST_ROUND.length,r2=round2();
   if(m<r2.length)return listById(r2[m]);
@@ -288,7 +292,7 @@ function soloList(){const seen=new Set(load('t10-seen',[])),cur=S&&S.list,today=
 function markSeen(id){const s=load('t10-seen',[]);if(!s.includes(id)){s.push(id);store('t10-seen',s)}}
 function newGame(mode,l,day){
   const S={mode,list:l.id,top:topCodes(l),found:[],wrong:[],lives:LIVES,over:false,won:false};
-  if(mode==='daily'||mode==='archive'){S.date=day||todayKey();S.num=dayNum(S.date,T10_FIRST)}
+  if(mode==='daily'||mode==='archive'){S.date=day||todayKey();S.num=archNum(S.date,T10_FIRST)}
   // Practice can be Unlimited (the home page's Practice screen): wrong answers are only counted
   else if(mode==='free'&&!Geomingo.lives())S.nolives=1;
   return S}
@@ -305,7 +309,7 @@ const dailySaved=()=>{const d=load('t10-daily',null);return d&&d.date===todayKey
 function save(){if(!S||S.mode==='online')return;
   if(S.mode==='daily'){store('t10-daily',{date:S.date,over:S.over,S});
     if(S.over){const h=load('t10-hist',{});if(!h[S.date]){h[S.date]={f:S.found.length,l:S.lives};store('t10-hist',h);if(!TESTDAY){Geomingo.clock.stop('top10',S.date,S.found.length/10);Geomingo.account.done('top10')}}}}
-  else if(S.mode==='archive'){const a=load('t10-arch',{});a[S.date]=S;store('t10-arch',a)}
+  else if(S.mode==='archive'){const a=load('t10-arch',{});if(S.over&&!S.pd)S.pd=Geomingo.dayKey();a[S.date]=S;store('t10-arch',a)}
   else{if(S.over&&!S.logged){S.logged=1;logSolo('t10-solo',{p:S.found.length>=10?1:0,f:S.found.length,best:S.found.length})}
     store('t10-free',S)}}
 // today's game, saved or new (a new one is saved at the first answer)
@@ -324,7 +328,7 @@ function openArchive(){view='archive';query='';render();window.scrollTo(0,0)}
 function playArchive(k){if(archDay(k)){toast('You played this list on its day.');return}
   const a=load('t10-arch',{});view='game';mode='archive';
   S=a[k]&&listById(a[k].list)?a[k]:newGame('archive',dailyList(k),k);query='';save();render();window.scrollTo(0,0)}
-const archiveView=()=>header('Top <span>10</span>','Archive')+archiveHTML({first:T10_FIRST,label:'List',num:k=>dayNum(k,T10_FIRST),
+const archiveView=()=>header('Top <span>10</span>','Archive')+archiveHTML({first:T10_FIRST,label:'List',num:k=>archNum(k,T10_FIRST),
   played:archDay,saved:k=>load('t10-arch',{})[k]||null,
   done:g=>[g.found.length+'/10',`<span class="dsq" style="grid-template-columns:repeat(5,1fr)" aria-hidden="true">${tiles(g).map(on=>`<i class="${on?'on':''}"></i>`).join('')}</span>`]});
 
@@ -356,7 +360,7 @@ function guess(code){if(!S||S.over)return;const c=byCode[code];
 const tiles=st=>st.top.length>10?Array.from({length:10},(_,i)=>i<st.found.length):st.top.map(c=>st.found.includes(c));
 function shareText(){const l=listById(S.list);
   const sq=tiles(S).map(on=>on?'🟩':'⬜').join(''),hearts=S.nolives?'':'❤️'.repeat(S.lives)+'🖤'.repeat(LIVES-S.lives);
-  return `${Geomingo.share('Top 10')+(S.mode==='daily'?' #'+S.num:S.mode==='archive'?' #'+S.num+' (archive)':(S.nolives?' (practice, unlimited)':' (practice)'))} — ${S.found.length}/10\n${l.title}\n${sq}${hearts?' '+hearts:''}`}
+  return `${Geomingo.share('Top 10')+(S.mode==='daily'?' #'+S.num:S.mode==='archive'?' '+Geomingo.archNo(S.num)+' (archive)':(S.nolives?' (practice, unlimited)':' (practice)'))} — ${S.found.length}/10\n${l.title}\n${sq}${hearts?' '+hearts:''}`}
 const shareLink=()=>S.mode==='free'?pageLink('?l='+S.list):pageLink();
 const shareMessage=()=>shareText()+'\n\n'+(S.mode==='free'?'Play this list: ':"Play today's Top 10: ")+shareLink();
 
@@ -637,7 +641,7 @@ function render(){
   if(view==='archive'){app.innerHTML=archiveView();bind();return}
   const l=listById(S&&S.list);
   if(!S||!l){app.innerHTML=header('Top <span>10</span>','')+`<section class="panel"><p class="hint">Could not load the list. Try again later.</p></section>`;bind();return}
-  let h=header('Top <span>10</span>',S.mode==='daily'?'Daily #'+S.num:S.mode==='archive'?'Archive #'+S.num:'',0,S.mode==='free');
+  let h=header('Top <span>10</span>',S.mode==='daily'?'Daily #'+S.num:S.mode==='archive'?'Archive '+Geomingo.archNo(S.num):'',0,S.mode==='free');
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
   // the ticket, as in every game: Mingo on top, then who is travelling, countries found and lives left
   const cell=Geomingo.tk,tk=()=>Geomingo.ticket(moodHTML(tKey(),'pass','10 stamps to win.',S.nolives?'In any order. Unlimited: play until you find them all.':'In any order. A country outside the top 10 costs a life.'),
@@ -665,13 +669,13 @@ function resultHTML(body){const v=verdict();
   if(S.mode==='daily')return `${Geomingo.doneTicket('top10',S.num,S.found.length+' of 10','next in '+nextIn(),body)}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns">${nextGameBtn('top10')}${SHARE_BTN.replace('Share result','Share')}</div>`;
   // an archive game: the coral ticket with the answers inside, Back to archive and Share under it (Héctor 2026-11-16)
-  if(S.mode==='archive'&&body!==undefined)return `${Geomingo.archTicket({id:'top10',num:S.num,score:S.found.length+' of 10',detail:S.wrong.length+' mistake'+(S.wrong.length===1?'':'s'),body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
+  if(S.mode==='archive'&&body!==undefined)return `${Geomingo.archTicket({id:'top10',num:S.num,day:S.date,state:S,score:S.found.length+' of 10',detail:S.wrong.length+' mistake'+(S.wrong.length===1?'':'s'),body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns gm-solo-btns"><button class="primary" id="archback" style="flex:1">Back to calendar</button>${SHARE_BTN.replace('Share result','Share')}</div>${Geomingo.archListBtn()}`;
   // a finished Solo list: the pink ticket with the list inside, then New list and Share (Héctor 2026-11-14)
   if(S.mode==='free'){const st=load('t10-solo',{n:0}),m=S.wrong.length;
     return `${Geomingo.soloTicket({id:'top10',what:S.nolives?'Unlimited':LIVES+' lives',score:S.found.length+' of 10',best:'Best: '+Math.max(st.best||0,S.found.length)+' of 10',detail:m+' mistake'+(m===1?'':'s'),body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns gm-solo-btns"><button class="primary" id="again" style="flex:1">New list</button>${SHARE_BTN.replace('Share result','Share')}</div>`}
-  return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Top 10 #'+S.num:S.mode==='archive'?'Archive · Top 10 #'+S.num:'Practice list'}</span><p class="big">${S.found.length} of 10</p>
+  return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Top 10 #'+S.num:S.mode==='archive'?'Archive · Top 10 '+Geomingo.archNo(S.num):'Practice list'}</span><p class="big">${S.found.length} of 10</p>
     <p class="hint">${S.won?(S.nolives?`You named the whole list with ${S.wrong.length} mistake${S.wrong.length===1?'':'s'}.`:`You named the whole list with ${S.lives} li${S.lives===1?'fe':'ves'} left.`):S.lives?'The full list is below.':'No lives left. The full list is below.'} ${S.mode==='daily'?`Next list in ${nextIn()}.`:S.mode==='archive'?"Archive games don't count for the ranking or your streak.":''}</p>
     <pre class="sharebox" id="share">${esc(shareText())}</pre>
     ${S.mode==='daily'?`${SHARE_BTN}<div class="row-btns sharerow">${nextGameBtn('top10')}</div>
@@ -699,7 +703,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li><b>Daily</b>: one list, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
   <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. 5 lives or <b>Unlimited</b>: pick it next to Practice on the home page. Points only, no km.</li>
   <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. You take turns, 30 s each, and a random player starts. A country in the top 10 scores 10; one outside, <b>Pass</b> or running out of time passes the turn. The game ends when the ten are found or everyone passes in a row. Most points win.</li>
-  <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, points only, no km.</li></ul>`}
+  <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, and its km count for that day.</li></ul>`}
 // tapping a suggestion does not take the focus from the box, so the phone keyboard stays open
 function drawSugg(){const u=$('sugg');if(u){u.innerHTML=suggHTML();u.querySelectorAll('[data-g]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>guess(b.dataset.g)})}}
 function bind(){

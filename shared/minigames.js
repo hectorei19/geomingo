@@ -9,6 +9,8 @@ const TESTQ=(()=>{try{return new URLSearchParams(location.search)}catch(e){retur
 const TESTDAY=TESTQ.has('test')&&/^\d{4}-\d{2}-\d{2}$/.test(TESTQ.get('day')||'')?TESTQ.get('day'):null;
 function todayKey(){if(TESTDAY)return TESTDAY;const p=madridParts(Date.now());return p.year+'-'+p.month+'-'+p.day}
 const dayNum=(key,first)=>Math.round((Date.parse(key+'T00:00Z')-Date.parse(first+'T00:00Z'))/864e5)+1;
+// an Archive day's number: its daily number, or its date ("15 Oct") for a day before the game's first daily (Geomingo.ARCH_FROM)
+const archNum=(key,first)=>{const n=dayNum(key,first);return n>=1?n:Geomingo.dateText(key,{day:'numeric',month:'short'})};
 function msToNextDay(){const p=madridParts(Date.now());return (24*3600-(+p.hour*3600+ +p.minute*60+ +p.second))*1000}
 const nextIn=()=>{const ms=msToNextDay();return `${Math.floor(ms/36e5)} h ${Math.floor(ms%36e5/6e4)} min`};
 // the same seed for everyone on a given day
@@ -85,15 +87,15 @@ function dayofHTML(o,k){const p=String(o.played(k)||''),g=Geomingo.GAMES.find(x=
   return Geomingo.archTicket({id:g?g.id:'',num:o.num(k),score,detail:'Played on its day',note:date,
       body:`<p class="hint" style="margin:0">Each day can be played once, so this one is done.</p>`})+
     `<div class="gm-done-btns gm-solo-btns"><button class="primary" id="archback" style="flex:1">Back to calendar</button></div>${Geomingo.archListBtn()}`}
-function archiveHTML(o){if(DAYOF)return dayofHTML(o,DAYOF);const items=archDates(o.first,o.played(todayKey())).map(k=>{const n=o.num(k),g=o.saved(k),p=o.played(k),
+function archiveHTML(o){if(DAYOF)return dayofHTML(o,DAYOF);const items=archDates(Geomingo.ARCH_FROM||o.first,o.played(todayKey())).map(k=>{const n=o.num(k),g=o.saved(k),p=o.played(k),
       date=new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
     let st,sq='';
     if(g&&g.over){const [t,q]=o.done(g);st=`<span class="as done">${t}</span>`;sq=q||''}
     else if(p)st=`<span class="as done">${esc(p)}</span>`;
     else st=`<span class="as">${g?'In progress':'Play'}</span>`;
-    return `<li><button data-arch="${k}"><span class="an">#${n}</span><span class="ad"><b>${o.label} #${n}</b><small>${date}</small></span>${sq}${st}</button></li>`}).join('');
+    return `<li><button data-arch="${k}"><span class="an">${typeof n==='number'?'#'+n:'·'}</span><span class="ad"><b>${o.label} ${Geomingo.archNo(n)}</b><small>${date}</small></span>${sq}${st}</button></li>`}).join('');
   return `<section class="panel"><a class="linkbtn" href="${Geomingo.HOME}#archive" style="display:inline-block;margin-bottom:6px">← Calendar of all games</a><div class="backline"><span class="ht">Archive</span></div>
-    <p class="hint">Play the past ${o.label.toLowerCase()}s you missed. The ones you played on their day are already done. One try each, on this device. Archive games don't count for the daily ranking or your streak.</p>
+    <p class="hint">Play the past ${o.label.toLowerCase()}s you missed. The ones you played on their day are already done. One try each, on this device. Their km count for their own day, in your GeoPass and the ranking, but not for your streak.</p>
     ${items?`<ul class="arch">${items}</ul>`:`<p class="hint">No past ${o.label.toLowerCase()}s yet. Come back tomorrow.</p>`}</section>`}
 // Menu → Archive on the home page opens a past day (?day=…): that day's archive game, or its result when it was played on its day
 function openDay(k){if(archDay(k)){DAYOF=k;openArchive();return}playArchive(k)}

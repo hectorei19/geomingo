@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611181900"></script>
-<script src="../brand/account.js?v=202611201600"></script>
+<script src="../brand/mingo.js?v=202611231000"></script>
+<script src="../brand/account.js?v=202611222200"></script>
 <script src="../brand/party.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -87,7 +87,7 @@
 .cpre{display:flex;gap:6px;width:100%}
 .cpre i{flex:1;aspect-ratio:3/4;border-radius:8px;border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--mono);font-size:.8rem;color:var(--ink-2)}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611201600">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611222100">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -98,7 +98,7 @@
 <script src="../data/flags.js?v=202611160500"></script>
 <script src="../shared/data.js?v=202611141100"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611181900"></script>
+<script src="../shared/minigames.js?v=202611221000"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
@@ -279,7 +279,7 @@ function toCl3(S){if(S.over||!Geomingo.cl3(S.date)||S.qs.every(q=>q.x3))return;S
 function dailyGame(){const d=dailySaved();if(d&&d.S){if(d.S.over)d.S.left=null;toCl3(d.S);return d.S}
   return {mode:'daily',date:todayKey(),num:dayNum(todayKey(),FIRST),qs:dailyQs(todayKey()),sel:0,over:false}}
 function dailySave(){if(!D)return;
-  if(D.mode==='archive'){const a=load('cu-arch',{});a[D.date]=D;store('cu-arch',a);if(D.over)logHist(D);return}
+  if(D.mode==='archive'){const a=load('cu-arch',{});if(D.over&&!D.pd)D.pd=Geomingo.dayKey();a[D.date]=D;store('cu-arch',a);if(D.over)logHist(D);return}
   store('cu-daily',{date:D.date,over:D.over,S:D});
   if(D.over&&logHist(D)&&!TESTDAY){Geomingo.clock.stop('customs',D.date,rightOf(D)/PER);Geomingo.account.done('customs')}}
 // a finished daily (on its day) goes into the history once: {p points, r travellers named, m wrong answers}
@@ -290,7 +290,7 @@ function dailyPick(code){const q=D.qs[D.sel];if(!q||q.st!=='play'||D.over)return
   feedback(q,res);advance(D);dailySave();render();if(res!=='wrong')showLeft()}
 function dailyNextClue(){const q=D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;nextClue(q);
   advance(D);dailySave();render();if(q.st!=='play')showLeft()}
-function dailyShareText(G){return `${Geomingo.share('Customs')} #${G.num}${G.mode==='archive'?' (archive)':''} — ${pointsOf(G)} points\n${G.qs.map(sq).join('')}`}
+function dailyShareText(G){return `${Geomingo.share('Customs')} ${Geomingo.archNo(G.num)}${G.mode==='archive'?' (archive)':''} — ${pointsOf(G)} points\n${G.qs.map(sq).join('')}`}
 const dailyShare=G=>dailyShareText(G)+"\n\nPlay today's Customs: "+pageLink();
 // a finished Solo game (Héctor 2026-11-14: Share in every Solo result)
 const soloShare=G=>`${Geomingo.share('Customs')} (practice) — ${pointsOf(G)} points\n${G.qs.map(sq).join('')}\n\nPlay Customs: `+pageLink();
@@ -301,7 +301,7 @@ function verdict(G){const p=pointsOf(G),r=rightOf(G);
 // the result, on top of the page, as in every game
 function resultHTML(G){const p=pointsOf(G),v=verdict(G);
   // an archive game: the coral ticket with the day's answers inside, Back to archive and Share under it (Héctor 2026-11-16)
-  if(G.mode==='archive')return `${Geomingo.archTicket({id:'customs',num:G.num,score:p+' points',detail:rightOf(G)+' of 5 named',body:summaryHTML(G)})}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
+  if(G.mode==='archive')return `${Geomingo.archTicket({id:'customs',num:G.num,day:G.date,state:G,score:p+' points',detail:rightOf(G)+' of 5 named',body:summaryHTML(G)})}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns gm-solo-btns"><button class="primary" id="archback" style="flex:1">Back to calendar</button>${SHARE_BTN.replace('Share result','Share')}</div>${Geomingo.archListBtn()}`;
   return `${Geomingo.doneTicket('customs',G.num,p+' points','next in '+nextIn(),summaryHTML(G))}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns">${nextGameBtn('customs')}${SHARE_BTN.replace('Share result','Share')}</div>`}
@@ -317,7 +317,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     :[G.qs.some(x=>x.st!=='play')||q.k>1?'think':'pass','A traveller at the desk.','Read the clues and name the country. Every new clue lowers the points.'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
     tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Desk',(i+1)+'/'+PER)+tk(mode==='daily'?'km':'Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-pts'),{mode,num:G.num})}
-function dailyHTML(){const arch=D.mode==='archive';let h=header('Customs',(arch?'Archive #':'Daily #')+D.num);
+function dailyHTML(){const arch=D.mode==='archive';let h=header('Customs',(arch?'Archive ':'Daily ')+Geomingo.archNo(D.num));
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
   if(D.over&&D.left==null)return h+resultHTML(D)+(D.mode==='archive'?'':rankingHTML());
   return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel">${playHTML(D)}</section>`+quickRules()}
@@ -327,9 +327,9 @@ const cuAverage=()=>{const v=Object.entries(load('cu-hist',{}));return v.length?
 const archDay=k=>{const e=load('cu-hist',{})[k];return e?Geomingo.KM.cl3(e.r,e.p,k,e.x3,PER)+' pts':null};
 function openArchive(){view='archive';query='';typing=false;render();window.scrollTo(0,0)}
 function playArchive(k){if(archDay(k)){toast('You played this day already.');return}
-  const a=load('cu-arch',{});D=a[k]||{mode:'archive',date:k,num:dayNum(k,FIRST),qs:dailyQs(k),sel:0,over:false};
+  const a=load('cu-arch',{});D=a[k]||{mode:'archive',date:k,num:archNum(k,FIRST),qs:dailyQs(k),sel:0,over:false};
   query='';typing=false;view='daily';dailySave();render();window.scrollTo(0,0)}
-const archiveView=()=>header('Customs','Archive')+archiveHTML({first:FIRST,label:'Day',num:k=>dayNum(k,FIRST),
+const archiveView=()=>header('Customs','Archive')+archiveHTML({first:FIRST,label:'Day',num:k=>archNum(k,FIRST),
   played:archDay,saved:k=>load('cu-arch',{})[k]||null,done:g=>[pointsOf(g)+' pts',squaresHTML(g)]});
 
 /* ---- Solo: five random travellers, made like the daily set, as many games as you like (cu-solo keeps the numbers) ---- */
@@ -374,7 +374,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li><b>Daily</b>: five travellers, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
   <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. Points only, no km.</li>
   <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Everyone gets the same five travellers (well-known countries) and plays at their own pace. Most points win, then the fastest.</li>
-  <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, points only, no km.</li></ul>`}
+  <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, and its km count for that day.</li></ul>`}
 function creditsHTML(){return DATA_CREDITS}
 
 /* ---- home: today's travellers on top, then Solo and With friends, as in the other games ---- */

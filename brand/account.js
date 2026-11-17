@@ -148,6 +148,8 @@ const NAME_DAYS=30,NAME_MS=NAME_DAYS*864e5;
 const ACC={a:'àáâäãå',e:'èéêë',i:'ìíîï',o:'òóôöõ',u:'ùúûü',n:'ñ',c:'ç',y:'ýÿ'};   // the same list is in the Firebase rules
 const nameKey=v=>{let s=String(v||'').toLowerCase().split(' ').join('');for(const [b,l] of Object.entries(ACC))for(const ch of l)s=s.split(ch).join(b);return s};
 const cleanName=v=>String(v||'').replace(/\s+/g,' ').trim();
+// how every name is shown (Héctor 2026-11-16): first letter of each word in capitals, the rest small ("AGST" → "Agst")
+const fmtName=v=>cleanName(v).toLowerCase().replace(/(^|\s)(\S)/g,(m,a,b)=>a+b.toUpperCase());
 const NAME_OK=/^[A-Za-z0-9 àáâäãåèéêëìíîïòóôöõùúûüñçýÿÀÁÂÄÃÅÈÉÊËÌÍÎÏÒÓÔÖÕÙÚÛÜÑÇÝ]+$/;
 // a few words nobody can have in their name (checked inside the key, so spaces and accents don't hide them)
 const BAD=['fuck','shit','cunt','nigger','nigga','fagot','faggot','bitch','whore','slut','asshole','pussy','penis','retard','hitler','nazi','porn',
@@ -164,12 +166,35 @@ function nameProblem(v){const n=cleanName(v),k=nameKey(n);
 let NAMES=json('gm-pnames')||{},MYP=null;
 function watchNames(){db.ref('pnames').on('value',s=>{const v=s.val()||{},m={};
   for(const [id,p] of Object.entries(v))if(p&&typeof p.n==='string')m[id]=p.n;
-  const same=JSON.stringify(m)===JSON.stringify(NAMES);NAMES=m;if(!same){put('gm-pnames',m);changed('names')}},()=>{})}
-const nameOf=(id,fallback)=>(id&&NAMES[id])||fallback||'Player';
-function setName(n){name=n;ls.set('bl-user',n);ls.set('cc-user',n);if(user)remember();G.refreshPass()}
+  namesIn=true;const same=JSON.stringify(m)===JSON.stringify(NAMES);NAMES=m;flushFill();if(!same){put('gm-pnames',m);changed('names')}},()=>{})}
+const nameOf=(id,fallback)=>fmtName((id&&NAMES[id])||fallback)||'Player';
+// the names this page already knows (everyone's current name, the rankings seen here): a name one of them uses
+// counts as taken even before it is in names/ (players from before 2026-11-16 who haven't come back yet)
+function knownNames(){const m={};const add=(id,n)=>{if(id&&n&&!m[id])m[id]=String(n)};
+  for(const id in NAMES)add(id,NAMES[id]);
+  for(const g in LB)for(const id in (LB[g]&&LB[g].rows)||{})add(id,LB[g].rows[id].name);
+  const r=json('gm-rank');if(r&&Array.isArray(r.ppl))r.ppl.forEach(p=>add(p.id,p.n0||p.name));
+  return m}
+/* players from before names were unique are put in names/ by whoever sees them in a ranking (the rules check the name
+   is the one in their account), so their names are taken at once, not only when they come back. Once per player per visit. */
+const filled=new Set();let toFill=[],namesIn=false;
+const flushFill=()=>{if(toFill.length&&uid()&&namesIn){const l=toFill;toFill=[];backfill(l)}};
+function backfill(list){if(TEST||!db)return;if(!uid()||!namesIn){toFill=toFill.concat(list);return}let n=0;
+  for(const [id,nm] of list){if(!id||filled.has(id)||NAMES[id]||id===uid()||n>=40)continue;filled.add(id);
+    const c=cleanName(nm),k=nameKey(c);if(c!==nm||!NAME_OK.test(c)||!k||k.length>16)continue;n++;
+    db.ref().update({['names/'+k]:id,['pnames/'+id]:{n:c,k,t:0}}).catch(()=>{})}}
+// once, from the owner's account: every player in every ranking since the first daily game (15 Oct 2026)
+const OWNER='WjzTvjoYtjcshmTn4P7Lg5yKsdE3',LB_PATHS=['leaderboard','lb/capitals','lb/connections','lb/top10','lb/sil-easy','lb/sil-normal','lb/sil-hard','lb/customs','lb/flagpie','lb/impostor','lb/compass'];
+function sweepNames(){if(uid()!==OWNER||ls.get('gm-namesweep')||TEST)return;const days=[];
+  for(let t=Date.parse('2026-10-15T12:00Z');t<=Date.now();t+=864e5)days.push(new Date(t).toISOString().slice(0,10));
+  const seen={};Promise.all(days.flatMap(d=>LB_PATHS.map(p=>db.ref(p+'/'+d).once('value').then(s=>{const v=s.val()||{};
+    for(const id in v)if(v[id]&&v[id].name&&!seen[id])seen[id]=String(v[id].name)}).catch(()=>{}))))
+   .then(()=>{const L=Object.entries(seen);let i=0;const step=()=>{const part=L.slice(i,i+40);i+=40;if(!part.length){ls.set('gm-namesweep','1');return}
+     part.forEach(x=>filled.delete(x[0]));backfill(part);setTimeout(step,1500)};step()})}
+function setName(n){name=fmtName(n);ls.set('bl-user',n);ls.set('cc-user',n);if(user)remember();G.refreshPass()}
 function loadName(){const id=uid();
   db.ref('users/'+id+'/profile').once('value').then(s=>{if(uid()!==id)return;const v=s.val();
-    if(v&&v.name){setName(v.name);claimOld(v.name)}else{holdOff();if(!OWN)askName()}
+    if(v&&v.name){setName(v.name);claimOld(v.name);sweepNames();flushFill()}else{holdOff();if(!OWN)askName()}
     syncAll();changed()}).catch(()=>holdOff())}
 // a name chosen before names were unique: it is reserved for its player the first time they come back,
 // unless someone else got it first (then they keep showing it until they change it)
@@ -178,10 +203,11 @@ function claimOld(n){const id=uid();
     const c=cleanName(n),k=nameKey(c);if(c!==n||!NAME_OK.test(c)||!k||k.length>16)return;
     db.ref().update({['names/'+k]:id,['pnames/'+id]:{n:c,k,t:0}}).then(()=>{MYP={n:c,k,t:0}}).catch(()=>{})}).catch(()=>{})}
 // is a name free? resolves 'free', 'mine' or 'taken'
-function nameFree(v){const k=nameKey(cleanName(v));
-  return db.ref('names/'+k).once('value').then(s=>{const w=s.val();return !w?'free':w===uid()?'mine':'taken'})}
+function nameFree(v){const k=nameKey(cleanName(v)),me=uid(),K=knownNames();
+  if(Object.entries(K).some(([id,n])=>id!==me&&nameKey(cleanName(n))===k))return Promise.resolve('taken');
+  return db.ref('names/'+k).once('value').then(s=>{const w=s.val();return !w?'free':w===me?'mine':'taken'})}
 // saves a name for the account: the first one (t 0) or a change (t now). Resolves the name, or rejects with a message
-function claimName(v,first){const id=uid(),n=cleanName(v),k=nameKey(n),bad=nameProblem(n);
+function claimName(v,first){const id=uid(),n=fmtName(v),k=nameKey(n),bad=nameProblem(n);
   if(bad)return Promise.reject(new Error(bad));if(!id||!db)return Promise.reject(new Error('Sign in first.'));
   return nameFree(n).then(f=>{if(f==='taken')throw new Error('Taken. Try another name.');
     const up={['names/'+k]:id,['pnames/'+id]:{n,k,t:first?0:TS()},['users/'+id+'/profile']:{name:n}};
@@ -208,10 +234,10 @@ function nameWindow(first){const cur=first?((user.displayName||'').trim().split(
   const st=box.querySelector('.gm-nmst'),btn=box.querySelector('[data-gm-act="savename"]');let ask=0,tm=0;
   const show=(cls,t,okay)=>{st.className='gm-nmst'+(cls?' '+cls:'');st.textContent=t;inp.classList.toggle('bad',cls==='bad');inp.classList.toggle('good',cls==='good');btn.disabled=!okay};
   const check=()=>{clearTimeout(tm);const n=cleanName(inp.value),bad=nameProblem(n),me=++ask;
-    if(!first&&n===name){show('','This is your name now.',false);return}
+    if(!first&&fmtName(n)===name){show('','This is your name now.',false);return}
     if(bad){show(n?'bad':'',n?'✗ '+bad:'',false);return}
     show('','Checking…',false);
-    tm=setTimeout(()=>nameFree(n).then(f=>{if(me!==ask)return;f==='taken'?show('bad','✗ Taken. Try another name.',false):show('good','✓ '+n+' is free',true)})
+    tm=setTimeout(()=>nameFree(n).then(f=>{if(me!==ask)return;f==='taken'?show('bad','✗ Taken. Try another name.',false):show('good','✓ '+fmtName(n)+(f==='mine'?' is yours':' is free'),true)})
       .catch(()=>{if(me===ask)show('','',true)}),300)};
   const save=()=>{if(btn.disabled)return;btn.disabled=true;
     (first?firstName(inp.value):claimName(inp.value)).then(()=>{G.closeWindow();if(first&&!OWN)Object.keys(ADAPT).forEach(syncGame);changed()})
@@ -224,7 +250,7 @@ function changeMyName(){const id=uid();if(!id||!db){say('One moment, signing you
   db.ref('pnames/'+id).once('value').then(s=>{if(uid()!==id)return;MYP=s.val();nameWindow(false)}).catch(()=>nameWindow(false))}
 
 /* ---- keeping the account and this device in step ---- */
-function syncAll(){if(!uid()||!db)return;syncPass();syncDays();if(!OWN){Object.keys(ADAPT).forEach(syncGame);syncGrid('daily','bl-hist');syncGrid('capitals/daily','cc-hist')}}
+function syncAll(){if(!uid()||!db)return;syncPass();syncDays();archRank();if(!OWN){Object.keys(ADAPT).forEach(syncGame);syncGrid('daily','bl-hist');syncGrid('capitals/daily','cc-hist')}}
 // Countries and Capitals keep their days in the account themselves (users/<uid>/daily, users/<uid>/capitals/daily), but only
 // when you open them: here (the home page, the other games) the account's days are copied to this device too,
 // so a grid played on another device shows as played everywhere at once. Only the stats line, never the whole game (j).
@@ -272,6 +298,19 @@ function record(g){const id=uid(),A=ADAPT[g],k=T(),t=A&&A.today();if(!id||!db||T
   db.ref('users/'+id+'/hist/'+g+'/'+k).transaction(cur=>cur?undefined:entry)
     .then(x=>{if(x.committed)submit(g,k,t.r);else syncGame(g)}).catch(()=>{})}
 function done(g){G.stat('fin','daily');if(uid())record(g);else changed()}
+/* ---- archive games join the ranking of their own day (Héctor 2026-11-16: "suman puntos para el día que tocaba") ----
+   every finished archive game on this device (G.ARL: its ranking path and row) goes once to lb/<game>/<day>/<uid>, marked
+   ar:1 with pd (the day it was played). The rules keep one row per account and day, so a day already there stays as it is.
+   gm-archlb {u, s: {path/day: 1}}: what was sent (or refused) from here. Rows marked ar give no medal or place (featsOf, placeIn). */
+let archBusy=false;
+function archRank(){const id=uid();if(!id||!db||TEST||!name||archBusy||!G.ARL)return;const k=T(),c=json('gm-archlb'),S=c&&c.u===id&&c.s?c:{u:id,s:{}},todo=[];
+  G.GAMES.forEach(g=>{const f=G.ARL[g.id],a=f&&g.arch&&json(g.arch);if(!a||typeof a!=='object')return;
+    for(const d in a){const x=a[d];if(!G.archDone(x)||!/^\d{4}-\d{2}-\d{2}$/.test(d)||d>=k)continue;const key=f[0](x)+'/'+d;if(!S.s[key])todo.push([key,f[1](x),x.pd])}});
+  if(!todo.length)return;archBusy=true;
+  const mark=key=>{const c2=json('gm-archlb'),M=c2&&c2.u===id&&c2.s?c2:{u:id,s:{}};M.s[key]=1;put('gm-archlb',M)};
+  Promise.all(todo.map(([key,r,pd])=>db.ref(key+'/'+id).set(Object.assign({name:name.slice(0,16),t:TS(),ar:1},r,/^\d{4}-\d{2}-\d{2}$/.test(pd||'')?{pd}:{}))
+    .then(()=>mark(key),e=>{if(/permission/i.test(String(e&&(e.code||e.message))))mark(key)})))
+    .then(()=>{archBusy=false;if(uid()===id)changed()})}
 
 /* ---- opening a game on a device that was signed in last time: today's game stays behind "Opening today's game…"
    until the account's game of today has come (at most 5 s), so an empty game never flashes before the one played
@@ -300,7 +339,7 @@ function submit(g,k,r){const id=uid();if(!id||!name||TEST||k!==T())return;const 
   db.ref('lb/'+g+'/'+k+'/'+id).set(Object.assign({name:name.slice(0,16),s:r.s,m:r.m||0,t:TS()},r.r!=null?{r:r.r}:{},r.x3?{x3:1}:{},sec?{sec}:{})).catch(()=>{})}
 function watch(g){if(!ok||TEST)return;const k=T();if(lbRef[g]&&lbRef[g].day===k)return;
   if(lbRef[g])lbRef[g].off();if(!(LB[g]&&LB[g].date===k))LB[g]={date:k,rows:null};lbRef[g]=db.ref('lb/'+g+'/'+k);lbRef[g].day=k;
-  lbRef[g].on('value',s=>{LB[g]={date:k,rows:s.val()||{}};keepLB(g);changed()},()=>{LB[g]={date:k,rows:null,off:true};changed()})}
+  lbRef[g].on('value',s=>{LB[g]={date:k,rows:s.val()||{}};keepLB(g);backfill(Object.entries(LB[g].rows).map(([id,r])=>[id,r&&r.name]));changed()},()=>{LB[g]={date:k,rows:null,off:true};changed()})}
 // from G.KM_FROM the ranking is by the game's points (the same table as the km), then fewer mistakes, then who finished first
 const PTS={connections:r=>G.cxPts(r.s,r.m),top10:r=>G.KM.top10(r.s,r.m),'sil-easy':r=>G.KM.sil(r.s,r.m),'sil-normal':r=>G.KM.sil(r.s,r.m),'sil-hard':r=>G.KM.sil(r.s,r.m),
   customs:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),flagpie:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),compass:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),impostor:r=>G.KM.imp(r.r,r.s,T(),r.x3)};
@@ -335,7 +374,7 @@ const FEATS=[['borderline','leaderboard','bl-hist',r=>(+r.c||0)>=8,e=>e&&e.f!==0
   ['compass','lb/compass','cm-hist',(r,d)=>(+r.s||0)>=(G.clNew(d,r.x3)?50:13),e=>!!e]];
 let featBusy=false;
 const featStore=me=>{const c=json('gm-feats');return c&&c.u===me&&c.r?c:{u:me,r:{}}};
-function featsOf(rows,me,half){const L=Object.entries(rows||{}).map(([id,v])=>Object.assign({id},v)),i=L.slice().sort(lbOrder).findIndex(r=>r.id===me);
+function featsOf(rows,me,half){const L=Object.entries(rows||{}).map(([id,v])=>Object.assign({id},v)).filter(r=>!r.ar),i=L.slice().sort(lbOrder).findIndex(r=>r.id===me);
   const q=L.filter(half),mine=L.find(r=>r.id===me),ok=!!mine&&half(mine),two=q.length>=2;
   const first=ok&&two&&q.reduce((a,b)=>(+b.t||Infinity)<(+a.t||Infinity)?b:a).id===me;
   const tq=q.filter(r=>typeof r.sec==='number'&&r.sec>0);
@@ -357,7 +396,7 @@ function scanFeats(){const me=uid();if(!me||!db||TEST||featBusy)return;const c=f
 const RK={};
 function ranksStore(){const id=meId(),c=json('gm-ranks');return c&&c.u===id&&c.r?c:{u:id,r:{}}}
 const lbOrder=(a,b)=>b.s-a.s||(a.m||0)-(b.m||0)||(b.c||0)-(a.c||0)||(a.t||0)-(b.t||0);
-function placeIn(rows,me){const l=Object.entries(rows||{}).map(([id,v])=>Object.assign({id},v)).sort(lbOrder),i=l.findIndex(r=>r.id===me);
+function placeIn(rows,me){const l=Object.entries(rows||{}).map(([id,v])=>Object.assign({id},v)).filter(r=>!r.ar).sort(lbOrder),i=l.findIndex(r=>r.id===me);
   return [i<0?0:i+1,l.length]}
 // every day you played: [place (0: not in it), players], today's from the live ranking; null while the account is unknown
 function places(lbs){const me=meId();if(!me||!ok)return null;const c=ranksStore(),k=T(),out=[];let ask=false;
@@ -507,6 +546,7 @@ const FAQ=[
   ['When do new games come out?','Every day at midnight CET. Everyone in the world gets the same puzzles that day.'],
   ['How do I play?','Tap a game in Today\'s itinerary. Inside a game, Menu → How to play has its rules.'],
   ['What are the km?','Each daily game moves you up to 100 km, +20 km for a perfect game and +50 km for playing all nine. Your km fill your GeoPass and count for the ranking.'],
+  ['What is in my GeoPass?','Four things. Km take you up 7 levels, from Tourist to Legend (250.000 km). Your streak: one daily a day, with one rest day a week. Countries, from the daily only: visited when you get one right in 1 game, known in 3 different games, expert in 5. Visas: one per game (Bronze, Silver, Gold, Platinum by days played), special ones and hard challenges.'],
   ['Is there an unlimited mode?','Yes, Practice. Random puzzles with the daily rules, as many as you like, with 5 lives or unlimited. Practice gives points but no km.'],
   ['Can I play with friends?','Yes. Tap With friends, create a room (you need to sign in) and share the code. Up to 6 players, the host picks the game and the points add up.'],
   ['Do I need an account?','Not at first: you can play 3 days as a guest. Then sign in with Google to keep playing. It\'s free, and your GeoPass follows you to any phone.'],
@@ -538,6 +578,6 @@ G.acctHTML=acctHTML;G.openMenu=openMenu;G.openFaq=openFaq;G.openCredits=openCred
 // ready/user: known for sure, or the last account seen on this device until Firebase answers (wasSignedIn: that last one)
 G.account={get ready(){return who()!==undefined},get user(){return who()||null},get name(){return name},
   wasSignedIn:!!(LAST&&LAST.u),get trial(){return trialState()},trialLine,
-  signIn,signOut,done,userHTML,changeName,nameOf,firstName,nameProblem,nameFree,changeMyName,rankingHTML,rankLine,mine,statsPage,levelBars,bestRun,onChange:f=>watchers.push(f)};
+  signIn,signOut,done,archRank,userHTML,changeName,nameOf,fmtName,backfill,firstName,nameProblem,nameFree,changeMyName,rankingHTML,rankLine,mine,statsPage,levelBars,bestRun,onChange:f=>watchers.push(f)};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();

@@ -21,8 +21,8 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611181900"></script>
-<script src="../brand/account.js?v=202611201600"></script>
+<script src="../brand/mingo.js?v=202611231000"></script>
+<script src="../brand/account.js?v=202611222200"></script>
 <script src="../brand/party.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -307,7 +307,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .cell.flag .cc{position:absolute;left:0;bottom:0;z-index:1;background:#0F1626;color:#fff;font-family:var(--display);font-weight:800;font-stretch:75%;font-size:clamp(.66rem,2.8vw,.85rem);letter-spacing:0;padding:2px 5px 1px 4px;border-radius:0 7px 0 0;line-height:1.15}
 .b5 .cell.flag .cc{font-size:.6rem;padding:1px 4px 0 3px;border-radius:0 5px 0 0}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611201600">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611222100">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -847,9 +847,10 @@ function playDaily(){
 }
 /* ---- archive: past daily grids, one try each (per account when signed in, otherwise per device).
    Games are kept in bl-arch on the device and in users/<uid>/archive/<date> (with the whole game, like today's grid).
-   They count neither for the daily ranking nor for the streak. ---- */
+   Since 2026-11-16 their km count for their own day (GeoPass and ranking, ../brand/mingo.js ARL), never for the streak. ---- */
 function loadArch(){try{return JSON.parse(localStorage.getItem('bl-arch')||'{}')||{}}catch(e){return {}}}
-function saveArchGame(s){const a=loadArch();a[s.daily]=s;try{localStorage.setItem('bl-arch',JSON.stringify(a))}catch(e){}}
+// pd: the day the archive grid was really played (its stamp on the home page's Archive shows it, Héctor 2026-11-16)
+function saveArchGame(s){if(s.over&&!s.pd)s.pd=Geomingo.dayKey();const a=loadArch();a[s.daily]=s;try{localStorage.setItem('bl-arch',JSON.stringify(a))}catch(e){}}
 let ARCH_REMOTE=null,archBack='home';const archUp=new Set();
 function syncArch(){if(!USER||!db)return;const uid=USER.uid;
   db.ref('users/'+uid+'/archive').once('value').then(s=>{if(!USER||USER.uid!==uid)return;ARCH_REMOTE=s.val()||{};
@@ -884,7 +885,7 @@ function archiveView(){const a=loadArch(),rem=ARCH_REMOTE||{};
     else st=`<span class="as">${g?'In progress':'Play'}</span>`;
     return `<li><button data-arch="${k}"><span class="an">#${n}</span><span class="ad"><b>Grid #${n}</b><small>${date}</small></span>${sq}${st}</button></li>`}).join('');
   return `<section class="panel"><a class="linkbtn" href="${Geomingo.HOME}#archive" style="display:inline-block;margin-bottom:6px">← Calendar of all games</a><div class="backline"><span class="ht">Archive</span></div>
-    <p class="hint">Play the daily grids you missed. Grids you played on their day are already done. One try per grid${USER?' with your account':' on this device'}. Archive games don't count for the daily ranking or your streak.</p>
+    <p class="hint">Play the daily grids you missed. Grids you played on their day are already done. One try per grid${USER?' with your account':' on this device'}. Their km count for their own day, in your GeoPass and the ranking, but not for your streak.</p>
     ${items?`<ul class="arch">${items}</ul>`:'<p class="hint">No past grids yet. Come back tomorrow.</p>'}</section>`}
 function playArchive(k){const a=loadArch(),r=(ARCH_REMOTE||{})[k];
   if(USER&&r&&otherDevice(r)&&!(a[k]&&a[k].over)){toast(r.f===1?'You played this grid on another device with this account.':'You started this grid on another device with this account. One try per grid.','bad');return}
@@ -1059,7 +1060,7 @@ const TS=()=>firebase.database.ServerValue.TIMESTAMP;
 /* ---- optional Google sign-in (Firebase Authentication): only used to keep your daily stats in sync between devices ---- */
 let USER=null,ACCT_TODAY=null,ACCT_READY=true,ACCT_WAIT=0,acctT=0,acctRef=null,PROFILE=null,NEEDNAME=false;
 // the account's name (users/<uid>/profile): unique, changed from the Menu once every 30 days (brand/account.js); it is also the name shown in the ranking
-function applyProfile(name){PROFILE=name;NEEDNAME=false;const old=setup.user;setup.user=name;editingUser=false;
+function applyProfile(name){name=pname(null,name);PROFILE=name;NEEDNAME=false;const old=setup.user;setup.user=name;editingUser=false;
   try{localStorage.setItem('bl-user',name)}catch(e){}publishSoon();carryDaily();render()}
 // signed in after finishing today's grid as a guest: the result joins the account and today's ranking
 // (only the first game of the day on this device, and only if the account hasn't played today: recordDaily checks that)
@@ -1606,7 +1607,7 @@ function resultsView(body){
     <div class="gm-done-btns">${nextGameBtn(next)}${SHARE_BTN.replace('Share result','Share')}</div>`;
     // an archive grid (or one played on its day, opened from the archive): the coral ticket with the grid inside,
     // Back to archive (the calendar of all the games on the home page) and Share under it (Héctor 2026-11-16)
-    return `${Geomingo.archTicket({id:'borderline',num:S.day,score:EU(p.score)+' points',detail:S.dayof?'Played on its day':p.cells+' of '+n*n+' squares',note:S.dayof?'':undefined,body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
+    return `${Geomingo.archTicket({id:'borderline',num:S.day,day:S.dayof?'':S.daily,state:S,score:EU(p.score)+' points',detail:S.dayof?'Played on its day':p.cells+' of '+n*n+' squares',note:S.dayof?'':undefined,body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns gm-solo-btns"><button class="primary" id="archback" style="flex:1">Back to calendar</button>${SHARE_BTN.replace('Share result','Share')}</div>${Geomingo.archListBtn()}${lbView(S.daily)}`}
   // a finished Solo game: the pink ticket with the grid inside, then New grid and Share (Héctor 2026-11-14)
   if(S.mode==='solo'){const p=S.players[0],n=S.n,best=Math.max(p.score||0,...loadGames().filter(g=>g.m==='s'&&g.n===n).map(g=>g.s||0));
@@ -1722,7 +1723,7 @@ function drawLayer(){
       <li><b>Daily</b>: one ${DAILY_N} × ${DAILY_N} grid, the same for everyone, new every day at midnight CET. One try. Its km go to your GeoPass.</li>
       <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. 5 lives or <b>Unlimited</b>: pick it next to Practice on the home page. Points only, no km.</li>
       <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. You take turns, 30 s each, and a random player starts. A right answer scores; a wrong one, <b>Pass turn</b> or running out of time passes the turn. The game ends when the grid is full or everyone passes in a row.</li>
-      <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, points only, no km.</li></ul>
+      <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, and its km count for that day.</li></ul>
       <p class="hint">Where the data comes from: <b>Menu</b>, Countries data sources.</p>
       </div>`}
   if(ui.info!=null&&CATS[ui.info]){const k=CATS[ui.info];
