@@ -277,10 +277,18 @@ G.onStamp(x=>{const id=uid(),p=json('gm-pass');if(!id||!db||!p||p.u!==id)return;
 // the days you played (the streak): every device's, together
 function syncDays(){const id=uid(),ref=db.ref('users/'+id+'/days');
   ref.once('value').then(s=>{if(uid()!==id)return;const R=s.val()||{},L=G.days(),up={};
-    L.forEach(d=>{if(!R[d])up[d]=1});put('gm-days',[...new Set([...Object.keys(R),...L])].sort().slice(-400));
+    L.forEach(d=>{if(!R[d])up[d]=1});if(up[T()]&&marked!==id+T()){marked=id+T();firstToday(R,T())}put('gm-days',[...new Set([...Object.keys(R),...L])].sort().slice(-400));
     if(Object.keys(up).length)ref.update(up).catch(()=>{});changed()}).catch(()=>{})}
 let marked='';
-function markToday(){const k=T();if(!uid()||marked===uid()+k)return;marked=uid()+k;db.ref('users/'+uid()+'/days/'+k).set(1).catch(()=>{})}
+function markToday(){const k=T(),id=uid();if(!id||marked===id+k)return;marked=id+k;const ref=db.ref('users/'+id+'/days');
+  // the first game of the day of a signed-in player: counted for /stats (played today · first day ever · back after 7+ days away)
+  ref.once('value').then(s=>{const R=s.val()||{};if(R[k])return;
+    firstToday(R,k);ref.child(k).set(1).catch(()=>{})}).catch(()=>{ref.child(k).set(1).catch(()=>{})})}
+// (the last day before today comes from the streak days and the GeoPass stamps, which go back further)
+function firstToday(R,k){count('_players','play');
+  db.ref('users/'+uid()+'/pass').once('value').then(s=>{const P=s.val()||{},ds=Object.keys(R).concat(asList(P.list).map(x=>x&&x.d));
+    const prev=ds.filter(d=>d&&d<k).sort().pop()||(P.since&&P.since<k?P.since:'');
+    if(!prev)count('_players','new');else if((Date.parse(k)-Date.parse(prev))/864e5>=7)count('_players','back')}).catch(()=>{})}
 // a game's daily results: the account's days come here, this device's other days go there;
 // today's game played here joins the account (and the ranking) unless the account already played it
 function syncGame(g){const id=uid(),A=ADAPT[g],ref=db.ref('users/'+id+'/hist/'+g),k=T();

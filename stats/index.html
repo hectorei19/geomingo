@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#151E30">
 <link rel="icon" href="../brand/icons/favicon.svg?v=202611101235" type="image/svg+xml">
 <script src="../brand/mingo.js?v=202611231000"></script>
-<script src="../brand/account.js?v=202611222200"></script>
+<script src="../brand/account.js?v=202611231100"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -92,6 +92,13 @@ function okHTML(){const ds=days(range);
   h+='<p class="note">Números anónimos: cuántas veces pasa cada cosa, sin nombres ni datos de las personas. Una persona que entra dos veces cuenta dos visitas.</p>';
   h+='<div class="tiles"><div class="tile"><b>'+n(views)+'</b><span>visitas</span></div><div class="tile"><b>'+n(fin)+'</b><span>partidas terminadas</span></div>'+
     '<div class="tile"><b>'+pct(phone,phone+comp)+'</b><span>desde el móvil</span></div><div class="tile"><b>'+pct(signed,signed+guest)+'</b><span>con sesión iniciada</span></div></div>';
+  // signed-in players (counted once a day, at their first finished game)
+  const pl=sum(ds,'_players','play'),nw=sum(ds,'_players','new'),bk=sum(ds,'_players','back');
+  h+='<h3>Jugadores con cuenta</h3><div class="tiles"><div class="tile"><b>'+n(pl)+'</b><span>'+(range===1?'han jugado hoy':'días jugados')+'</span></div>'+
+    '<div class="tile"><b>'+n(nw)+'</b><span>su primer día</span></div><div class="tile"><b>'+n(bk)+'</b><span>vuelven tras 7+ días</span></div><div class="tile"><b>'+n(Math.max(0,pl-nw-bk))+'</b><span>siguen jugando</span></div></div>';
+  if(range!==1){const v=ds.map(d=>(data[d]&&data[d]._players&&data[d]._players.play)||0);
+    h+='<div class="box" style="margin-top:10px">'+bars(v,ds)+'<div class="axis"><span>'+esc(ds[0].slice(8)+'/'+ds[0].slice(5,7))+'</span><span>hoy</span></div></div>'}
+  h+='<p class="note">Cada jugador con cuenta se cuenta una vez al día, cuando termina su primera partida. El total de cuentas está en Firebase → Authentication.</p>';
   // visits by day (or by hour today)
   if(range===1){h+='<h3>Visitas de hoy por hora</h3>'}else{h+='<h3>Visitas por día</h3>';const v=ds.map(d=>PAGES.reduce((t,x)=>t+((data[d]&&data[d][x.p]&&data[d][x.p].view)||0),0));
     h+='<div class="box">'+bars(v,ds)+'<div class="axis"><span>'+esc(ds[0].slice(8)+'/'+ds[0].slice(5,7))+'</span><span>hoy</span></div></div>'}
