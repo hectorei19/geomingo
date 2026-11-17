@@ -416,12 +416,53 @@ function hello(pose,title,sub,o){o=o||{};const key=o.key||'main',txt=pose+title,
 // from KM_FROM the big number is the day's points, the same number as its km (Countries and Capitals keep their own points)
 // the streak under the km on the done ticket, from 2 days on: "🔥 5 days in a row" (Héctor 2026-11-16, option B)
 function streakSpan(){let n=0;try{n=streak()}catch(e){}return n>=2?'<span class="gm-done-st">🔥 '+n+' days in a row</span>':''}
-function doneTicket(id,num,score,next,body){setTimeout(refreshPass,0);const km=(ledger()[dayKey()]||{})[id];if(km!=null&&newKm(dayKey())&&id!=='borderline'&&id!=='citygrid')score=fmt(km)+' point'+(km===1?'':'s');
+function doneTicket(id,num,score,next,body){setTimeout(refreshPass,0);setTimeout(dayDone,600);const km=(ledger()[dayKey()]||{})[id];if(km!=null&&newKm(dayKey())&&id!=='borderline'&&id!=='citygrid')score=fmt(km)+' point'+(km===1?'':'s');
   // the trip and daily number sit in the gold strip (not under the game's name: geomingo.css hides it there) (Héctor 2026-11-14)
   const g=GAMES.find(x=>x.id===id);
   return '<section class="ticket gm-done"><div class="tk-mode daily"><span>★ '+(g?'Trip '+g.gate+' · ':'')+'Daily #'+esc(String(num))+'</span><span>Done</span></div>'+
     '<div class="gm-done-c"><p class="big">'+esc(String(score))+'</p><p class="gm-done-s">'+(km!=null?'<b>+'+fmt(km)+' km</b>':'')+streakSpan()+'<span>'+esc(next)+'</span></p></div>'+
     (body?'<div class="tk-tear"></div><div class="gm-done-a">'+body+'</div>':'')+'</section>'}
+/* ---------- the day complete (Héctor 2026-11-17) ----------
+   When today's last daily is done (all of them played on their day), a window pops up once, with the day's card:
+   date, streak, the day's km and the nine games in their colours. "Share my day" shares the card as a picture
+   (the phone's share sheet; on a computer the picture is saved and the line copied). gm-dayfull: the day it was shown. */
+const DCOL={borderline:'#F07884',citygrid:'#D4AD4B',connections:'#7FA2F0',top10:'#5FC28F',silhouette:'#A98BE0',customs:'#E39A5C',flagpie:'#5CC2C2',impostor:'#E58BC8',compass:'#B5D46A'};
+function dayInfo(k){k=k||dayKey();const day=ledger()[k]||{},g=live();let st=0;try{st=streak()}catch(e){}
+  return {k,km:dayTotal(day),st,games:g.map(x=>({id:x.id,name:x.name,km:day[x.id]})),all:g.every(x=>day[x.id]!=null)}}
+const dayDate=k=>dateText(k,{weekday:'short',day:'numeric',month:'short'}).toUpperCase();
+function dayCardHTML(D){return '<div class="gm-dc"><div class="gm-dc-l">geo<span>mingo</span></div><div class="gm-dc-d">'+esc(dayDate(D.k))+(D.st>=2?' · 🔥 '+D.st+' DAYS':'')+'</div>'+
+  '<p class="gm-dc-k">'+fmt(D.km)+' <small>km</small></p><p class="gm-dc-s">All '+ALLW+' trips · +'+ALL5+' Grand tour</p>'+
+  '<div class="gm-dc-g">'+D.games.map(x=>'<b style="background:'+(DCOL[x.id]||'#9AA6B6')+'">'+esc(x.name)+'<br>'+fmt(x.km||0)+' km</b>').join('')+'</div>'+
+  '<p class="gm-dc-f">Play today\'s trips at geomingo.com</p></div>'}
+// the same card drawn as a 1080 × 1350 picture
+function dayCardPNG(D){return new Promise(res=>{const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+  const disp='"Archivo","Arial Narrow",Impact,sans-serif',type='"Courier Prime","Courier New",monospace';
+  const rr=(X,Y,w,h,r)=>{x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath()};
+  x.fillStyle='#0E1622';x.fillRect(0,0,W,H);
+  const gr=x.createLinearGradient(0,0,W*.6,H);gr.addColorStop(0,'#2A2414');gr.addColorStop(.65,'#16202F');x.fillStyle=gr;rr(40,40,W-80,H-80,48);x.fill();
+  x.lineWidth=6;x.strokeStyle='#D4AD4B';x.stroke();
+  x.textBaseline='alphabetic';x.font='900 84px '+disp;x.fillStyle='#F4F1EA';x.fillText('geo',110,200);const gw=x.measureText('geo').width;x.fillStyle='#F07884';x.fillText('mingo',110+gw,200);
+  x.font='700 40px '+type;x.fillStyle='#F3D98B';x.fillText(dayDate(D.k)+(D.st>=2?'  ·  🔥 '+D.st+' DAYS':''),110,270);
+  x.font='900 220px '+disp;x.fillStyle='#F3D98B';const kt=fmt(D.km);x.fillText(kt,104,500);const kw=x.measureText(kt).width;x.font='900 72px '+disp;x.fillText('km',104+kw+24,500);
+  x.font='400 40px '+type;x.fillStyle='#CFD6E0';x.fillText('All '+ALLW+' trips · +'+ALL5+' Grand tour',110,575);
+  const cw=(W-220-2*24)/3,ch=150;D.games.forEach((g,i)=>{const X=110+(i%3)*(cw+24),Y=630+Math.floor(i/3)*(ch+24);
+    x.fillStyle=DCOL[g.id]||'#9AA6B6';rr(X,Y,cw,ch,22);x.fill();x.fillStyle='#16202F';x.textAlign='center';
+    x.font='800 34px '+type;x.fillText(g.name.toUpperCase(),X+cw/2,Y+64);x.font='800 40px '+type;x.fillText(fmt(g.km||0)+' km',X+cw/2,Y+116);x.textAlign='left'});
+  x.font='400 38px '+type;x.fillStyle='#9AA6B6';x.textAlign='center';x.fillText("Play today's trips at geomingo.com",W/2,H-110);
+  c.toBlob(b=>res(b),'image/png')})}
+async function shareDay(D){stat('share');const line='Geomingo · '+dateText(D.k,{day:'numeric',month:'short'})+' · '+fmt(D.km)+' km'+(D.st>=2?' · 🔥 '+D.st:'')+'\nhttps://geomingo.com';
+  try{if(document.fonts&&document.fonts.ready)await document.fonts.ready}catch(e){}
+  const b=await dayCardPNG(D),f=b&&typeof File==='function'?new File([b],'geomingo-'+D.k+'.png',{type:'image/png'}):null;
+  try{if(f&&navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:line});return}}catch(e){if(e&&e.name==='AbortError')return}
+  try{if(navigator.share){await navigator.share({text:line});return}}catch(e){if(e&&e.name==='AbortError')return}
+  if(b){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='geomingo-'+D.k+'.png';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
+  try{await navigator.clipboard.writeText(line)}catch(e){}
+  const t=document.querySelector('#gm-window .gm-dc-ok');if(t)t.hidden=false}
+function openDay(D){D=D||dayInfo();const box=openWindow('<div class="gm-res gm-dcw"><div class="gm-rbody"><div class="dlg-head"><h2>Your day is complete</h2><button class="dlg-x" data-gm-act="close">Close</button></div>'+
+  dayCardHTML(D)+'<button class="gm-big gm-dc-sh" data-gm-act="shareday">'+ICO.share+' Share my day</button><p class="gm-dc-ok" hidden>Picture saved and line copied. Paste it in any chat.</p></div></div>','Your day is complete');
+  box._acts={shareday:()=>shareDay(D)};const c=box.querySelector('[data-gm-act="close"]');if(c)c.focus()}
+function dayDone(){const k=dayKey();if(store.get('gm-dayfull')===k||document.getElementById('gm-window'))return;const D=dayInfo(k);if(!D.all)return;
+  store.set('gm-dayfull',k);openDay(D)}
 /* a finished Archive game (a past day): the same ticket again, in the archive's coral, the day's answers inside;
    Back to archive and Share go under it (Héctor 2026-11-16). archTicket({id:'top10', num:28, score:'7 of 10', detail:'3 mistakes', body:'…answers…'});
    day:'2026-11-13' adds "+86 km for 13 Nov" (the km of that day, archive games count since 2026-11-16); note:'' shows no line */
@@ -467,7 +508,7 @@ function traveller(){const a=window.Geomingo&&window.Geomingo.account;return ((a
    header({game:'Countries', coord:'Daily #12', menu:'<button…>'}): "‹ geomingo", GeoPass and account on top,
    then the game's own bar: its name (goes to the game's home screen, id="brand"), its trip number, Menu.
    Without game: the home page. */
-const ICO={back:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>'};
+const ICO={share:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg>',back:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>'};
 const logo='<span class="gm-logo">geo<span>mingo</span></span>';
 // the GeoPass button shows your km (2026-11-16: stamps, one per right answer, are no longer shown)
 const passBtn=()=>{const n=geo().km;return '<button class="gm-pass" data-gm-pass aria-label="Open your GeoPass: '+fmt(n)+' km" title="Your GeoPass"><i aria-hidden="true">✦</i><span class="gm-pw">GEOPASS</span><b>'+fmt(n)+' km</b></button>'};
@@ -669,6 +710,6 @@ const oldName=q=>OLD_NAMES[String(q||'').normalize('NFD').replace(/[\u0300-\u036
 const withOld=(res,q,pool)=>{const o=oldName(q);if(!o||res.some(c=>c.c===o))return res;const c=pool.find(x=>x.c===o);return c?[...res,c]:res};
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
-  days,streak,streakInfo,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,countriesSeen,countriesKnown,EXPERT,CORE,TIERS,gameVisas,specialVisas,challengeVisas,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,archTicket,archListBtn,KM,KM_FROM,KMSQ_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,ARL,archDone,rowKm,dayTotal,level,geo,visas,clock,secText,mmss,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
+  days,streak,streakInfo,openDay,dayInfo,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,countriesSeen,countriesKnown,EXPERT,CORE,TIERS,gameVisas,specialVisas,challengeVisas,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,archTicket,archListBtn,KM,KM_FROM,KMSQ_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,ARL,archDone,rowKm,dayTotal,level,geo,visas,clock,secText,mmss,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
   openWindow,closeWindow,esc,refreshPass,room,where,mode,askedDay,ARCH_FROM,archNo,lives,setLives,stat,statTo,PAGE,oldName,withOld,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name,fresh:FRESH};
 })();
