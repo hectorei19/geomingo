@@ -291,13 +291,16 @@ function gameVisas(L){L=L||ledger();return live().map(g=>{const n=Object.values(
   const pf=Object.values(L).filter(d=>d[g.id]>=120).length;   // perfect dailies (★): 100 + 20 for not one mistake
   return {g,n,t,tier:t>=0?TIERS[t]:null,next,pr:next?Math.min(1,n/next[1]):1,left:next?next[1]-n:0,pf}})}
 /* the official launch day (Héctor 2026-11-17): the beta ends the day before. Everyone keeps everything; three special
-   visas that can only be won at that time: Beta traveller (a daily before it), Opening day (a daily on it), Launch week (every day of its first week) */
+   visas that can only be won at that time: Beta traveller (every game's daily 3 times before it), Opening day (a daily on it), Launch week (every day of its first week) */
 // days with a daily played on its own day: the streak's list (last 400 days) plus every game's own history, so the beta
 // visa stays after a year too
 function playedDays(){const s=new Set(days());['bl-hist','cc-hist','cx-hist','t10-hist','sil-hist','cu-hist','fp-hist','im-hist','cm-hist'].forEach(k=>{const h=json(k)||{};
   Object.keys(h).forEach(x=>{if(h[x]&&h[x].f!==0&&/^\d{4}-\d{2}-\d{2}$/.test(x))s.add(x)})});return [...s]}
+// Beta traveller (Héctor 2026-11-17): every game's daily played on its own day at least 3 times before the launch
+const HIST={borderline:'bl-hist',citygrid:'cc-hist',connections:'cx-hist',top10:'t10-hist',silhouette:'sil-hist',customs:'cu-hist',flagpie:'fp-hist',impostor:'im-hist',compass:'cm-hist'};
+function betaGames(){return live().filter(g=>{const h=json(HIST[g.id])||{};return Object.keys(h).filter(d=>d<LAUNCH&&h[d]&&h[d].f!==0).length>=3}).length}
 const LAUNCH='2027-01-01',LAUNCH_TXT='1 January 2027',LAUNCH_WEEK=['01','02','03','04','05','06','07'].map(x=>'2027-01-'+x);
-function specialVisas(L,S){L=L||ledger();S=S||streakInfo();const dd=playedDays(),H=k=>json(k)||{},a=atlas();
+function specialVisas(L,S){L=L||ledger();S=S||streakInfo();const dd=playedDays(),beta=betaGames(),H=k=>json(k)||{},a=atlas();
   const up=(n,of)=>[n>=of,Math.min(1,n/of),fmt(Math.min(n,of))+' / '+fmt(of)];
   const full=Object.values(L).filter(d=>Object.keys(d).length>=ALLN);
   const perfect=full.some(d=>Object.values(d).every(v=>v>=120));
@@ -317,7 +320,7 @@ function specialVisas(L,S){L=L||ledger();S=S||streakInfo();const dd=playedDays()
     ['#D4AD4B','1st','Gold medal','1st in a daily ranking',gold>0,null,''],
     ['#7FA2F0','2+','Good company','A game with friends',fr,null,''],
     // the official launch (Héctor 2026-11-17): only dailies played on their own day count (playedDays), never Archive games
-    ['#9FE3E0','β','Beta traveller','A daily during the beta, before '+LAUNCH_TXT,dd.some(d=>d<LAUNCH),null,''],
+    ['#9FE3E0','β','Beta traveller','Every game\'s daily 3 times before '+LAUNCH_TXT,beta>=ALLN,dayKey()<LAUNCH?beta/ALLN:null,beta+' / '+ALLN],
     ['#D4AD4B','1/1','Opening day','A daily on '+LAUNCH_TXT,dd.includes(LAUNCH),null,''],
     ['#F07884','1–7','Launch week','A daily every day, 1 to 7 January 2027',LAUNCH_WEEK.every(d=>dd.includes(d)),null,'']]}
 /* Challenges (Héctor 2026-11-16, back from the GeoPass before the redesign: "the hard ones that make you come back"):
