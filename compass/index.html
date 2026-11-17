@@ -230,7 +230,7 @@ function playHTML(G){let h=deskHTML(G);
   if(G.left!=null)return `<div class="play">${h}${leftHTML(G,G.left)}</div>`;
   if(G.over)return `<div class="play">${h}</div>`;
   const q=G.qs[G.sel],w=worth(q),l=left(q),more=CLUES-q.k,can=more>0&&l>1;
-  return `<div class="play">${h}<div class="cmpcard"><span class="label">City ${G.sel+1} of ${PER} · worth ${show(w,q)} points</span>${compassHTML(q)}${newsHTML(q,q.last)}</div>
+  return `<div class="play">${h}<div class="cmpcard">${compassHTML(q)}${newsHTML(q,q.last)}</div>
     <div class="locked">${can?'🔒 '+more+' more clue'+(more===1?'':'s')+' locked':l===1?'Last chance: one more try':'All five clues are open'}<button class="linkbtn" id="nextclue">${can?'Next clue':'I don\'t know'}</button></div>
     ${answerBoxHTML(q)}${giveUpHTML()}</div>`}
 // after a capital finishes: show it, then the next one still to play, or the game is over
