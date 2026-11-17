@@ -313,7 +313,7 @@ function resultHTML(G){const p=pointsOf(G),v=verdict(G);
   return `${Geomingo.doneTicket('compass',G.num,p+' points','next in '+nextIn(),summaryHTML(G))}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns">${nextGameBtn('compass')}${SHARE_BTN.replace('Share result','Share')}</div>`}
 // today's ranking (signed-in players, first try of the day): points, then fewer wrong guesses, then who finished first
-const rankingHTML=()=>Geomingo.account.rankingHTML('compass',{what:'game',score:r=>[Geomingo.KM.cl3(r.r,r.s,todayKey(),r.x3,PER)+' pts',r.m+' wrong']});
+const rankingHTML=()=>Geomingo.account.rankingHTML('compass',{what:'game',score:r=>[EU(Geomingo.rowKm('compass',r,todayKey()))+' km',(r.r||0)+'/5']});
 Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&D.mode==='daily'&&D.date===todayKey()){D=dailyGame();liveKey=''}
   if(!typing&&(view==='home'||view==='daily'&&D&&D.over))render()});
 function openDaily(){D=dailyGame();query='';view='daily';render();window.scrollTo(0,0)}
