@@ -276,6 +276,8 @@ function clockStop(g,d,f){const T=clockAll(),x=T[d]&&T[d][g];if(!x||x.b)return;x
 function clockSecs(g,d){const x=(clockAll()[d]||{})[g];return x&&x.b&&x.b>=x.a?Math.max(1,Math.round((x.b-x.a)/1000)):null}
 const clock={start:clockStart,stop:clockStop,secs:clockSecs};
 // 52″, 2′41″, 21′05″
+// a turn's time left as a clock: 0:27 (With friends, Héctor 2026-11-17)
+const mmss=ms=>{const t=Math.max(0,Math.ceil((ms||0)/1000));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
 const secText=s=>s<60?s+'″':Math.floor(s/60)+'′'+String(s%60).padStart(2,'0')+'″';
 
 /* ---------- visas (Héctor 2026-11-16) ----------
@@ -385,8 +387,8 @@ function hello(pose,title,sub,o){o=o||{};const key=o.key||'main',txt=pose+title,
 /* the in-game ticket, the same in every game while you play: Mingo's message (a hello()) on top, a tear line,
    then the stub with the game's numbers, one tk(label, value, class) each (tk-pts gold, tk-gs coral, tk-name wider).
    Values are HTML: escape names before passing them. o.timer adds the countdown bar along the bottom (.tbar);
-   o.color paints it, the ticket's edge and the playing traveller's box in the colour of the player whose turn it is
-   (e.g. 'var(--p1)'); in the last 5 seconds the bar pulses a glow, staying full colour (.tbar.low, set by the game's tick). */
+   o.color (With friends games with turns) gives the turn layout: whose turn + the clock (the game's Time box) on one line,
+   a thin blue line that runs down, the players as pills; in the last 5 seconds the clock pulses (.tbar.low, set by the game's tick). */
 /* the result of today's daily, when it is over (right after playing, or opening the game again later): the gold ticket with
    the score, the km it earned and when the next one comes; Next trip and Share go under it (Héctor 2026-11-10: less is more) */
 /* body: the day's answers, shown inside the same ticket under a tear line (Héctor 2026-11-12: one card, buttons below) */
@@ -429,7 +431,13 @@ function ticket(say,stub,o){o=o||{};const m=o.mode,n=o.num!=null?' '+archNo(o.nu
     :m==='practice'?'<div class="tk-mode practice"><span>'+tr+'Practice</span>'+(o.code?'<span>'+esc(String(o.code))+'</span>':'')+'</div>'
     :m==='archive'?'<div class="tk-mode practice"><span>'+tr+'Archive'+n+'</span></div>'
     :m==='friends'||m==='online'?'<div class="tk-mode friends"><span>With friends</span></div>':'';
-  // o.color (a game with turns): the whole ticket takes the colour of the player whose turn it is (.tk-turn, --pc)
+  // With friends with turns (Countries, Capitals, Top 10; Héctor 2026-11-17, option C1): all in the blue of With friends.
+  // One line says whose turn it is, the clock (0:27) on its right, a thin blue line under it that runs down,
+  // then the players as small pills, the one playing with a blue edge. The game's "Time" box moves up next to the line.
+  if(o.color&&o.timer&&(m==='friends'||m==='online')){let clock='';
+    stub=stub.replace(/<div class="tk-c[^"]*"><i>Time<\/i><b>([\s\S]*?)<\/b><\/div>/,(x,v)=>{clock=v;return ''});
+    return '<section class="ticket tk-friends tk-turn">'+strip+'<div class="tk-sayrow">'+say+(clock?'<span class="tk-clock">'+clock+'</span>':'')+'</div>'+
+      '<div class="tk-track"><span class="tbar" style="width:100%"></span></div><div class="tk-stub">'+stub+'</div></section>'}
   return '<section class="ticket'+(m==='practice'||m==='archive'?' tk-practice':m==='friends'||m==='online'?' tk-friends':'')+(o.color?' tk-turn" style="--pc:'+o.color:'')+'">'+strip+say+'<div class="tk-tear" aria-hidden="true"></div><div class="tk-stub">'+stub+'</div>'+(o.timer?'<span class="tbar" style="width:100%'+(o.color?';background:'+o.color:'')+'"></span>':'')+'</section>'}
 // the traveller's name on the ticket: the account's, else the one played with in Countries or Capitals
 function traveller(){const a=window.Geomingo&&window.Geomingo.account;return ((a&&a.name)||store.get('bl-user')||store.get('cc-user')||'Guest').trim().slice(0,16)||'Guest'}
@@ -447,9 +455,13 @@ const acctSlot=()=>'<span class="gm-acctslot" data-gm-acctslot>'+(window.Geoming
 function header(o){o=o||{};
   if(!o.game)return '<header class="gm-top"><h1 class="gm-logo">geo<span>mingo</span></h1><span class="gm-beta" title="Still in testing. Official launch coming soon.">BETA</span><span class="gm-spacer"></span>'+passBtn()+acctSlot()+'</header>';
   // Practice (o.practice): nothing under the name; the trip and the grid code go in the ticket's coral strip (Héctor 2026-11-15)
-  const g=GAMES.find(x=>x.name===o.game),gate=g?'Trip '+g.gate:'',sub=o.practice?'':[gate,o.coord].filter(Boolean).join(' · ');
+  // a game opened from the With friends room (brand/party.js): no second room code under the name; the room's strip
+  // (Room ABCD · Game 2 · Exit), or the result ticket at the end, goes right under the bar (Héctor 2026-11-17)
+  const pt=window.Geomingo&&window.Geomingo.party&&window.Geomingo.party.on()?window.Geomingo.party:null;
+  const coord=pt&&o.coord?String(o.coord).replace(/(^|\s*·\s*)room [A-Z]{4}/i,'').replace(/^\s*·\s*/,''):o.coord;
+  const g=GAMES.find(x=>x.name===o.game),gate=g?'Trip '+g.gate:'',sub=o.practice?'':[gate,coord].filter(Boolean).join(' · ');
   return '<header class="gm-top"><a class="gm-home" href="'+HOME+'" aria-label="All Geomingo games">'+ICO.back+logo+'<span class="gm-beta" title="Still in testing. Official launch coming soon.">BETA</span></a><span class="gm-spacer"></span>'+passBtn()+acctSlot()+'</header>'+
-    '<div class="gm-bar"><h2 class="gm-title" id="brand" role="link" tabindex="0" title="'+esc(o.game)+' home">'+esc(o.game)+(sub?'<small>'+esc(sub)+'</small>':'')+'</h2><span class="gm-spacer"></span>'+(o.menu||'')+'</div>'}
+    '<div class="gm-bar"><h2 class="gm-title" id="brand" role="link" tabindex="0" title="'+esc(o.game)+' home">'+esc(o.game)+(sub?'<small>'+esc(sub)+'</small>':'')+'</h2><span class="gm-spacer"></span>'+(o.menu||'')+'</div>'+(pt?pt.slot():'')}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-gm-pass]');if(!t)return;e.preventDefault();openPass()});
 
 /* ---------- windows: the result card and the GeoPass booklet (one at a time, Escape closes) ---------- */
@@ -636,6 +648,6 @@ const oldName=q=>OLD_NAMES[String(q||'').normalize('NFD').replace(/[\u0300-\u036
 const withOld=(res,q,pool)=>{const o=oldName(q);if(!o||res.some(c=>c.c===o))return res;const c=pool.find(x=>x.c===o);return c?[...res,c]:res};
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
-  days,streak,streakInfo,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,countriesSeen,countriesKnown,EXPERT,CORE,TIERS,gameVisas,specialVisas,challengeVisas,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,archTicket,archListBtn,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,ARL,archDone,rowKm,dayTotal,level,geo,visas,clock,secText,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
+  days,streak,streakInfo,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,countriesSeen,countriesKnown,EXPERT,CORE,TIERS,gameVisas,specialVisas,challengeVisas,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,archTicket,archListBtn,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,ARL,archDone,rowKm,dayTotal,level,geo,visas,clock,secText,mmss,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
   openWindow,closeWindow,esc,refreshPass,room,where,mode,askedDay,ARCH_FROM,archNo,lives,setLives,stat,statTo,PAGE,oldName,withOld,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name,fresh:FRESH};
 })();

@@ -100,13 +100,27 @@ async function leave(){const r0=ref;
   if(r0){try{await r0.transaction(x=>{if(!x||!x.players)return x;delete x.players[PID];
     const h=here(x),all=order(x);if(!all.length)return null;if(x.host===PID)x.host=(h[0]||all[0]);return x})}catch(e){}}
   stop();keepMine(null);draw()}
+// the organiser taps a game: a small window asks once, "Start for everyone" (Héctor 2026-11-17: no Start button later)
+function ask(id){const g=gameOf(id);if(!g||!R)return;const n=((R.cur&&R.cur.n)||0)+1,ppl=here(R).length;
+  const turns=['borderline','citygrid','top10'].includes(id);
+  sheet('<div class="pt-sh-h"><span class="pt-lab">Game '+n+'</span><button class="pt-x" data-pclose>Close</button></div>'+
+    '<div class="pt-sh-g"><div><h3>'+esc(g.name)+'</h3><p>'+(turns?'30 s per turn':'Everyone plays at once')+' · '+ppl+' player'+(ppl===1?'':'s')+'</p></div></div>'+
+    (ppl<2?'<p class="pt-rules">Wait for at least one friend: send them the code.</p>':'')+
+    '<button class="pt-btn" data-pgo '+(ppl<2?'disabled':'')+'>Start for everyone</button>',()=>pick(id))}
+let sh=null;
+function sheet(html,go){if(sh){sh.remove();sh=null}if(!html)return;
+  sh=document.createElement('div');sh.className='pt-veil';sh.innerHTML='<div class="pt-sheet" role="dialog" aria-modal="true">'+html+'</div>';
+  document.body.appendChild(sh);
+  sh.onclick=e=>{if(e.target===sh||e.target.closest('[data-pclose]'))sheet('')};
+  const b=sh.querySelector('[data-pgo]');if(b)b.onclick=()=>{b.disabled=true;go()};
+  const x=sh.querySelector('[data-pclose]');if(x)x.focus()}
 // the organiser picks a game: it opens on every phone in the room
 async function pick(id){if(!ref||!R||R.host!==PID)return;
   const n=((R.cur&&R.cur.n)||0)+1;
   try{const res=await ref.transaction(x=>{if(!x||x.host!==PID)return;const c=x.cur||{};
       x.cur={n,g:id,room:'',exp:here(x).length,t:now()};return x});
-    if(res.committed)location.href=gameURL(id,n)}
-  catch(e){H.toast('That did not go through. Check the connection.','bad')}}
+    sheet('');if(res.committed)location.href=gameURL(id,n)}
+  catch(e){sheet('');H.toast('That did not go through. Check the connection.','bad')}}
 function open(){if(!code())return;whenFB(()=>listen(code(),(r,was,gone)=>{
   if(!r){H.toast(gone?'You are no longer in room '+was+'.':'Room '+was+' was closed.','bad');draw();return}
   // the organiser picked a game while this screen was open: go
@@ -124,18 +138,22 @@ function startHTML(){const sg=SIGNED();
     '<div class="pt-card"><h3>Join a room</h3><p>Got a code from a friend? No sign-in needed.</p>'+
     (acct()?'':'<input class="pt-name" id="pname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="'+esc(ls.get('gm-pname',''))+'">')+
     '<div class="pt-join"><input id="pcode" maxlength="4" placeholder="ABCD" autocomplete="off" value="'+esc(joinVal)+'"><button class="pt-ghost" id="pjoin">Join</button></div></div>'+RULES}
-function roomHTML(){const r=R,T=table(r),host=r.host===PID,ids=order(r),c=r.cur,live=c&&c.n&&!(r.res&&r.res[c.n]);
+// a game still being played (not finished, not ended by the organiser)
+const liveOf=r=>{const c=r&&r.cur;return !!(c&&c.n&&c.g&&!c.end&&!(r.res&&r.res[c.n]))};
+function roomHTML(){const r=R,T=table(r),host=r.host===PID,ids=order(r),c=r.cur,live=liveOf(r);
   const pin=i=>'background:var(--p'+(i%6)+')';
   const chips=ids.map((k,i)=>{const p=r.players[k];return '<span class="pt-pp'+(p.on===false?' off':'')+'"><i style="'+pin(i)+'">'+esc((p.name||'?')[0].toUpperCase())+'</i>'+esc(p.name)+(k===r.host?' <small>host</small>':k===PID?' <small>you</small>':'')+'</span>'}).join('');
   const color=n=>{const i=ids.findIndex(k=>r.players[k].name===n);return i<0?'var(--line)':'var(--p'+(i%6)+')'};
   const med=['#D4AD4B','#C9CED6','#C99B78'];
-  const tbl=T.games?'<div class="pt-tbl">'+T.rows.map((x,k)=>'<div class="pt-tr'+(x.n===(r.players[PID]||{}).name?' me':'')+'"><span class="md" style="'+(k<3&&x.t>0?'background:'+med[k]+';color:#0C1220':'')+'">'+(k+1)+'</span><span class="nm"><i style="background:'+color(x.n)+'"></i>'+esc(x.n)+'</span><span class="lt">'+(x.l!=null?'+'+x.l:'')+'</span><b>'+x.t+'</b></div>').join('')+'</div>':'';
+  const tbl=T.games?'<div class="pt-tbl">'+T.rows.map((x,k)=>'<div class="pt-tr'+(x.n===(r.players[PID]||{}).name?' me':'')+'"><span class="md" style="'+(k<3&&x.t>0?'background:'+med[k]+';color:#0C1220':'')+'">'+(k+1)+'</span><span class="nm"><i style="background:'+color(x.n)+'"></i>'+esc(x.n)+'</span><span class="lt">'+(x.l>0?'+'+x.l:'')+'</span><b>'+x.t+'</b></div>').join('')+'</div>':'';
   const g=c&&gameOf(c.g);
   return '<div class="pt-card"><div class="pt-code"><div><p class="pt-lab">Room code</p><b>'+esc(code())+'</b></div><button class="pt-ghost" id="pinvite">Invite</button></div>'+
     '<p class="pt-lab">In the room · '+ids.length+'</p><div class="pt-ppl">'+chips+'</div></div>'+
     (T.games?'<div class="pt-card"><p class="pt-lab">Points · after '+T.games+' game'+(T.games===1?'':'s')+'</p>'+tbl+'</div>':'')+
-    '<div class="pkhead"><h2>'+(T.games?'Next game':'Pick a game')+'</h2>'+(host?'<p>'+'Everyone in the room starts it at the same time.'+'</p>':'')+'</div>'+
-    (host?'':'<p class="pt-wait"><i></i>'+esc((r.players[r.host]||{}).name||'The host')+' is picking the next game…</p>')+
+    // a game is on and this phone is not in it (left it, or came late): go back in
+    (live&&g?'<div class="pt-live"><i></i><div><b>'+esc(g.name)+' is on</b>Game '+c.n+' · the others are playing</div><a class="pt-btn" href="'+gameURL(c.g,c.n)+'">Rejoin</a></div>':'')+
+    '<div class="pkhead"><h2>'+(T.games?'Next game':'Pick a game')+'</h2></div>'+
+    (host||live?'':'<p class="pt-wait"><i></i>'+esc((r.players[r.host]||{}).name||'The host')+' picks the next game…</p>')+
     '<ul class="tiles c3">'+(G.live?G.live():G.GAMES).map(x=>H.tile(x,{played:T.played.includes(x.id),click:host})).join('')+'</ul>'+
     (ids.length<2?'<p class="pt-rules">Waiting for friends: send them the code or tap Invite.</p>':RULES)+
     '<button class="pt-leave" id="pleave">Leave room</button>'}
@@ -147,7 +165,7 @@ function bind(){const $=id=>document.getElementById(id);
   if($('pjoin'))$('pjoin').onclick=()=>join($('pcode').value);
   if($('pinvite'))$('pinvite').onclick=share;
   if($('pleave'))$('pleave').onclick=()=>{if(confirm('Leave the room?'))leave()};
-  H.el.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>pick(b.dataset.pick))}
+  H.el.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>ask(b.dataset.pick))}
 // the home page hands over the box to draw in and how to draw a game tile; ?party=ABCD (an invite link) joins that room
 function home(o){H=o;addCSS();H.toast=H.toast||toast;ss.set('gm-pg',null);
   const q=INVITE;INVITE='';
@@ -170,6 +188,35 @@ if(!HOME){let u;try{u=new URLSearchParams(location.search)}catch(e){u=new URLSea
   // (an old invite to one game's room, ?room=ABCD, goes there too)
   else if(u.has('friends')||u.has('room')){location.replace('../#friends')}}
 const css=`html.gm-party #rematch,html.gm-party #orematch,html.gm-party #olobby,html.gm-party #again,html.gm-party #newg,html.gm-party #ostart{display:none!important}
+/* in a game opened from the room, one way out: Exit in the strip (Héctor 2026-11-17). The game's own Leave / End game / ← Leave,
+   its title line ("With friends", "Room ABCD · game 1") and its own winner box go: the result ticket above says it */
+html.gm-party #leave,html.gm-party #oend,html.gm-party #gback,html.gm-party #giveup,html.gm-party .backline,html.gm-party .row-btns:has(#leave){display:none!important}
+html.gm-party .scores,html.gm-party section.panel:has(> p.big){display:none!important}
+#pt-slot:empty{display:none}
+#pt-slot{margin:2px 0 12px}
+.pt-strip{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;font-size:13px;background:color-mix(in srgb,var(--blue) 14%,var(--page));border:1px solid color-mix(in srgb,var(--blue) 40%,var(--line))}
+.pt-strip .pt-lab{color:var(--blue)}.pt-strip>span:nth-child(2){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pt-strip button{background:none;border:0;color:var(--ink);font:600 13px var(--body);text-decoration:underline;cursor:pointer;padding:4px 2px}
+.pt-res{margin:0}
+.pt-res .tk-mode{display:flex;justify-content:space-between}
+.pt-res-b{padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px}
+.pt-win{margin:0;font-family:var(--display);font-weight:900;font-size:28px;text-transform:uppercase;line-height:1}
+.pt-ov .pt-cd{font-family:var(--display);font-weight:900;font-size:88px;line-height:1;color:var(--blue);min-height:88px;display:flex;align-items:center;justify-content:center}
+.pt-ov .pt-cd .pt-dot{width:14px;height:14px;margin:0}
+.pt-link{background:none;border:0;color:var(--muted);font:inherit;font-size:14px;text-decoration:underline;cursor:pointer;padding:8px;align-self:center}
+.pt-veil{position:fixed;inset:0;z-index:65;background:var(--veil,rgba(4,7,14,.8));backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center}
+.pt-sheet{width:100%;max-width:460px;background:var(--page);border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;padding:16px max(16px,env(safe-area-inset-left,0px)) calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+.pt-sh-h{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pt-sh-h h3{margin:0;font-family:var(--display);font-weight:900;font-size:20px;text-transform:uppercase}
+.pt-x{background:none;border:0;color:var(--muted);font:600 15px var(--body);cursor:pointer;padding:4px}
+.pt-sh-g{display:flex;align-items:center;gap:14px}
+.pt-sh-g h3{margin:0;font-family:var(--display);font-weight:900;font-size:24px;text-transform:uppercase}
+.pt-sh-g p,.pt-sh-p{margin:2px 0 0;color:var(--muted);font-size:14px;line-height:1.4}
+.pt-btn.pt-red{background:var(--coral);color:var(--on-coral,#16202F)}
+.pt-live{display:flex;align-items:center;gap:12px;border:1.5px solid var(--blue);border-radius:14px;padding:12px 14px}
+.pt-live>i{width:8px;height:8px;border-radius:50%;background:var(--blue);box-shadow:0 0 10px var(--blue);flex:none;animation:pt-blink 1s ease-in-out infinite alternate}
+.pt-live div{flex:1;min-width:0;font-size:13px;color:var(--muted)}.pt-live b{display:block;color:var(--ink);font-family:var(--display);font-weight:900;font-size:16px;text-transform:uppercase}
+.pt-live .pt-btn{min-height:40px;font-size:13px}
 .pt-ov{position:fixed;inset:0;z-index:60;background:var(--bg,#0C1220);display:flex;align-items:center;justify-content:center;padding:24px 16px}
 .pt-ov>div{max-width:420px;width:100%;display:flex;flex-direction:column;gap:14px;text-align:center}
 .pt-ov .lab{font-family:var(--type);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--blue)}
@@ -182,9 +229,6 @@ const css=`html.gm-party #rematch,html.gm-party #orematch,html.gm-party #olobby,
 .pt-btn{border:0;background:var(--blue);color:#0C1220}
 .pt-btn:disabled{opacity:.45;cursor:default}
 .pt-ghost{border:1.5px solid var(--blue);background:transparent;color:var(--blue)}
-.pt-bar{position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px max(16px,env(safe-area-inset-left,0px)) calc(12px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--bg,#0C1220) 30%);display:flex;justify-content:center}
-.pt-bar .pt-btn{width:100%;max-width:428px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
-html.gm-party body{padding-bottom:84px}
 .pt-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--blue);box-shadow:0 0 10px var(--blue);margin-right:8px;vertical-align:middle;animation:pt-blink 1s ease-in-out infinite alternate}
 @keyframes pt-blink{to{opacity:.3}}
 .pt-toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:70;max-width:calc(100% - 32px);padding:10px 16px;border-radius:8px;background:var(--cover);color:var(--cover-ink);font-family:var(--type);font-size:14px;text-align:center;box-shadow:var(--shadow)}
@@ -219,48 +263,73 @@ html.gm-party body{padding-bottom:84px}
 #party .tile{cursor:default}#party button.tile{border:0;font:inherit;text-align:inherit;cursor:pointer;width:100%}
 #party .tile.played{opacity:.45}`;
 function addCSS(){if(document.getElementById('pt-css'))return;const s=document.createElement('style');s.id='pt-css';s.textContent=css;document.head.appendChild(s)}
-let ov=null,bar=null,started=0,created=false,joined='',hadRoom=false,tickT=null,before='',made='';
+let ov=null,started=0,created=false,joined='',hadRoom=false,tickT=null,before='',made='',shownAt=0,going=false,slotHTML='',left=false;
+const cdText=()=>{const c=R&&R.cur;if(!c||!c.go)return '';const t=Math.ceil((c.go-now())/1000);return t>0?String(Math.min(3,t)):'Go'};
 function overlay(html){if(!document.body)return;if(!html){if(ov){ov.remove();ov=null}return}
   if(!ov){ov=document.createElement('div');ov.className='pt-ov';document.body.appendChild(ov)}
   if(ov.dataset.h!==html){ov.dataset.h=html;ov.innerHTML='<div>'+html+'</div>';
-    const s=ov.querySelector('[data-pstart]');if(s)s.onclick=()=>{if(A&&A.start){A.start();started=Date.now()}};
     const b=ov.querySelector('[data-pback]');if(b)b.onclick=()=>{location.href=homeURL()}}}
-function backBar(on){if(!document.body)return;if(!on){if(bar){bar.remove();bar=null}return}
-  if(!bar){bar=document.createElement('div');bar.className='pt-bar';bar.innerHTML='<a class="pt-btn" href="'+homeURL()+'">Back to the room</a>';document.body.appendChild(bar)}}
-// every half second: make the game's room, join it, start it when everyone is in, then step out of the way
+// the strip under the game's name (Room ABCD · Game 2 · Exit) or, once the game is over, the result ticket:
+// header() puts it in place on every render (G.party.slot()), drive() keeps it up to date
+function setSlot(html){if(html===slotHTML)return;slotHTML=html;const el=document.getElementById('pt-slot');if(el){el.innerHTML=html;bindSlot(el)}}
+function bindSlot(el){const x=el.querySelector('[data-pexit]');if(x)x.onclick=exitAsk;
+  const b=el.querySelector('[data-pback]');if(b)b.onclick=()=>{location.href=homeURL()}}
+function slot(){if(!PG)return '';setTimeout(()=>{const el=document.getElementById('pt-slot');if(el)bindSlot(el)},0);return '<div id="pt-slot">'+slotHTML+'</div>'}
+function stripHTML(){const g=gameOf(R&&R.cur&&R.cur.g);
+  return '<div class="pt-strip"><span class="pt-lab">Room '+esc(PG.code)+'</span><span>Game '+PG.n+(g?' · '+esc(g.name):'')+'</span><button type="button" data-pexit>Exit</button></div>'}
+function resultHTML(){const r=R,x=r.res[PG.n],T=table(r),g=gameOf(x.g),me=(r.players[PID]||{}).name;
+  const s=(x.s||[]).slice().sort((a,b)=>b.p-a.p),top=s[0],tie=s[1]&&top&&s[1].p===top.p,tot={};T.rows.forEach(y=>{tot[y.n]=y.t});
+  return '<section class="ticket tk-friends pt-res"><div class="tk-mode friends"><span>Room '+esc(PG.code)+' · game '+PG.n+'</span><span>'+esc(g?g.name:'')+'</span></div>'+
+    '<div class="pt-res-b"><p class="pt-win">'+(!top?'Game over':tie?"It's a tie":esc(top.n)+' wins')+'</p>'+
+    '<div class="pt-tbl">'+s.map((y,k)=>'<div class="pt-tr'+(y.n===me?' me':'')+'"><span class="md">'+(k+1)+'</span><span class="nm">'+esc(y.n)+'</span><span class="lt">total '+(tot[y.n]||0)+'</span><b>+'+y.p+'</b></div>').join('')+'</div>'+
+    '<button type="button" class="pt-btn" data-pback>Back to the room</button>'+
+    (r.host===PID?'':'<p class="pt-rules">When '+esc((r.players[r.host]||{}).name||'the organiser')+' starts the next game, it opens here by itself.</p>')+'</div></section>'}
+// Exit: a friend leaves this game (it goes on without them, they can rejoin from the room); the organiser ends it for everyone
+function exitAsk(){const host=R&&R.host===PID;
+  sheet('<div class="pt-sh-h"><h3>'+(host?'End this game?':'Leave this game?')+'</h3><button class="pt-x" data-pclose>Close</button></div>'+
+    '<p class="pt-sh-p">'+(host?'Everyone goes back to the room. This game gives no points.':'You go back to the room. The others keep playing, and you can rejoin.')+'</p>'+
+    '<button class="pt-btn pt-red" data-pgo>'+(host?'End game for everyone':'Leave game')+'</button>',()=>{
+    if(!host){left=true;location.href=homeURL();return}
+    ref.child('cur').transaction(x=>{if(!x||x.n!==PG.n)return;x.end=true;return x}).then(()=>{location.href=homeURL()}).catch(()=>{location.href=homeURL()})})}
+// every half second: make the game's room, join it, count down 3·2·1 together, start it, then step out of the way
 function drive(){if(!PG||!A||!R)return;const c=R.cur||{},g=gameOf(c.g),rc=(A.room&&A.room())||'';
   // the organiser moved on to another game: follow
   if(c.n>PG.n){if(c.g){ss.set('gm-pg',null);location.href=gameURL(c.g,c.n)}return}
-  if(c.n!==PG.n){overlay('');backBar(true);return}
+  // the organiser ended this game: back to the room
+  if(c.n===PG.n&&c.end&&!(R.res&&R.res[PG.n])){if(!going){going=true;location.href=homeURL()}return}
+  if(c.n!==PG.n){overlay('');return}
   const ok=G.account&&G.account.ready,mineRoom=!!rc&&(rc===c.room||rc===made);
   if(mineRoom&&rc===c.room)hadRoom=true;
   if(!rc&&hadRoom){location.href=homeURL();return}   // left the game's room: back to our room
   if(ok){
-    // the game's room is known: everyone joins it (a room this phone was in before is left behind)
     if(c.room){if(rc!==c.room&&joined!==c.room){joined=c.room;PG.room=c.room;ss.set('gm-pg',PG);A.join(c.room)}}
-    // the organiser makes it, with the daily's rules
     else if(R.host===PID&&!created){created=true;before=rc;A.create()}}
   if(created&&rc&&rc!==before&&!made){made=rc}
   if(made&&!c.room&&R.host===PID)ref.child('cur').transaction(x=>{if(!x||x.n!==PG.n||x.room)return;x.room=made;return x}).catch(()=>{});
   const inLobby=!mineRoom||(A.lobby&&A.lobby());
   if(inLobby){const n=mineRoom&&A.count?A.count():0,exp=Math.max(2,c.exp||2),host=mineRoom&&A.host&&A.host();
-    if(host&&n>=exp&&Date.now()-started>4000){started=Date.now();A.start()}
-    const names=order(R).map(k=>R.players[k].name),inn=mineRoom&&A.names?A.names():[];
+    if(!shownAt)shownAt=Date.now();
+    // the organiser's phone sets the start (3 seconds ahead) once everyone is in, or after 10 seconds with whoever made it
+    if(host&&!c.go&&n>=2&&(n>=exp||Date.now()-shownAt>10000))ref.child('cur').transaction(x=>{if(!x||x.n!==PG.n||x.go)return;x.go=now()+3000;return x}).catch(()=>{});
+    if(host&&c.go&&now()>=c.go&&Date.now()-started>4000){started=Date.now();A.start()}
+    const names=order(R).map(k=>R.players[k].name),inn=mineRoom&&A.names?A.names():[],cd=cdText();
     overlay('<span class="lab">Room '+esc(PG.code)+' · game '+PG.n+'</span><h2>'+esc(g?g.name:'')+'</h2>'+
-      '<p><span class="pt-dot"></span>'+(mineRoom?'Getting everyone in… '+n+' of '+exp:'Opening the game…')+'</p>'+
+      '<p class="pt-cd">'+(cd||'<span class="pt-dot"></span>')+'</p>'+
       '<div class="ppl">'+names.map(x=>'<span class="'+(inn.includes(x)?'in':'')+'">'+esc(x)+'</span>').join('')+'</div>'+
-      (host?'<button class="pt-btn" data-pstart '+(n<2?'disabled':'')+'>Start now</button>':'')+
-      '<button class="pt-ghost" data-pback>Back to the room</button>');backBar(false)}
-  else{overlay('');backBar(!!(R.res&&R.res[PG.n])||done)}}
+      '<p>'+(cd?'Get ready…':'Waiting for everyone…')+'</p>'+
+      '<button class="pt-link" data-pback>Back to the room</button>')}
+  else overlay('');
+  setSlot(R.res&&R.res[PG.n]?resultHTML():stripHTML())}
 // what the game hands over: room() its room code (or null), host(), lobby(), count() players in its room, names(),
 // create(), join(code), start()
 function game(a){A=a;if(!PG)return;addCSS();
-  {const g=(G.GAMES||[]).find(x=>x.path.replace(/\/$/,'')===G.PAGE);overlay('<span class="lab">Room '+esc(PG.code)+' · game '+PG.n+'</span><h2>'+esc(g?g.name:'')+'</h2><p><span class="pt-dot"></span>Opening the game…</p>')}
+  {const g=(G.GAMES||[]).find(x=>x.path.replace(/\/$/,'')===G.PAGE);overlay('<span class="lab">Room '+esc(PG.code)+' · game '+PG.n+'</span><h2>'+esc(g?g.name:'')+'</h2><p class="pt-cd"><span class="pt-dot"></span></p><p>Opening the game…</p>')}
   whenFB(()=>listen(PG.code,r=>{if(!r){ss.set('gm-pg',null);location.href=homeURL();return}drive()}));
-  clearInterval(tickT);tickT=setInterval(drive,500)}
+  clearInterval(tickT);tickT=setInterval(drive,250)}
 // the points of this game, once everyone has finished: [{n:name, p:points}] (the first phone to send them wins)
 function result(list){if(!PG||!ref||done)return;done=true;
   const s=(list||[]).filter(x=>x&&x.n).map(x=>({n:String(x.n).slice(0,16),p:Math.max(0,Math.round(+x.p||0))}));
-  ref.child('res/'+PG.n).transaction(x=>x?undefined:{g:(R&&R.cur&&R.cur.g)||'',s}).catch(()=>{done=false});backBar(true)}
-G.party={home,game,result,on:()=>!!PG,name:()=>PG?myName():'',code};
+  ref.child('res/'+PG.n).transaction(x=>x?undefined:{g:(R&&R.cur&&R.cur.g)||'',s}).catch(()=>{done=false});
+  setTimeout(()=>{try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){}},400)}
+G.party={home,game,result,slot,on:()=>!!PG,name:()=>PG?myName():'',code};
 })();

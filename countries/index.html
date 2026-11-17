@@ -21,9 +21,9 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611241000"></script>
-<script src="../brand/account.js?v=202611241100"></script>
-<script src="../brand/party.js?v=202611160600"></script>
+<script src="../brand/mingo.js?v=202611250700"></script>
+<script src="../brand/account.js?v=202611250700"></script>
+<script src="../brand/party.js?v=202611250700"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -307,7 +307,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .cell.flag .cc{position:absolute;left:0;bottom:0;z-index:1;background:#0F1626;color:#fff;font-family:var(--display);font-weight:800;font-stretch:75%;font-size:clamp(.66rem,2.8vw,.85rem);letter-spacing:0;padding:2px 5px 1px 4px;border-radius:0 7px 0 0;line-height:1.15}
 .b5 .cell.flag .cc{font-size:.6rem;padding:1px 4px 0 3px;border-radius:0 5px 0 0}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611241100">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611250700">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -943,7 +943,7 @@ function onTick(){
   const left=S.deadline-now();
   const bar=document.querySelector('.tbar');const sub=document.getElementById('tleft');
   if(bar){bar.style.width=Math.max(0,left/(S.timer*1000)*100)+'%';bar.classList.toggle('low',left<=5000)}
-  if(sub)sub.textContent=Math.max(0,Math.ceil(left/1000))+'s';
+  if(sub)sub.textContent=Geomingo.mmss(left);
   if(S.mode==='online'){if(left<=-400)tryTimeout(S.turn,S.deadline);return}
   if(left<=0){
     if(S.mode==='solo'){loseLife();const l=livesLeft();say('sad',"Time's up.",S.nolives?'Try another square.':'That cost a life.'+(l>0?' '+livesWord(l)+' left.':''))}
@@ -1388,7 +1388,7 @@ function fitHeaders(){
 }
 try{document.fonts&&document.fonts.ready.then(()=>fitHeaders())}catch(e){}
 addEventListener('resize',()=>{clearTimeout(fitHeaders.t);fitHeaders.t=setTimeout(fitHeaders,120)});
-function onTickVisual(){const left=S.deadline-now();const bar=document.querySelector('.tbar');const sub=document.getElementById('tleft');if(bar){bar.style.width=Math.max(0,left/(S.timer*1000)*100)+'%';bar.classList.toggle('low',left<=5000)}if(sub)sub.textContent=Math.max(0,Math.ceil(left/1000))+'s'}
+function onTickVisual(){const left=S.deadline-now();const bar=document.querySelector('.tbar');const sub=document.getElementById('tleft');if(bar){bar.style.width=Math.max(0,left/(S.timer*1000)*100)+'%';bar.classList.toggle('low',left<=5000)}if(sub)sub.textContent=Geomingo.mmss(left)}
 
 // player stats page: your own (from this device and your account) or another player's public summary (profiles/<uid>)
 let STATS_UID=null,statsBack='home';const statsCache={};
@@ -1510,10 +1510,10 @@ function gameView(){
     // one ticket: Mingo's message on top, the game's numbers on the stub below the tear line
     const m=mood&&mood.g===gameKey()?mood:null,p=S.players[S.turn];
     const say=m?Geomingo.hello(m.pose,m.t,m.s)
-      :S.mode==='online'?Geomingo.hello('pass',S.turn===S.me?'Your turn.':'Waiting for '+p.name+'…','Name a country that fits its row and its column.')
+      :S.mode==='online'?Geomingo.hello('pass',S.turn===S.me?'Your turn':p.name+"'s turn",'Name a country that fits its row and its column.')
       :Geomingo.hello('pass',S.n*S.n+' stamps to win.','Each country must match its row and its column.');
     const cell=Geomingo.tk;
-    const time=S.timer?cell('Time',`<span id="tleft">${S.timer}s</span>`):'';
+    const time=S.timer?cell('Time',`<span id="tleft">${Geomingo.mmss(S.deadline?S.deadline-now():S.timer*1000)}</span>`):'';
     const stub=S.mode==='solo'
       ?cell('Traveller',esc(S.players[0].name),'tk-name')+cell('Stamps',S.cells.filter(c=>c.o===0).length+'/'+S.n*S.n)
         // the same four boxes in every game (Héctor, 2026-11-10): today's km in the daily, points in Practice and the archive (no class: Practice has no levels)

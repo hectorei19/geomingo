@@ -36,9 +36,9 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611241000"></script>
-<script src="../brand/account.js?v=202611241100"></script>
-<script src="../brand/party.js?v=202611160600"></script>
+<script src="../brand/mingo.js?v=202611250700"></script>
+<script src="../brand/account.js?v=202611250700"></script>
+<script src="../brand/party.js?v=202611250700"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -95,7 +95,7 @@ body.kbon .t10list .mini{width:18px;height:18px}
 body.kbon .kbgu{display:flex;flex-direction:column;align-items:center;gap:14px}
 body.kbon .kbgu #src{align-self:center!important}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611241100">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611250700">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -513,7 +513,7 @@ async function tryTimeout(turn,deadline){
 function onTick(){if(!S||S.mode!=='online'||S.over||!S.timer){clearInterval(tick);return}
   const left=S.deadline-now(),bar=document.querySelector('.tbar'),sub=$('tleft');
   if(bar){bar.style.width=Math.max(0,left/(S.timer*1000)*100)+'%';bar.classList.toggle('low',left<=5000)}
-  if(sub)sub.textContent=Math.max(0,Math.ceil(left/1000))+'s';
+  if(sub)sub.textContent=Geomingo.mmss(left);
   if(left<=-400)tryTimeout(S.turn,S.deadline)}
 
 /* ---- render ---- */
@@ -611,9 +611,9 @@ function lobbyHTML(){if(Geomingo.party&&Geomingo.party.on())return header('Top <
 function onlineHTML(){const cur=S.players[S.turn]||{};
   let h=header('Top <span>10</span>','room '+roomCode);
   if(!S.over){const cell=Geomingo.tk;
-    const say=moodHTML(tKey(),'pass',S.turn===S.me?'Your turn.':'Waiting for '+cur.name+'…',S.found.length+' of 10 found. Name a country in the top 10.');
+    const say=moodHTML(tKey(),'pass',S.turn===S.me?'Your turn':cur.name+"'s turn",S.found.length+' of 10 found. Name a country in the top 10.');
     const stub=S.players.map((p,i)=>`<div class="tk-c pl${i===S.turn?' on':''}${!p.on?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)}</i><b>${p.score}</b></div>`).join('')
-      +(S.timer?cell('Time',`<span id="tleft">${Math.max(0,Math.ceil((S.deadline-now())/1000))}s</span>`):'');
+      +(S.timer?cell('Time',`<span id="tleft">${Geomingo.mmss(S.deadline-now())}</span>`):'');
     h+=Geomingo.ticket(say,stub,{timer:S.timer,color:`var(--p${S.turn%6})`,mode:'friends'})}
   else h+=`<div class="scores">${S.players.map((p,i)=>`<span class="chip ${!p.on?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)} <b>${p.score}</b></span>`).join('')}</div>`;
   if(S.over){const l=listById(S.list),mineOf=i=>S.found.filter(c=>S.by[c]===i);
