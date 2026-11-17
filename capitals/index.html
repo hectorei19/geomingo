@@ -1698,7 +1698,7 @@ function bind(){
   app.querySelectorAll('[data-info]').forEach(b=>{b.onclick=()=>{ui.info=+b.dataset.info;drawLayer()};b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();b.click()}}});
   app.querySelectorAll('[data-cell]').forEach(b=>b.onclick=()=>{
     const ci=+b.dataset.cell;
-    if(S.over){ui.reveal=ci;render();return}
+    if(S.over){ui.reveal=ui.reveal===ci?-1:ci;render();return}
     if(S.cells[ci].o>=0)return;
     if(S.mode==='online'&&S.turn!==S.me){toast('Wait for your turn. It is '+S.players[S.turn].name+"'s go.");return}
     ui.sel=ci;ui.query='';render();
