@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611212100"></script>
+<script src="../brand/mingo.js?v=202611221000"></script>
 <script src="../brand/account.js?v=202611212100"></script>
 <script src="../brand/party.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -98,7 +98,7 @@
 <script src="../data/flags.js?v=202611160500"></script>
 <script src="../shared/data.js?v=202611141100"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611212100"></script>
+<script src="../shared/minigames.js?v=202611221000"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
@@ -290,7 +290,7 @@ function dailyPick(code){const q=D.qs[D.sel];if(!q||q.st!=='play'||D.over)return
   feedback(q,res);advance(D);dailySave();render();if(res!=='wrong')showLeft()}
 function dailyNextClue(){const q=D.qs[D.sel];if(!q||q.st!=='play'||D.over)return;nextClue(q);
   advance(D);dailySave();render();if(q.st!=='play')showLeft()}
-function dailyShareText(G){return `${Geomingo.share('Customs')} #${G.num}${G.mode==='archive'?' (archive)':''} — ${pointsOf(G)} points\n${G.qs.map(sq).join('')}`}
+function dailyShareText(G){return `${Geomingo.share('Customs')} ${Geomingo.archNo(G.num)}${G.mode==='archive'?' (archive)':''} — ${pointsOf(G)} points\n${G.qs.map(sq).join('')}`}
 const dailyShare=G=>dailyShareText(G)+"\n\nPlay today's Customs: "+pageLink();
 // a finished Solo game (Héctor 2026-11-14: Share in every Solo result)
 const soloShare=G=>`${Geomingo.share('Customs')} (practice) — ${pointsOf(G)} points\n${G.qs.map(sq).join('')}\n\nPlay Customs: `+pageLink();
@@ -317,7 +317,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     :[G.qs.some(x=>x.st!=='play')||q.k>1?'think':'pass','A traveller at the desk.','Read the clues and name the country. Every new clue lowers the points.'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
     tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('Desk',(i+1)+'/'+PER)+tk(mode==='daily'?'km':'Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+worth(q):'0'):'+'+worth(q),'tk-pts'),{mode,num:G.num})}
-function dailyHTML(){const arch=D.mode==='archive';let h=header('Customs',(arch?'Archive #':'Daily #')+D.num);
+function dailyHTML(){const arch=D.mode==='archive';let h=header('Customs',(arch?'Archive ':'Daily ')+Geomingo.archNo(D.num));
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
   if(D.over&&D.left==null)return h+resultHTML(D)+(D.mode==='archive'?'':rankingHTML());
   return h+ticketHTML(D,arch?'archive':'daily')+`<section class="panel">${playHTML(D)}</section>`+quickRules()}
@@ -327,9 +327,9 @@ const cuAverage=()=>{const v=Object.entries(load('cu-hist',{}));return v.length?
 const archDay=k=>{const e=load('cu-hist',{})[k];return e?Geomingo.KM.cl3(e.r,e.p,k,e.x3,PER)+' pts':null};
 function openArchive(){view='archive';query='';typing=false;render();window.scrollTo(0,0)}
 function playArchive(k){if(archDay(k)){toast('You played this day already.');return}
-  const a=load('cu-arch',{});D=a[k]||{mode:'archive',date:k,num:dayNum(k,FIRST),qs:dailyQs(k),sel:0,over:false};
+  const a=load('cu-arch',{});D=a[k]||{mode:'archive',date:k,num:archNum(k,FIRST),qs:dailyQs(k),sel:0,over:false};
   query='';typing=false;view='daily';dailySave();render();window.scrollTo(0,0)}
-const archiveView=()=>header('Customs','Archive')+archiveHTML({first:FIRST,label:'Day',num:k=>dayNum(k,FIRST),
+const archiveView=()=>header('Customs','Archive')+archiveHTML({first:FIRST,label:'Day',num:k=>archNum(k,FIRST),
   played:archDay,saved:k=>load('cu-arch',{})[k]||null,done:g=>[pointsOf(g)+' pts',squaresHTML(g)]});
 
 /* ---- Solo: five random travellers, made like the daily set, as many games as you like (cu-solo keeps the numbers) ---- */

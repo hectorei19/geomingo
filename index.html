@@ -24,7 +24,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
 <link rel="stylesheet" href="brand/geomingo.css?v=202611211900">
-<script src="brand/mingo.js?v=202611212100"></script>
+<script src="brand/mingo.js?v=202611221000"></script>
 <script src="brand/account.js?v=202611212100"></script>
 <script src="brand/party.js?v=202611160600"></script>
 <style>
@@ -321,14 +321,16 @@ function partyTile(g,o){const lk=look(g.id),st=o.played?'PLAYED':'',inner='<span
   const cls='tile'+(lk.ctr?' ctr':'')+(o.played?' played':'');
   return '<li>'+(o.click?'<button type="button" class="'+cls+'" data-pick="'+g.id+'" style="--c:'+lk.c+'" aria-label="Play '+esc(g.name)+' with the room">'+inner+'</button>':'<div class="'+cls+'" style="--c:'+lk.c+'">'+inner+'</div>')+'</li>'}
 /* ---- Archive: pick a past day on the calendar, then play that day's games (each game opens it with ?day=) ----
-   A game played on its day shows ✓ PLAYED, one played later from the Archive ✓ ARCHIVE. Before a game's daily #1: not yet. */
+   A game played on its day shows ✓ PLAYED, one played later from the Archive ✓ ARCHIVE. Before the Archive's first day (G.ARCH_FROM): not yet. */
 const addDay=(k,n)=>new Date(Date.parse(k+'T12:00Z')+n*864e5).toISOString().slice(0,10);
-const A_FIRST=()=>G.live().reduce((m,g)=>g.first&&g.first<m?g.first:m,G.dayKey());
+// every game is in the Archive from G.ARCH_FROM (Countries' first daily, Héctor 2026-11-17), also before its own first daily
+const A_FROM=g=>g.first&&G.ARCH_FROM&&G.ARCH_FROM<g.first?G.ARCH_FROM:g.first;
+const A_FIRST=()=>G.live().reduce((m,g)=>A_FROM(g)&&A_FROM(g)<m?A_FROM(g):m,G.dayKey());
 let ADAY=null;try{ADAY=sessionStorage.getItem('gm-aday')}catch(e){}
 let AMON=null;
 function archDay(){const t=G.dayKey();if(!ADAY||!/^\d{4}-\d{2}-\d{2}$/.test(ADAY)||ADAY>=t||ADAY<A_FIRST())ADAY=addDay(t,-1);return ADAY}
 // an archive game's km are in the ledger too (on the puzzle's day, Héctor 2026-11-16), so a finished archive game is looked at first
-function archState(g,k,L,AR){if(!g.first||k<g.first)return 'no';const a=(AR[g.arch]=AR[g.arch]||json(g.arch)||{})[k],ag=a&&typeof a==='object';
+function archState(g,k,L,AR){if(!g.first||k<A_FROM(g))return 'no';const a=(AR[g.arch]=AR[g.arch]||json(g.arch)||{})[k],ag=a&&typeof a==='object';
   if(ag&&a.over)return 'arch';if(L[k]&&L[k][g.id]!=null)return 'day';return ag?'prog':'play'}
 function archCal(P){const t=G.dayKey(),first=A_FIRST(),k0=archDay(),L=P.L,AR={};
   const mon=AMON||k0.slice(0,7),[y,m]=mon.split('-').map(Number),days=new Date(Date.UTC(y,m,0)).getUTCDate(),lead=(new Date(Date.UTC(y,m-1,1)).getUTCDay()+6)%7;
@@ -336,7 +338,7 @@ function archCal(P){const t=G.dayKey(),first=A_FIRST(),k0=archDay(),L=P.L,AR={};
   for(let d=1;d<=days;d++){const k=mon+'-'+String(d).padStart(2,'0');
     if(k===t){c+='<button type="button" class="d today" data-aday="today" aria-label="Today: today\'s games">'+d+'<small>TODAY</small></button>';continue}
     if(k>t||k<first){c+='<span class="d off" aria-hidden="true">'+d+'</span>';continue}
-    const gs=G.live().filter(g=>g.first&&k>=g.first),n=gs.filter(g=>{const s=archState(g,k,L,AR);return s==='day'||s==='arch'}).length;
+    const gs=G.live().filter(g=>g.first&&k>=A_FROM(g)),n=gs.filter(g=>{const s=archState(g,k,L,AR);return s==='day'||s==='arch'}).length;
     c+='<button type="button" class="d'+(n===gs.length?' full':'')+(k===k0?' sel':'')+'" data-aday="'+k+'" aria-pressed="'+(k===k0)+'" aria-label="'+esc(G.dateText(k,{weekday:'long',day:'numeric',month:'long'}))+': '+n+' of '+gs.length+' played">'+d+'<small>'+n+'/'+gs.length+'</small></button>'}
   const name=new Date(Date.UTC(y,m-1,15)).toLocaleDateString('en-GB',{month:'long',year:'numeric',timeZone:'UTC'});
   return '<div class="acal"><div class="mh"><button type="button" data-amon="-1" aria-label="Previous month"'+(mon<=first.slice(0,7)?' disabled':'')+'>‹</button><span>'+name+'</span>'+
@@ -347,7 +349,7 @@ const AST={no:['NOT YET',''],day:['✓ PLAYED','Played on the day'],arch:['✓ A
 const archOn=(g,k,AR)=>{const a=(AR[g.arch]||{})[k];return a&&/^\d{4}-\d\d-\d\d$/.test(a.pd||'')?a.pd:k};
 function archTile(g,P,AR){const k=archDay(),st=archState(g,k,P.L,AR),lk=look(g.id),[lab,h]=AST[st];
   const km=P.L[k]&&P.L[k][g.id];
-  const hint=st==='no'?'From '+esc(G.dateText(g.first,{day:'numeric',month:'short'})):st==='day'&&km!=null?'+'+km+' km on the day':st==='arch'&&km!=null?'+'+km+' km':h||esc(HINT3[g.id]||g.hint);
+  const hint=st==='no'?'From '+esc(G.dateText(A_FROM(g),{day:'numeric',month:'short'})):st==='day'&&km!=null?'+'+km+' km on the day':st==='arch'&&km!=null?'+'+km+' km':h||esc(HINT3[g.id]||g.hint);
   const top='<span class="tt"><span>TRIP '+g.gate+'</span><span class="s2">'+lab+'</span></span>'+lk.svg+'<b>'+esc(g.name)+'</b><small>'+hint+'</small><span class="s3">'+lab+'</span>';
   if(st==='no')return '<li><div class="tile off'+(lk.ctr?' ctr':'')+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+': not out yet on this day">'+top+'</div></li>';
   // played on its day: it opens that day's result (with links to the calendar and to every day of that game, Héctor 2026-11-16)

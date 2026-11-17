@@ -21,7 +21,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611212100"></script>
+<script src="../brand/mingo.js?v=202611221000"></script>
 <script src="../brand/account.js?v=202611212100"></script>
 <script src="../brand/party.js?v=202611160600"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -107,7 +107,7 @@
 <script src="../data/flags.js?v=202611160500"></script>
 <script src="../shared/data.js?v=202611141100"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611212100"></script>
+<script src="../shared/minigames.js?v=202611221000"></script>
 <script src="daily.js?v=202611142300"></script>
 <!-- With friends: online rooms in Countries' Firebase Realtime Database -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -291,7 +291,7 @@ function newGame(mode,seed,day){const date=day||todayKey(),dated=mode==='daily'|
   const fx=dated&&fixedPuzzle(seed,date);
   const v=fx?6:verOf(dated?'daily':mode,date),p=fx||buildPuzzle(seed,v);if(!p)return null;
   const S={v,mode,seed,groups:p.groups,left:p.order,found:[],guesses:[],mistakes:0,over:false,won:false};
-  if(dated){S.date=date;S.num=dayNum(S.date,CX_FIRST)}
+  if(dated){S.date=date;S.num=archNum(S.date,CX_FIRST)}
   // Practice can be Unlimited (the home page's Practice screen): mistakes are only counted
   else if(mode==='free'&&!Geomingo.lives())S.nolives=1;
   return S}
@@ -326,7 +326,7 @@ function playArchive(k){if(archDay(k)){toast('You played this puzzle on its day.
   const a=load('cx-arch',{});view='game';mode='archive';
   S=a[k]||newGame('archive',seedOf('connections-daily-'+k),k);sel=[];save();render();window.scrollTo(0,0)}
 const archSquares=g=>`<span class="dsq" style="grid-template-columns:repeat(4,1fr)" aria-hidden="true">${[0,1,2,3].map(i=>`<i class="${g.found.includes(i)?'g'+g.groups[i].t:''}"></i>`).join('')}</span>`;
-const archiveView=()=>header('Connec<span>tions</span>','Archive')+archiveHTML({first:CX_FIRST,label:'Puzzle',num:k=>dayNum(k,CX_FIRST),
+const archiveView=()=>header('Connec<span>tions</span>','Archive')+archiveHTML({first:CX_FIRST,label:'Puzzle',num:k=>archNum(k,CX_FIRST),
   played:archDay,saved:k=>load('cx-arch',{})[k]||null,done:g=>[g.found.length+'/4',archSquares(g)]});
 // today's puzzle before it is started, for the home screen
 let dailyCache=null;
@@ -497,7 +497,7 @@ function turnOver(cs,t,done){const els=cs.map(c=>app.querySelector(`.cx-grid [da
 
 /* ---- share ---- */
 function shareText(){const rows=S.guesses.map(g=>g.map(c=>TEMOJI[S.groups[groupOf(S,c)].t]).join(''));
-  const G=Geomingo.share('Connections'),head=S.mode==='daily'?`${G} #${S.num}`:S.mode==='archive'?`${G} #${S.num} (archive)`:S.mode==='online'?`${G} (with friends)`:`${G} (practice)`;
+  const G=Geomingo.share('Connections'),head=S.mode==='daily'?`${G} #${S.num}`:S.mode==='archive'?`${G} ${Geomingo.archNo(S.num)} (archive)`:S.mode==='online'?`${G} (with friends)`:`${G} (practice)`;
   const sum=S.groups.map((g,i)=>S.found.includes(i)?TEMOJI[g.t]:'⬜').join('');
   return head+(S.hint?' · categories shown':'')+' — '+(S.won?`solved with ${S.mistakes} mistake${S.mistakes===1?'':'s'}`:`${S.found.length}/4 groups`)+'\n'+sum+(rows.length?'\n\n'+rows.join('\n'):'')}
 const shareLink=()=>S.mode==='free'?pageLink('?p='+S.seed):pageLink();
@@ -553,11 +553,11 @@ function render(keepShake){
     app.innerHTML=room?lobbyHTML():header('Connec<span>tions</span>','')+`<section class="panel"><p class="hint">Connecting to the room…</p></section>`;bind();return}
   if(!S){app.innerHTML=header('Connections','')+`<section class="panel"><p class="hint">Could not build a puzzle. Try again later.</p></section>`;bind();return}
   const on=S.mode==='online';
-  const coord=S.mode==='daily'?'Daily #'+S.num:S.mode==='archive'?'Archive #'+S.num:on?'Room '+roomCode:'';
+  const coord=S.mode==='daily'?'Daily #'+S.num:S.mode==='archive'?'Archive '+Geomingo.archNo(S.num):on?'Room '+roomCode:'';
   let h=header('Connec<span>tions</span>',coord,0,S.mode==='free');
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
   // only a room has a title line (← Leave); today's game, the archive and Practice say it in the ticket's strip (Héctor 2026-11-15)
-  if(on)h+=`<div class="backline">${on?`<button class="linkbtn" id="leave">${leaveArmed?'Tap again to leave':'← Leave'}</button>`:``}<span class="ht">${S.mode==='daily'?"Today's puzzle":S.mode==='archive'?'Puzzle #'+S.num:on?'With friends':'Practice'}</span></div>`;
+  if(on)h+=`<div class="backline">${on?`<button class="linkbtn" id="leave">${leaveArmed?'Tap again to leave':'← Leave'}</button>`:``}<span class="ht">${S.mode==='daily'?"Today's puzzle":S.mode==='archive'?'Puzzle '+Geomingo.archNo(S.num):on?'With friends':'Practice'}</span></div>`;
   if(on)h+=scoresHTML();
   watchResult(cxKey(),S.over);
   // today's daily done: the four groups go inside the result ticket, Next trip and Share under it (Héctor 2026-11-12)
@@ -596,7 +596,7 @@ function resultHTML(body){const v=verdict(),dated=S.mode==='daily'||S.mode==='ar
   if(S.mode==='free'){const st=load('cx-solo',{n:0}),m=S.mistakes;
     return `${Geomingo.soloTicket({id:'connections',what:S.nolives?'Unlimited':MAX_MISTAKES+' lives',score:S.found.length+' of 4',best:'Solved '+(st.w||0)+' of '+(st.n||0),detail:m+' mistake'+(m===1?'':'s'),body})}<pre class="sharebox" id="share" hidden>${esc(shareText())}</pre>
     <div class="gm-done-btns gm-solo-btns"><button class="primary" id="again" style="flex:1">New puzzle</button>${SHARE_BTN.replace('Share result','Share')}</div>`}
-  return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Connections #'+S.num:S.mode==='archive'?'Archive · Connections #'+S.num:'Practice puzzle'}</span><p class="big">${S.found.length} of 4</p>
+  return `<section class="panel">${Geomingo.hello(v.pose,v.t,v.s,{key:'res'})}<span class="label">${S.mode==='daily'?'Connections #'+S.num:S.mode==='archive'?'Archive · Connections '+Geomingo.archNo(S.num):'Practice puzzle'}</span><p class="big">${S.found.length} of 4</p>
     <p class="hint">${S.won?(S.mistakes?`All four groups, ${S.mistakes} mistake${S.mistakes===1?'':'s'}.`:'All four groups, not a single mistake.'):`You found ${S.found.length} of 4 groups.`} ${S.mode==='daily'?`Next puzzle in ${nextIn()}.`:S.mode==='archive'?"Archive games don't count for the ranking or your streak.":''}</p>
     <pre class="sharebox" id="share">${esc(shareText())}</pre>
     ${S.mode==='daily'?`${SHARE_BTN}<div class="row-btns sharerow">${nextGameBtn('connections')}</div>
