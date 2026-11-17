@@ -92,6 +92,7 @@ button.gm-home{background:none;border:0;font:inherit;cursor:pointer}
    always the rectangular one (Mingo's head, VISITED and the date), tilted per game and day (Héctor 2026-11-16) */
 .tile{position:relative}
 .tile.done>svg{opacity:.45}
+.tile.next{box-shadow:0 0 0 3px var(--bg,#0B1220),0 0 0 6px var(--gold,#E8C25A)}
 .stamp{position:absolute;left:50%;top:41%;transform:translate(-50%,-50%) rotate(var(--r,-12deg));display:flex;flex-direction:column;align-items:center;justify-content:center;
   border:2.2px solid rgba(22,32,47,.85);color:rgba(22,32,47,.9);font-family:var(--type);font-weight:700;line-height:1.1;text-align:center;white-space:nowrap;pointer-events:none}
 .stamp b,.c3 .tile .stamp b{font-family:var(--type);font-weight:700;font-stretch:100%;font-size:11cqw;letter-spacing:.08em;margin:0;line-height:1.1;text-transform:none}
@@ -355,9 +356,11 @@ function archTile(g,P,AR){const k=archDay(),st=archState(g,k,P.L,AR),lk=look(g.i
   // played on its day: it opens that day's result (with links to the calendar and to every day of that game, Héctor 2026-11-16)
   return '<li><a class="tile'+(lk.ctr?' ctr':'')+(st==='day'||st==='arch'?' done':'')+'" href="'+g.href+'?day='+k+'" style="--c:'+lk.c+'" aria-label="'+esc(g.name)+', '+esc(G.dateText(k,{weekday:'long',day:'numeric',month:'long'}))+': '+lab.replace('✓ ','').toLowerCase()+'">'+top+(st==='day'?stamp(g.id,k):st==='arch'?stamp(g.id,k,archOn(g,k,AR)):'')+'</a></li>'}
 function tile(g,P){if(MODE==='archive')return archTile(g,P,P.AR||(P.AR={}));if(MODE!=='today')return modeTile(g);const r=G.result(g.id),lk=look(g.id),mi=P.today[g.id];
-  const state=r.done?'✓ '+(mi!=null?'+'+mi+' KM':esc(r.label)):'TO VISIT',hint=r.done?doneLine(g.id,r.label):esc(HINT3[g.id]||g.hint);
+  // the first game not played yet today is marked NEXT with a gold ring, so a new player knows where to start (Héctor 2026-11-17)
+  const nx=!r.done&&G.live().find(x=>!G.result(x.id).done)===g;
+  const state=r.done?'✓ '+(mi!=null?'+'+mi+' KM':esc(r.label)):nx?'NEXT':'TO VISIT',hint=r.done?doneLine(g.id,r.label):esc(HINT3[g.id]||g.hint);
   const lab='aria-label="'+esc(g.name)+', trip '+g.gate+': '+(r.done?'played today, '+esc(r.label):'play')+'"';
-  return '<li><a class="tile'+(lk.ctr?' ctr':'')+(r.done?' done':'')+'" href="'+g.href+'" style="--c:'+lk.c+'" '+lab+'><span class="tt"><span>TRIP '+g.gate+'</span><span class="s2">'+state+'</span></span>'+lk.svg+
+  return '<li><a class="tile'+(lk.ctr?' ctr':'')+(r.done?' done':'')+(nx?' next':'')+'" href="'+g.href+'" style="--c:'+lk.c+'" '+lab+'><span class="tt"><span>TRIP '+g.gate+'</span><span class="s2">'+state+'</span></span>'+lk.svg+
     '<b>'+esc(g.name)+'</b><small>'+hint+'</small><span class="s3">'+state+'</span>'+(r.done?stamp(g.id):'')+'</a></li>'}
 // the passport stamp on a game played today (k: or on that day, in the Archive): always VISITED with the date (Héctor
 // 2026-11-16: the round one had no date); the tilt looks random but stays the same for that game and day
