@@ -1757,12 +1757,7 @@ function drawLayer(){
 }
 function sugg(res){if(!ui.query)return `<li class="hint" style="padding:8px 2px">Start typing. You only get one try per turn.</li>`;if(!res.length)return `<li class="hint" style="padding:8px 2px">No country matches “${esc(ui.query)}”.</li>`;
   return res.map(c=>{const u=S.used.includes(c.c);return `<li><button data-g="${c.c}" ${u?'disabled':''}>${esc(c.n)}${u?'<span class="tag">used</span>':c.t?'<span class="tag">territory</span>':''}</button></li>`}).join('')}
-// tapping a name hides the list and the keyboard at once, then checks the answer on the next frame (Héctor 2026-11-17: on a phone the list stayed on screen for a moment)
-function bindSugg(){layer.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>pickSugg(b.dataset.g))}
-function pickSugg(cid){const ci=ui.sel,s0=S,t0=S.turn;if(ci<0)return;
-  const gq=document.getElementById('gq');if(gq)gq.blur();
-  ui.sel=-1;ui.query='';drawLayer();
-  requestAnimationFrame(()=>setTimeout(()=>{if(S===s0&&S.turn===t0&&!S.over)guess(ci,cid);else render()},0))}
+function bindSugg(){layer.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>guess(ui.sel,b.dataset.g))}
 
 /* ---- bindings ---- */
 function bind(){

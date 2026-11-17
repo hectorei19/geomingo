@@ -1635,12 +1635,7 @@ function drawLayer(){
 }
 function sugg(res){if(!ui.query)return `<li class="hint" style="padding:8px 2px">Start typing. You only get one try per turn.</li>`;if(!res.length)return `<li class="hint" style="padding:8px 2px">No capital matches “${esc(ui.query)}”.</li>`;
   return res.map(c=>{const u=S.used.includes(c.c);return `<li><button data-g="${c.c}" ${u?'disabled':''}>${esc(c.n)}${u?'<span class="tag">used</span>':'<span class="co">'+esc(c.co.n)+'</span>'}</button></li>`}).join('')}
-// tapping a name hides the list and the keyboard at once, then checks the answer on the next frame (Héctor 2026-11-17: on a phone the list stayed on screen for a moment)
-function bindSugg(){layer.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>pickSugg(b.dataset.g))}
-function pickSugg(cid){const ci=ui.sel,s0=S,t0=S.turn;if(ci<0)return;
-  const gq=document.getElementById('gq');if(gq)gq.blur();
-  ui.sel=-1;ui.query='';drawLayer();
-  requestAnimationFrame(()=>setTimeout(()=>{if(S===s0&&S.turn===t0&&!S.over)guess(ci,cid);else render()},0))}
+function bindSugg(){layer.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>guess(ui.sel,b.dataset.g))}
 
 /* ---- bindings ---- */
 function bind(){
@@ -1692,7 +1687,7 @@ function bind(){
   app.querySelectorAll('[data-info]').forEach(b=>{b.onclick=()=>{ui.info=+b.dataset.info;drawLayer()};b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();b.click()}}});
   app.querySelectorAll('[data-cell]').forEach(b=>b.onclick=()=>{
     const ci=+b.dataset.cell;
-    if(S.over){ui.reveal=ci;render();return}
+    if(S.over){ui.reveal=ui.reveal===ci?-1:ci;render();return}
     if(S.cells[ci].o>=0)return;
     if(S.mode==='online'&&S.turn!==S.me){toast('Wait for your turn. It is '+S.players[S.turn].name+"'s go.");return}
     ui.sel=ci;ui.query='';render();
