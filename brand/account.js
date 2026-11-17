@@ -535,7 +535,7 @@ function openMenu(){const u=who();let km=0;try{km=G.geo().km}catch(e){}
     it('rank','#5FC28F','rank','Ranking',sub('Today, this week, this month'))+
     it('arch','#7FA2F0','cal','Archive',sub('Play past days of all '+G.ALLW+' games'))+
     it('fb','#F07884','mail','Send feedback',sub('Ideas, mistakes, anything'))+
-    it('tip','#FFDD00','cup','Buy me a coffee',sub('Geomingo is free and ad-free'))+'</ul>'+
+    it('tip','#D4AD4B','cup','Buy me a coffee',sub('Geomingo is free and ad-free'))+'</ul>'+
     (g&&g.sources?'<button class="gm-text msrc" data-gm-act="gsrc">'+esc(g.name)+' data sources</button>':''),
     Object.assign(acts,{chname:changeMyName,gp:()=>G.openPass('passport'),fb:openFeedback,tip:openTip,gsrc:()=>{G.closeWindow();g.sources()},
      // Archive: a calendar of past days on the home page, for all the games (Héctor 2026-11-15); from a game it opens the home page there
