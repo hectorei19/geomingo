@@ -276,6 +276,8 @@ function clockStop(g,d,f){const T=clockAll(),x=T[d]&&T[d][g];if(!x||x.b)return;x
 function clockSecs(g,d){const x=(clockAll()[d]||{})[g];return x&&x.b&&x.b>=x.a?Math.max(1,Math.round((x.b-x.a)/1000)):null}
 const clock={start:clockStart,stop:clockStop,secs:clockSecs};
 // 52″, 2′41″, 21′05″
+// a turn's time left as a clock: 0:27 (With friends, Héctor 2026-11-17)
+const mmss=ms=>{const t=Math.max(0,Math.ceil((ms||0)/1000));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
 const secText=s=>s<60?s+'″':Math.floor(s/60)+'′'+String(s%60).padStart(2,'0')+'″';
 
 /* ---------- visas (Héctor 2026-11-16) ----------
@@ -429,7 +431,13 @@ function ticket(say,stub,o){o=o||{};const m=o.mode,n=o.num!=null?' '+archNo(o.nu
     :m==='practice'?'<div class="tk-mode practice"><span>'+tr+'Practice</span>'+(o.code?'<span>'+esc(String(o.code))+'</span>':'')+'</div>'
     :m==='archive'?'<div class="tk-mode practice"><span>'+tr+'Archive'+n+'</span></div>'
     :m==='friends'||m==='online'?'<div class="tk-mode friends"><span>With friends</span></div>':'';
-  // o.color (a game with turns): the whole ticket takes the colour of the player whose turn it is (.tk-turn, --pc)
+  // With friends with turns (Countries, Capitals, Top 10; Héctor 2026-11-17, option C1): all in the blue of With friends.
+  // One line says whose turn it is, the clock (0:27) on its right, a thin blue line under it that runs down,
+  // then the players as small pills, the one playing with a blue edge. The game's "Time" box moves up next to the line.
+  if(o.color&&o.timer&&(m==='friends'||m==='online')){let clock='';
+    stub=stub.replace(/<div class="tk-c[^"]*"><i>Time<\/i><b>([\s\S]*?)<\/b><\/div>/,(x,v)=>{clock=v;return ''});
+    return '<section class="ticket tk-friends tk-turn">'+strip+'<div class="tk-sayrow">'+say+(clock?'<span class="tk-clock">'+clock+'</span>':'')+'</div>'+
+      '<div class="tk-track"><span class="tbar" style="width:100%"></span></div><div class="tk-stub">'+stub+'</div></section>'}
   return '<section class="ticket'+(m==='practice'||m==='archive'?' tk-practice':m==='friends'||m==='online'?' tk-friends':'')+(o.color?' tk-turn" style="--pc:'+o.color:'')+'">'+strip+say+'<div class="tk-tear" aria-hidden="true"></div><div class="tk-stub">'+stub+'</div>'+(o.timer?'<span class="tbar" style="width:100%'+(o.color?';background:'+o.color:'')+'"></span>':'')+'</section>'}
 // the traveller's name on the ticket: the account's, else the one played with in Countries or Capitals
 function traveller(){const a=window.Geomingo&&window.Geomingo.account;return ((a&&a.name)||store.get('bl-user')||store.get('cc-user')||'Guest').trim().slice(0,16)||'Guest'}
@@ -636,6 +644,6 @@ const oldName=q=>OLD_NAMES[String(q||'').normalize('NFD').replace(/[\u0300-\u036
 const withOld=(res,q,pool)=>{const o=oldName(q);if(!o||res.some(c=>c.c===o))return res;const c=pool.find(x=>x.c===o);return c?[...res,c]:res};
 
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
-  days,streak,streakInfo,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,countriesSeen,countriesKnown,EXPERT,CORE,TIERS,gameVisas,specialVisas,challengeVisas,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,archTicket,archListBtn,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,ARL,archDone,rowKm,dayTotal,level,geo,visas,clock,secText,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
+  days,streak,streakInfo,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,countriesSeen,countriesKnown,EXPERT,CORE,TIERS,gameVisas,specialVisas,challengeVisas,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,archTicket,archListBtn,KM,KM_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,ARL,archDone,rowKm,dayTotal,level,geo,visas,clock,secText,mmss,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
   openWindow,closeWindow,esc,refreshPass,room,where,mode,askedDay,ARCH_FROM,archNo,lives,setLives,stat,statTo,PAGE,oldName,withOld,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name,fresh:FRESH};
 })();

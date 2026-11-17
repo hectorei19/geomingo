@@ -160,24 +160,27 @@ body:has(.ticket .tk-mode.daily,.ticket .tk-mode.practice) .gm-title small{displ
 .tk-c.pl i{text-transform:none;letter-spacing:.02em;font-size:12px}
 .tk-c.pl .pin{width:10px;height:10px}
 .tk-c.pl.on{border-color:var(--ink)} .tk-c.pl.off{opacity:.45}
-/* whose turn it is (With friends): ticket edge + glow, thick countdown bar, the playing traveller's box, all in their colour */
-.ticket.tk-turn{border:3px solid var(--pc);box-shadow:0 0 0 4px color-mix(in srgb,var(--pc) 25%,transparent),0 0 24px color-mix(in srgb,var(--pc) 45%,transparent)}
-.ticket.tk-turn .tk-tear{border-top-color:color-mix(in srgb,var(--pc) 50%,transparent)}
-.ticket.tk-turn .tk-tear::before,.ticket.tk-turn .tk-tear::after{border-color:var(--pc)}
-.ticket.tk-turn:has(.tbar){padding-bottom:12px}
-.ticket.tk-turn:has(.tbar)::after{content:"";position:absolute;left:0;right:0;bottom:0;height:12px;background:rgba(255,255,255,.08)}
-.ticket.tk-turn .tbar{height:12px;z-index:1;background:var(--pc)}
-.ticket.tk-turn .tbar.low{animation:tk-low .5s ease-in-out infinite alternate}
-@keyframes tk-low{to{box-shadow:0 0 12px 3px var(--pc)}}
-.ticket.tk-turn #tleft{color:var(--pc)}
-.ticket.tk-turn .tk-c.pl.on{border:2px solid var(--pc);background:color-mix(in srgb,var(--pc) 22%,transparent)}
-.ticket.tk-turn .tk-c.pl.on i{color:var(--pc);font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.01em}
-.ticket.tk-turn .tk-c.pl.on .pin{width:12px;height:12px}
-@media (prefers-reduced-motion:reduce){.ticket.tk-turn .tbar.low{animation:none}}
-/* With friends with turns: the ticket stays plain blue (no thick coloured edge or glow); whose turn it is shows only in that player's box and the time bar (Héctor 2026-11-15) */
-.ticket.tk-friends.tk-turn{border:1.5px solid var(--blue);box-shadow:var(--shadow)}
-.ticket.tk-friends.tk-turn .tk-tear{border-top-color:color-mix(in srgb,var(--blue) 50%,transparent)}
-.ticket.tk-friends.tk-turn .tk-tear::before,.ticket.tk-friends.tk-turn .tk-tear::after{border-color:var(--blue)}
+/* whose turn it is (With friends, Héctor 2026-11-17, option C1): everything in the blue of With friends, no player colours.
+   One line says whose turn it is with the clock (0:27) on its right, a thin blue line under it runs down with the time,
+   then the players as pills, the one playing with a blue edge. In the last 5 seconds only the clock pulses. */
+.ticket.tk-turn{border:1.5px solid var(--blue);box-shadow:var(--shadow)}
+.tk-sayrow{display:flex;align-items:center;gap:10px;padding-right:16px}
+.tk-sayrow>.gm-hello{flex:1;min-width:0}
+.tk-clock{flex:none;font-family:var(--mono);font-weight:700;font-size:26px;color:var(--blue);font-variant-numeric:tabular-nums;line-height:1}
+.ticket:has(.tbar.low) .tk-clock{animation:tk-low .5s ease-in-out infinite alternate}
+@keyframes tk-low{to{opacity:.45}}
+.tk-track{position:relative;height:2px;margin:2px 14px 0;border-radius:2px;background:var(--line);overflow:hidden}
+.ticket .tk-track .tbar{position:absolute;left:0;top:0;bottom:auto;height:2px;background:var(--blue);border-radius:2px;transition:width .25s linear}
+.ticket.tk-turn .tk-stub{gap:6px;padding:12px 14px 14px}
+.ticket.tk-turn .tk-c.pl{flex:0 1 auto;min-width:0;flex-direction:row;align-items:center;gap:6px;padding:4px 11px;border:1px solid var(--line);border-radius:20px}
+.ticket.tk-turn .tk-c.pl i{font-family:var(--body);font-size:13px;letter-spacing:0;color:var(--ink-2)}
+.ticket.tk-turn .tk-c.pl b{font-size:15px}
+.ticket.tk-turn .tk-c.pl .pin{width:9px;height:9px}
+.ticket.tk-turn .tk-c.pl.on{border-color:var(--blue)}
+.ticket.tk-turn .tk-c.pl.on i{color:var(--ink);font-weight:600}
+@media (prefers-reduced-motion:reduce){.ticket:has(.tbar.low) .tk-clock{animation:none}}
+/* With friends without turns (Silhouette's shared clock): the time bar in blue too */
+.ticket.tk-friends .tbar{background:var(--blue)}
 @keyframes gm-pop{0%{transform:translateY(4px);opacity:.4}100%{transform:none;opacity:1}}
 
 /* section heading (home page) */

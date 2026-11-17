@@ -817,7 +817,7 @@ function onTick(){
   const left=S.deadline-now();
   const bar=document.querySelector('.tbar');const sub=document.getElementById('tleft');
   if(bar){bar.style.width=Math.max(0,left/(S.timer*1000)*100)+'%';bar.classList.toggle('low',left<=5000)}
-  if(sub)sub.textContent=Math.max(0,Math.ceil(left/1000))+'s';
+  if(sub)sub.textContent=Geomingo.mmss(left);
   if(S.mode==='online'){if(left<=-400)tryTimeout(S.turn,S.deadline);return}
   if(left<=0){
     if(S.mode==='solo'){loseLife();const l=livesLeft();say('sad',"Time's up.",S.nolives?'Try another square.':'That cost a life.'+(l>0?' '+livesWord(l)+' left.':''))}
@@ -1269,7 +1269,7 @@ function fitHeaders(){
 }
 try{document.fonts&&document.fonts.ready.then(()=>fitHeaders())}catch(e){}
 addEventListener('resize',()=>{clearTimeout(fitHeaders.t);fitHeaders.t=setTimeout(fitHeaders,120)});
-function onTickVisual(){const left=S.deadline-now();const bar=document.querySelector('.tbar');const sub=document.getElementById('tleft');if(bar){bar.style.width=Math.max(0,left/(S.timer*1000)*100)+'%';bar.classList.toggle('low',left<=5000)}if(sub)sub.textContent=Math.max(0,Math.ceil(left/1000))+'s'}
+function onTickVisual(){const left=S.deadline-now();const bar=document.querySelector('.tbar');const sub=document.getElementById('tleft');if(bar){bar.style.width=Math.max(0,left/(S.timer*1000)*100)+'%';bar.classList.toggle('low',left<=5000)}if(sub)sub.textContent=Geomingo.mmss(left)}
 
 // player stats page: your own (from this device and your account) or another player's public summary (profiles/<uid>)
 let STATS_UID=null,statsBack='home';const statsCache={};
@@ -1394,10 +1394,10 @@ function gameView(){
     // one ticket, as in Countries: Mingo's message on top, the game's numbers on the stub below the tear line
     const m=mood&&mood.g===gameKey()?mood:null,p=S.players[S.turn];
     const say=m?Geomingo.hello(m.pose,m.t,m.s)
-      :S.mode==='online'?Geomingo.hello('pass',S.turn===S.me?'Your turn.':'Waiting for '+p.name+'…','Name a capital that fits its row and its column.')
+      :S.mode==='online'?Geomingo.hello('pass',S.turn===S.me?'Your turn':p.name+"'s turn",'Name a capital that fits its row and its column.')
       :Geomingo.hello('pass',S.n*S.n+' stamps to win.','Each capital must match its row and its column.');
     const cell=Geomingo.tk;
-    const time=S.timer?cell('Time',`<span id="tleft">${S.timer}s</span>`):'';
+    const time=S.timer?cell('Time',`<span id="tleft">${Geomingo.mmss(S.deadline?S.deadline-now():S.timer*1000)}</span>`):'';
     const stub=S.mode==='solo'
       ?cell('Traveller',esc(S.players[0].name),'tk-name')+cell('Stamps',S.cells.filter(c=>c.o===0).length+'/'+S.n*S.n)
         // the same four boxes in every game (Héctor, 2026-11-10): today's km in the daily, points in Practice and the archive (no class: Practice has no levels)
