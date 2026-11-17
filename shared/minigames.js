@@ -112,6 +112,7 @@ document.addEventListener('keydown',e=>{
 // phones: the system share menu; elsewhere copy the result and the link (if the clipboard is blocked, select the text)
 const TOUCH=matchMedia('(pointer:coarse)').matches;
 function share(text){
+  Geomingo.stat('share');
   const manual=()=>{const el=$('share');if(el){el.hidden=false;el.textContent=text;const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r)}
     let ok=false;try{ok=document.execCommand('copy')}catch(e){}if(ok&&el)el.hidden=true;toast(ok?'Result and link copied.':'Copy blocked here. The text is selected: copy it manually.',ok?'good':'')};
   if(navigator.share&&TOUCH){navigator.share({text}).catch(e=>{if(e&&e.name!=='AbortError')manual()});return}

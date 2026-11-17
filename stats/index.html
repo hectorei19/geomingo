@@ -9,8 +9,8 @@
 <title>Stats · Geomingo</title>
 <meta name="theme-color" content="#151E30">
 <link rel="icon" href="../brand/icons/favicon.svg?v=202611101235" type="image/svg+xml">
-<script src="../brand/mingo.js?v=202611231000"></script>
-<script src="../brand/account.js?v=202611231100"></script>
+<script src="../brand/mingo.js?v=202611231200"></script>
+<script src="../brand/account.js?v=202611231200"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -47,6 +47,7 @@ h3{font-family:var(--display);font-weight:800;font-size:17px;letter-spacing:.02e
 .meter{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
 .meter i{display:block;height:100%;background:var(--green)}
 @media (max-width:420px){.row{grid-template-columns:78px 1fr 112px;gap:8px}}
+.game .sub{margin:6px 0 0;color:var(--muted);font-size:12.5px;line-height:1.45}
 .legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12.5px;margin:4px 0 10px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 code{font-family:var(--type);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:2px 6px;word-break:break-all}
@@ -98,7 +99,21 @@ function okHTML(){const ds=days(range);
     '<div class="tile"><b>'+n(nw)+'</b><span>su primer día</span></div><div class="tile"><b>'+n(bk)+'</b><span>vuelven tras 7+ días</span></div><div class="tile"><b>'+n(Math.max(0,pl-nw-bk))+'</b><span>siguen jugando</span></div></div>';
   if(range!==1){const v=ds.map(d=>(data[d]&&data[d]._players&&data[d]._players.play)||0);
     h+='<div class="box" style="margin-top:10px">'+bars(v,ds)+'<div class="axis"><span>'+esc(ds[0].slice(8)+'/'+ds[0].slice(5,7))+'</span><span>hoy</span></div></div>'}
-  h+='<p class="note">Cada jugador con cuenta se cuenta una vez al día, cuando termina su primera partida. El total de cuentas está en Firebase → Authentication.</p>';
+  // coming back: the new players of the last 30 days whose next day (or week) has already passed
+  const all=days(30),c1=all.slice(0,-1),c7=all.slice(0,-13),n1=sum(c1,'_players','new'),n7=sum(c7,'_players','new');
+  h+='<div class="tiles" style="margin-top:8px;grid-template-columns:repeat(2,1fr)"><div class="tile"><b>'+pct(sum(c1,'_players','d1'),n1)+'</b><span>vuelven al día siguiente (de '+n(n1)+' nuevos)</span></div>'+
+    '<div class="tile"><b>'+pct(sum(c7,'_players','d7'),n7)+'</b><span>siguen jugando a la semana (de '+n(n7)+' nuevos)</span></div></div>';
+  h+='<p class="note">Cada jugador con cuenta se cuenta una vez al día, cuando termina su primera partida. «Vuelven al día siguiente» y «a la semana» miran a los nuevos de los últimos 30 días (siempre, sea cual sea la pestaña). El total de cuentas está en Firebase → Authentication.</p>';
+  // each person's day: how many of today's games, and the streak
+  const gN=i=>sum(ds,'_day','g'+i),ppl=gN(1),line=(l,v,of)=>'<div class="row"><span class="m">'+l+'</span><span class="meter"><i style="width:'+(of?Math.min(100,100*v/of):0)+'%"></i></span><span class="n">'+n(v)+' · '+pct(v,of)+'</span></div>';
+  h+='<h3>Cuánto juega cada persona al día</h3><div class="box">'+line('1 juego',gN(1)-gN(2),ppl)+line('2 a 4',gN(2)-gN(5),ppl)+line('5 a 8',gN(5)-gN(9),ppl)+line('los 9',gN(9),ppl)+
+    '<div style="height:8px"></div>'+line('racha 3+',sum(ds,'_day','s3'),ppl)+line('racha 7+',sum(ds,'_day','s7'),ppl)+'</div>';
+  h+='<p class="note">Todos, con o sin cuenta: cada móvil u ordenador cuenta una vez al día ('+n(ppl)+'), con los juegos de hoy que terminó. La racha es la del Daily en ese momento.</p>';
+  // new people and sharing
+  const shares=PAGES.reduce((t,x)=>t+MODES.reduce((u,[m])=>u+sum(ds,x.p,'share-'+m),0),0),ng=sum(ds,'_day','new-game'),nn=ng+sum(ds,'_day','new-home')+sum(ds,'_day','new-other');
+  h+='<h3>Gente nueva y compartir</h3><div class="tiles" style="grid-template-columns:repeat(3,1fr)"><div class="tile"><b>'+n(nn)+'</b><span>personas nuevas</span></div>'+
+    '<div class="tile"><b>'+n(ng)+'</b><span>entran directas a un juego</span></div><div class="tile"><b>'+n(shares)+'</b><span>veces compartido</span></div></div>';
+  h+='<p class="note">«Personas nuevas»: un móvil u ordenador que abre Geomingo por primera vez. Si entra directo a un juego y no a la página de inicio, casi siempre viene de un resultado compartido. «Compartido»: cada vez que alguien pulsa Share.</p>';
   // visits by day (or by hour today)
   if(range===1){h+='<h3>Visitas de hoy por hora</h3>'}else{h+='<h3>Visitas por día</h3>';const v=ds.map(d=>PAGES.reduce((t,x)=>t+((data[d]&&data[d][x.p]&&data[d][x.p].view)||0),0));
     h+='<div class="box">'+bars(v,ds)+'<div class="axis"><span>'+esc(ds[0].slice(8)+'/'+ds[0].slice(5,7))+'</span><span>hoy</span></div></div>'}
@@ -112,6 +127,11 @@ function okHTML(){const ds=days(range);
   rows.forEach(({x,v})=>{h+='<div class="game"><div class="top"><b>'+esc(x.name)+'</b><span>'+n(v)+' visitas</span></div>';
     if(x.p!=='home')MODES.forEach(([m,l])=>{const o=sum(ds,x.p,'open-'+m),f=sum(ds,x.p,'fin-'+m),g=sum(ds,x.p,'giveup-'+m);
       h+='<div class="row"><span class="m">'+l+'</span><span class="meter"><i style="width:'+(o?Math.min(100,100*f/o):0)+'%"></i></span><span class="n">'+n(o)+' → '+n(f)+' · '+n(g)+'</span></div>'});
+    if(x.p!=='home'){const B=[0,25,50,75,100].map(k=>sum(ds,x.p,'km'+k)),t=B.reduce((a,b)=>a+b,0),pf=sum(ds,x.p,'perfect'),sh=MODES.reduce((u,[m])=>u+sum(ds,x.p,'share-'+m),0);
+      const avg=t?Math.round((B[0]*12.5+B[1]*37.5+B[2]*62.5+B[3]*87.5+(B[4]-pf)*100+pf*120)/t):0;
+      h+='<p class="sub">Daily: '+(t?'~'+n(avg)+' km de media · '+pct(pf,t)+' perfectos':'sin datos de km')+' · '+n(sh)+' compartido'+(sh===1?'':'s')+'</p>';
+      const C=['c1','c2','c3','c4','c5','cx'].map(k=>sum(ds,x.p,k)),ct=C.reduce((a,b)=>a+b,0);
+      if(ct)h+='<p class="sub">Rondas del Daily: '+C.slice(0,5).map((v,i)=>(i+1)+'ª pista '+pct(v,ct)).join(' · ')+' · <b>no acertadas '+pct(C[5],ct)+'</b></p>'}
     h+='</div>'});
   h+='</div><p class="note" style="margin-top:18px">«Abiertas» cuenta la primera vez que alguien ve Hoy, Practice o With friends en esa visita. «Terminadas» cuenta las partidas acabadas (ganadas o perdidas). «Rendidas» cuenta los Give up / End game (también salen en terminadas). Visitas, países y de dónde viene la gente: en Cloudflare Web Analytics.</p>';
   return h}
