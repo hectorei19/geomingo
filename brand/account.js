@@ -324,7 +324,8 @@ function archRank(){const id=uid();if(!id||!db||TEST||!name||archBusy||!G.ARL)re
    Countries and Capitals do the same in their own pages. ---- */
 waitFor=new Set((()=>{const m=location.pathname.match(/\/(connections|top10|silhouette|customs|flagpie|impostor|compass)\//);
   if(!m||!(LAST&&LAST.u)||TEST||ROOM_LINK)return [];
-  return (m[1]==='silhouette'?['sil-easy','sil-normal','sil-hard']:[m[1]]).filter(g=>!ADAPT[g].today())})());
+  return (m[1]==='silhouette'?['sil-normal']:[m[1]])   // Silhouette's daily is the Normal board only (since 25 Oct 2026)
+    .filter(g=>!ADAPT[g].today())})());
 function holdOff(g){if(g)waitFor.delete(g);else waitFor.clear();if(!waitFor.size)document.documentElement.classList.remove('gm-wait')}
 if(waitFor.size){document.documentElement.classList.add('gm-wait');
   const st=document.createElement('style');
