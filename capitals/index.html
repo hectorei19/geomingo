@@ -324,8 +324,8 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 <footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
-<script src="../data/countries.js?v=202611100900"></script>
-<script src="data.js?v=202611161600"></script>
+<script src="../data/countries.js?v=202611181400"></script>
+<script src="data.js?v=202611181400"></script>
 <script>
 const N = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z]/g,'');
 // country names come from the Geomingo country database (../data/countries.js, C): one name per country
@@ -392,7 +392,13 @@ add('share','A quarter of the country lives there',c=>!!c.cap&&!!DATA.pop[c.k3]&
 // and Ramallah (Palestine) were added (nw). Daily grids before that day leave them out (setOld), so those days stay as they were.
 const ONLY_COUNTRIES_FROM='2026-11-10';
 const oldDay=key=>!!key&&key<ONLY_COUNTRIES_FROM;
-CATS.forEach(k=>{k.set=CITIES.map(c=>!!k.test(c));k.setOld=k.set.map((v,i)=>v&&!CITIES[i].nw);k.count=k.set.filter(Boolean).length;});
+// From FIX_FROM (data/countries.js) Kiribati's capital is called "South Tarawa", its official name, as in the other games;
+// daily grids before that day keep "Tarawa" (setPre / setOld), so those days stay as they were.
+const OLD_NAMES={'tarawa-kir':'Tarawa'};
+CATS.forEach(k=>{k.set=CITIES.map(c=>!!k.test(c));
+  k.setPre=CITIES.map(c=>{if(!OLD_NAMES[c.c])return !!k.test(c);const n=c.n,kk=c.k;c.n=OLD_NAMES[c.c];c.k=N(c.n);try{return !!k.test(c)}finally{c.n=n;c.k=kk}});
+  k.setOld=k.setPre.map((v,i)=>v&&!CITIES[i].nw);k.count=k.set.filter(Boolean).length;});
+const setMode=key=>oldDay(key)?'setOld':fixedDay(key)?'set':'setPre';
 const NAMEWORD='Uses the English name shown in this game (for example "Kyiv", "Delhi", "Washington"). Spaces, hyphens and accents are ignored.';
 function describe(k){
   const L=k.label;let m;
@@ -448,7 +454,7 @@ const POOL = CATS.filter(k=>k.count>=4);
 /* ---- seeded rng + generator ---- */
 function rngFrom(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function shuffle(arr,r){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-const inter=(a,b,old)=>{const A=old?a.setOld:a.set,B=old?b.setOld:b.set,o=[];for(let i=0;i<CITIES.length;i++)if(A[i]&&B[i])o.push(i);return o};
+const inter=(a,b,m)=>{m=m===true?'setOld':m||'set';const A=a[m],B=b[m],o=[];for(let i=0;i<CITIES.length;i++)if(A[i]&&B[i])o.push(i);return o};
 /* A grid is "safe" when no sequence of correct answers can ever leave a square impossible:
    for every square, its countries can never all be taken by other squares at the same time. */
 function canBlock(ans,c){const A=ans[c];const own=new Map();
@@ -695,7 +701,7 @@ let dailyCache=null;
 function fixedDaily(key){const ids=DAILY_FIXED.days[key];if(!ids)return null;
   const ks=ids.map(i=>CATS.find(k=>k.label===DAILY_FIXED.labels[i]));if(ks.some(k=>!k))return null;
   const rows=ks.slice(0,DAILY_N),cols=ks.slice(DAILY_N),answers=[];
-  rows.forEach(r=>cols.forEach(c=>answers.push(inter(r,c,oldDay(key)))));
+  rows.forEach(r=>cols.forEach(c=>answers.push(inter(r,c,setMode(key)))));
   if(answers.some(a=>!a.length)||!isSafe(answers))return null;
   return {rows:rows.map(k=>k.id),cols:cols.map(k=>k.id),answers}}
 function dailyGrid(day){const key=day||todayKey();if(dailyCache&&dailyCache.key===key)return dailyCache;
