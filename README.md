@@ -30,7 +30,7 @@ Everything is one website and one repository, published with GitHub Pages from `
 
 - `index.html` – the home page (above)
 - `brand/` – the shared Geomingo look and logic (below)
-- `data/` – the Geomingo country database, the one source of country data for every game: `countries.js` (the 197 countries, one name each, figures and lists) and `flags.js` (the flags, loaded only by games that show flags)
+- `data/` – the Geomingo country database, the one source of country data for every game: `countries.js` (the 197 countries, one name each, figures and lists) and `flags.js` (the flags; `node data/tools/build-flags.js` makes one file per flag in `data/flags/` plus `flag-files.js`, which Countries, Capitals and Top 10 load, so a phone downloads only the flags it shows)
 - `countries/` – Countries (formerly Country Grid / Borderline): `daily.js` (the daily grids), `database.rules.json` (the Firebase rules for the whole site) and `version.json`
 - `capitals/` – Capitals (formerly City Grid): `data.js` (the cities and the daily grids) and `version.json`
 - `connections/`, `top10/`, `silhouette/`, `customs/`, `flagpie/`, `impostor/`, `compass/` – the other seven games, each with its own `index.html` and data files. Compass also loads `capitals/data.js` (capitals and their coordinates); Impostor also loads `top10/extra-data.js`.
