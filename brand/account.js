@@ -324,7 +324,8 @@ function archRank(){const id=uid();if(!id||!db||TEST||!name||archBusy||!G.ARL)re
    Countries and Capitals do the same in their own pages. ---- */
 waitFor=new Set((()=>{const m=location.pathname.match(/\/(connections|top10|silhouette|customs|flagpie|impostor|compass)\//);
   if(!m||!(LAST&&LAST.u)||TEST||ROOM_LINK)return [];
-  return (m[1]==='silhouette'?['sil-easy','sil-normal','sil-hard']:[m[1]]).filter(g=>!ADAPT[g].today())})());
+  return (m[1]==='silhouette'?['sil-normal']:[m[1]])   // Silhouette's daily is the Normal board only (since 25 Oct 2026)
+    .filter(g=>!ADAPT[g].today())})());
 function holdOff(g){if(g)waitFor.delete(g);else waitFor.clear();if(!waitFor.size)document.documentElement.classList.remove('gm-wait')}
 if(waitFor.size){document.documentElement.classList.add('gm-wait');
   const st=document.createElement('style');
@@ -347,7 +348,7 @@ function watch(g){if(!ok||TEST)return;const k=T();if(lbRef[g]&&lbRef[g].day===k)
   if(lbRef[g])lbRef[g].off();if(!(LB[g]&&LB[g].date===k))LB[g]={date:k,rows:null};lbRef[g]=db.ref('lb/'+g+'/'+k);lbRef[g].day=k;
   lbRef[g].on('value',s=>{LB[g]={date:k,rows:s.val()||{}};keepLB(g);backfill(Object.entries(LB[g].rows).map(([id,r])=>[id,r&&r.name]));changed()},()=>{LB[g]={date:k,rows:null,off:true};changed()})}
 // from G.KM_FROM the ranking is by the game's points (the same table as the km), then fewer mistakes, then who finished first
-const PTS={connections:r=>G.cxPts(r.s,r.m,r.h),top10:r=>G.KM.top10(r.s,r.m),'sil-easy':r=>G.KM.sil(r.s,r.m),'sil-normal':r=>G.KM.sil(r.s,r.m),'sil-hard':r=>G.KM.sil(r.s,r.m),
+const PTS={connections:r=>G.cxPts(r.s,r.m,r.h),top10:r=>G.KM.top10(r.s,r.m),'sil-normal':r=>G.KM.sil(r.s,r.m),
   customs:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),flagpie:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),compass:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),impostor:r=>G.KM.imp(r.r,r.s,T(),r.x3)};
 // a row never counts for more than one game can give (120 km: 100 + 20 perfect)
 const rankPts=(g,r)=>PTS[g]&&G.newKm(T())?Math.max(0,Math.min(120,+PTS[g](r)||0)):r.s;
@@ -463,9 +464,6 @@ function statsPage(o){const id='c'+(++cardN);CARDS[id]=o;const s=o.solo,f=o.frie
   return '<div class="gm-stats">'+me+'<div data-gm-card="'+id+'">'+dailyCard(o)+'</div>'+solo+fr+(o.extra||'')+'</div>'}
 function drawTrophies(){document.querySelectorAll('[data-gm-card]').forEach(el=>{const o=CARDS[el.dataset.gmCard];if(!o)return;
   const h=dailyCard(o);if(el.innerHTML!==h)el.innerHTML=h})}
-// bars for a game's levels: [[name, percent, games, colour]]
-function levelBars(title,rows){rows=rows.filter(r=>r[2]);if(rows.length<2)return '';
-  return '<div class="gm-levels"><span class="label">'+esc(title)+'</span>'+rows.map(([n,p,g,c])=>'<div class="gm-lv"><span>'+esc(n)+'</span><i><b style="width:'+p+'%;background:var(--'+c+')"></b></i><small>'+p+'% · '+g+'</small></div>').join('')+'</div>'}
 // the longest run of days in a row, and when it ran ("2 – 12 Oct")
 function bestRun(dates){const n=k=>Math.round(Date.parse(k+'T12:00Z')/864e5),ds=dates.slice().sort();let best=0,from='',to='',run=0,start='',prev=null;
   for(const d of ds){run=prev!==null&&n(d)===prev+1?run+1:1;if(run===1)start=d;prev=n(d);if(run>best){best=run;from=start;to=d}}
@@ -593,6 +591,6 @@ G.acctHTML=acctHTML;G.openMenu=openMenu;G.openFaq=openFaq;G.openCredits=openCred
 // ready/user: known for sure, or the last account seen on this device until Firebase answers (wasSignedIn: that last one)
 G.account={get ready(){return who()!==undefined},get user(){return who()||null},get name(){return name},
   wasSignedIn:!!(LAST&&LAST.u),get trial(){return trialState()},trialLine,
-  signIn,signOut,done,archRank,userHTML,changeName,nameOf,fmtName,backfill,firstName,nameProblem,nameFree,changeMyName,rankingHTML,rankLine,mine,statsPage,levelBars,bestRun,onChange:f=>watchers.push(f)};
+  signIn,signOut,done,archRank,userHTML,changeName,nameOf,fmtName,backfill,firstName,nameProblem,nameFree,changeMyName,rankingHTML,rankLine,mine,statsPage,bestRun,onChange:f=>watchers.push(f)};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();

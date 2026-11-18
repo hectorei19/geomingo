@@ -22,7 +22,7 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611252300"></script>
-<script src="../brand/account.js?v=202611252000"></script>
+<script src="../brand/account.js?v=202611252001"></script>
 <script src="../brand/party.js?v=202611250700"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -96,7 +96,7 @@
 .lp.me{border-color:var(--sea)}
 .primary[disabled]{opacity:.5;cursor:default}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611252300">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611252301">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -443,26 +443,9 @@ const fmtTime=ms=>{const s=Math.round((ms||0)/1000);return Math.floor(s/60)+':'+
 const rankKey=p=>!p.cur?[1,0,0]:[0,-Geomingo.cxPts(p.done&&p.won?4:p.f||0,p.m||0),p.done&&p.won?p.ms||0:1e12];
 function ranked(){return roomPlayers().sort((a,b)=>{const x=rankKey(a),y=rankKey(b);for(let i=0;i<3;i++)if(x[i]!==y[i])return x[i]-y[i];return 0})}
 function scoresHTML(){return `<div class="scores" aria-label="Players">${roomPlayers().map(p=>`<span class="chip${p.cur&&p.done?' done':''}${p.on===false?' off':''}"><span class="pin" style="${pinStyle(p.i)}"></span>${esc(p.name)}<small>${!p.cur?'joining':p.done?(p.won?'✓ '+fmtTime(p.ms):(p.f||0)+'/4 ✗'):(p.f||0)+'/4 · '+(p.m||0)+' ✗'}</small></span>`).join('')}</div>`}
-function lobbyHTML(){if(Geomingo.party&&Geomingo.party.on())return header('Connec<span>tions</span>','');const r=room,order=lobbyOrder(r),isHost=r.host===ME;
-  return header('Connec<span>tions</span>','Room '+roomCode)+`<section class="panel namecard">
-    <div class="backline"><button class="linkbtn" id="leave">← Leave</button><span class="ht">With friends</span></div>
-    <span class="label">Room code</span><p class="roomcode">${roomCode}</p>
-    <p class="hint">Friends open Connections, choose <b>With friends</b> and type this code. Or send them the link:</p>
-    <pre class="sharebox" id="linkbox">${esc(pageLink('?room='+roomCode))}</pre>
-    <button class="ghost" id="copylink">Copy link</button>
-    <span class="label">Players ${order.length}/${MAX_PLAYERS}</span>
-    <div class="players">${order.map((pid,i)=>{const p=r.players[pid];return `<div class="lp ${p.on===false?'off':''}"><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name)}<span class="tag">${[pid===r.host?'host':'',pid===ME?'you':'',p.on===false?'offline':''].filter(Boolean).join(' · ')}</span></div>`}).join('')}</div>
-    <p class="hint">Everyone gets the same 16 countries at the same time. No lives: play until you find all four groups. Most points win (25 a group, 10 less a mistake, +20 with none), then speed.</p>
-    ${isHost?`<button class="primary" id="ostart" ${order.length<2?'disabled':''}>${order.length<2?'Waiting for players…':'Start game'}</button>`:'<p class="hint">Waiting for the host to start the game.</p>'}
-  </section>`}
-function friendsHTML(){if(Geomingo.party&&Geomingo.party.on())return header('Connec<span>tions</span>','');return header('Connec<span>tions</span>','')+`<section class="panel">
-    <div class="backline"><span class="ht">With friends</span></div>
-    <p class="hint">Play online, 2 to ${MAX_PLAYERS} players, each on their own phone. Everyone gets the same puzzle at the same time and sees how the others are doing.</p>
-    ${ACN()?'':`<div class="field"><label class="label" for="fname">Your name in the room</label><input class="nameinp" id="fname" maxlength="16" autocomplete="nickname" placeholder="Your name" value="${esc(myName)}"></div>`}
-    ${FB_OK?'':'<p class="hint">Online play could not load. Check the connection and reload the page.</p>'}
-    <div class="field">${SIGNED()?'':'<p class="hint">To create a room, sign in. Friends can join with your code or link without an account.</p>'}<button class="primary" id="create" ${FB_OK?'':'disabled'}>${SIGNED()?'Create room':'Sign in to create a room'}</button></div>
-    <div class="field"><label class="label" for="jcode">Join a friend's room</label><div class="joinrow"><input class="code-in" id="jcode" placeholder="ABCD" maxlength="4" value="${esc(joinCode)}" autocomplete="off"><button class="ghost" id="join" ${FB_OK?'':'disabled'}>Join</button></div></div>
-  </section>${rulesPanel(true)}`}
+// the room's own screen (../brand/party.js) shows the players and the code: this game shows only its header there
+function lobbyHTML(){return header('Connec<span>tions</span>','')}
+function friendsHTML(){return header('Connec<span>tions</span>','')}
 
 /* ---- moves ---- */
 function tap(c){if(!S||S.over||turning)return;const i=sel.indexOf(c);
@@ -653,8 +636,6 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. 5 lives or <b>Unlimited</b>: pick it next to Practice on the home page. Points only, no km.</li>
   <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Everyone plays the same puzzle at the same time until they find all four groups. Most points win (25 a group, 10 less a mistake, +20 with none), then the fastest.</li>
   <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, and its km count for that day.</li></ul>`}
-function copyText(t,okMsg){const manual=()=>{const el=$('linkbox');if(el){const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r)}toast('Copy blocked. Select the link and copy it.')};
-  try{navigator.clipboard.writeText(t).then(()=>toast(okMsg,'good'),manual)}catch(e){manual()}}
 function bind(){
   Geomingo.where(view==='friends'||view==='room'||S&&S.mode==='online'&&view==='game'?'friends':view==='solo'||view==='game'&&S&&S.mode==='free'?'solo':''); // F5 keeps Practice / With friends
   app.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>tap(b.dataset.c));
@@ -665,7 +646,6 @@ function bind(){
   if($('soloback'))$('soloback').onclick=openSolo;
   if($('archback'))$('archback').onclick=toArchive;
   app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
-  app.querySelectorAll('[data-go="friends"]').forEach(b=>b.onclick=()=>{view='friends';render()});
   if($('home'))$('home').onclick=toHub;
   app.querySelectorAll('[data-info]').forEach(b=>b.onclick=()=>{const k=CATS[+b.dataset.info];dialog(esc(EUT(k.label)),`<p>${esc(EUT(k.desc))}</p>`)});
   if($('rules'))$('rules').onclick=()=>dialog('How to play',rulesHTML());
@@ -681,25 +661,17 @@ function bind(){
   if($('copy'))$('copy').onclick=()=>share(shareMessage());
   if($('again'))$('again').onclick=()=>openFree(Math.floor(Math.random()*1e9));
   // With friends
-  if($('fname'))$('fname').oninput=e=>{myName=e.target.value.trim().slice(0,16)};
-  if($('create'))$('create').onclick=createRoom;
-  if($('jcode')){$('jcode').oninput=e=>{joinCode=e.target.value};$('jcode').onkeydown=e=>{if(e.key==='Enter')joinRoom($('jcode').value)}}
-  if($('join'))$('join').onclick=()=>joinRoom($('jcode').value);
-  if($('copylink'))$('copylink').onclick=()=>copyText(pageLink('?room='+roomCode),'Link copied.');
-  if($('ostart'))$('ostart').onclick=startRound;
   if($('rematch'))$('rematch').onclick=startRound;
   // leaving in the middle of a game asks first
   if($('leave'))$('leave').onclick=()=>{if(S&&S.mode==='online'&&!S.over&&!leaveArmed){leaveArmed=true;render();return}leaveRoom()};
 }
 
-/* ---- start: ?p=123 opens that practice puzzle, ?room=ABCD joins that room (shared links), ?friends opens With friends ---- */
+/* ---- start: ?p=123 opens that practice puzzle; back into a room only inside the one room for all nine games (old ?room= and ?friends links go home, ../brand/party.js) ---- */
 (()=>{const ak=Geomingo.askedDay(CX_FIRST);if(ak){openDay(ak);return}
-  const p=TESTQ.get('p'),q=TESTQ.get('room'),back=Geomingo.room.saved('cx-room'); // an old room, or another room than the invite link, is forgotten
+  const p=TESTQ.get('p'),back=Geomingo.room.saved('cx-room'); // an old room is forgotten
   const clean=()=>{try{history.replaceState(null,'',location.pathname)}catch(e){}};
   if(p&&/^\d{1,10}$/.test(p)){openFree(+p);clean();return}
-  if(q&&/^[A-Za-z]{4}$/.test(q)){clean();joinCode=q.toUpperCase();view='friends';render();if(myName||ACN())joinRoom(joinCode);return}
-  if(back&&initFB()){listenRoom(back,true);render();return}
-  if(TESTQ.has('friends')){clean();view='friends'}
+  if(back&&Geomingo.party&&Geomingo.party.on()&&initFB()){listenRoom(back,true);render();return}
   render()})();
 // a new day while the page is open: show the new puzzle when you come back
 document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(roomCode&&room&&Geomingo.room.stale(cxDone(room))){leaveRoom(true);return}if(view==='home')render();else if(view==='game'&&mode==='daily'&&S&&S.date!==todayKey())openDaily()});

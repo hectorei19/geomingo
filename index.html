@@ -23,9 +23,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="brand/geomingo.css?v=202611252300">
+<link rel="stylesheet" href="brand/geomingo.css?v=202611252301">
 <script src="brand/mingo.js?v=202611252300"></script>
-<script src="brand/account.js?v=202611252000"></script>
+<script src="brand/account.js?v=202611252001"></script>
 <script src="brand/party.js?v=202611250700"></script>
 <style>
 /* Home page: Sign in and Menu on top, today's games as colour tiles, Practice and With friends, then the GeoPass
@@ -435,7 +435,8 @@ const kmCap=x=>Math.max(0,Math.min(120,+x||0));
 const GR=(r,d)=>N(d)?K.grid(r.s,r.c,4,r.w,d):pts((+r.c||0)/16);
 const LB=[['leaderboard','borderline',GR],['lb/capitals','citygrid',GR],
   ['lb/connections','connections',r=>cxPts(r.s,r.m,r.h)],['lb/top10','top10',(r,d)=>N(d)?K.top10(r.s,r.m):pts((+r.s||0)/10)],
-  ...['easy','normal','hard'].map(x=>['lb/sil-'+x,'silhouette',(r,d)=>N(d)?K.sil(r.s,r.m):pts((+r.s||0)/9)]),
+  // (Silhouette's old Easy and Hard boards ended on 25 Oct 2026, before any week or month the ranking shows)
+  ['lb/sil-normal','silhouette',(r,d)=>N(d)?K.sil(r.s,r.m):pts((+r.s||0)/9)],
   ['lb/customs','customs',(r,d)=>N(d)?K.cl3(r.r,r.s,d,r.x3,5):r.r!=null?clPts(r.r,r.s,5):pts((+r.s||0)/25)],['lb/flagpie','flagpie',(r,d)=>N(d)?K.cl3(r.r,r.s,d,r.x3,5):r.r!=null?clPts(r.r,r.s,5):pts((+r.s||0)/25)],
   ['lb/impostor','impostor',(r,d)=>N(d)?K.imp(r.r,r.s,d,r.x3):r.r!=null?clPts(r.r,r.s,6):pts((+r.s||0)/30)],['lb/compass','compass',(r,d)=>N(d)?K.cl3(r.r,r.s,d,r.x3,5):clPts(r.r,r.s,5)]];
 const AV=['#7FA2F0','#F07884','#5FC28F','#D4AD4B','#A98BE0','#C99B78'];
@@ -450,14 +451,26 @@ function monthDays(){const k=G.dayKey(),t=Date.parse(k+'T12:00Z'),n=+k.slice(8,1
 const tabDays=t=>t==='day'?[G.dayKey()]:t==='week'?weekDays():monthDays();
 // the last ranking seen here (gm-rank: each player's km per day) shows at once; the fresh one replaces it when it comes
 let RANK=(()=>{try{const w=JSON.parse(localStorage.getItem('gm-rank')||'null');return w&&w.ppl&&w.day===G.dayKey()?Object.assign(w,{at:0}):null}catch(e){return null}})(),rankBusy=false;
+/* the past days of the ranking are kept on this phone (gm-rankdays: {day: {at, p: {uid: [name, {game: km}]}}}), so opening
+   the home page asks Firebase for today only; a past day is asked again after RANK_PAST, because an archive game can still
+   add a row to its own day (Héctor 2026-11-17: the home page read every day of the month each time) */
+const RANK_PAST=6*36e5;
 function loadRank(){const acc=A();if(rankBusy||!acc||!acc.ready||typeof firebase==='undefined'||!firebase.apps.length)return;
   if(RANK&&RANK.day===G.dayKey()&&Date.now()-RANK.at<5*60e3)return;
-  rankBusy=true;const db=firebase.database(),days=[...new Set([...weekDays(),...monthDays()])],P={},today=G.dayKey(),TD={};
-  Promise.all(days.flatMap(d=>LB.map(([path,id,f])=>db.ref(path+'/'+d).once('value').then(s=>{const v=s.val()||{};
-    for(const uid in v){const r=v[uid];if(!r||typeof r!=='object')continue;const p=P[uid]=P[uid]||{name:'',days:{}},day=p.days[d]=p.days[d]||{};
-      if(r.name)p.name=String(r.name).slice(0,16);day[id]=Math.max(day[id]||0,kmCap(f(r,d)));
-      if(d===today){const g=TD[id]=TD[id]||{},k=kmCap(f(r,d));if(!g[uid]||k>g[uid].km)g[uid]={km:k,s:+r.s||0,c:+r.c||0}}}}).catch(()=>{}))))
-  .then(()=>{const ppl=Object.entries(P).map(([id,p])=>{const km={};for(const d in p.days)km[d]=dayTotal(p.days[d]);return{id,n0:p.name||'Player',name:p.name||'Player',km,g:p.days}});
+  rankBusy=true;const db=firebase.database(),days=[...new Set([...weekDays(),...monthDays()])].sort(),today=G.dayKey(),TD={},now=Date.now();
+  let C={};try{C=JSON.parse(localStorage.getItem('gm-rankdays')||'{}')||{}}catch(e){C={}}
+  const fresh=d=>d<today&&C[d]&&C[d].p&&now-C[d].at<RANK_PAST,D={};
+  for(const d of days)if(fresh(d))D[d]=C[d].p;
+  Promise.all(days.filter(d=>!D[d]).flatMap(d=>{const day=D[d]={};return LB.map(([path,id,f])=>db.ref(path+'/'+d).once('value').then(s=>{const v=s.val()||{};
+    for(const uid in v){const r=v[uid];if(!r||typeof r!=='object')continue;const q=day[uid]=day[uid]||['',{}];
+      if(r.name)q[0]=String(r.name).slice(0,16);q[1][id]=Math.max(q[1][id]||0,kmCap(f(r,d)));
+      if(d===today){const g=TD[id]=TD[id]||{},k=kmCap(f(r,d));if(!g[uid]||k>g[uid].km)g[uid]={km:k,s:+r.s||0,c:+r.c||0}}}}).catch(()=>{day.bad=1}))}))
+  .then(()=>{const P={},keep={};
+    for(const d of days){const day=D[d];if(!day)continue;
+      if(d<today&&!day.bad)keep[d]=C[d]&&C[d].p===day?C[d]:{at:now,p:day};
+      for(const uid in day){if(uid==='bad')continue;const [nm,g]=day[uid],p=P[uid]=P[uid]||{name:'',days:{}};if(nm)p.name=nm;p.days[d]=Object.assign({},g)}}
+    try{localStorage.setItem('gm-rankdays',JSON.stringify(keep))}catch(e){try{localStorage.removeItem('gm-rankdays')}catch(x){}}
+    const ppl=Object.entries(P).map(([id,p])=>{const km={};for(const d in p.days)km[d]=dayTotal(p.days[d]);return{id,n0:p.name||'Player',name:p.name||'Player',km,g:p.days}});
     RANK={day:G.dayKey(),at:Date.now(),ppl,today:TD};rankBusy=false;if(acc.backfill)acc.backfill(ppl.map(p=>[p.id,p.n0]));try{localStorage.setItem('gm-rank',JSON.stringify(RANK))}catch(e){}drawWeek()})}
 /* tap a name in the ranking: the row opens with today's daily results, you vs them, game by game.
    if they have played a game you haven't yet, their score stays hidden (🔒) so it spoils nothing, and a button takes you there */
