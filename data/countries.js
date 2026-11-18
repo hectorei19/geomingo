@@ -25,3 +25,23 @@ const NB_OF = (()=>{const m={};C.forEach(c=>{const o=NB_OWNER[c.c]||c.c;m[o]=m[o
   c.b.forEach(x=>m[o].add(NB_OWNER[x]||x))});
   Object.keys(m).forEach(o=>m[o]=[...m[o]].filter(x=>x!==o&&NB_COUNTRY.has(x)));return m})();
 const landNeighbours = c => NB_OF[c.c]||[];
+
+// DATA FIXES from FIX_FROM (player report, 18 Nov 2026). Games of days before FIX_FROM keep the old values (dataAsBefore),
+// so past daily games and the Archive stay exactly as they were:
+// - French is no longer an official language of Mali (2023), Burkina Faso (2023) or Niger (2025)
+// - flag colours: Kazakhstan is blue and gold only (no green); Slovenia's stars and Croatia's shield have gold;
+//   Paraguay's emblem has a yellow star and green branches
+const FIX_FROM='2026-11-19';
+const FIX_LG={MLI:['Bambara','Bobo','Bozo','Dogon','Fula','Hassaniya','Kassonke','Maninka','Minyanka','Senufo','Songhay','Soninke','Tamasheq'],
+  BFA:['Mooré','Dioula','Fula'],NER:['Hausa']};
+const FIX_ADD={flag_yellow:['SVN','HRV','PRY'],flag_green:['PRY'],flag_two:['KAZ']};
+const FIX_DEL={flag_green:['KAZ'],flag_three:['KAZ','SVN','HRV','PRY']};
+const FIX_OLD_LG={};C.forEach(c=>{if(FIX_LG[c.c])FIX_OLD_LG[c.c]=c.lg});
+function fixData(on){
+  C.forEach(c=>{if(FIX_LG[c.c])c.lg=on?FIX_LG[c.c]:FIX_OLD_LG[c.c]});
+  const put=(m,add)=>Object.keys(m).forEach(k=>{const L=EXTRA[k];m[k].forEach(x=>{const i=L.indexOf(x);if(add&&i<0)L.push(x);if(!add&&i>=0)L.splice(i,1)})});
+  put(FIX_ADD,on);put(FIX_DEL,!on)}
+fixData(true);
+// runs fn with the data as it was before FIX_FROM (for daily games of earlier days), then puts the fixes back
+function dataAsBefore(fn){fixData(false);try{return fn()}finally{fixData(true)}}
+const fixedDay=key=>!key||key>=FIX_FROM;

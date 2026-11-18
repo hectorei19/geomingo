@@ -94,7 +94,7 @@
 <footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
-<script src="../data/countries.js?v=202611100900"></script>
+<script src="../data/countries.js?v=202611181400"></script>
 <script src="../data/flags.js?v=202611160500"></script>
 <script src="../shared/data.js?v=202611141100"></script>
 <script src="../shared/games.js?v=202611141100"></script>
@@ -191,7 +191,8 @@ const GROUPS=[
     if(c.cap&&!giveaway(c,c.cap))o.push(['The capital starts with '+c.cap[0].toUpperCase(),c.cap.replace(/[ \-'.]/g,'').length+' letters']);
     o.push(['','',true]);
     return o}]];
-function clue(q,i){const c=cByCode[q.c],[lab,f]=GROUPS[i],o=f(c),v=(q.v||[])[i];
+// daily and archive games before FIX_FROM (data/countries.js) use the data as it was then, so their clues stay the same
+function clue(q,i){const c=cByCode[q.c],[lab,f]=GROUPS[i],o=D&&D.date&&!fixedDay(D.date)?dataAsBefore(()=>f(c)):f(c),v=(q.v||[])[i];
   // old saves without v: always the same pick for the country
   const x=o[(v!=null?v:seedOf(q.c+i))%o.length];
   return x[2]?{ico:i+1,lab:'Flag',main:'',sub:'',flag:q.c}:{ico:i+1,lab,main:x[0],sub:x[1]}}
