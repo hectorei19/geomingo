@@ -348,7 +348,7 @@ function watch(g){if(!ok||TEST)return;const k=T();if(lbRef[g]&&lbRef[g].day===k)
   if(lbRef[g])lbRef[g].off();if(!(LB[g]&&LB[g].date===k))LB[g]={date:k,rows:null};lbRef[g]=db.ref('lb/'+g+'/'+k);lbRef[g].day=k;
   lbRef[g].on('value',s=>{LB[g]={date:k,rows:s.val()||{}};keepLB(g);backfill(Object.entries(LB[g].rows).map(([id,r])=>[id,r&&r.name]));changed()},()=>{LB[g]={date:k,rows:null,off:true};changed()})}
 // from G.KM_FROM the ranking is by the game's points (the same table as the km), then fewer mistakes, then who finished first
-const PTS={connections:r=>G.cxPts(r.s,r.m,r.h),top10:r=>G.KM.top10(r.s,r.m),'sil-normal':r=>G.KM.sil(r.s,r.m),
+const PTS={connections:r=>G.cxPts(r.s,r.m,r.h,T()),top10:r=>G.KM.top10(r.s,r.m),'sil-normal':r=>G.KM.sil(r.s,r.m),
   customs:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),flagpie:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),compass:r=>G.KM.cl3(r.r,r.s,T(),r.x3,5),impostor:r=>G.KM.imp(r.r,r.s,T(),r.x3)};
 // a row never counts for more than one game can give (120 km: 100 + 20 perfect)
 const rankPts=(g,r)=>PTS[g]&&G.newKm(T())?Math.max(0,Math.min(120,+PTS[g](r)||0)):r.s;
