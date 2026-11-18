@@ -13,7 +13,7 @@ Files:
 - `index.html` – the game.
 - `countries.js` – the 197 countries (the same list as every Geomingo game): English name, other accepted names, continent, flag, Easy or not, and the silhouette (an SVG path in a 100 × 100 box). Made by `tools/build-countries.js`; do not edit it by hand.
 - `silhouette.js` – drawing a silhouette (turned and fitted to the box for Hard), the answer box's search (no accents, case or spaces needed; common other names such as Holland, Burma, UK), seeded random picks.
-- Flags: the Geomingo flags, `../data/flags.js`, loaded after the page.
+- Flags: `../flagpie/flags/`, one file per flag.
 - `../shared/style.css`, `../shared/games.js`, `../shared/minigames.js` – styles, "played today" and the helpers shared with the other smaller games (`minigames.js` has a `creditsHTML` hook for this game's Credits and saves `sil-train` in test mode).
 - `../brand/` – the Geomingo look, Mingo, the header, the GeoPass and the account, as in every game.
 - `../brand/firebase-config.js` – the Firebase web config shared by every game.

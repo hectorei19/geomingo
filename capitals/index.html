@@ -28,7 +28,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
-<script defer src="../data/flags.js?v=202611160500"></script>
+<script defer src="../data/flag-files.js?v=f79b106cbe"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -1341,7 +1341,7 @@ const screenFor=s=>!s?'home':s.archive?'archive':s.daily?'home':s.mode==='solo'?
 // top-left corner of a board: the daily grid shows its number (GRID #10), other games their grid code, as in Countries
 const cornerHTML=(day,code)=>day?`<div class="corner dnum" aria-label="Grid number ${day}"><span class="dl">Grid</span><span class="dn${day>=100||typeof day==='string'?' long':''}">${Geomingo.archNo(day)}</span></div>`
   :`<div class="corner dnum" aria-label="Grid ${esc(code||'')}"><span class="dl">Grid</span><span class="dn code">${esc(code||'')}</span></div>`;
-// flags of the countries: the Geomingo flags, ../data/flags.js (loaded after the page, so the game never waits for it)
+// flags of the countries: the Geomingo flags, one file each (../data/flag-files.js, loaded after the page, so the game never waits for it)
 const flagSrc=k=>typeof FLAGS!=='undefined'&&FLAGS[k]||'';
 // a right answer on the grid: a passport stamp with the city's name in the centre over its country's flag,
 // its points in the top right corner and the country's code in the bottom left (as in Countries)

@@ -8,13 +8,15 @@ Plain static HTML/CSS/JS: no build step, no framework, no tests. Each game is on
 - `brand/` – shared look and logic: `geomingo.css`, `mingo.js` (`window.Geomingo`, list of games `GAMES`, GeoPass, header), `account.js` (Google sign-in, rankings), `firebase-config.js` (one Firebase config for every game), `icons/`, `og.png`,
   `party.js` (With friends: ONE room for all 9 games at rooms/ABCD with game:'party'; drives each game's own room through `Geomingo.party.game({...})`, points back with `Geomingo.party.result()`)
 - `data/` – THE GEOMINGO COUNTRY DATABASE, the one source of country data for every game:
-  `countries.js` (C, EXTRA, DATA) and `flags.js` (FLAG_SVG as SVG text; `FLAGS[code]` gives the image address; loaded only by games that show flags).
+  `countries.js` (C, EXTRA, DATA) and `flags.js` (FLAG_SVG as SVG text, the source of the flags; no page loads it). Games load `flag-files.js`: `FLAGS[code]` gives the address of
+  `data/flags/<CODE>.svg`, one small file per flag, so a page downloads only the flags it shows. After changing `flags.js`, run
+  `node data/tools/build-flags.js` (rewrites `data/flags/` and `flag-files.js`) and bump `flag-files.js?v=` to the version it prints.
   One name per country (`n`); `al` stays empty everywhere. Change country data here, never in a game folder.
 - `countries/` – Countries (old Country Grid / Borderline); its daily grids in `daily.js` (DAILY_FIXED);
   `database.rules.json` = Firebase rules
 - `capitals/` – Capitals (old City Grid); cities in `data.js` (CITIES, CO_LISTS, DAILY_FIXED;
   country names CO are built from `data/countries.js`),
-  flags from `data/flags.js`
+  flags from `data/flag-files.js`
 - `connections/`, `top10/`, `silhouette/`, `customs/`, `flagpie/`, `impostor/`, `compass/` – the smaller games
   (Compass loads `capitals/data.js` for the capitals and their coordinates)
 - `shared/` – used by the seven smaller games (not Countries/Capitals): `style.css`, `games.js`, `minigames.js`,
@@ -27,7 +29,7 @@ Plain static HTML/CSS/JS: no build step, no framework, no tests. Each game is on
 ## Big data files: do not read them whole
 - Reading is blocked in `.claude/settings.json` for `data/countries.js`,
   `data/flags.js`, `countries/daily.js`, `capitals/data.js`,
-  `silhouette/countries.js` and everything in `flagpie/flags/` (several MB of data/SVG).
+  `silhouette/countries.js` and everything in `flagpie/flags/` and `data/flags/` (several MB of data/SVG).
   They are one-line JSON/SVG blobs. If you really need a value, grep a short snippet
   (e.g. `grep -o '"c":"ESP".\{0,200\}' data/countries.js`); never print whole lines.
 - The game `index.html` files still have some long lines: read only line
