@@ -7,7 +7,8 @@
       "Read(./capitals/data.js)",
       "Read(./silhouette/countries.js)",
       "Read(./flagpie/flags/**)",
-      "Read(./data/flags/**)"
+      "Read(./data/flags/**)",
+      "Read(./data/flags.json)"
     ]
   }
 }
