@@ -10,7 +10,7 @@ Plain static HTML/CSS/JS: no build step, no framework, no tests. Each game is on
 - `data/` – THE GEOMINGO COUNTRY DATABASE, the one source of country data for every game:
   `countries.js` (C, EXTRA, DATA) and `flags.js` (FLAG_SVG as SVG text, the source of the flags; no page loads it). Games load `flag-files.js`: `FLAGS[code]` gives the address of
   `data/flags/<CODE>.svg`, one small file per flag, so a page downloads only the flags it shows. After changing `flags.js`, run
-  `node data/tools/build-flags.js` (rewrites `data/flags/` and `flag-files.js`) and bump `flag-files.js?v=` to the version it prints.
+  `node data/tools/build-flags.js` (rewrites `data/flags/`, `data/flags.json` — all flags in one file, fetched after the page loads — and `flag-files.js`) and bump `flag-files.js?v=` to the version it prints.
   One name per country (`n`); `al` stays empty everywhere. Change country data here, never in a game folder.
 - `countries/` – Countries (old Country Grid / Borderline); its daily grids in `daily.js` (DAILY_FIXED);
   `database.rules.json` = Firebase rules
@@ -28,7 +28,7 @@ Plain static HTML/CSS/JS: no build step, no framework, no tests. Each game is on
 
 ## Big data files: do not read them whole
 - Reading is blocked in `.claude/settings.json` for `data/countries.js`,
-  `data/flags.js`, `countries/daily.js`, `capitals/data.js`,
+  `data/flags.js`, `data/flags.json`, `countries/daily.js`, `capitals/data.js`,
   `silhouette/countries.js` and everything in `flagpie/flags/` and `data/flags/` (several MB of data/SVG).
   They are one-line JSON/SVG blobs. If you really need a value, grep a short snippet
   (e.g. `grep -o '"c":"ESP".\{0,200\}' data/countries.js`); never print whole lines.
