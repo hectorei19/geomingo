@@ -6,7 +6,8 @@
       "Read(./countries/daily.js)",
       "Read(./capitals/data.js)",
       "Read(./silhouette/countries.js)",
-      "Read(./flagpie/flags/**)"
+      "Read(./flagpie/flags/**)",
+      "Read(./data/flags/**)"
     ]
   }
 }
