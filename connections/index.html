@@ -523,7 +523,7 @@ function homeHTML(){const key=todayKey(),num=dayNum(key,CX_FIRST),d=dailySaved()
     :Geomingo.hello('pass','GeoPass ready.','Tap a country to start. Every group you find is a stamp. One try, the same 16 for everyone.');
   return header('Connec<span>tions</span>','',true)+`<section class="home">${hi}${Geomingo.account.userHTML()}${daily}${d&&d.over?rankingHTML():''}</section>
     ${rulesPanel()}`}
-const rulesPanel=on=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something. Pick four and tap <b>Submit</b>. ${on?'With friends there are no lives: play until you find all four groups. Most points win, then speed.':`A wrong four costs one of your ${MAX_MISTAKES} lives. 25 points a group, −10 a mistake; each group found keeps at least 10.`} Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const rulesPanel=(on,free)=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something. Pick four and tap <b>Submit</b>. ${on?'With friends there are no lives: play until you find all four groups. Most points win, then speed.':`A wrong four costs one of your ${MAX_MISTAKES} lives. ${free?'25 points a group, −10 a mistake or category shown; each group found keeps at least 10.':'25 km a group, −10 km a mistake or category shown; each group found keeps at least 10 km.'}`} Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 // the logo goes home from anywhere; in a room that means leaving it (in the middle of a game, tap twice)
 function goHome(){if(roomRef){if(S&&S.mode==='online'&&!S.over&&!leaveArmed){leaveArmed=true;render();toast('Tap again to leave the room.');return}
     leaveRoom(true);return}
@@ -563,7 +563,7 @@ function render(keepShake){
   if(S.over&&!on&&S.mode==='daily')h+=rankingHTML();
   if(!S.over){
     h+=`<div class="cx-actions"><button class="ghost" id="shuf">Shuffle</button><button class="ghost" id="desel" ${sel.length?'':'disabled'}>Deselect all</button><button class="primary" id="submit" ${sel.length===4?'':'disabled'}>Submit</button></div>${on?'':giveUpHTML()}
-    ${on?'':catsHTML()}${rulesPanel(on)}`}
+    ${on?'':catsHTML()}${rulesPanel(on,S.mode==='free')}`}
   app.innerHTML=h;bind();
 }
 // optional help: the categories, one at a time, easiest (yellow) first. From HINT_COST_FROM each one costs 10 points
@@ -573,7 +573,7 @@ const hintsShown=()=>S.hint===true?4:+S.hint||0;
 const hintCosts=()=>!(S.mode==='daily'||S.mode==='archive')||S.date>=HINT_COST_FROM;
 function hintOrder(){return S.groups.map((g,i)=>i).sort((a,b)=>S.groups[a].t-S.groups[b].t)}
 function catsHTML(){const n=hintsShown(),shown=hintOrder().slice(0,n),left=hintOrder().filter(i=>!shown.includes(i)&&!S.found.includes(i));
-  const btn=left.length?`<button class="linkbtn cx-hintbtn" id="hint">${n?'Show another category':'Stuck? Show a category'}${hintCosts()?' (−10 points)':''}</button>`:'';
+  const btn=left.length?`<button class="linkbtn cx-hintbtn" id="hint">${n?'Show another category':'Stuck? Show a category'}${hintCosts()?(S.mode==='daily'||S.mode==='archive'?' (−10 km)':' (−10 points)'):''}</button>`:'';
   if(!n)return btn;
   return `<section class="panel cx-cats"><span class="label">Categories shown</span><ul>${shown.map(i=>CATS[S.groups[i].k]).map(k=>`<li>${esc(EUT(k.label))} <button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></li>`).join('')}</ul>${btn}</section>`}
 // Mingo's verdict, for the result panel
@@ -624,7 +624,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>How to play</h3><ul>
   <li>Tap four countries, then <b>Submit</b>.</li>
   <li>Wrong: you lose one of your <b>${MAX_MISTAKES} lives</b>. "One away" means three of the four belong together.</li>
-  <li><b>Shuffle</b> moves the countries. Stuck? <b>Show a category</b> gives one group name, easiest first. Each one costs 10 points.</li>
+  <li><b>Shuffle</b> moves the countries. Stuck? <b>Show a category</b> gives one group name, easiest first. Each one costs 10 km (10 points in Practice).</li>
   <li>The game ends when you find all four groups or run out of lives. <b>Give up</b> ends it early.</li></ul>
   <h3>Points</h3><ul>
   <li>25 for every group: all four, 100. Every mistake: 10 less.</li>
