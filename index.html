@@ -480,6 +480,10 @@ const DC={borderline:'#7FA2F0',citygrid:'#5FC28F',connections:'#D4AD4B',top10:'#
 // Today: each game's km of the day, you vs them (the same km as the ranking and the GeoPass)
 const kmText=k=>fmt(k)+' km';
 // This week / This month: each game's km over the whole period (and on how many days), you vs them
+// who leads = whoever has more km in total over the tab's days: the same numbers as the ranking rows (Héctor 2026-11-19)
+function leadText(me,p,nm,when){const ds=tabDays(TAB),tot=id=>{const q=RANK.ppl.find(x=>x.id===id);return q?ds.reduce((a,d)=>a+(q.km[d]||0),0):0};
+  const a=Math.round(tot(me)),b=Math.round(tot(p.id));
+  return '<p class="dr">'+(a>b?'You lead '+when+' by '+kmText(a-b)+'!':b>a?esc(nm)+' leads '+when+' by '+kmText(b-a):'Level on km '+when)+'</p>'}
 function periodHTML(p,me){p=RANK.ppl.find(x=>x.id===p.id)||p;const ds=tabDays(TAB),self=p.id===me,nm=p.name.trim()||'Player',fn=esc(nm.split(' ')[0].slice(0,8)),word=TAB==='week'?'This week':'This month';
   const mp=me&&RANK.ppl.find(x=>x.id===me),sum=(q,id)=>{let km=0,n=0;if(q&&q.g)for(const d of ds){const v=q.g[d]&&q.g[d][id];if(v){km+=v;n++}}return{km,n}};
   const days=q=>{let n=0;if(q&&q.g)for(const d of ds)if(q.g[d]&&Object.values(q.g[d]).some(v=>v>0))n++;return n};
@@ -491,7 +495,7 @@ function periodHTML(p,me){p=RANK.ppl.find(x=>x.id===p.id)||p;const ds=tabDays(TA
     return '<div class="dc'+(!a.n&&!b.n?' off':'')+'" style="--c:'+(DC[g.id]||'#9AA6B6')+'"><div class="t">'+esc(g.name)+'</div><div class="s"><span class="'+ca+'">'+val(a,'You')+'</span><span class="'+cb+'">'+(self?'<small>'+sub+'</small>':val(b,fn))+'</span></div></div>'}).join('');
   const dl=self?'<p class="dn">You played on '+days(mp)+' of '+ds.length+' days.</p>':'<p class="dn">Days played: you '+days(mp)+', '+esc(nm)+' '+days(p)+' (of '+ds.length+').</p>';
   let foot=dl;
-  if(!self&&(w1||w2))foot+='<p class="dr">'+(w1>w2?'You win more games '+(TAB==='week'?'this week':'this month')+'!':w2>w1?esc(nm)+' wins more games '+(TAB==='week'?'this week':'this month'):'A draw so far')+'</p>';
+  if(!self&&(w1||w2))foot+=leadText(me,p,nm,TAB==='week'?'this week':'this month');
   return '<li class="duel"><div class="dh"><span>'+word+' · '+(self?'your km by game':'you vs '+esc(nm))+'</span>'+(self?'':'<b>'+w1+' – '+w2+'</b>')+'</div><div class="dg">'+cells+'</div>'+foot+'</li>'}
 function duelHTML(p,me){if(TAB!=='day')return periodHTML(p,me);const T=(RANK&&RANK.today)||{},self=p.id===me,nm=p.name.trim()||'Player';let w1=0,w2=0,next=null,any=false;
   const cells=G.live().map(g=>{const t=T[g.id]||{},a=me?t[me]:null,b=self?null:t[p.id],loc=G.result(g.id),mine=!!a||!!(loc&&loc.done);
@@ -499,14 +503,17 @@ function duelHTML(p,me){if(TAB!=='day')return periodHTML(p,me);const T=(RANK&&RA
     if(self)bv='';
     else if(b&&!mine){bv='<span class="lk" title="Play it to see">🔒</span>';next=next||g;any=true}
     else{bv=b?'<small>'+esc(nm.split(' ')[0].slice(0,8))+'</small>'+kmText(b.km):'<small>'+esc(nm.split(' ')[0].slice(0,8))+'</small>–';
-      if(b)any=true;if(a&&b){if(a.km>b.km){ca='w';cb='l';w1++}else if(b.km>a.km){ca='l';cb='w';w2++}}}
+      if(b)any=true;
+      // a game only one of you played counts as a win for the one who played it
+      const ka=a?a.km:mine?(mk||0):null,kb=b?b.km:null;
+      if(ka!=null&&(kb==null||ka>kb)){ca='w';cb=b?'l':'';w1++}else if(kb!=null&&(ka==null||kb>ka)){ca='l';cb='w';w2++}}
     const off=!mine&&!(b);
     return '<div class="dc'+(off?' off':'')+'" style="--c:'+(DC[g.id]||'#9AA6B6')+'"><div class="t">'+esc(g.name)+'</div><div class="s"><span class="'+ca+'"><small>You</small>'+av+'</span><span class="'+cb+'">'+bv+'</span></div></div>'}).join('');
   let foot='';
   if(self)foot='<p class="dn">Tap ▲ to close.</p>';
   else if(next)foot='<a class="dplay" href="'+esc(next.path)+'">Play '+esc(next.name)+' and beat '+esc(nm)+'</a><p class="dn">🔒 '+esc(nm)+' has played it. Play it too to see the score. Tap ▲ to close.</p>';
   else if(!any)foot='<p class="dn">'+esc(nm)+' hasn\'t played any of today\'s games yet.</p>';
-  else if(w1||w2)foot='<p class="dr">'+(w1>w2?'You lead today!':w2>w1?esc(nm)+' leads today':'A draw so far')+'</p>';
+  else if(w1||w2)foot=leadText(me,p,nm,'today');
   return '<li class="duel"><div class="dh"><span>'+(self?'Today · your games':'Today · you vs '+esc(nm))+'</span>'+(self?'':'<b>'+w1+' – '+w2+'</b>')+'</div><div class="dg">'+cells+'</div>'+foot+'</li>'}
 function rankRows(t){const ds=tabDays(t);
   return RANK.ppl.map(p=>({id:p.id,name:p.name,mi:ds.reduce((a,d)=>a+(p.km[d]||0),0)})).filter(r=>r.mi>0).sort((a,b)=>b.mi-a.mi||a.name.localeCompare(b.name))}
