@@ -28,7 +28,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="../shared/style.css?v=202611141100">
+<link rel="stylesheet" href="../shared/style.css?v=202611211600">
 <style>
 /* Compass: the mystery capital in the middle of a compass; clue capitals appear round the rim, each in its real direction with its distance */
 .play{display:flex;flex-direction:column;gap:12px;width:100%}
@@ -99,7 +99,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
-<script src="../shared/race.js?v=202611211400"></script>
+<script src="../shared/race.js?v=202611211600"></script>
 <script>
 /* ---- Compass: find the mystery capital from the capitals round it (Héctor's idea, 2026-11-10) ----
    The mystery capital is the "?" in the middle of a compass. Clue capitals appear on the rim, each in its real direction
@@ -378,7 +378,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Daily</b>: five capitals, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
   <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. Points only, no km.</li>
-  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Everyone gets the same five (well-known) capitals and plays at their own pace. Most points win, then the fastest.</li>
+  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Five (well-known) capitals for the whole room. You take turns, 30 s each, and a random player starts. A wrong guess stays on the compass for everyone; <b>Next clue</b> or running out of time opens a closer clue for the next player. Most points win.</li>
   <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, and its km count for that day.</li></ul>`}
 function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Compass: the capitals and their coordinates are the ones of Geomingo's Capitals game; distances and directions are worked out on a round Earth (radius 6.371 km).</li><li>Flags from <a href="https://github.com/hjnilsson/country-flags" target="_blank" rel="noopener">hjnilsson/country-flags</a> (from Wikimedia Commons, public domain).</li></ul>`)}
 
@@ -389,14 +389,21 @@ try{if(new URLSearchParams(location.search).has('solo')){view='solo';history.rep
 // Back from today's game or Solo goes to the Geomingo home page
 const toHub=()=>{location.href='../'};
 function goHome(){view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
-/* ---- With friends: online rooms (../shared/race.js), everyone plays the same set at the same time ----
+/* ---- With friends: online rooms (../shared/race.js), one game for the room, played in turns ----
    The room's game is played with the Solo moves (T is the room's game while view is 'room'). */
 const RACE=GeoRace({game:'compass',key:'cm',name:'Compass',total:PER,what:'the same five capitals',
   deal:seed=>newGame(shuffle(DECK.filter(c=>cityBy[c]).sort(),rngFrom(seed)).slice(0,PER)),
-  points:pointsOf,right:rightOf,shareLine:G=>G.qs.map(sq).join(''),header,render:()=>render()});
+  points:pointsOf,right:rightOf,shareLine:G=>G.qs.map(sq).join(''),header,render:()=>render(),
+  // turns: a wrong guess stays on the compass for everyone; Next clue opens a closer one for the next player
+  move:(G,a)=>{const q=G.qs[G.sel];let res='pass';if(a)res=answer(q,a);else nextClue(q);if(res==='same')return {res:'again'};const pts=res==='right'?worth(q):0;advance(G);return {res,pts}},
+  ansName:c=>cityBy[c].n,item:G=>'Capital '+(G.sel+1)+' of '+PER,sol:(G,i)=>G.qs[i].c,worth:G=>worth(G.qs[G.sel])});
+// turns with friends (../shared/race.js): my answer or my pass goes to the room; a right one is stamped here
+function roomPick(code){const r=RACE.play(code);if(!r)return;query='';typing=false;if(r.res==='right')feedback(r.q,'right')}
+function roomPass(){RACE.play(null)}
 function roomHTML(){if(!RACE.inGame())return RACE.lobbyHTML();
   let h=header('Compass','Room '+RACE.code)+RACE.backHTML()+RACE.scoresHTML();
   if(T.over&&T.left==null)return h+RACE.resultHTML()+summaryHTML(T);
+  if(RACE.turns())return h+RACE.turnTicket()+`<section class="panel${RACE.myTurn()?'':' turnwait'}">${playHTML(T).replace(giveUpHTML(),'')}</section>`;  // turns: only the player whose turn it is answers, nobody gives up
   return h+ticketHTML(T,'online')+`<section class="panel">${playHTML(T)}</section>`}
 function render(){
   // With friends first: its screens stay until you leave the room or go back to the Geomingo home page
@@ -427,9 +434,10 @@ function bind(){
   app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
   const G=TV?T:view==='daily'?D:null;
   app.querySelectorAll('[data-tv]').forEach(b=>b.onclick=()=>{const q=G&&G.qs[+b.dataset.tv];if(q&&q.st!=='play')toast(cityBy[q.c].n+(q.st==='right'?' · +'+show(q.p,q):''))});
-  if($('nextclue'))$('nextclue').onclick=TV?trainNextClue:dailyNextClue;
+  const TURNS=view==='room'&&RACE.turns();
+  if($('nextclue'))$('nextclue').onclick=TURNS?roomPass:TV?trainNextClue:dailyNextClue;
   if($('nexttv'))$('nexttv').onclick=()=>TV?nextCity(T):nextCity(D,dailySave);
-  if(TV&&T&&!T.over)bindAnswer(T,trainPick);
+  if(TV&&T&&!T.over)bindAnswer(T,TURNS?roomPick:trainPick);
   else if(view==='daily'&&D&&!D.over)bindAnswer(D,dailyPick)}
 RACE.boot();
 // Menu → Archive: ?day=2026-11-14 opens that past day
