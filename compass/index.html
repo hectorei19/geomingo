@@ -380,7 +380,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Daily</b>: five capitals, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
   <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. Points only, no km.</li>
-  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Five (well-known) capitals for the whole room. You take turns, 30 s each, and a random player starts. No asking for clues: a wrong guess or running out of time opens a closer clue for the next player, and wrong guesses stay on the compass for everyone. Most points win.</li>
+  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Five (well-known) capitals for the whole room. You take turns, 30 s each, and a random player starts. No asking for clues: a wrong guess stays on the compass for everyone, in that player's colour; running out of time opens a closer clue for the next player. Most points win.</li>
   <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, and its km count for that day.</li></ul>`}
 function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Compass: the capitals and their coordinates are the ones of Geomingo's Capitals game; distances and directions are worked out on a round Earth (radius 6.371 km).</li><li>Flags from <a href="https://github.com/hjnilsson/country-flags" target="_blank" rel="noopener">hjnilsson/country-flags</a> (from Wikimedia Commons, public domain).</li></ul>`)}
 
@@ -396,10 +396,10 @@ function goHome(){view='home';toastMsg=null;drawToast();query='';typing=false;re
 const RACE=GeoRace({game:'compass',key:'cm',name:'Compass',total:PER,what:'the same five capitals',
   deal:seed=>newGame(shuffle(DECK.filter(c=>cityBy[c]).sort(),rngFrom(seed)).slice(0,PER)),
   points:pointsOf,right:rightOf,shareLine:G=>G.qs.map(sq).join(''),header,render:()=>render(),
-  // turns: a wrong guess stays on the compass for everyone and opens a closer clue; time up does too
+  // turns: a wrong guess stays on the compass for everyone (it is the next player's new clue); time up opens a closer clue
   move:(G,a)=>{const q=G.qs[G.sel];let res='pass';if(a)res=answer(q,a);else if(shown(q).length<CLUES)nextClue(q);else{q.k++;if(left(q)<=0)q.st='wrong'}if(res==='same')return {res:'again'};
-    // no asking for clues (Héctor 2026-11-21): a wrong guess also opens a closer clue, at no extra cost (the guess already cost one step)
-    if(res==='wrong'&&q.st==='play'&&shown(q).length<CLUES){const n=nextOf(q);if(n)q.cl=shown(q).concat(n)}const pts=res==='right'?worth(q):0;advance(G);return {res,pts}},
+    // no asking for clues (Héctor 2026-11-21): a wrong guess shows on the compass in that player's colour, no clue; time up opens a closer clue
+    const pts=res==='right'?worth(q):0;advance(G);return {res,pts}},
   ansName:c=>cityBy[c].n,item:G=>'Capital '+(G.sel+1)+' of '+PER,sol:(G,i)=>G.qs[i].c,worth:G=>worth(G.qs[G.sel])});
 // turns with friends (../shared/race.js): my answer or my pass goes to the room; a right one is stamped here
 function roomPick(code){const r=RACE.play(code);if(!r)return;query='';typing=false;if(r.res==='right')feedback(r.q,'right')}
