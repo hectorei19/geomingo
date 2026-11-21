@@ -28,7 +28,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="../shared/style.css?v=202611211600">
+<link rel="stylesheet" href="../shared/style.css?v=202611211800">
 <style>
 /* Impostor: six countries in a 3 x 2 grid, the clues of the round under them, then Next clue */
 .play{display:flex;flex-direction:column;gap:12px;width:100%}
@@ -115,7 +115,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
-<script src="../shared/race.js?v=202611211600"></script>
+<script src="../shared/race.js?v=202611211800"></script>
 <script src="facts.js?v=202611141130"></script>
 <script src="lies.js?v=202611172330"></script>
 <script>
@@ -355,7 +355,7 @@ function roomPick(){if(!chosen)return;const c=chosen;chosen=null;const r=RACE.pl
 function roomHTML(){if(!RACE.inGame())return RACE.lobbyHTML();
   let h=header('Impostor','Room '+RACE.code)+RACE.backHTML()+RACE.scoresHTML();
   if(T.over&&T.left==null)return h+RACE.resultHTML()+summaryHTML(T);
-  if(RACE.turns())return h+RACE.turnTicket()+`<section class="panel${RACE.myTurn()?'':' turnwait'}">${playHTML(T).replace(giveUpHTML(),'')}</section>`;  // turns: only the player whose turn it is answers, nobody gives up
+  if(RACE.turns())return h+RACE.turnTicket()+`<section class="panel turns${RACE.myTurn()?'':' turnwait'}">${playHTML(T).replace(giveUpHTML(),'')}</section>`;  // turns: only the player whose turn it is answers, nobody gives up
   return h+ticketHTML(T,'online')+`<section class="panel">${playHTML(T)}</section>`}
 function render(){
   // With friends first: its screens stay until you leave the room or go back to the Geomingo home page

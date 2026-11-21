@@ -266,3 +266,5 @@ a.primary{display:block;text-align:center;text-decoration:none}
 /* With friends in turns (Héctor 2026-11-21): while it is someone else's turn you watch, the answer controls are hidden */
 .turnwait .askbtn,.turnwait .ans,.turnwait #nextclue,.turnwait #nextfact,.turnwait #confirm{display:none}
 .turnwait .claims,.turnwait .six{pointer-events:none}
+/* no asking for clues in turns: they open one after another, a turn at a time (Héctor 2026-11-21) */
+.turns #nextclue{display:none}

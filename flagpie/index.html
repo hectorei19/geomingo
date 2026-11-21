@@ -28,7 +28,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="../shared/style.css?v=202611211600">
+<link rel="stylesheet" href="../shared/style.css?v=202611211800">
 <style>
 /* Flag Pie: the colours of a flag as a pie chart, four more clues opened one by one, the answer box under them */
 .play{display:flex;flex-direction:column;gap:12px;width:100%}
@@ -109,7 +109,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
-<script src="../shared/race.js?v=202611211600"></script>
+<script src="../shared/race.js?v=202611211800"></script>
 <script>
 /* ---- Flag Pie: the colours of a flag as a pie chart, and you name the country ----
    Five flags per game (Héctor, 2026-11-04: one was too little), one at a time, as the travellers in Customs.
@@ -336,7 +336,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Daily</b>: five flags, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
   <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. Points only, no km.</li>
-  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Five flags (well-known countries) for the whole room. You take turns, 30 s each, and a random player starts. A wrong answer, <b>Next clue</b> or running out of time opens the next clue for the next player. Most points win.</li>
+  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Five flags (well-known countries) for the whole room. You take turns, 30 s each, and a random player starts. No asking for clues: a wrong answer or running out of time opens the next clue for the next player. Most points win.</li>
   <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, and its km count for that day.</li></ul>`}
 function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Flag Pie: the flags in their official shapes from <a href="https://github.com/hjnilsson/country-flags" target="_blank" rel="noopener">hjnilsson/country-flags</a> (from Wikimedia Commons, public domain), measured pixel by pixel in November 2026.</li></ul>`)}
 
@@ -374,7 +374,7 @@ function roomPass(){RACE.play(null)}
 function roomHTML(){if(!RACE.inGame())return RACE.lobbyHTML();
   let h=header('Flag Pie','Room '+RACE.code)+RACE.backHTML()+RACE.scoresHTML();
   if(T.over&&T.left==null)return h+RACE.resultHTML()+summaryHTML(T);
-  if(RACE.turns())return h+RACE.turnTicket()+`<section class="panel${RACE.myTurn()?'':' turnwait'}">${playHTML(T).replace(giveUpHTML(),'')}</section>`;  // turns: only the player whose turn it is answers, nobody gives up
+  if(RACE.turns())return h+RACE.turnTicket()+`<section class="panel turns${RACE.myTurn()?'':' turnwait'}">${playHTML(T).replace(giveUpHTML(),'')}</section>`;  // turns: only the player whose turn it is answers, nobody gives up
   return h+ticketHTML(T,'online')+`<section class="panel">${playHTML(T)}</section>`}
 function render(){
   // With friends first: its screens stay until you leave the room or go back to the Geomingo home page
