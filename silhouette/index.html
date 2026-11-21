@@ -438,7 +438,7 @@ async function moveOn(){if(!roomRef||moveOn.busy)return;moveOn.busy=true;
   try{await roomRef.transaction(r=>{if(!r)return r;const t=now();
     if(r.status==='round'&&(t>=r.end||allDone(r))){r.status='reveal';r.revealEnd=t+REVEAL_MS;return r}
     if(r.status==='reveal'&&t>=r.revealEnd){
-      if(r.round+1<r.qs.length){r.round++;r.status='round';r.start=t+READY_MS;r.end=r.start+SECS*1000}else{r.status='over'}
+      if(r.round+1<r.qs.length){r.round++;r.status='round';r.start=t;r.end=r.start+SECS*1000}else{r.status='over'}  // the next shape comes straight after 'Next shape in…' (no second 'Get ready', Héctor 2026-11-21)
       return r}
     return})}catch(e){}
   moveOn.busy=false}
