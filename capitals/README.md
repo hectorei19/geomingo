@@ -25,6 +25,8 @@ The daily grids are fixed in advance in `data.js` (`DAILY_FIXED`, one entry per 
 
 Easier two months (Héctor, 2026-11-16, players found it too hard): the days 2026-11-17 to 2027-01-16 were made again with only well-known categories (no height, small populations, "not its country's biggest city", metro, near capital, quarter of the country, made capital after 1950, big river). With so few categories left, a category may come back the next day, and a grid may have two name categories.
 
+Fewer repeats and no "free" squares (Héctor, 2026-11-21): a square never crosses two categories where one holds the other (Megacity × Over 1 million people, On the Mediterranean or an ocean × On the coast, Over 1,000 m × Inland, West of Greenwich × the Americas…); this is checked in `evalGrid`, so Practice and With friends follow it too. Six well-known categories about the city's country came in, from the Geomingo country database: EU member, Monarchy, Won the men's World Cup, Official language: Spanish / French / Arabic. The days 2026-11-22 to 2027-10-22 were made again: a category tries not to come back the next day (until 2027-01-16) or within 2 days (after), and a category is held back once it has been used about once every 3 days (until 2027-01-16) or 65 times (after). The two easy months still use only well-known categories. Before / after: the most used category of the easy months 53 → 33 of 56 days, of the rest of the year 145 → 83 of 279 days; categories repeated from the day before 3,8 → 2,6 per grid (easy months) and 2,8 → 0,4 (after). Days before 2026-11-22 are unchanged.
+
 ## Credits
 
 - Cities: [GeoNames](https://www.geonames.org) (via the `all-the-cities` package), CC BY 4.0: names, coordinates, population. A few outdated populations corrected.
