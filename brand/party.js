@@ -98,10 +98,14 @@ async function join(raw){const c=String(raw||'').toUpperCase().replace(/[^A-Z]/g
     joinVal='';keepMine(c);seenN=null;open()}
   catch(e){console.error(e);H.toast('Could not join. Check the connection and try again.','bad')}
   finally{busy=false}}
-async function leave(){const r0=ref;
-  if(r0){try{await r0.transaction(x=>{if(!x||!x.players)return x;delete x.players[PID];
-    const h=here(x),all=order(x);if(!all.length)return null;if(x.host===PID)x.host=(h[0]||all[0]);return x})}catch(e){}}
-  stop();keepMine(null);draw()}
+// (plain writes, not a transaction: a transaction here can be cancelled by this phone's own "I'm here" write,
+// and then you stayed in the room for the others, Héctor 2026-11-21)
+async function leave(){const r0=ref,x=R;clearTimeout(healT);healT=0;stop();
+  if(r0&&x&&x.players){const rest=order(x).filter(k=>k!==PID);
+    try{if(!rest.length)await r0.remove();
+      else{const up={['players/'+PID]:null};if(x.host===PID){const h=rest.filter(k=>x.players[k].on!==false);up.host=h[0]||rest[0]}await r0.update(up)}}
+    catch(e){console.error(e)}}
+  keepMine(null);draw()}
 // the organiser taps a game: a small window asks once, "Start for everyone" (Héctor 2026-11-17: no Start button later)
 function ask(id){const g=gameOf(id);if(!g||!R)return;const n=((R.cur&&R.cur.n)||0)+1,ppl=here(R).length;
   const turns=['borderline','citygrid','top10'].includes(id);
