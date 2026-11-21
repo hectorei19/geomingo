@@ -251,7 +251,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .sharebox{font-family:var(--mono);font-size:.85rem;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:10px;user-select:all;margin:0}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @keyframes pop{from{transform:scale(.6);opacity:.2}to{transform:none;opacity:1}}
-.cell.new{animation:pop .35s cubic-bezier(.3,1.6,.6,1)}
+
 .cell.flag{padding:5px;background:transparent}
 .cell.flag::after{display:none}
 .flagbox{width:100%;height:100%;border-radius:4px;background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:flex-end;overflow:hidden;border:3px solid var(--pc,var(--sea));box-shadow:0 0 0 2px var(--pc-soft,transparent)}

@@ -422,7 +422,7 @@ function guess(ci,cid){
     Geomingo.stamp(GRID.id,c.n,'',GRID.code(c));
     say('happy','Stamped: '+c.n+'.','+'+pts+(kmsq()&&S.daily?' km':' pts')+(sb?' · +'+sb+' speed':'')+(nl&&!plain()?' · +'+nl*LINE_BONUS+' for the line':'')+(S.mode==='solo'?'':' for '+p.name+'.'));
   }else{
-    S.wrong++;loseLife();
+    S.wrong++;loseLife();ui.bad=ci; // the square shakes with a red cross (Héctor 2026-11-21, idea 2)
     const left=S.mode==='solo'?livesLeft():0;
     say('sad','Denied entry.',whyNot(ci,c)+(S.mode==='solo'?(S.nolives?' Mistakes: '+S.wrong+'.':left>0?' '+livesWord(left)+' left.':''):' Turn passes.'));
   }
@@ -917,14 +917,16 @@ function gameView(){
       const ci=i*n+j,cell=S.cells[ci];
       const ref=colRef(j)+rowRef(i);
       if(cell.o>=0){const c=byCode[cell.c];
-        h+=`<button class="cell taken flag ${ui.fresh===ci?'new':''}" data-cell="${ci}" aria-label="${ref}: ${esc(c.n)}">${stampCell(c,cell,S.mode==='solo'?'c0':'c'+cell.o)}</button>`;
+        // a fresh stamp drops onto the square, leaves a gold ring and its points float up (Héctor 2026-11-21, idea 1)
+        const fly=ui.fresh===ci?`<span class="gm-ring" aria-hidden="true"></span><span class="gm-fly" aria-hidden="true">+${(cell.p||0)+(cell.sb||0)}${kmsq()&&S.daily?' km':''}</span>`:'';
+        h+=`<button class="cell taken flag ${ui.fresh===ci?'new':''}" data-cell="${ci}" aria-label="${ref}: ${esc(c.n)}">${stampCell(c,cell,S.mode==='solo'?'c0':'c'+cell.o)}${fly}</button>`;
       }else if(S.over){
         h+=`<button class="cell miss" data-cell="${ci}" aria-label="${ref}: show answers"><span class="nm">${S.answers[ci].length} possible</span></button>`;
-      }else h+=`<button class="cell ${ui.sel===ci?'sel':''}" data-cell="${ci}" aria-label="Square ${ref}"><span class="plus"></span></button>`;
+      }else h+=`<button class="cell ${ui.sel===ci?'sel':''}${ui.bad===ci?' bad':''}" data-cell="${ci}" aria-label="Square ${ref}"><span class="plus"></span>${ui.bad===ci?'<span class="gm-x" aria-hidden="true">✕</span>':''}</button>`;
     }
   });
   h+=`</div></div>`;
-  ui.fresh=-1;
+  ui.fresh=-1;ui.bad=-1;
   if(!S.over)h+=(S.mode==='solo'||(S.mode==='online'&&S.turn!==S.me)?'':'<div class="actions"><button class="ghost" id="pass">Pass turn</button></div>')+`<button class="linkbtn giveup" id="giveup">${S.mode==='solo'?'Give up':'End game'}</button>`+QRULES;
   else if(done||solo)h=h.slice(0,mark)+resultsView(h.slice(mark)+answersView())+(done?lbView(null):'');
   else h+=answersView()+(S.daily&&!S.archive&&!S.dayof?lbView(null):'');
