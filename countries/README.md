@@ -6,8 +6,8 @@ Geography grid game: name a country that matches each row and column (197 to cho
 Today's grid (one 4×4 Normal grid a day for everyone), Solo (unlimited grids), or With friends (online rooms, up to 4 phones) via Firebase Realtime Database.
 
 Files:
-- `index.html` – the whole game; its country data and flags come from the Geomingo country database (`../data/countries.js`, `../data/flag-files.js`: one file per flag in `../data/flags/`) and its daily grids from `daily.js`, loaded just before the game script (big one-line files: grep them, never read them whole). Its look (colours, fonts, Mingo, the header, the result window) comes from Geomingo's shared files in `../brand/`.
-- `version.json` – the version number; change it together with `APP_VERSION` in `index.html` so phones with the game open get the reload notice.
+- `index.html` – the game's own part (categories, grid rules, how a right answer looks, its texts in `GRID`); the rest of the game is shared with Capitals in `../grid/engine.js` and `../grid/grid.css`; its country data and flags come from the Geomingo country database (`../data/countries.js`, `../data/flag-files.js`: one file per flag in `../data/flags/`) and its daily grids from `daily.js`, loaded just before the game script (big one-line files: grep them, never read them whole). Its look (colours, fonts, Mingo, the header, the result window) comes from Geomingo's shared files in `../brand/`.
+- `version.json` – the version number; change it together with `appVersion` in `GRID` in `index.html` so phones with the game open get the reload notice.
 - `../brand/firebase-config.js` – the Firebase web config shared by every game.
 - `database.rules.json` – rules to paste in Firebase → Realtime Database → Rules.
 
