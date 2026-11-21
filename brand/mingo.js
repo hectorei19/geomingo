@@ -717,6 +717,35 @@ const oldName=q=>OLD_NAMES[String(q||'').normalize('NFD').replace(/[\u0300-\u036
 // adds that country to a game's answer list (pool: the game's countries, with .c codes), if it isn't there yet
 const withOld=(res,q,pool)=>{const o=oldName(q);if(!o||res.some(c=>c.c===o))return res;const c=pool.find(x=>x.c===o);return c?[...res,c]:res};
 
+/* ---------- the ticket comes alive (Héctor 2026-11-21, ideas 2 and 3) ----------
+   Games redraw their ticket often, so one watcher compares what it shows with what it showed before:
+   km or points that went up count up to the new number with a small gold bump (also the "N km" GeoPass button),
+   and a life that was lost drops off its dot. Nothing moves for people whose phone asks for reduced motion. */
+(function(){
+  const calm=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}};
+  const read=t=>{const m=/^\s*(\d[\d.]*)( km)?\s*$/.exec(t||'');return m?{v:+m[1].replace(/\./g,''),u:m[2]||''}:null};
+  const seen={},busy=new Set();
+  function countUp(b,from,to,u){busy.add(b);const t0=performance.now(),ms=Math.min(900,250+60*(to-from));
+    b.classList.remove('gm-bump');void b.offsetWidth;b.classList.add('gm-bump');
+    (function step(t){if(!b.isConnected){busy.delete(b);return}const p=Math.min(1,(t-t0)/ms),e=1-Math.pow(1-p,3);
+      b.textContent=fmt(from+(to-from)*e)+u;if(p<1)requestAnimationFrame(step);else busy.delete(b)})(t0)}
+  function number(key,b){if(!b||busy.has(b))return;const r=read(b.textContent);if(!r)return;
+    const was=seen[key];seen[key]={v:r.v,b};
+    if(was&&r.v>was.v&&!calm())countUp(b,was.v,r.v,r.u)}
+  function look(){
+    document.querySelectorAll('.ticket:not(.gm-done)').forEach((t,i)=>{
+      const m=t.querySelector('.tk-mode'),key=PAGE+'|'+i+'|'+(m?m.textContent:'');
+      number(key+'|pts',t.querySelector('.tk-c.tk-pts b'));
+      const d=t.querySelector('.tk-dots');if(!d)return;
+      const dots=[...d.children],on=dots.filter(x=>!x.classList.contains('off')).length,was=seen[key+'|lives'];
+      seen[key+'|lives']={v:on,d};
+      if(was&&on<was.v&&!calm())dots.slice(on,was.v).forEach(x=>x.classList.add('gm-lose'))});
+    document.querySelectorAll('[data-gm-pass] b').forEach((b,i)=>number('pass|'+i,b))}
+  let queued=false;
+  new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;look()})})
+    .observe(document.documentElement,{childList:true,subtree:true});
+})();
+
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
   days,streak,streakInfo,openDay,dayInfo,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,countriesSeen,countriesKnown,EXPERT,CORE,TIERS,gameVisas,specialVisas,challengeVisas,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,archTicket,archListBtn,KM,KM_FROM,KMSQ_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,ARL,archDone,rowKm,dayTotal,level,geo,visas,clock,secText,mmss,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
   openWindow,closeWindow,esc,refreshPass,room,where,mode,askedDay,ARCH_FROM,archNo,lives,setLives,stat,statTo,PAGE,oldName,withOld,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name,fresh:FRESH};
