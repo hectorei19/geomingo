@@ -28,7 +28,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="../shared/style.css?v=202611141100">
+<link rel="stylesheet" href="../shared/style.css?v=202611211800">
 <style>
 /* Compass: the mystery capital in the middle of a compass; clue capitals appear round the rim, each in its real direction with its distance */
 .play{display:flex;flex-direction:column;gap:12px;width:100%}
@@ -150,12 +150,14 @@ const openSheet0=openSheet;openSheet=function(o){openSheet0(o);const q=$('sq');i
 /* ---- the compass: the mystery capital in the middle, clues (gold) and wrong guesses (red) on the rim ---- */
 const RIM=30,LAB=41;   // % of the box: the rim, and where the labels sit
 function compassHTML(q,o){o=o||{};const cl=shown(q),bad=q.tries.map(c=>seen(q,c));
+  // with friends in turns each wrong guess is in the colour of the player who said it (Héctor 2026-11-21; q.by from ../shared/race.js)
+  const badCol=x=>q.by&&q.by[x.c]!=null?`var(--p${q.by[x.c]%6})`:'var(--bad)';
   const pt=(a,r)=>[50+Math.sin(a*Math.PI/180)*r,50-Math.cos(a*Math.PI/180)*r];
   let s=`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="${RIM}" fill="#0C1220" stroke="var(--gold)" stroke-width=".7"/>`;
   for(let a=0;a<360;a+=15){const L=a%90===0?3.4:a%45===0?2.2:1.1,[x1,y1]=pt(a,RIM),[x2,y2]=pt(a,RIM-L);s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#9AA6B6" stroke-width="${a%90?.3:.6}"/>`}
   [['N',0],['E',90],['S',180],['W',270]].forEach(([t,a])=>{const [x,y]=pt(a,RIM-7);s+=`<text x="${x}" y="${y+1.7}" fill="${t==='N'?'#F07884':'#5A6A86'}" font-family="Archivo,sans-serif" font-weight="900" font-size="4.6" text-anchor="middle">${t}</text>`});
   const all=cl.map((x,i)=>({x,bad:false,i})).concat(bad.map((x,i)=>({x,bad:true,i})));
-  all.forEach(({x,bad})=>{const [x1,y1]=pt(x.b,11.5),[x2,y2]=pt(x.b,RIM),col=bad?'var(--bad)':'var(--gold)';
+  all.forEach(({x,bad})=>{const [x1,y1]=pt(x.b,11.5),[x2,y2]=pt(x.b,RIM),col=bad?badCol(x):'var(--gold)';
     s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width=".6" stroke-dasharray="1.3 1.3" opacity=".85"/><circle cx="${x2}" cy="${y2}" r="1.7" fill="${col}"/>`});
   // labels: start at the true direction just outside the rim; two that overlap push each other apart, and a thin line
   // always joins each label to its own dot (Héctor, 2026-11-10: a label pushed aside must still show which dot is its)
@@ -170,11 +172,11 @@ function compassHTML(q,o){o=o||{};const cl=shown(q),bad=q.tries.map(c=>seen(q,c)
     for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){const A=L[i],B=L[j],ox=(A.w+B.w)/2+.8-Math.abs(A.px-B.px),oy=(A.h+B.h)/2+.8-Math.abs(A.py-B.py);
       if(ox>0&&oy>0){moved=true;if(oy<=ox*1.4){const d=(A.py<=B.py?-1:1)*oy/2;A.py+=d;B.py-=d}else{const d=(A.px<=B.px?-1:1)*ox/2;A.px+=d;B.px-=d}fit(A);fit(B)}}
     if(!moved)break}
-  L.forEach(l=>{const col=l.bad?'var(--bad)':'var(--gold)';if(Math.hypot(l.px-l.dx,l.py-l.dy)>l.h/2+1.5)s+=`<line x1="${l.dx}" y1="${l.dy}" x2="${l.px}" y2="${l.py}" stroke="${col}" stroke-width=".55"/>`});
+  L.forEach(l=>{const col=l.bad?badCol(l.x):'var(--gold)';if(Math.hypot(l.px-l.dx,l.py-l.dy)>l.h/2+1.5)s+=`<line x1="${l.dx}" y1="${l.dy}" x2="${l.px}" y2="${l.py}" stroke="${col}" stroke-width=".55"/>`});
   s+='</svg>';
   let h='';
   L.forEach(l=>{const isNew=!l.bad&&l.i===cl.length-1&&!o.done&&q.k>1;
-    h+=`<div class="lab${l.bad?' bad':''}${isNew?' new':''}" style="left:${l.px}%;top:${l.py}%"><b>${esc(l.nm)}</b><span>${km(l.x.d)}</span></div>`});
+    h+=`<div class="lab${l.bad?' bad':''}${isNew?' new':''}" style="left:${l.px}%;top:${l.py}%${l.bad&&q.by&&q.by[l.x.c]!=null?';--bad:'+badCol(l.x):''}"><b>${esc(l.nm)}</b><span>${km(l.x.d)}</span></div>`});
   const t=cityBy[q.c];
   const mid=o.done?`<div class="ctr ${q.st==='right'?'ok':'ok miss'}"><img src="${realFlag(t.k3)}" alt="">${esc(t.n)}</div>`:'<div class="ctr">?</div>';
   const label='The compass. '+cl.map(x=>cityBy[x.c].n+' is '+km(x.d)+' to the '+where(x.b)).join('. ')+(bad.length?'. Wrong guesses: '+bad.map(x=>cityBy[x.c].n+', '+km(x.d)+' to the '+where(x.b)).join('; '):'');
@@ -230,7 +232,7 @@ function leftHTML(G,i){const q=G.qs[i],t=cityBy[q.c],ok=q.st==='right';
 function playHTML(G){let h=deskHTML(G);
   if(G.left!=null)return `<div class="play">${h}${leftHTML(G,G.left)}</div>`;
   if(G.over)return `<div class="play">${h}</div>`;
-  const q=G.qs[G.sel],w=worth(q),l=left(q),more=CLUES-q.k,can=more>0&&l>1;
+  const q=G.qs[G.sel],w=worth(q),l=left(q),more=CLUES-shown(q).length,can=more>0&&l>1;
   return `<div class="play">${h}<div class="cmpcard">${compassHTML(q)}${newsHTML(q,q.last)}</div>
     <div class="locked">${can?'🔒 '+more+' more clue'+(more===1?'':'s')+' locked':l===1?'Last chance: one more try':'All five clues are open'}<button class="linkbtn" id="nextclue">${can?'Next clue':'I don\'t know'}</button></div>
     ${answerBoxHTML(q)}${giveUpHTML()}</div>`}
@@ -378,7 +380,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Daily</b>: five capitals, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
   <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. Points only, no km.</li>
-  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Everyone gets the same five (well-known) capitals and plays at their own pace. Most points win, then the fastest.</li>
+  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Five (well-known) capitals for the whole room. You take turns, 30 s each, and a random player starts. No asking for clues: a wrong guess stays on the compass for everyone, in that player's colour; running out of time opens a closer clue for the next player. Most points win.</li>
   <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, and its km count for that day.</li></ul>`}
 function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Compass: the capitals and their coordinates are the ones of Geomingo's Capitals game; distances and directions are worked out on a round Earth (radius 6.371 km).</li><li>Flags from <a href="https://github.com/hjnilsson/country-flags" target="_blank" rel="noopener">hjnilsson/country-flags</a> (from Wikimedia Commons, public domain).</li></ul>`)}
 
@@ -389,14 +391,23 @@ try{if(new URLSearchParams(location.search).has('solo')){view='solo';history.rep
 // Back from today's game or Solo goes to the Geomingo home page
 const toHub=()=>{location.href='../'};
 function goHome(){view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
-/* ---- With friends: online rooms (../shared/race.js), everyone plays the same set at the same time ----
+/* ---- With friends: online rooms (../shared/race.js), one game for the room, played in turns ----
    The room's game is played with the Solo moves (T is the room's game while view is 'room'). */
 const RACE=GeoRace({game:'compass',key:'cm',name:'Compass',total:PER,what:'the same five capitals',
   deal:seed=>newGame(shuffle(DECK.filter(c=>cityBy[c]).sort(),rngFrom(seed)).slice(0,PER)),
-  points:pointsOf,right:rightOf,shareLine:G=>G.qs.map(sq).join(''),header,render:()=>render()});
+  points:pointsOf,right:rightOf,shareLine:G=>G.qs.map(sq).join(''),header,render:()=>render(),
+  // turns: a wrong guess stays on the compass for everyone (it is the next player's new clue); time up opens a closer clue
+  move:(G,a)=>{const q=G.qs[G.sel];let res='pass';if(a)res=answer(q,a);else if(shown(q).length<CLUES)nextClue(q);else{q.k++;if(left(q)<=0)q.st='wrong'}if(res==='same')return {res:'again'};
+    // no asking for clues (Héctor 2026-11-21): a wrong guess shows on the compass in that player's colour, no clue; time up opens a closer clue
+    const pts=res==='right'?worth(q):0;advance(G);return {res,pts}},
+  ansName:c=>cityBy[c].n,item:G=>'Capital '+(G.sel+1)+' of '+PER,sol:(G,i)=>G.qs[i].c,worth:G=>worth(G.qs[G.sel])});
+// turns with friends (../shared/race.js): my answer or my pass goes to the room; a right one is stamped here
+function roomPick(code){const r=RACE.play(code);if(!r)return;query='';typing=false;if(r.res==='right')feedback(r.q,'right')}
+function roomPass(){RACE.play(null)}
 function roomHTML(){if(!RACE.inGame())return RACE.lobbyHTML();
   let h=header('Compass','Room '+RACE.code)+RACE.backHTML()+RACE.scoresHTML();
   if(T.over&&T.left==null)return h+RACE.resultHTML()+summaryHTML(T);
+  if(RACE.turns())return h+RACE.turnTicket()+`<section class="panel turns${RACE.myTurn()?'':' turnwait'}">${playHTML(T).replace(giveUpHTML(),'')}</section>`;  // turns: only the player whose turn it is answers, nobody gives up
   return h+ticketHTML(T,'online')+`<section class="panel">${playHTML(T)}</section>`}
 function render(){
   // With friends first: its screens stay until you leave the room or go back to the Geomingo home page
@@ -427,9 +438,10 @@ function bind(){
   app.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>playArchive(b.dataset.arch));
   const G=TV?T:view==='daily'?D:null;
   app.querySelectorAll('[data-tv]').forEach(b=>b.onclick=()=>{const q=G&&G.qs[+b.dataset.tv];if(q&&q.st!=='play')toast(cityBy[q.c].n+(q.st==='right'?' · +'+show(q.p,q):''))});
-  if($('nextclue'))$('nextclue').onclick=TV?trainNextClue:dailyNextClue;
+  const TURNS=view==='room'&&RACE.turns();
+  if($('nextclue'))$('nextclue').onclick=TURNS?roomPass:TV?trainNextClue:dailyNextClue;
   if($('nexttv'))$('nexttv').onclick=()=>TV?nextCity(T):nextCity(D,dailySave);
-  if(TV&&T&&!T.over)bindAnswer(T,trainPick);
+  if(TV&&T&&!T.over)bindAnswer(T,TURNS?roomPick:trainPick);
   else if(view==='daily'&&D&&!D.over)bindAnswer(D,dailyPick)}
 RACE.boot();
 // Menu → Archive: ?day=2026-11-14 opens that past day

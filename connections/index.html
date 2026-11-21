@@ -28,7 +28,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="../shared/style.css?v=202611141100">
+<link rel="stylesheet" href="../shared/style.css?v=202611211800">
 <style>
 /* Connections: 16 tiles in a 4 × 4 grid; found groups become coloured bars on top */
 .cx-board{display:flex;flex-direction:column;gap:8px}
@@ -312,6 +312,7 @@ try{if(new URLSearchParams(location.search).has('solo')){view='solo';history.rep
 const toHub=()=>{if(typeof roomCode!=='undefined'&&roomCode){goHome();return}location.href='../'};
 const dailySaved=()=>{const d=load('cx-daily',null);return d&&d.date===todayKey()?d.S:null};
 function save(){if(!S)return;
+  if(S.mode==='online'&&TT){pushProgress();return}
   if(S.mode==='online'){if(S.over&&S.ms==null)S.ms=Math.max(0,now()-((room&&room.startAt)||now()));
     keep('cx-online',{code:S.code,round:S.round,S});pushProgress();return}
   if(S.mode==='daily'){store('cx-daily',{date:S.date,over:S.over,S});
@@ -339,8 +340,8 @@ let dailyCache=null;
 const dailyPreview=()=>{const k=todayKey();if(!dailyCache||dailyCache.date!==k)dailyCache=newGame('daily',seedOf('connections-daily-'+k));return dailyCache};
 
 /* ---- With friends: online rooms in Countries' Firebase database (rooms/ABCD, next to Countries' own rooms) ----
-   Everyone in a room plays the same puzzle at the same time, each on their own phone, and sees how the others are doing.
-   Ranking: most points (Geomingo.cxPts), then the faster solve. */
+   One board for the room, played in turns (see 'With friends in turns' below). Rooms started before that (no order)
+   still play the old way: everyone at the same time, most points (Geomingo.cxPts), then the faster solve. */
 const FB_OK=typeof firebase!=='undefined'&&!!(window.FIREBASE_CONFIG&&FIREBASE_CONFIG.apiKey);
 const MAX_PLAYERS=6,ROOM_GAME='connections';
 // these are kept even in test mode (store() skips them there)
@@ -409,7 +410,7 @@ function listenRoom(code,resume){
 // my game in the room is over (I found all four groups or gave up)
 const cxDone=r=>{const p=r&&r.players&&r.players[ME];return !!(r&&r.status==='play'&&p&&p.r===r.round&&p.done)};
 function dropRoom(){if(roomRef){roomRef.off();try{roomRef.child('players/'+ME+'/on').onDisconnect().cancel()}catch(e){}}
-  room=null;roomRef=null;roomCode=null;if(S&&S.mode==='online')S=null;Geomingo.room.forget('cx-room')}
+  room=null;roomRef=null;roomCode=null;TT=null;if(S&&S.mode==='online')S=null;Geomingo.room.forget('cx-room')}
 async function leaveRoom(home){const ref=roomRef;
   if(ref){try{await ref.transaction(x=>{if(!x||!x.players)return x;
     // in the lobby you leave the list; during a game your result stays, marked offline. Nobody left: the room is deleted
@@ -419,15 +420,91 @@ async function leaveRoom(home){const ref=roomRef;
     if(x.host===ME)x.host=here[0];return x})}catch(e){}}
   dropRoom();keep('cx-online',null);view=home?'home':'friends';sel=[];render()}
 function syncRoom(){const r=room;mode='online';
-  if(r.status==='play'&&r.seed!=null){
+  if(r.status==='play'&&r.seed!=null&&r.order){const prev=S&&S.mode==='online'&&S.code===roomCode&&S.round===r.round?S:null;
+    TT=cxReplay(r);
+    if(TT){const o=TT.S;
+      // my own tile order (Shuffle) stays: tiles still on the board keep their places
+      if(prev&&prev.left){const keepL=prev.left.filter(c=>o.left.includes(c));o.left=keepL.concat(o.left.filter(c=>!keepL.includes(c)))}
+      if(!prev)sel=[];sel=sel.filter(c=>o.left.includes(c));
+      if(prev&&TT.last&&TT.n!==prev.n&&TT.last.p===ME&&TT.last.g!=null)Geomingo.stamp('connections',CATS[o.groups[TT.last.g].k].label);
+      o.n=TT.n;S=o;pushProgress()}
+    if(!turnTick&&S&&!S.over)turnTick=setInterval(onTurnTick,250)}
+  else if(r.status==='play'&&r.seed!=null){TT=null;
     if(!S||S.mode!=='online'||S.code!==roomCode||S.round!==r.round){
       const k=load('cx-online',null);
       S=k&&k.code===roomCode&&k.round===r.round?k.S:newGame('online',r.seed);
       if(S){S.code=roomCode;S.round=r.round;sel=[];leaveArmed=false;save()}}}
-  else if(S&&S.mode==='online')S=null;
+  else if(S&&S.mode==='online'){S=null;TT=null}
   if(view==='room'&&!turning)render()}
+/* ---- With friends in turns (Héctor 2026-11-21: every game with friends in turns). One board for the whole room:
+   a random player starts, then each player in order, 30 s a turn, no lives. Four that are a group: 25 points for
+   that player. Wrong, or time up: the turn passes, no points lost. With three groups found the last one is solved
+   by itself, for nobody. The room keeps only the moves (mv: [{p, g: 'A,B,C,D' or '-', t: 1 when time ran out}]),
+   every phone replays them on the puzzle dealt from the seed. */
+const TURN_MS=30000;
+let TT=null,turnTick=null,turnT0=null;
+const movesOf=r=>{const m=r&&r.mv;return !m?[]:Array.isArray(m)?m.filter(Boolean):Object.keys(m).sort((a,b)=>a-b).map(k=>m[k])};
+function cxReplay(r){const s=newGame('online',r.seed);if(!s)return null;s.code=roomCode;s.round=r.round;
+  const sc={},ok={},mv=movesOf(r);let last=null;
+  for(const m of mv){if(s.over)break;
+    if(!m.g||m.g==='-'){last={p:m.p,t:!!m.t};continue}
+    const cs=String(m.g).split(','),gs=cs.map(c=>groupOf(s,c)),counts={};gs.forEach(g=>counts[g]=(counts[g]||0)+1);
+    const best=Math.max(...Object.values(counts));s.guesses.push(cs);
+    if(best===4){const g=gs[0];s.found.push(g);s.left=s.left.filter(c=>!cs.includes(c));sc[m.p]=(sc[m.p]||0)+25;ok[m.p]=(ok[m.p]||0)+1;last={p:m.p,g};
+      if(s.found.length===3){const g4=[0,1,2,3].find(i=>!s.found.includes(i));s.found.push(g4);s.left=[];last.auto=g4}
+      if(s.found.length===4){s.over=true;s.won=true}}
+    else{s.mistakes++;last={p:m.p,one:best===3,bad:1}}}
+  return {S:s,sc,ok,last,n:mv.length}}
+const nextTurn=(x,from)=>{const o=x.order||[];for(let k=1;k<=o.length;k++){const j=(from+k)%o.length,p=x.players[o[j]];if(p&&p.on!==false)return j}return (from+1)%Math.max(1,o.length)};
+const myTurn=()=>!!(TT&&S&&!S.over&&room&&room.order&&room.order[room.turn||0]===ME);
+// a move on my turn (four countries) or a pass for whoever let the time run out: only if nothing moved since
+async function pushMove(g,timeout){const r=room;if(!roomRef||!r||!r.order)return false;
+  const n=movesOf(r).length,round=r.round,tEnd=r.tEnd;
+  try{const res=await roomRef.transaction(x=>{if(!x||x.status!=='play'||x.round!==round||movesOf(x).length!==n||!x.order)return;
+      const who=x.order[x.turn||0];if(timeout?(x.tEnd!==tEnd||now()<x.tEnd):who!==ME)return;
+      const mv=movesOf(x);mv.push(timeout?{p:who,g:'-',t:1}:{p:ME,g});x.mv=mv;
+      const t=cxReplay(x);if(t&&t.S.over)x.tEnd=0;else{x.turn=nextTurn(x,x.turn||0);x.tEnd=now()+TURN_MS}
+      return x},undefined,false);
+    return res.committed}
+  catch(e){if(!timeout)toast('That did not go through. Check the connection.','bad');return false}}
+function onTurnTick(){const r=room;if(!TT||!r||r.status!=='play'||!r.tEnd||!S||S.over){clearInterval(turnTick);turnTick=null;return}
+  const left=r.tEnd-now(),bar=document.querySelector('.tk-track .tbar'),sub=$('tleft');
+  if(bar){bar.style.width=Math.max(0,Math.min(100,left/TURN_MS*100))+'%';bar.classList.toggle('low',left<=5000)}
+  if(sub)sub.textContent=Geomingo.mmss(Math.min(left,TURN_MS));
+  // the player whose turn it is passes when the time runs out; if that phone has gone, anyone does, a little later
+  if(left<=(r.order[r.turn||0]===ME?-300:-2500)&&turnT0!==r.tEnd){turnT0=r.tEnd;pushMove(null,true).then(ok=>{if(!ok)setTimeout(()=>{if(turnT0===r.tEnd)turnT0=null},3000)})}}
+// Submit on my turn: the same checks as alone (four tried before, four that share something else: try again), then to the room
+function submitTurn(){if(!myTurn()){toast('Wait for your turn.');return}if(sel.length!==4)return;
+  const key=sel.slice().sort().join();
+  if(S.guesses.some(g=>g.slice().sort().join()===key)){toast('Somebody already tried these four. Swap one.');return}
+  const gs=sel.map(c=>groupOf(S,c));
+  const other=!gs.every(g=>g===gs[0])&&sharedCategory(S,sel);
+  if(other){toast(`All four fit "${other.label}", but that is not a group here. Try again.`);return}
+  const g=sel.join(',');sel=[];pushMove(g,false);render()}
+const tNm=pid=>((room.players[pid]||{}).name||'Someone');
+// the ticket while playing: whose turn, the clock, what just happened, everyone's points (as in Countries, Capitals, Top 10)
+function turnTicketHTML(){const r=room,o=r.order||[],cur=o[r.turn||0],mine=cur===ME,L=TT.last;let line='';
+  if(L){const who=L.p===ME?'You':tNm(L.p);
+    line=L.g!=null?`${who} found ${CATS[S.groups[L.g].k].label}: +25.`+(L.auto!=null?' The last group goes by itself.':''):L.t?`${L.p===ME?'Your':tNm(L.p)+"'s"} time ran out.`:`${who}: ${L.one?'one away':'not a group'}.`;line+=' '}
+  else line=`${mine?'You start':tNm(cur)+' starts'}, chosen at random. `;
+  line+=mine?'Pick four countries, then Submit.':'Watch the board and get ready.';
+  const stub=o.map((pid,i)=>{const p=r.players[pid]||{};return `<div class="tk-c pl${pid===cur?' on':''}${p.on===false?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name||'Gone')}</i><b>${TT.sc[pid]||0}</b></div>`}).join('')
+    +Geomingo.tk('Time',`<span id="tleft">${Geomingo.mmss(Math.min(TURN_MS,Math.max(0,(r.tEnd||0)-now())))}</span>`);
+  return Geomingo.ticket(Geomingo.hello('think',mine?'Your turn':tNm(cur)+"'s turn",line,{key:'turn'}),stub,{timer:30,color:`var(--p${Math.max(0,o.indexOf(cur))%6})`,mode:'friends'})}
+// the end of a game in turns: the room's ranking by points (25 a group), the four groups below
+function turnResultHTML(){const o=room.order||[],list=o.map((pid,i)=>({pid,i,name:tNm(pid),on:(room.players[pid]||{}).on!==false,s:TT.sc[pid]||0,ok:TT.ok[pid]||0})).sort((a,b)=>b.s-a.s||a.i-b.i);
+  const pos=list.findIndex(p=>p.pid===ME)+1,mine=TT.sc[ME]||0;
+  if(Geomingo.party)Geomingo.party.result(list.map(p=>({n:p.name,p:p.s})));
+  if(pos)logFriends('cx-friends',roomCode+':'+S.round+':'+(room.startAt||''),pos,TT.ok[ME]||0,0);
+  return `<section class="panel">${Geomingo.hello(pos===1?'happy':'think',pos===1?'You win.':'Everyone has finished.',pos===1?'Most points in the room.':pos?'You came '+pos+(pos===2?'nd':pos===3?'rd':'th')+'.':'',{key:'res'})}<span class="label">Room ${roomCode} · game ${S.round}</span><p class="big">${mine} points</p>
+    <div class="players">${list.map((p,k)=>`<div class="lp${p.pid===ME?' me':''}${p.on?'':' off'}"><span class="rk">${k+1}</span><span class="pin" style="${pinStyle(p.i)}"></span>${esc(p.name)}<span class="tag">${p.s} points · ${p.ok} group${p.ok===1?'':'s'}</span></div>`).join('')}</div>
+    <pre class="sharebox" id="share">${esc(shareText())}</pre>
+    ${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="rematch" style="flex:1">Play again</button></div>
+  </section>`}
 // my progress, for the others' screens: groups found, mistakes, finished, and the colour rows of my guesses
 function pushProgress(){if(!roomRef||!S||S.mode!=='online'||S.code!==roomCode)return;
+  if(TT){const p={r:S.round,f:TT.ok[ME]||0,s:TT.sc[ME]||0,m:0,done:S.over,won:S.over,on:true},sig=roomCode+JSON.stringify(p);
+    if(sig!==pushProgress.sig){pushProgress.sig=sig;roomRef.child('players/'+ME).update(p).catch(()=>{pushProgress.sig=''})}return}
   const p={r:S.round,f:S.found.length,m:S.mistakes,done:S.over,won:S.won,on:true};if(S.over)p.ms=S.ms||0;
   roomRef.child('players/'+ME).update(p).catch(()=>{})}
 // the host starts the first game; after a game anyone can start the next one once everyone has finished
@@ -435,7 +512,10 @@ async function startRound(){if(!roomRef||!room)return;
   let seed;do{seed=Math.floor(Math.random()*1e9)}while(!buildPuzzle(seed,5));
   const round=(room.round||0)+1;
   try{await roomRef.transaction(x=>{if(!x)return x;if((x.round||0)>=round)return;
-    x.status='play';x.round=round;x.seed=seed;x.startAt=now();return x},undefined,false)}  // false: not shown here before the server agrees (a progress write meanwhile would cancel the start)
+    x.status='play';x.round=round;x.seed=seed;x.startAt=now();
+    // turns (Héctor 2026-11-21): the players here now, a random one starts, 30 s a turn
+    const ord=lobbyOrder(x).filter(k=>x.players[k].on!==false);x.order=ord;x.turn=Math.floor(Math.random()*ord.length);x.mv=null;x.tEnd=x.startAt+TURN_MS+1000;
+    return x},undefined,false)}  // false: not shown here before the server agrees (a progress write meanwhile would cancel the start)
   catch(e){toast('Could not start the game. Check the connection.','bad')}}
 const roomPlayers=()=>lobbyOrder(room).map((pid,i)=>{const p=room.players[pid];return {pid,i,...p,cur:p.r===room.round}});
 const fmtTime=ms=>{const s=Math.round((ms||0)/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
@@ -448,7 +528,7 @@ function lobbyHTML(){return header('Connec<span>tions</span>','')}
 function friendsHTML(){return header('Connec<span>tions</span>','')}
 
 /* ---- moves ---- */
-function tap(c){if(!S||S.over||turning)return;const i=sel.indexOf(c);
+function tap(c){if(!S||S.over||turning)return;if(TT&&!myTurn())return;const i=sel.indexOf(c);
   if(i>=0)sel.splice(i,1);else if(sel.length<4)sel.push(c);render()}
 // Mingo's key for the game on screen (his bubble and the summary belong to one game)
 const cxKey=()=>S?S.mode+':'+(S.date||S.seed)+':'+(S.code||'')+':'+(S.round||''):'';
@@ -524,7 +604,7 @@ function homeHTML(){const key=todayKey(),num=dayNum(key,CX_FIRST),d=dailySaved()
     :Geomingo.hello('pass','GeoPass ready.','Tap a country to start. Every group you find is a stamp. One try, the same 16 for everyone.');
   return header('Connec<span>tions</span>','',true)+`<section class="home">${hi}${Geomingo.account.userHTML()}${daily}${d&&d.over?rankingHTML():''}</section>
     ${rulesPanel()}`}
-const rulesPanel=(on,free)=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something. Pick four and tap <b>Submit</b>. ${on?'With friends there are no lives: play until you find all four groups. Most points win, then speed.':`A wrong four costs one of your ${MAX_MISTAKES} lives. ${free?'25 points a group, −10 a mistake or category shown; each group found keeps at least 10.':'25 km a group, −10 km a mistake or category shown; each group found keeps at least 10 km.'}`} Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const rulesPanel=(on,free)=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something. Pick four and tap <b>Submit</b>. ${on?'With friends you take turns, 30 s each. A group you find: 25 points. Wrong or out of time: the next player goes. Most points win.':`A wrong four costs one of your ${MAX_MISTAKES} lives. ${free?'25 points a group, −10 a mistake or category shown; each group found keeps at least 10.':'25 km a group, −10 km a mistake or category shown; each group found keeps at least 10 km.'}`} Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 // the logo goes home from anywhere; in a room that means leaving it (in the middle of a game, tap twice)
 function goHome(){if(roomRef){if(S&&S.mode==='online'&&!S.over&&!leaveArmed){leaveArmed=true;render();toast('Tap again to leave the room.');return}
     leaveRoom(true);return}
@@ -547,11 +627,12 @@ function render(keepShake){
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
   // only a room has a title line (← Leave); today's game, the archive and Practice say it in the ticket's strip (Héctor 2026-11-15)
   if(on)h+=`<div class="backline">${on?`<button class="linkbtn" id="leave">${leaveArmed?'Tap again to leave':'← Leave'}</button>`:``}<span class="ht">${S.mode==='daily'?"Today's puzzle":S.mode==='archive'?'Puzzle '+Geomingo.archNo(S.num):on?'With friends':'Practice'}</span></div>`;
-  if(on)h+=scoresHTML();
+  if(on&&!TT)h+=scoresHTML();
   watchResult(cxKey(),S.over);
   // today's daily done: the four groups go inside the result ticket, Next trip and Share under it (Héctor 2026-11-12)
   if(S.over&&!on&&(S.mode==='daily'||S.mode==='free'||S.mode==='archive')){app.innerHTML=h+resultHTML(`<div class="cx-board">${S.found.map(g=>groupHTML(S.groups[g])).join('')}${S.groups.map((g,i)=>S.found.includes(i)?'':groupHTML(g,true)).join('')}</div>`)+(S.mode==='daily'?rankingHTML():'');bind();return}
-  if(S.over)h+=on?roomResultHTML():resultHTML();
+  if(S.over)h+=on?(TT?turnResultHTML():roomResultHTML()):resultHTML();
+  else if(on&&TT)h+=turnTicketHTML();
   else{const cell=Geomingo.tk,left=MAX_MISTAKES-S.mistakes;
     // the ticket, as in every game: Mingo on top, then who is travelling, groups found and mistakes left
     h+=Geomingo.ticket(moodHTML(cxKey(),'pass','4 stamps to win.','Pick four countries that share something, then Submit.'),
@@ -563,6 +644,7 @@ function render(keepShake){
   h+=`</div>`;
   if(S.over&&!on&&S.mode==='daily')h+=rankingHTML();
   if(!S.over){
+    if(on&&TT&&!myTurn())h+=`<div class="cx-actions"><button class="ghost" id="shuf">Shuffle</button></div>${rulesPanel(on,false)}`;else
     h+=`<div class="cx-actions"><button class="ghost" id="shuf">Shuffle</button><button class="ghost" id="desel" ${sel.length?'':'disabled'}>Deselect all</button><button class="primary" id="submit" ${sel.length===4?'':'disabled'}>Submit</button></div>${on?'':giveUpHTML()}
     ${on?'':catsHTML()}${rulesPanel(on,S.mode==='free')}`}
   app.innerHTML=h;bind();
@@ -635,7 +717,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Daily</b>: one puzzle, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
   <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. 5 lives or <b>Unlimited</b>: pick it next to Practice on the home page. Points only, no km.</li>
-  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Everyone plays the same puzzle at the same time until they find all four groups. Most points win (25 a group, 10 less a mistake, at least 10 a group, +20 with none), then the fastest.</li>
+  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. One board for the whole room. You take turns, 30 s each, and a random player starts. Four that are a group: 25 points for you. Wrong or out of time: the next player goes, no points lost. When three groups are found, the last one goes by itself. Most points win.</li>
   <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, and its km count for that day.</li></ul>`}
 function bind(){
   Geomingo.where(view==='friends'||view==='room'||S&&S.mode==='online'&&view==='game'?'friends':view==='solo'||view==='game'&&S&&S.mode==='free'?'solo':''); // F5 keeps Practice / With friends
@@ -652,7 +734,7 @@ function bind(){
   if($('rules'))$('rules').onclick=()=>dialog('How to play',rulesHTML());
   if($('shuf'))$('shuf').onclick=()=>{S.left=shuffle(S.left,Math.random);save();render()};
   if($('desel'))$('desel').onclick=()=>{sel=[];render()};
-  if($('submit'))$('submit').onclick=submit;
+  if($('submit'))$('submit').onclick=TT&&S&&S.mode==='online'?submitTurn:submit;
   // give up: the game ends as it stands, the groups not found are shown
   bindGiveUp(()=>{if(!S||S.over||S.mode==='online')return;S.over=true;S.won=false;sel=[];
     say(cxKey(),'sad','Gave up.',`${S.found.length} of 4 groups found.`);save();render();window.scrollTo(0,0)});
