@@ -99,7 +99,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
-<script src="../shared/race.js?v=202611211800"></script>
+<script src="../shared/race.js?v=202611211900"></script>
 <script>
 /* ---- Compass: find the mystery capital from the capitals round it (Héctor's idea, 2026-11-10) ----
    The mystery capital is the "?" in the middle of a compass. Clue capitals appear on the rim, each in its real direction
@@ -150,12 +150,14 @@ const openSheet0=openSheet;openSheet=function(o){openSheet0(o);const q=$('sq');i
 /* ---- the compass: the mystery capital in the middle, clues (gold) and wrong guesses (red) on the rim ---- */
 const RIM=30,LAB=41;   // % of the box: the rim, and where the labels sit
 function compassHTML(q,o){o=o||{};const cl=shown(q),bad=q.tries.map(c=>seen(q,c));
+  // with friends in turns each wrong guess is in the colour of the player who said it (Héctor 2026-11-21; q.by from ../shared/race.js)
+  const badCol=x=>q.by&&q.by[x.c]!=null?`var(--p${q.by[x.c]%6})`:'var(--bad)';
   const pt=(a,r)=>[50+Math.sin(a*Math.PI/180)*r,50-Math.cos(a*Math.PI/180)*r];
   let s=`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="${RIM}" fill="#0C1220" stroke="var(--gold)" stroke-width=".7"/>`;
   for(let a=0;a<360;a+=15){const L=a%90===0?3.4:a%45===0?2.2:1.1,[x1,y1]=pt(a,RIM),[x2,y2]=pt(a,RIM-L);s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#9AA6B6" stroke-width="${a%90?.3:.6}"/>`}
   [['N',0],['E',90],['S',180],['W',270]].forEach(([t,a])=>{const [x,y]=pt(a,RIM-7);s+=`<text x="${x}" y="${y+1.7}" fill="${t==='N'?'#F07884':'#5A6A86'}" font-family="Archivo,sans-serif" font-weight="900" font-size="4.6" text-anchor="middle">${t}</text>`});
   const all=cl.map((x,i)=>({x,bad:false,i})).concat(bad.map((x,i)=>({x,bad:true,i})));
-  all.forEach(({x,bad})=>{const [x1,y1]=pt(x.b,11.5),[x2,y2]=pt(x.b,RIM),col=bad?'var(--bad)':'var(--gold)';
+  all.forEach(({x,bad})=>{const [x1,y1]=pt(x.b,11.5),[x2,y2]=pt(x.b,RIM),col=bad?badCol(x):'var(--gold)';
     s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width=".6" stroke-dasharray="1.3 1.3" opacity=".85"/><circle cx="${x2}" cy="${y2}" r="1.7" fill="${col}"/>`});
   // labels: start at the true direction just outside the rim; two that overlap push each other apart, and a thin line
   // always joins each label to its own dot (Héctor, 2026-11-10: a label pushed aside must still show which dot is its)
@@ -170,11 +172,11 @@ function compassHTML(q,o){o=o||{};const cl=shown(q),bad=q.tries.map(c=>seen(q,c)
     for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){const A=L[i],B=L[j],ox=(A.w+B.w)/2+.8-Math.abs(A.px-B.px),oy=(A.h+B.h)/2+.8-Math.abs(A.py-B.py);
       if(ox>0&&oy>0){moved=true;if(oy<=ox*1.4){const d=(A.py<=B.py?-1:1)*oy/2;A.py+=d;B.py-=d}else{const d=(A.px<=B.px?-1:1)*ox/2;A.px+=d;B.px-=d}fit(A);fit(B)}}
     if(!moved)break}
-  L.forEach(l=>{const col=l.bad?'var(--bad)':'var(--gold)';if(Math.hypot(l.px-l.dx,l.py-l.dy)>l.h/2+1.5)s+=`<line x1="${l.dx}" y1="${l.dy}" x2="${l.px}" y2="${l.py}" stroke="${col}" stroke-width=".55"/>`});
+  L.forEach(l=>{const col=l.bad?badCol(l.x):'var(--gold)';if(Math.hypot(l.px-l.dx,l.py-l.dy)>l.h/2+1.5)s+=`<line x1="${l.dx}" y1="${l.dy}" x2="${l.px}" y2="${l.py}" stroke="${col}" stroke-width=".55"/>`});
   s+='</svg>';
   let h='';
   L.forEach(l=>{const isNew=!l.bad&&l.i===cl.length-1&&!o.done&&q.k>1;
-    h+=`<div class="lab${l.bad?' bad':''}${isNew?' new':''}" style="left:${l.px}%;top:${l.py}%"><b>${esc(l.nm)}</b><span>${km(l.x.d)}</span></div>`});
+    h+=`<div class="lab${l.bad?' bad':''}${isNew?' new':''}" style="left:${l.px}%;top:${l.py}%${l.bad&&q.by&&q.by[l.x.c]!=null?';--bad:'+badCol(l.x):''}"><b>${esc(l.nm)}</b><span>${km(l.x.d)}</span></div>`});
   const t=cityBy[q.c];
   const mid=o.done?`<div class="ctr ${q.st==='right'?'ok':'ok miss'}"><img src="${realFlag(t.k3)}" alt="">${esc(t.n)}</div>`:'<div class="ctr">?</div>';
   const label='The compass. '+cl.map(x=>cityBy[x.c].n+' is '+km(x.d)+' to the '+where(x.b)).join('. ')+(bad.length?'. Wrong guesses: '+bad.map(x=>cityBy[x.c].n+', '+km(x.d)+' to the '+where(x.b)).join('; '):'');

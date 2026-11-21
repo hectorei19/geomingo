@@ -114,6 +114,8 @@ window.GeoRace=function(cfg){
     const sc={},ok={};let last=null;
     for(const m of movesOf(r)){if(G.over)break;const i=G.sel,a=m.a&&m.a!=='-'?m.a:null,res=cfg.move(G,a)||{};
       if(res.pts){sc[m.p]=(sc[m.p]||0)+res.pts;ok[m.p]=(ok[m.p]||0)+1}
+      // who said each wrong answer (their place in the order = their colour), for games that show it (Compass)
+      if(a&&res.res==='wrong'&&G.qs&&G.qs[i]){const q=G.qs[i];q.by=q.by||{};q.by[a]=(r.order||[]).indexOf(m.p)}
       last={p:m.p,a,t:!!m.t,res:res.res,pts:res.pts||0,i,done:G.sel!==i||G.over}}
     G.left=null;return {G,sc,ok,last}}
   const nextTurn=(x,from)=>{const o=x.order||[];for(let k=1;k<=o.length;k++){const j=(from+k)%o.length,p=x.players[o[j]];if(p&&p.on!==false)return j}return (from+1)%Math.max(1,o.length)};
