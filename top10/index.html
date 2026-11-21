@@ -398,7 +398,7 @@ const ACN=()=>{const a=window.Geomingo&&Geomingo.account;return a&&a.user&&a.nam
 function needName(){saveSetup();const an=ACN();if(an){setup.fname=an;return false}if(setup.fname)return false;
   toast("Type your name so your friends know who's playing.",'bad');const el=$('fname');if(el)el.focus();return true}
 const SIGNED=()=>!!(window.Geomingo&&Geomingo.account&&Geomingo.account.user);
-async function createRoom(){if(!SIGNED()){Geomingo.account.signIn();return}
+async function createRoom(){if(!SIGNED()&&!(Geomingo.party&&Geomingo.party.on())){Geomingo.account.signIn();return}  // a game opened from the With friends room: its organiser may have no account
   if(needName())return;
   if(!initFB()){toast('Online play is not available right now. Check the connection and reload.','bad');return}
   try{let code='';

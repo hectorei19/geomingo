@@ -1160,7 +1160,7 @@ function lobbyOrder(r){return Object.entries(r.players||{}).sort((a,b)=>(a[1].t|
 const roomName=()=>USER?setup.user:((Geomingo.party&&Geomingo.party.name())||'');
 function needRoomName(){if(roomName())return false;toast("Type your name so your friends know who's playing.",'bad');return true}
 const SIGNED=()=>!!(USER||MAYBE_IN());
-async function createRoom(){if(!SIGNED()){signIn();return}
+async function createRoom(){if(!SIGNED()&&!(Geomingo.party&&Geomingo.party.on())){signIn();return}  // a game opened from the With friends room: its organiser may have no account
   if(needRoomName())return;
   if(!initFB()){toast('Online play is not set up on this copy of the site.','bad');return}
   try{

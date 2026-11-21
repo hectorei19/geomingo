@@ -346,7 +346,7 @@ function dealShapes(){const pick=(pool,n,not)=>shuffled(pool.map(c=>c.c).filter(
   const a=pick(poolOf('easy'),3,[]),b=pick(poolOf('normal').filter(c=>!c.e),4,a),h=pick(poolOf('normal'),3,[...a,...b]);
   return [...a.map(c=>({c,rot:0,d:'easy'})),...b.map(c=>({c,rot:0,d:'normal'})),...h.map(c=>({c,rot:hardTurn(Math.random),d:'hard'}))]}
 const SIGNED=()=>!!(window.Geomingo&&Geomingo.account&&Geomingo.account.user);
-async function createRoom(){if(!SIGNED()){Geomingo.account.signIn();return}
+async function createRoom(){if(!SIGNED()&&!(Geomingo.party&&Geomingo.party.on())){Geomingo.account.signIn();return}  // a game opened from the With friends room: its organiser may have no account
   if(needName())return;
   if(!initFB()){toast('Online play is not available right now. Check the connection and reload.','bad');return}
   try{let code='';
