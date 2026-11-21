@@ -24,7 +24,7 @@
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611260100"></script>
 <script src="../brand/account.js?v=202611260100"></script>
-<script src="../brand/party.js?v=202611211610"></script>
+<script src="../brand/party.js?v=202611211700"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -465,7 +465,7 @@ async function moveOn(){if(!roomRef||moveOn.busy)return;moveOn.busy=true;moveOn.
     // turns: the player whose turn it is ran out of time (moved on by any phone)
     if(r.status==='round'&&r.turns&&t>=r.tEnd){if(r.order[r.turn||0]!==moveOn.who&&t<r.tEnd+2500)return;return turnTry(r,r.order[r.turn||0],null,t)}
     if(r.status==='reveal'&&t>=r.revealEnd){
-      if(r.round+1<r.qs.length){r.round++;r.status='round';r.start=t+READY_MS;r.end=r.start+SECS*1000;
+      if(r.round+1<r.qs.length){r.round++;r.status='round';r.start=t;r.end=r.start+SECS*1000;  // the next shape comes straight after 'Next shape in…' (no second 'Get ready', Héctor 2026-11-21)
         if(r.turns){r.turn=tNext(r,r.turn||0);r.tc=0;r.ev=null;r.tEnd=r.start+TURN_S*1000;r.end=r.tEnd}}else{r.status='over'}
       return r}
     return})}catch(e){}
