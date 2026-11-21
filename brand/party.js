@@ -149,7 +149,7 @@ function roomHTML(){const r=R,T=table(r),host=r.host===PID,ids=order(r),c=r.cur,
   const med=['#D4AD4B','#C9CED6','#C99B78'];
   const tbl=T.games?'<div class="pt-tbl">'+T.rows.map((x,k)=>'<div class="pt-tr'+(x.n===(r.players[PID]||{}).name?' me':'')+'"><span class="md" style="'+(k<3&&x.t>0?'background:'+med[k]+';color:#0C1220':'')+'">'+(k+1)+'</span><span class="nm"><i style="background:'+color(x.n)+'"></i>'+esc(x.n)+'</span><span class="lt">'+(x.l>0?'+'+x.l:'')+'</span><b>'+x.t+'</b></div>').join('')+'</div>':'';
   const g=c&&gameOf(c.g);
-  return '<div class="pt-card"><div class="pt-code"><div><p class="pt-lab">Room code</p><b>'+esc(code())+'</b></div><button class="pt-ghost" id="pinvite">Invite</button></div>'+
+  return '<div class="pt-card"><div class="pt-code"><div><p class="pt-lab">Room code</p><b>'+esc(code())+'</b></div><div class="pt-codeb"><button class="pt-ghost" id="pinvite">Invite</button><button class="pt-leave" id="pleave">Leave room</button></div></div>'+
     '<p class="pt-lab">In the room · '+ids.length+'</p><div class="pt-ppl">'+chips+'</div></div>'+
     (T.games?'<div class="pt-card"><p class="pt-lab">Points · after '+T.games+' game'+(T.games===1?'':'s')+'</p>'+tbl+'</div>':'')+
     // a game is on and this phone is not in it (left it, or came late): go back in
@@ -158,7 +158,7 @@ function roomHTML(){const r=R,T=table(r),host=r.host===PID,ids=order(r),c=r.cur,
     (host||live?'':'<p class="pt-wait"><i></i>'+esc((r.players[r.host]||{}).name||'The host')+' picks the next game…</p>')+
     '<ul class="tiles c3">'+(G.live?G.live():G.GAMES).map(x=>H.tile(x,{played:T.played.includes(x.id),click:host})).join('')+'</ul>'+
     (ids.length<2?'<p class="pt-rules">Waiting for friends: send them the code or tap Invite.</p>':RULES)+
-    '<button class="pt-leave" id="pleave">Leave room</button>'}
+    ''}
 function draw(){if(!H)return;const el=H.el;
   el.innerHTML=code()&&R?roomHTML():code()?'<p class="pt-rules">Opening room '+esc(code())+'…</p>':startHTML();bind()}
 function bind(){const $=id=>document.getElementById(id);
@@ -244,6 +244,7 @@ html.gm-party .scores,html.gm-party section.panel:has(> p.big){display:none!impo
 .pt-name,.pt-join input{min-width:0;min-height:50px;box-sizing:border-box;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font-family:var(--type);font-size:17px;padding:0 14px}
 .pt-join{display:flex;gap:8px}.pt-join input{flex:1;font-size:22px;letter-spacing:.3em;text-transform:uppercase}
 .pt-code{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pt-codeb{display:flex;flex-direction:column;align-items:center;gap:2px}.pt-codeb .pt-leave{padding:4px;font-size:13px}
 .pt-code b{font-family:var(--type);font-size:40px;letter-spacing:.2em;color:var(--blue);line-height:1.1}
 .pt-ppl{display:flex;flex-wrap:wrap;gap:8px}
 .pt-pp{display:flex;align-items:center;gap:7px;padding:6px 11px 6px 7px;border-radius:20px;background:var(--bg);border:1px solid var(--line);font-size:14px;font-weight:600}
