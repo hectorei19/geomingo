@@ -309,7 +309,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Daily</b>: nine shapes, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
   <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. 5 lives or <b>Unlimited</b>: pick it next to Practice on the home page. Points only, no km.</li>
-  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Ten shapes, getting harder: 7 north up (the first 3 well known), then 3 turned at a random angle. Everyone gets the same shape at the same time, ${{SECS}} seconds each, and can try as many countries as they like. 10 points a shape; level on points, the faster ranks first.</li>
+  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Ten shapes, getting harder: 7 north up (the first 3 well known), then 3 turned at a random angle. One shape at a time for the whole room. You take turns, 30 s each, and a random player starts. Right: 10 points and the next shape. Wrong or out of time: the next player tries the same shape. If everyone misses it, it is shown and the next one comes. Most points win.</li>
   <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, and its km count for that day.</li></ul>`}
 function creditsHTML(){return `<ul style="padding-left:18px">
   <li>Borders: <a href="https://github.com/topojson/world-atlas" target="_blank" rel="noopener">world-atlas</a>, from <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> 1:10m (public domain); Vatican City from <a href="https://www.geoboundaries.org" target="_blank" rel="noopener">geoBoundaries</a> (public domain). Each country is drawn on its own map centred on itself, so no shape is stretched or cut by the date line.</li>
@@ -324,6 +324,22 @@ function creditsHTML(){return `<ul style="padding-left:18px">
    goes to the faster one). Each phone writes only its own answer (ans/<round>/<player>); whoever is online moves the room on. */
 const FB_OK=()=>typeof firebase!=='undefined'&&typeof firebase.database==='function'&&!!(window.FIREBASE_CONFIG&&/^https:\/\//.test(FIREBASE_CONFIG.databaseURL||''));
 const ROOM_V='sil-202611020600',MAXP=6,ROUNDS=10,SECS=20,READY_MS=3000,REVEAL_MS=6000;
+/* Turns (Héctor 2026-11-21: every game with friends in turns). A room with turns:1 plays one shape at a time for the
+   whole room: a random player starts, then each player in order, TURN_S seconds a turn. Right: 10 points and the shape
+   is shown. Wrong or time up: the next player tries the same shape. When everyone here has tried once and missed,
+   the shape is shown for nobody. The next shape starts with the next player. */
+const TURN_S=30;
+const tHere=r=>(r.order||[]).filter(pid=>(r.players[pid]||{}).on!==false);
+const tNext=(r,from)=>{const o=r.order||[];for(let k=1;k<=o.length;k++){const j=(from+k)%o.length,p=r.players[o[j]];if(p&&p.on!==false)return j}return (from+1)%Math.max(1,o.length)};
+// one try on the room's shape: code (null: time up) for the player whose turn it is
+function turnTry(r,pid,code,t){const k=r.round,a=(((r.ans||{})[k]||{})[pid])||{};a.tries=a.tries||[];
+  const right=!!code&&code===r.qs[k].c;
+  if(right){a.ok=true;a.ms=Math.max(0,t-r.start);a.pts=10}else a.tries.push(code||'-');
+  r.ans=r.ans||{};r.ans[k]=r.ans[k]||{};r.ans[k][pid]=a;r.ev={p:pid,c:code||'-',ok:right?1:0,k};
+  r.tc=(r.tc||0)+1;
+  if(right||r.tc>=tHere(r).length){r.status='reveal';r.revealEnd=t+REVEAL_MS}
+  else{r.turn=tNext(r,r.turn||0);r.tEnd=t+TURN_S*1000;r.end=r.tEnd}
+  return r}
 let db=null,room=null,roomRef=null,roomCode=null,joining=false,offset=0,tick=null,O=null;
 const now=()=>Date.now()+offset;
 let ME=load('sil-pid','');if(!ME){ME='p'+Math.random().toString(36).slice(2,10);store('sil-pid',ME)}
@@ -411,12 +427,14 @@ function syncRoom(){const r=room;const prev=O;
     const cur=(ans[r.round]||{})[pid]||{};
     return {pid,i,name:p.name||'Gone',on:p.on!==false,total,ms,cur}});
   const q=r.qs[r.round],mine=(ans[r.round]||{})[ME]||{};
-  O={round:r.round,status:r.status,q:{c:q.c,rot:q.rot,d:q.d,tries:mine.tries||[],st:mine.ok?'right':'play'},mine,
+  const allTries=r.turns?order.flatMap(pid=>(((ans[r.round]||{})[pid]||{}).tries||[]).filter(c=>c&&c!=='-')):null,winner=r.turns?order.find(pid=>((ans[r.round]||{})[pid]||{}).ok):null;
+  O={round:r.round,status:r.status,q:{c:q.c,rot:q.rot,d:q.d,tries:allTries||mine.tries||[],st:(r.turns?winner:mine.ok)?'right':'play'},mine:r.turns&&winner?((ans[r.round]||{})[winner]):mine,
+     turns:!!r.turns,turn:r.turn||0,cur:r.turns?order[r.turn||0]:null,myTurn:!!r.turns&&order[r.turn||0]===ME,tEnd:r.tEnd,ev:r.ev||null,winner,
      players,me:order.indexOf(ME),host:r.host===ME,start:r.start,end:r.end,revealEnd:r.revealEnd,n:r.qs.length,cfg:r.cfg};
   if(!prev||prev.round!==O.round||prev.status!==O.status){query='';typing=O.status==='round'&&!TOUCH}
   clearInterval(tick);if(O.status==='round'||O.status==='reveal')tick=setInterval(onTick,250);
   // when only the others moved (an answer, someone going offline), redraw just their chips, so the answer box keeps its focus
-  O.key=[O.status,O.round,JSON.stringify(O.mine),r.host].join('|');
+  O.key=[O.status,O.round,JSON.stringify(O.mine),r.host,r.turn,r.tc,JSON.stringify(r.ev)].join('|');
   if(prev&&prev.key===O.key&&$('ochips')){$('ochips').innerHTML=chipsHTML();return}
   render()}
 // a right answer: 10 points (Héctor 2026-11-14, the same table as every game); a level total goes to the faster one
@@ -424,6 +442,13 @@ const pointsFor=()=>10;
 async function onlinePick(code){if(!O||O.status!=='round'||O.q.st!=='play')return;
   const t=now();if(t<O.start)return;
   if(t>O.end){toast("Time's up.",'bad');return}
+  if(O.turns){if(!O.myTurn){toast('Wait for your turn.');return}
+    const round=O.round,right=code===O.q.c;
+    try{const r=await roomRef.transaction(x=>{if(!x||x.status!=='round'||x.round!==round||!x.turns||x.order[x.turn||0]!==ME||now()<x.start)return;return turnTry(x,ME,code,now())},undefined,false);
+      if(!r.committed)return;query='';typing=false;
+      if(right){Geomingo.stamp('silhouette',byCode[code].n,'',code);toast(`Stamped: ${byCode[code].n}. +10`,'good')}else toast(`Not ${byCode[code].n}.`,'bad')}
+    catch(e){console.error(e);toast('That answer did not go through. Check the connection.','bad')}
+    return}
   const right=code===O.q.c,ms=t-O.start,pts=pointsFor(ms),round=O.round;
   try{const r=await roomRef.child('ans/'+round+'/'+ME).transaction(a=>{a=a||{tries:[]};a.tries=a.tries||[];
       if(a.ok)return;
@@ -434,16 +459,25 @@ async function onlinePick(code){if(!O||O.status!=='round'||O.q.st!=='play')retur
     else toast(`Not ${byCode[code].n}. Try again.`,'bad')}
   catch(e){console.error(e);toast('That answer did not go through. Check the connection.','bad')}}
 // moves the room on when it is time: the round ends (all done or time up), the answer has been shown long enough
-async function moveOn(){if(!roomRef||moveOn.busy)return;moveOn.busy=true;
+async function moveOn(){if(!roomRef||moveOn.busy)return;moveOn.busy=true;moveOn.who=ME;
   try{await roomRef.transaction(r=>{if(!r)return r;const t=now();
-    if(r.status==='round'&&(t>=r.end||allDone(r))){r.status='reveal';r.revealEnd=t+REVEAL_MS;return r}
+    if(r.status==='round'&&!r.turns&&(t>=r.end||allDone(r))){r.status='reveal';r.revealEnd=t+REVEAL_MS;return r}
+    // turns: the player whose turn it is ran out of time (moved on by any phone)
+    if(r.status==='round'&&r.turns&&t>=r.tEnd){if(r.order[r.turn||0]!==moveOn.who&&t<r.tEnd+2500)return;return turnTry(r,r.order[r.turn||0],null,t)}
     if(r.status==='reveal'&&t>=r.revealEnd){
-      if(r.round+1<r.qs.length){r.round++;r.status='round';r.start=t+READY_MS;r.end=r.start+SECS*1000}else{r.status='over'}
+      if(r.round+1<r.qs.length){r.round++;r.status='round';r.start=t+READY_MS;r.end=r.start+SECS*1000;
+        if(r.turns){r.turn=tNext(r,r.turn||0);r.tc=0;r.ev=null;r.tEnd=r.start+TURN_S*1000;r.end=r.tEnd}}else{r.status='over'}
       return r}
     return})}catch(e){}
   moveOn.busy=false}
 function onTick(){if(!O){clearInterval(tick);return}const t=now();
-  if(O.status==='round'){const left=O.end-t,bar=document.querySelector('.tbar'),sub=$('tleft'),wait=O.start-t;
+  if(O.status==='round'&&O.turns){const left=O.tEnd-t,bar=document.querySelector('.tk-track .tbar'),sub=$('tleft'),wait=O.start-t;
+    if(wait>0){if(sub)sub.textContent=Geomingo.mmss(TURN_S*1000)}
+    else{if(document.querySelector('.ready'))render();
+      if(bar){bar.style.width=Math.max(0,Math.min(100,left/(TURN_S*1000)*100))+'%';bar.classList.toggle('low',left<=5000)}if(sub)sub.textContent=Geomingo.mmss(Math.min(left,TURN_S*1000))}
+    // the player whose turn it is passes when the time runs out; if that phone has gone, anyone does, a little later
+    if(left<=(O.myTurn?-300:-2500))moveOn()}
+  else if(O.status==='round'){const left=O.end-t,bar=document.querySelector('.tbar'),sub=$('tleft'),wait=O.start-t;
     if(wait>0){if(sub)sub.textContent='Get ready… '+Math.ceil(wait/1000)}
     else{if(document.querySelector('.ready'))render();
       if(bar)bar.style.width=Math.max(0,left/(SECS*1000)*100)+'%';if(sub)sub.textContent=Math.max(0,Math.ceil(left/1000))+' s'}
@@ -457,9 +491,11 @@ async function onlineAct(kind){
     if(kind==='start'||kind==='rematch'){if(r.host!==ME)return;
       const order=(kind==='start'?lobbyOrder(r):(r.order||lobbyOrder(r))).filter(pid=>r.players[pid]&&(kind==='start'||r.players[pid].on!==false));
       if(order.length<2)return;
-      r.order=order;r.v=ROOM_V;r.qs=dealShapes();r.ans=null;r.round=0;r.status='round';r.start=now()+READY_MS;r.end=r.start+SECS*1000;r.revealEnd=0;return r}
+      r.order=order;r.v=ROOM_V;r.qs=dealShapes();r.ans=null;r.round=0;r.status='round';r.start=now()+READY_MS;r.end=r.start+SECS*1000;r.revealEnd=0;
+      // turns: a random player starts (Héctor 2026-11-21)
+      r.turns=1;r.turn=Math.floor(Math.random()*order.length);r.tc=0;r.ev=null;r.tEnd=r.start+TURN_S*1000;r.end=r.tEnd;return r}
     if(kind==='end'){if(r.host!==ME||r.status==='lobby')return;r.status='over';return r}
-    if(kind==='lobby'){if(r.host!==ME)return;r.status='lobby';r.order=null;r.qs=null;r.ans=null;r.round=0;return r}
+    if(kind==='lobby'){if(r.host!==ME)return;r.status='lobby';r.order=null;r.qs=null;r.ans=null;r.round=0;r.turns=null;r.ev=null;return r}
   })}catch(e){console.error(e);toast('That did not go through. Check the connection.','bad')}}
 const ranked=()=>[...O.players].sort((a,b)=>b.total-a.total||a.ms-b.ms||a.i-b.i);
 // the room's own screen (../brand/party.js) shows the players and the code: this game shows only its header there
@@ -480,6 +516,7 @@ function onlineHTML(){const q=O.q,t=now(),ready=O.status==='round'&&t<O.start;
     h+=`<section class="panel"><span class="label">Room ${roomCode} · final ranking</span><p class="big">${tie?"It's a tie":esc(best.name)+' wins'}</p>${boardRowsHTML(false)}
       ${O.host?`<div class="row-btns"><button class="primary" id="orematch" style="flex:1">Rematch</button><button class="ghost" id="olobby" style="flex:1">Back to room</button></div>`:(Geomingo.party&&Geomingo.party.on()?'':'<p class="hint">Waiting for the host to start a rematch.</p>')}</section>
       <div class="row-btns"><button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;return h}
+  if(O.turns)return h+turnPlayHTML(ready);
   const say=Geomingo.hello('pass','Shape '+(O.round+1)+' of '+O.n+'.',(DIFF_NAME[q.d]||'')+' level. '+'No lives: keep trying. If points are level, the faster one wins.');
   h+=Geomingo.ticket(say,`<div id="ochips" style="display:contents">${chipsHTML()}</div>`+tk('Time',`<span id="tleft">${ready?'Get ready…':O.status==='reveal'?'':Math.max(0,Math.ceil((O.end-t)/1000))+' s'}</span>`,'tk-name'),{timer:O.status==='round'&&!ready,mode:'friends'});
   h+=`<section class="panel play">`;
@@ -490,12 +527,29 @@ function onlineHTML(){const q=O.q,t=now(),ready=O.status==='round'&&t<O.start;
     else h+=`<p class="hint">${q.st==='right'?`Right: <b>+${O.mine.pts}</b>. Waiting for the others…`:''}</p>`}
   h+=`</section><div class="row-btns">${O.host?'<button class="ghost" id="oend" style="flex:1">End game</button>':''}<button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;
   return h}
+// a game in turns: the turn ticket (as in Countries, Capitals, Top 10), the shape, the answer box only on my turn
+function turnPlayHTML(ready){const q=O.q,nm=pid=>{const p=O.players.find(x=>x.pid===pid);return p?p.name:'Someone'},cur=O.cur,mine=O.myTurn,E=O.ev;
+  let line='';
+  if(O.status==='reveal')line=O.winner?`${O.winner===ME?'You':nm(O.winner)} named it: +10.`:'Nobody got it this time.';
+  else if(E&&E.k===O.round){const who=E.p===ME?'You':nm(E.p);line=(E.c==='-'?`${E.p===ME?'Your':nm(E.p)+"'s"} time ran out.`:`${who} said ${byCode[E.c]?byCode[E.c].n:E.c}: no.`)+' '}
+  else line=O.round===0?`${mine?'You start':nm(cur)+' starts'}, chosen at random. `:'';
+  if(O.status!=='reveal')line+=`Shape ${O.round+1} of ${O.n}, worth 10.`;
+  const stub=O.players.filter(p=>(room.order||[]).includes(p.pid)).map(p=>`<div class="tk-c pl${p.pid===cur&&O.status==='round'?' on':''}${p.on?'':' off'}"><i><span class="pin" style="${pinStyle(p.i)}"></span>${esc(p.name)}</i><b>${p.total}</b></div>`).join('')
+    +tk('Time',`<span id="tleft">${Geomingo.mmss(ready?TURN_S*1000:O.status==='round'?Math.min(TURN_S*1000,Math.max(0,O.tEnd-now())):0)}</span>`);
+  const title=O.status==='reveal'?'Shape '+(O.round+1)+' of '+O.n:mine?'Your turn':nm(cur)+"'s turn";
+  let h=Geomingo.ticket(Geomingo.hello(O.status==='reveal'&&O.winner===ME?'happy':'think',title,line,{key:'turn'}),stub,{timer:30,color:`var(--p${Math.max(0,(room.order||[]).indexOf(cur))%6})`,mode:'friends'});
+  h+=`<section class="panel play">`;
+  if(ready)h+=`<div class="silbox ready"><p class="big" style="margin:auto;text-align:center;align-self:center">Get ready</p></div>`;
+  else if(O.status==='reveal'){h+=silBoxHTML({...q,st:q.st==='right'?'right':'wrong'})+revealHTML({...q,st:q.st==='right'?'right':'wrong'},q.st==='right'?'+10':'')+`<span class="label">After shape ${O.round+1}</span>`+boardRowsHTML(true)}
+  else{h+=silBoxHTML(q)+triesHTML(q,false,null)+(mine?answerBoxHTML(q):'')}
+  h+=`</section><div class="row-btns">${O.host?'<button class="ghost" id="oend" style="flex:1">End game</button>':''}<button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;
+  return h}
 function bindOnline(){
   if($('leave'))$('leave').onclick=()=>{if(O&&O.status!=='over'&&!confirm('Leave the room? The game goes on without you.'))return;leaveRoom()};
   if($('orematch'))$('orematch').onclick=()=>onlineAct('rematch');
   if($('olobby'))$('olobby').onclick=()=>onlineAct('lobby');
   if($('oend'))$('oend').onclick=()=>{if(confirm('End the game for everyone?'))onlineAct('end')};
-  if(O&&O.status==='round'&&O.q.st==='play'&&now()>=O.start)bindAnswer(O.q,onlinePick)}
+  if(O&&O.status==='round'&&O.q.st==='play'&&now()>=O.start&&(!O.turns||O.myTurn))bindAnswer(O.q,onlinePick)}
 
 /* ---- home: today's board open and playable on top, then Solo and With friends, as in the other games ---- */
 let view='home';
