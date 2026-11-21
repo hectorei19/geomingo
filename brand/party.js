@@ -54,12 +54,14 @@ function table(r){const res=(r&&r.res)||{},ns=Object.keys(res).map(Number).sort(
   ns.forEach(n=>(res[n].s||[]).forEach(x=>{if(!x||!x.n)return;tot[x.n]=(tot[x.n]||0)+(+x.p||0);if(n===lastN)last[x.n]=+x.p||0}));
   return {rows:Object.keys(tot).map(n=>({n,t:tot[n],l:last[n]})).sort((a,b)=>b.t-a.t),games:ns.length,played:ns.map(n=>res[n].g)}}
 
-let ref=null,R=null,listeners=[];
+let ref=null,R=null,listeners=[],healT=0;
 function listen(c,cb){if(ref)ref.off();ref=db.ref('rooms/'+c);const r0=ref;
   const on=r0.child('players/'+PID+'/on');on.onDisconnect().set(false);
   db.ref('.info/connected').on('value',s=>{if(!s.val()||r0!==ref)return;on.onDisconnect().set(false);r0.child('players/'+PID).once('value',p=>{if(p.exists()&&r0===ref)on.set(true)})});
   r0.on('value',snap=>{if(r0!==ref)return;const r=snap.val();
     if(!r||r.game!=='party'||!r.players||!r.players[PID]){const was=code();stop();keepMine(null);cb(null,was,!!r);return}
+    // this page is open, so I am here: the page I came from can mark me away (its onDisconnect) after this one said I'm back
+    if(r.players[PID].on===false&&!healT)healT=setTimeout(()=>{healT=0;if(r0===ref){on.onDisconnect().set(false);on.set(true).catch(()=>{})}},300);
     R=r;if(mine){mine.at=Date.now();ls.set('gm-party',mine)}cb(r)})}
 function stop(){if(ref){ref.off();try{ref.child('players/'+PID+'/on').onDisconnect().cancel()}catch(e){}}ref=null;R=null}
 
