@@ -46,7 +46,8 @@ window.GeoRace=function(cfg){
     if(!myName){toast('Type your name first.','bad');if(el)el.focus();return true}
     ls.set(K+'-name',myName);return false}
   const SIGNED=()=>!!(window.Geomingo&&Geomingo.account&&Geomingo.account.user);
-  async function create(){if(!SIGNED()){Geomingo.account.signIn();return}if(needName())return;
+  async function create(){if(!SIGNED()&&!(Geomingo.party&&Geomingo.party.on())){Geomingo.account.signIn();return}  // from the With friends room the organiser may have no account
+    if(needName())return;
     if(!initFB()){toast('Online play could not load. Check the connection and reload the page.','bad');return}
     try{let code='';
       for(let i=0;i<8;i++){code=randRoom();const ex=await db.ref('rooms/'+code).get();if(!ex.exists())break}

@@ -364,7 +364,7 @@ function needName(){const an=ACN();if(an){myName=an;return false}const el=$('fna
 const lobbyOrder=r=>Object.keys(r.players||{}).filter(k=>r.players[k].name).sort((a,b)=>(r.players[a].t||0)-(r.players[b].t||0));
 const pinStyle=i=>`background:var(--p${i%6})`;
 const SIGNED=()=>!!(window.Geomingo&&Geomingo.account&&Geomingo.account.user);
-async function createRoom(){if(!SIGNED()){Geomingo.account.signIn();return}
+async function createRoom(){if(!SIGNED()&&!(Geomingo.party&&Geomingo.party.on())){Geomingo.account.signIn();return}  // a game opened from the With friends room: its organiser may have no account
   if(needName())return;
   if(!initFB()){toast('Online play could not load. Check the connection and reload the page.','bad');return}
   try{let code='';
