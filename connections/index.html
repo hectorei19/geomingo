@@ -435,7 +435,7 @@ async function startRound(){if(!roomRef||!room)return;
   let seed;do{seed=Math.floor(Math.random()*1e9)}while(!buildPuzzle(seed,5));
   const round=(room.round||0)+1;
   try{await roomRef.transaction(x=>{if(!x)return x;if((x.round||0)>=round)return;
-    x.status='play';x.round=round;x.seed=seed;x.startAt=now();return x})}
+    x.status='play';x.round=round;x.seed=seed;x.startAt=now();return x},undefined,false)}  // false: not shown here before the server agrees (a progress write meanwhile would cancel the start)
   catch(e){toast('Could not start the game. Check the connection.','bad')}}
 const roomPlayers=()=>lobbyOrder(room).map((pid,i)=>{const p=room.players[pid];return {pid,i,...p,cur:p.r===room.round}});
 const fmtTime=ms=>{const s=Math.round((ms||0)/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};

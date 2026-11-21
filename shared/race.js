@@ -113,7 +113,7 @@ window.GeoRace=function(cfg){
   // the host starts the first game; after a game anyone can start the next one once everyone has finished
   async function start(){if(!ref||!R.room)return;
     const seed=Math.floor(Math.random()*1e9),round=(R.room.round||0)+1;
-    try{await ref.transaction(x=>{if(!x)return x;if((x.round||0)>=round)return;x.status='play';x.round=round;x.seed=seed;x.startAt=now();return x})}
+    try{await ref.transaction(x=>{if(!x)return x;if((x.round||0)>=round)return;x.status='play';x.round=round;x.seed=seed;x.startAt=now();return x},undefined,false)}  // false: not shown before the server agrees (a progress write meanwhile would cancel the start)
     catch(e){toast('Could not start the game. Check the connection.','bad')}}
   const players=()=>order(R.room).map((pid,i)=>{const p=R.room.players[pid];return {pid,i,...p,cur:p.r===R.room.round}});
   const key=p=>!p.cur?[1,0,0,0]:[0,-(p.s||0),-(p.ok||0),p.done?(p.ms||0):1e12];
