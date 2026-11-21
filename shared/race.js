@@ -155,7 +155,7 @@ window.GeoRace=function(cfg){
   // back from another app with a finished room still on screen a long time: leave it
   document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(R.code&&R.room&&Geomingo.room.stale(myDone(R.room)))leave()});
   // the one room for all nine games (../brand/party.js) drives this game's room
-  if(Geomingo.party)Geomingo.party.game({room:()=>R.code,host:()=>!!R.room&&R.room.host===ME,lobby:()=>!!R.room&&R.room.status==='lobby',
+  if(Geomingo.party)Geomingo.party.game({points:()=>R.room?players().filter(p=>p.cur).map(p=>({n:p.name,p:p.s||0})):[],room:()=>R.code,host:()=>!!R.room&&R.room.host===ME,lobby:()=>!!R.room&&R.room.status==='lobby',
     count:()=>R.room?order(R.room).length:0,names:()=>R.room?order(R.room).map(k=>R.room.players[k].name):[],
     create:()=>{if(initFB())create()},join:c=>{if(initFB())join(c)},start});
   return R};

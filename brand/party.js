@@ -294,16 +294,20 @@ function resultHTML(){const r=R,x=r.res[PG.n],T=table(r),g=gameOf(x.g),me=(r.pla
 // Exit: a friend leaves this game (it goes on without them, they can rejoin from the room); the organiser ends it for everyone
 function exitAsk(){const host=R&&R.host===PID;
   sheet('<div class="pt-sh-h"><h3>'+(host?'End this game?':'Leave this game?')+'</h3><button class="pt-x" data-pclose>Close</button></div>'+
-    '<p class="pt-sh-p">'+(host?'Everyone goes back to the room. This game gives no points.':'You go back to the room. The others keep playing, and you can rejoin.')+'</p>'+
+    '<p class="pt-sh-p">'+(host?'Everyone goes back to the room. The points so far count.':'You go back to the room. The others keep playing, and you can rejoin.')+'</p>'+
     '<button class="pt-btn pt-red" data-pgo>'+(host?'End game for everyone':'Leave game')+'</button>',()=>{
     if(!host){left=true;location.href=homeURL();return}
-    ref.child('cur').transaction(x=>{if(!x||x.n!==PG.n)return;x.end=true;return x}).then(()=>{location.href=homeURL()}).catch(()=>{location.href=homeURL()})})}
+    // the points so far count (Héctor 2026-11-21): they go into the room's table like a finished game's
+    const n=PG.n,go=()=>{location.href=homeURL()},
+      s=(A&&A.points?A.points():[]).filter(x=>x&&x.n).map(x=>({n:String(x.n).slice(0,16),p:Math.max(0,Math.round(+x.p||0))}));
+    const saved=R.res&&R.res[n]?Promise.resolve():ref.child('res/'+n).transaction(x=>x?undefined:{g:(R.cur&&R.cur.g)||'',s},undefined,false);
+    saved.catch(()=>{}).then(()=>ref.child('cur').transaction(x=>{if(!x||x.n!==n)return;x.end=true;return x},undefined,false)).then(go,go)})}
 // every half second: make the game's room, join it, count down 3·2·1 together, start it, then step out of the way
 function drive(){if(!PG||!A||!R)return;const c=R.cur||{},g=gameOf(c.g),rc=(A.room&&A.room())||'';
   // the organiser moved on to another game: follow
   if(c.n>PG.n){if(c.g){ss.set('gm-pg',null);location.href=gameURL(c.g,c.n)}return}
   // the organiser ended this game: back to the room
-  if(c.n===PG.n&&c.end&&!(R.res&&R.res[PG.n])){if(!going){going=true;location.href=homeURL()}return}
+  if(c.n===PG.n&&c.end){if(!going){going=true;location.href=homeURL()}return}
   if(c.n!==PG.n){overlay('');return}
   const ok=G.account&&G.account.ready,mineRoom=!!rc&&(rc===c.room||rc===made);
   if(mineRoom&&rc===c.room)hadRoom=true;
