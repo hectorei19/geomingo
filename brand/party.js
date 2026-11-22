@@ -48,6 +48,8 @@ const gameOf=id=>(G.GAMES||[]).find(g=>g.id===id);
 // home → a game: the address the game opens with (its With friends screen, this room, game n)
 const gameURL=(id,n)=>{const g=gameOf(id);return (HOME?'':'../')+(g?g.path:'')+'?friends&party='+code()+'&pn='+n};
 const homeURL=()=>(HOME?'':'../')+'?party='+code()+'#friends';
+// the dot next to "Héctor picks…": the organiser's own colour, the same as their chip in the room (Héctor 2026-11-22)
+const hostDot=r=>{const i=Math.max(0,order(r).indexOf(r.host));return 'background:var(--p'+(i%6)+');box-shadow:0 0 10px var(--p'+(i%6)+')'};
 // the table: everyone's points, game by game
 // (Firebase hands res back as an array, [null, game 1, game 2…], when its keys are 1, 2, 3…: the empty slot 0 is skipped)
 function table(r){const res=(r&&r.res)||{},ns=Object.keys(res).filter(k=>res[k]&&res[k].s).map(Number).sort((a,b)=>a-b),tot={},last={},lastN=ns[ns.length-1];
@@ -162,7 +164,7 @@ function roomHTML(){const r=R,T=table(r),host=r.host===PID,ids=order(r),c=r.cur,
     // a game is on and this phone is not in it (left it, or came late): go back in
     (live&&g?'<div class="pt-live"><i></i><div><b>'+esc(g.name)+' is on</b>Game '+c.n+' · the others are playing</div><a class="pt-btn" href="'+gameURL(c.g,c.n)+'">Rejoin</a></div>':'')+
     '<div class="pkhead"><h2>'+(T.games?'Next game':'Pick a game')+'</h2></div>'+
-    (host||live?'':'<p class="pt-wait"><i></i>'+esc((r.players[r.host]||{}).name||'The host')+' picks the next game…</p>')+
+    (host||live?'':'<p class="pt-wait"><i style="'+hostDot(r)+'"></i>'+esc((r.players[r.host]||{}).name||'The host')+' picks the next game…</p>')+
     '<ul class="tiles c3">'+(G.live?G.live():G.GAMES).map(x=>H.tile(x,{played:false,click:host})).join('')+'</ul>'+
     (ids.length<2?'<p class="pt-rules">Waiting for friends: send them the code or tap Invite.</p>':RULES)+
     ''}
@@ -313,7 +315,7 @@ function resultHTML(){const r=R,x=r.res[PG.n],T=table(r),g=gameOf(x.g),me=(r.pla
     '<div class="pt-res-b"><p class="pt-win">'+(!top?'Game over':tie?"It's a tie":esc(top.n)+' wins')+'</p>'+
     '<div class="pt-tbl">'+s.map((y,k)=>'<div class="pt-tr'+(y.n===me?' me':'')+'"><span class="md">'+(k+1)+'</span><span class="nm">'+esc(y.n)+'</span><span class="lt">total '+(tot[y.n]||0)+'</span><b>+'+y.p+'</b></div>').join('')+'</div>'+
     (r.host===PID?'<div class="pt-two"><button type="button" class="pt-btn" data-pagain>Play again</button><button type="button" class="pt-ghost" data-pother>Pick a game</button></div>'
-      :'<p class="pt-wait"><i></i>'+esc((r.players[r.host]||{}).name||'The organiser')+' picks: play again or another game</p>')+'</div></section>'}
+      :'<p class="pt-wait"><i style="'+hostDot(r)+'"></i>'+esc((r.players[r.host]||{}).name||'The organiser')+' picks: play again or another game</p>')+'</div></section>'}
 // the organiser, after a game: the same game again (a new puzzle, game n+1), everyone follows
 function again(){const n=PG.n,id=R&&R.res&&R.res[n]&&R.res[n].g||(R&&R.cur&&R.cur.g);if(!ref||!R||R.host!==PID||!id)return;
   ref.transaction(x=>{if(!x||x.host!==PID||!x.cur||x.cur.n!==n)return;x.cur={n:n+1,g:id,room:'',exp:here(x).length,t:now()};return x},undefined,false)
