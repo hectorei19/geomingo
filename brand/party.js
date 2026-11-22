@@ -65,7 +65,20 @@ function listen(c,cb){if(ref)ref.off();ref=db.ref('rooms/'+c);const r0=ref;
     if(!r||r.game!=='party'||!r.players||!r.players[PID]){const was=code();stop();keepMine(null);cb(null,was,!!r);return}
     // this page is open, so I am here: the page I came from can mark me away (its onDisconnect) after this one said I'm back
     if(r.players[PID].on===false&&!healT)healT=setTimeout(()=>{healT=0;if(r0===ref){on.onDisconnect().set(false);on.set(true).catch(()=>{})}},300);
-    R=r;if(mine){mine.at=Date.now();ls.set('gm-party',mine)}cb(r)})}
+    R=r;if(mine){mine.at=Date.now();ls.set('gm-party',mine)}cb(r)});
+  clearInterval(hostT);hostT=setInterval(()=>{if(r0===ref&&R)hostCheck(R)},3000)}
+/* The organiser has gone (Héctor 2026-11-22): away for 30 s, then with 2 or more still here one of them becomes the
+   organiser, at random among those signed in, else at random among all; with only one left, the room ends (final ranking).
+   Only one phone does it: the first player still here. */
+let hostT=0,awayAt=0;const AWAY=30000;
+function hostCheck(r){if(!ref||r.ended)return;const h=r.players[r.host];
+  if(h&&h.on!==false){awayAt=0;return}
+  if(!awayAt)awayAt=Date.now();if(Date.now()-awayAt<AWAY)return;
+  const on=here(r).filter(k=>k!==r.host);if(on[0]!==PID)return;awayAt=Date.now();
+  ref.transaction(x=>{if(!x||x.ended)return;const hh=x.players&&x.players[x.host];if(hh&&hh.on!==false)return;
+    const still=here(x).filter(k=>k!==x.host);
+    if(still.length<2){x.ended=now();return x}
+    const sg=still.filter(k=>x.players[k].s),from=sg.length?sg:still;x.host=from[Math.floor(Math.random()*from.length)];return x},undefined,false).catch(()=>{})}
 function stop(){if(ref){ref.off();try{ref.child('players/'+PID+'/on').onDisconnect().cancel()}catch(e){}}ref=null;R=null}
 
 /* ================= the home page: create / join, then the room ================= */
@@ -75,7 +88,7 @@ async function create(){if(!SIGNED()){G.account.signIn();return}
   if(!fb()){H.toast('Online play could not load. Check the connection and reload the page.','bad');return}
   if(busy)return;busy=true;
   try{let c='';for(let i=0;i<8;i++){c=Array.from({length:4},()=>LET[Math.floor(Math.random()*24)]).join('');const ex=await db.ref('rooms/'+c).get();if(!ex.exists())break}
-    await db.ref('rooms/'+c).set({game:'party',host:PID,created:TS(),players:{[PID]:{name:myName()||'Host',t:TS(),on:true}}});
+    await db.ref('rooms/'+c).set({game:'party',host:PID,created:TS(),players:{[PID]:{name:myName()||'Host',t:TS(),on:true,s:1}}});
     keepMine(c);seenN=null;open()}
   catch(e){console.error(e);H.toast('Could not create the room. Check the connection and try again.','bad')}
   finally{busy=false}}
@@ -89,11 +102,11 @@ async function join(raw){const c=String(raw||'').toUpperCase().replace(/[^A-Z]/g
     const res=await db.ref('rooms/'+c).transaction(r=>{why='';if(!r)return r;
       if(r.game!=='party'){why='other';return}
       r.players=r.players||{};
-      if(r.players[PID]){r.players[PID].name=nm;r.players[PID].on=true;return r}
+      if(r.players[PID]){r.players[PID].name=nm;r.players[PID].on=true;r.players[PID].s=SIGNED()?1:0;return r}
       if(order(r).length>=MAX){why='full';return}
       // the same name twice would mix up the table: the second one gets a number
       let n=nm,k=2;const names=order(r).map(p=>r.players[p].name);while(names.includes(n))n=nm.slice(0,14)+' '+k++;
-      r.players[PID]={name:n,t:now(),on:true};return r});
+      r.players[PID]={name:n,t:now(),on:true,s:SIGNED()?1:0};return r});
     const v=res.snapshot.val();
     if(!v){H.toast('No room called '+c+'. Check the code.','bad');return}
     if(why==='other'||v.game!=='party'){H.toast(c+' is a room of one game. Open that game, choose With friends and join there.','bad');return}
@@ -170,15 +183,15 @@ function roomHTML(){const r=R,T=table(r),host=r.host===PID,ids=order(r),c=r.cur,
     ''}
 // the organiser ends the room (Héctor 2026-11-22: "when we get tired"): everyone sees the final ranking, then the room is over
 function endAsk(){const T=table(R);
-  if(!T.games){sheet('<div class="pt-sh-h"><h3>End the room?</h3><button class="pt-x" data-pclose>Close</button></div><p class="pt-sh-p">No game was played. The room closes for everyone.</p><button class="pt-btn pt-red" data-pgo>End room</button>',()=>{sheet('');leave()});return}
+  if(!T.games){sheet('<div class="pt-sh-h"><h3>End the room?</h3><button class="pt-x" data-pclose>Close</button></div><p class="pt-sh-p">No game was played. The room closes for everyone.</p><button class="pt-btn pt-red" data-pgo>End room</button>',()=>{sheet('');const r0=ref;stop();keepMine(null);(r0?r0.remove():Promise.resolve()).catch(()=>{}).then(draw)});return}
   sheet('<div class="pt-sh-h"><h3>End the room?</h3><button class="pt-x" data-pclose>Close</button></div><p class="pt-sh-p">Everyone sees the final ranking after '+T.games+' game'+(T.games===1?'':'s')+', and the room closes.</p><button class="pt-btn pt-red" data-pgo>End room</button>',
     ()=>{ref.child('ended').set(now()).then(()=>sheet(''),()=>{sheet('');H.toast('That did not go through. Check the connection.','bad')})})}
 // the final ranking, the same on every phone; Done forgets the room on this phone
-function finalHTML(){const r=R,T=table(r),me=(r.players[PID]||{}).name,top=T.rows[0],tie=T.rows[1]&&top&&T.rows[1].t===top.t;
+function finalHTML(){const r=R,T=table(r),me=(r.players[PID]||{}).name,top=T.games?T.rows[0]:null,tie=T.rows[1]&&top&&T.rows[1].t===top.t;
   const med=['#D4AD4B','#C9CED6','#C99B78'];
   return '<section class="ticket tk-friends pt-res"><div class="tk-mode friends"><span>Room '+esc(code())+' · final</span><span>'+T.games+' game'+(T.games===1?'':'s')+'</span></div>'+
     '<div class="pt-res-b"><p class="pt-win">'+(!top?'Room closed':tie?"It's a tie":esc(top.n)+' wins')+'</p>'+
-    '<div class="pt-tbl">'+T.rows.map((x,k)=>'<div class="pt-tr'+(x.n===me?' me':'')+'"><span class="md" style="'+(k<3&&x.t>0?'background:'+med[k]+';color:#0C1220':'')+'">'+(k+1)+'</span><span class="nm">'+esc(x.n)+'</span><span></span><b>'+x.t+'</b></div>').join('')+'</div>'+
+    (T.games?'<div class="pt-tbl">'+T.rows.map((x,k)=>'<div class="pt-tr'+(x.n===me?' me':'')+'"><span class="md" style="'+(k<3&&x.t>0?'background:'+med[k]+';color:#0C1220':'')+'">'+(k+1)+'</span><span class="nm">'+esc(x.n)+'</span><span></span><b>'+x.t+'</b></div>').join('')+'</div>':'<p class="pt-rules">No game was played.</p>')+
     '<button type="button" class="pt-btn" id="pdone">Done</button></div></section>'}
 function draw(){if(!H)return;const el=H.el;
   el.innerHTML=code()&&R?(R.ended?finalHTML():roomHTML()):code()?'<p class="pt-rules">Opening room '+esc(code())+'…</p>':startHTML();bind()}
