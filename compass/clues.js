@@ -7,6 +7,10 @@
 const R=Math.PI/180;
 function dist(a,b){const t=Math.sin((b.lat-a.lat)*R/2)**2+Math.cos(a.lat*R)*Math.cos(b.lat*R)*Math.sin((b.lon-a.lon)*R/2)**2;return 12742*Math.asin(Math.sqrt(Math.min(1,t)))}
 function bearing(a,b){const y=Math.sin((b.lon-a.lon)*R)*Math.cos(b.lat*R),x=Math.cos(a.lat*R)*Math.sin(b.lat*R)-Math.sin(a.lat*R)*Math.cos(b.lat*R)*Math.cos((b.lon-a.lon)*R);return (Math.atan2(y,x)/R+360)%360}
+// the direction as a straight line on a flat (Mercator) map, the shorter way round (Héctor 2026-11-22: what a player sees
+// on a normal map; from Ottawa, Rabat is a bit south of east, not north-east as on the round-Earth shortest route)
+function flat(a,b){let dl=(b.lon-a.lon)*R;if(dl>Math.PI)dl-=2*Math.PI;if(dl<-Math.PI)dl+=2*Math.PI;
+  const dp=Math.log(Math.tan(Math.PI/4+b.lat*R/2)/Math.tan(Math.PI/4+a.lat*R/2));return (Math.atan2(dl,dp)/R+360)%360}
 const gap=(a,b)=>{const d=Math.abs(a-b)%360;return d>180?360-d:d};
 const BIG=3e5,NC=5;
 // the score of a set of clues (lower is better): each one near its target distance, well-known cities preferred
@@ -17,9 +21,10 @@ const JIT=1.2,AVOID=1; // o.avoid: the clue cities of its first time, pushed bac
 function jit(v,c){let h=2166136261;const s=v+'|'+c;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0)/4294967296*JIT}
 // [{c: city code, d: km (whole), b: degrees from north, clockwise}], far to near.
 // A small search: clue by clue, keep the best partial sets (300, more when it is hard); the five must sit at least G degrees apart (45 if it can, less round remote capitals)
+// o.flat: directions on a flat map (dailies from FLAT_FROM in index.html, Practice, With friends); without it the round-Earth ones
 // o.pre: clue codes already on the compass (they stay, in order); o.skip: cities that can't be clues (wrong guesses)
-function cluesFor(t,o){o=o||{};const pre=o.pre||[],skip=o.skip||[],v=o.v||0,av=o.avoid||[];
-  const all=CITIES.filter(x=>x.c!==t.c&&(pre.includes(x.c)||!skip.includes(x.c))).map(x=>({x,d:dist(t,x),b:bearing(t,x)})).filter(o=>o.d>=40).sort((a,b)=>a.d-b.d);
+function cluesFor(t,o){o=o||{};const pre=o.pre||[],skip=o.skip||[],dir=o.flat?flat:bearing,v=o.v||0,av=o.avoid||[];
+  const all=CITIES.filter(x=>x.c!==t.c&&(pre.includes(x.c)||!skip.includes(x.c))).map(x=>({x,d:dist(t,x),b:dir(t,x)})).filter(o=>o.d>=40).sort((a,b)=>a.d-b.d);
   const big=all.filter(o=>o.x.pop>=BIG),near=Math.min(big[0].d,all[0].d*2);
   const start=Math.max(2600,near*2.5),end=Math.max(all[0].d,120),tg=i=>start*Math.pow(end/start,i/(NC-1));
   for(const [G,R] of [[45,4000],[40,6000],[35,6000],[30,9000],[25,9000],[15,20000],[0,20000]]){let beam=[{s:0,l:pre.map(c=>all.find(a=>a.x.c===c)).filter(Boolean)}];
@@ -33,5 +38,5 @@ function cluesFor(t,o){o=o||{};const pre=o.pre||[],skip=o.skip||[],v=o.v||0,av=o
   return []}
 const C8=['north','north-east','east','south-east','south','south-west','west','north-west'];
 const dirWord=b=>C8[Math.round(b/45)%8];
-window.COMPASS={dist,bearing,gap,cluesFor,dirWord};
+window.COMPASS={dist,bearing,flat,gap,cluesFor,dirWord};
 })();

@@ -11,7 +11,7 @@ seen from the mystery capital, with its distance in km. Name the mystery capital
   **I don't know**, the capital goes with 0. Best game 25.
 - `clues.js` picks the five clue capitals of a city: the first far (about 2.600 km, more round remote capitals), each next
   one closer (at least 15 % closer), in different directions (45° apart when possible, never under ~24° for the 197),
-  capitals of 300.000 people or more preferred. Great-circle distance on a round Earth (6.371 km), direction = initial bearing.
+  capitals of 300.000 people or more preferred. Great-circle distance on a round Earth (6.371 km), direction = a straight line on a flat (Mercator) world map, the shorter way round (since 22 Nov 2026; dailies before 23 Nov keep the clue cities picked with the old initial bearing).
 - Data: `CITIES` from `../capitals/data.js` (names, other accepted names, coordinates), country names from `../data/countries.js`,
   flags from `../flagpie/flags/`. Answers: any of the 197 capitals; a city already on the compass can't be picked.
 - Daily: five a day from `DECK` (145 capitals people know: country with 5 million people or more, capital of a million,
