@@ -1099,11 +1099,12 @@ const LIES_BANK=[
 const LIES_FROM='2026-11-15';   // the first daily game of "Who's lying?" (bump to the day after the merge)
 const LB=LIES_BANK.map((e,i)=>({i,c:e[0],h:e[1],g:e[2],t:e[3],n:e[4],d:e[5]||LIES_FROM}));
 // use: {lie index: day number last used} and the same for truths; r: random numbers; key: the day (null = any day)
-function dealLies(r,key,use){use=use||{lie:{},tru:{}};const ok=e=>!key||e.d<=key;
+function dealLies(r,key,use,n){n=n||ROUNDS_LIES(key);  // n: rounds (With friends: ten)
+  use=use||{lie:{},tru:{}};const ok=e=>!key||e.d<=key;
   // least used first, ties in random order (a random number per entry, so one shuffle decides)
   const order=(list,last)=>list.map(e=>[e,last[e.i]==null?-1:last[e.i],r()]).sort((a,b)=>a[1]-b[1]||a[2]-b[2]).map(x=>x[0]);
   const usedC=new Set(),dayG=new Set(),lies=[];
-  for(const e of order(LB.filter(e=>e.h&&ok(e)),use.lie)){if(lies.length===ROUNDS_LIES(key))break;
+  for(const e of order(LB.filter(e=>e.h&&ok(e)),use.lie)){if(lies.length===n)break;
     if(usedC.has(e.c)||dayG.has(e.g))continue;lies.push(e);usedC.add(e.c);dayG.add(e.g)}
   // easy lies first, the hardest last
   lies.sort((a,b)=>a.h-b.h);
