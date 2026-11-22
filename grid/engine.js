@@ -686,7 +686,7 @@ async function tryTimeout(turn,deadline){
     r.passes=(r.passes||0)+1;r.ev={id:evId(),kind:'bad',text:"Time's up for "+nm+'.'};advance(r,r.order.length);return r})}catch(e){}
 }
 // the one room for all nine games (../brand/party.js) drives this game's room
-if(Geomingo.party)Geomingo.party.game({turns:()=>room&&room.mc||0,points:()=>S&&S.mode==='online'&&S.players?S.players.map(p=>({n:p.name,p:Math.max(0,Math.round(p.score||0))})):[],room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
+if(Geomingo.party)Geomingo.party.game({stats:()=>{if(S&&S.mode==='online'&&!S.over){S.over=true;try{recordGame()}finally{S.over=false}}},turns:()=>room&&room.mc||0,points:()=>S&&S.mode==='online'&&S.players?S.players.map(p=>({n:p.name,p:Math.max(0,Math.round(p.score||0))})):[],room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
   count:()=>room?lobbyOrder(room).length:0,names:()=>room?lobbyOrder(room).map(k=>room.players[k].name):[],create:createRoom,join:joinRoom,start:()=>onlineAct('start')});
 /* ---- new version check ---- */
 let newVersion=false;

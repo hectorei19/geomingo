@@ -24,7 +24,7 @@
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611221600"></script>
 <script src="../brand/account.js?v=202611260300"></script>
-<script src="../brand/party.js?v=202611221800"></script>
+<script src="../brand/party.js?v=202611222045"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -509,7 +509,7 @@ const ranked=()=>[...O.players].sort((a,b)=>b.total-a.total||a.ms-b.ms||a.i-b.i)
 // the room's own screen (../brand/party.js) shows the players and the code: this game shows only its header there
 function friendsHTML(){return header('Silhou<span>ette</span>','')}
 // the one room for all nine games (../brand/party.js) drives this game's room
-if(Geomingo.party)Geomingo.party.game({turns:()=>room&&room.mc||0,points:()=>O?ranked().map(p=>({n:p.name,p:p.total||0})):[],room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
+if(Geomingo.party)Geomingo.party.game({stats:(pos,p)=>room&&room.qs&&logFriends('sil-friends',roomCode+':'+room.qs.map(q=>q.c).join(''),pos,p),turns:()=>room&&room.mc||0,points:()=>O?ranked().map(p=>({n:p.name,p:p.total||0})):[],room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
   count:()=>room?lobbyOrder(room).length:0,names:()=>room?lobbyOrder(room).map(k=>room.players[k].name):[],create:createRoom,join:joinRoom,start:()=>onlineAct('start')});
 function lobbyHTML(){return header('Silhou<span>ette</span>','')}
 function boardRowsHTML(roundPts){const me=ME;

@@ -339,6 +339,11 @@ function other(){const n=PG.n,go=()=>{location.href=homeURL()};if(!ref){go();ret
 // Exit: a friend leaves this game (it goes on without them, they can rejoin from the room); the organiser ends it for everyone
 // a game ended early counts once 5 rounds are played (every player had 5 turns), Héctor 2026-11-22; before that it is left out
 const ROUNDS=5;
+// a game the host ended after 5 rounds also goes into each player's My stats for that game (Héctor 2026-11-22): the game's stats(place, points)
+let statted=false;
+function earlyStats(){if(statted||done||!A||!A.stats||!R||!R.res||!R.res[PG.n])return;statted=true;
+  const s=R.res[PG.n].s||[],me=myName(),mine=s.find(x=>x.n===me);if(!mine)return;
+  try{A.stats(1+s.filter(x=>x.p>mine.p).length,mine.p)}catch(e){}}
 const roundsDone=()=>{if(!A||!A.turns||!ours())return 0;const n=Math.max(1,(A.points?A.points():[]).length||(R.cur&&R.cur.exp)||2);return Math.floor(A.turns()/n)};
 function exitAsk(){const host=R&&R.host===PID,rd=roundsDone(),counts=rd>=ROUNDS;
   sheet('<div class="pt-sh-h"><h3>'+(host?'End this game?':'Leave this game?')+'</h3><button class="pt-x" data-pclose>Close</button></div>'+
@@ -349,13 +354,13 @@ function exitAsk(){const host=R&&R.host===PID,rd=roundsDone(),counts=rd>=ROUNDS;
     const n=PG.n,go=()=>{location.href=homeURL()},
       s=(counts&&A&&A.points&&ours()?A.points():[]).filter(x=>x&&x.n).map(x=>({n:String(x.n).slice(0,16),p:Math.max(0,Math.round(+x.p||0))}));
     const saved=R.res&&R.res[n]||!s.length?Promise.resolve():ref.child('res/'+n).transaction(x=>x?undefined:{g:(R.cur&&R.cur.g)||'',s},undefined,false);
-    saved.catch(()=>{}).then(()=>ref.child('cur').transaction(x=>{if(!x||x.n!==n)return;x.end=true;return x},undefined,false)).then(go,go)})}
+    saved.catch(()=>{}).then(()=>{earlyStats();return ref.child('cur').transaction(x=>{if(!x||x.n!==n)return;x.end=true;return x},undefined,false)}).then(go,go)})}
 // every half second: make the game's room, join it, count down 3·2·1 together, start it, then step out of the way
 function drive(){if(!PG||!A||!R)return;const c=R.cur||{},g=gameOf(c.g),rc=(A.room&&A.room())||'';
   // the organiser moved on to another game: follow
   if(c.n>PG.n){if(c.g){ss.set('gm-pg',null);location.href=gameURL(c.g,c.n)}return}
   // the organiser ended this game: back to the room
-  if(R.ended||c.n===PG.n&&(c.end||c.home)){if(!going){going=true;location.href=homeURL()}return}
+  if(R.ended||c.n===PG.n&&(c.end||c.home)){if(!going){going=true;if(c.end)earlyStats();location.href=homeURL()}return}
   if(c.n!==PG.n){overlay('');return}
   const ok=G.account&&G.account.ready,mineRoom=!!rc&&(rc===c.room||rc===made);
   if(mineRoom&&rc===c.room)hadRoom=true;
