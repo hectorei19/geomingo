@@ -94,7 +94,7 @@
 .frow .rn small{color:var(--ink-2);font-size:.85rem}
 .frow .rpts{margin-left:auto;font-family:var(--mono);color:var(--gold);white-space:nowrap}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611221530">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611222000">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -109,7 +109,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
-<script src="../shared/race.js?v=202611221900"></script>
+<script src="../shared/race.js?v=202611222000"></script>
 <script>
 /* ---- Flag Pie: the colours of a flag as a pie chart, and you name the country ----
    Five flags per game (Héctor, 2026-11-04: one was too little), one at a time, as the travellers in Customs.
@@ -205,7 +205,7 @@ function leftHTML(G,i){const q=G.qs[i],c=cByCode[q.c],ok=q.st==='right';
   const twin=q.alt?`<span class="ls">You said ${esc(cByCode[q.alt].n)}: its flag has the same pie, so it counts.</span>`:'';
   const others=(SAME[q.c]||[]).filter(x=>x!==q.alt).map(x=>cByCode[x]&&cByCode[x].n).filter(Boolean);
   return `<div class="reveal${ok?'':' wrong'}"><span class="label">Flag ${i+1} of ${G.qs.length}</span><img class="real" src="${realFlag(q.c)}" alt="The flag of ${esc(c.n)}"><b class="ln">${esc(c.n)}</b><span class="lst">${ok?'STAMPED':'MISSED'}</span>
-    <span class="ls">${ok?'+'+worth(q)+' point'+(worth(q)===1?'':'s')+' · right with '+q.k+' clue'+(q.k===1?'':'s'):'0 points'+(q.tries.length?' · you said '+q.tries.map(x=>esc(cByCode[x].n)).join(', '):'')}</span>${twin}
+    <span class="ls">${ok?'+'+worth(q)+' point'+(worth(q)===1?'':'s')+' · right with '+q.k+' clue'+(q.k===1?'':'s'):'0 points'+(q.tries.length?(G.mode==='online'?' · tried ':' · you said ')+q.tries.map(x=>esc(cByCode[x].n)).join(', '):'')}</span>${twin}
     ${others.length?`<span class="ls">Same pie: ${esc(listText(others))}.</span>`:''}
     <button class="primary" id="nexttv">${G.over?'See your result':'Next flag →'}</button></div>`}
 // the play area: the five flags, then the pie on screen, its open clues, what's still locked, a wrong answer, the answer box
@@ -378,7 +378,7 @@ function roomHTML(){if(!RACE.inGame())return RACE.lobbyHTML();
   // turns: a flag just named stays a moment, its sentences marked and the points big, before the next one
   const hd=RACE.turns()&&RACE.holding();
   if(hd){const L=T.left;T.left=hd.i;const body=playHTML(T).replace(/<button class="primary" id="nexttv">[\s\S]*?<\/button>/,'');T.left=L;
-    return h+RACE.turnTicket()+`<section class="panel turns">${body}</section><div class="bigpts" style="--pc:var(--p${hd.k})"><b>+${hd.pts}</b><span>${esc(hd.n)}</span></div>`}
+    return h+RACE.turnTicket()+`<section class="panel turns">${body}</section>${hd.ok?`<div class="bigpts" style="--pc:var(--p${hd.k})"><b>+${hd.pts}</b><span>${esc(hd.n)}</span></div>`:''}`}
   if(T.over&&T.left==null)return h+RACE.resultHTML()+(RACE.turns()?'':summaryHTML(T));  // turns: the room's list of who got each one replaces it (race.js recapHTML)
   if(RACE.turns())return h+RACE.turnTicket()+`<section class="panel turns${RACE.myTurn()?'':' turnwait'}">${playHTML(T).replace(giveUpHTML(),'')}</section>`;  // turns: only the player whose turn it is answers, nobody gives up
   return h+ticketHTML(T,'online')+`<section class="panel">${playHTML(T)}</section>`}
