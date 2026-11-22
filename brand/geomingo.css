@@ -660,3 +660,4 @@ button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
 .gm-links button{background:none;border:0;padding:10px 4px;font:inherit;color:inherit;cursor:pointer}
 .gm-links button:hover{color:var(--ink);text-decoration:underline}
 .gm-links i{font-style:normal}
+body:has(.ticket.gm-done) .foot{display:none}
