@@ -93,7 +93,7 @@
 <script src="../data/countries.js?v=202611181400"></script>
 <script src="../shared/data.js?v=202611141100"></script>
 <script src="../capitals/data.js?v=202611211600"></script>
-<script src="clues.js?v=202611100915"></script>
+<script src="clues.js?v=202611220900"></script>
 <script src="../shared/games.js?v=202611141100"></script>
 <script src="../shared/minigames.js?v=202611231200"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -115,14 +115,18 @@ const coBy=Object.fromEntries(C.map(c=>[c.c,c]));
 const coName=x=>(coBy[x.k3]||{}).n||x.k3;
 const realFlag=k3=>'../flagpie/flags/'+k3+'.svg';
 // q.v: the capital's time round in the daily (0 the first, then 1, 2…): from the 2nd time it gets other clue cities
-const CK={};const cluesOf=(c,v)=>{const k=c+'|'+(v||0);return CK[k]||(CK[k]=COMPASS.cluesFor(cityBy[c],{v,avoid:v?cluesOf(c,0).map(x=>x.c):[]}))};
+// q.fm: clue cities picked by directions on a flat map (dailies from FLAT_FROM, Practice, With friends; Héctor 2026-11-22);
+// earlier days keep the clue cities they had. The compass always DRAWS the flat-map direction (dir).
+const FLAT_FROM='2026-11-23';
+const CK={};const cluesOf=(c,v,fm)=>{const k=c+'|'+(v||0)+'|'+(fm?1:0);return CK[k]||(CK[k]=COMPASS.cluesFor(cityBy[c],{v,flat:fm,avoid:v?cluesOf(c,0,fm).map(x=>x.c):[]}))};
+const dir=(q,c)=>Math.round(COMPASS.flat(cityBy[q.c],cityBy[c]));
 // the clues on the compass now: q.cl once a clue was added (games saved before q.cl: the first k of the city's clues)
-const shown=q=>q.cl||cluesOf(q.c,q.v).slice(0,q.k);
+const shown=q=>q.cl||cluesOf(q.c,q.v,q.fm).slice(0,q.k);
 // the next clue: never a city already guessed (Héctor, 2026-11-10); the clues already shown stay as they are
 function nextOf(q){const t=cityBy[q.c],have=shown(q),pre=have.map(x=>x.c),last=have[have.length-1];
-  const l=COMPASS.cluesFor(t,{pre,skip:q.tries,v:q.v,avoid:q.v?cluesOf(q.c,0).map(x=>x.c):[]});if(l[have.length])return l[have.length];
+  const l=COMPASS.cluesFor(t,{pre,skip:q.tries,v:q.v,flat:q.fm,avoid:q.v?cluesOf(q.c,0,q.fm).map(x=>x.c):[]});if(l[have.length])return l[have.length];
   // nothing fits the usual rules: the closest-to-target city nearer than the last clue, not used yet
-  const R=CITIES.filter(x=>x.c!==t.c&&!pre.includes(x.c)&&!q.tries.includes(x.c)).map(x=>({c:x.c,d:Math.round(COMPASS.dist(t,x)),b:Math.round(COMPASS.bearing(t,x))}))
+  const R=CITIES.filter(x=>x.c!==t.c&&!pre.includes(x.c)&&!q.tries.includes(x.c)).map(x=>({c:x.c,d:Math.round(COMPASS.dist(t,x)),b:dir(q,x.c)}))
     .filter(x=>x.d>=40&&(!last||x.d<last.d)).sort((a,b)=>b.d-a.d);return R[0]||null}
 // left: steps left, 5 with the first clue, 1 less for each clue more and each wrong guess, 0 = the capital goes.
 // worth: what a right answer gives now (kept in q.p): the old 5-to-1, or from Geomingo.cl3 on (Héctor 2026-11-15, x3 on the
@@ -135,12 +139,12 @@ const ptsOf=q=>q.st==='right'?(q.p||0):0;
 // points shown (Héctor 2026-11-14, the same table in every game): 15 + the 5-to-1 points, so 20 with the first clue down to 16,
 // +20 for a perfect game (all five with the first clue, no wrong guess). q.p and the history keep the old 5-to-1 points
 const show=(x,q)=>q&&q.x3?x:15+x;
-const newQ=(c,x)=>Object.assign({c,k:1,tries:[],st:'play',p:0},x?{x3:1}:{});
-const newGame=(codes,o)=>{const x=Geomingo.cl3((o||{}).date);return Object.assign({qs:codes.map(c=>newQ(c,x)),sel:0,over:false,left:null},o||{})};
+const newQ=(c,x,fm)=>Object.assign({c,k:1,tries:[],st:'play',p:0},x?{x3:1}:{},fm?{fm:1}:{});
+const newGame=(codes,o)=>{const d=(o||{}).date,x=Geomingo.cl3(d),fm=!d||d>=FLAT_FROM;return Object.assign({qs:codes.map(c=>newQ(c,x,fm)),sel:0,over:false,left:null},o||{})};
 const km=d=>EU(Math.round(d))+' km';
 const where=b=>COMPASS.dirWord(b);
 // a wrong guess, seen from the mystery capital: its distance and direction
-const seen=(q,c)=>{const t=cityBy[q.c],x=cityBy[c];return {c,d:Math.round(COMPASS.dist(t,x)),b:Math.round(COMPASS.bearing(t,x))}};
+const seen=(q,c)=>{const t=cityBy[q.c],x=cityBy[c];return {c,d:Math.round(COMPASS.dist(t,x)),b:dir(q,c)}};
 let query='',typing=false;
 // the answer box says "capital city", not "country"
 const askCityHTML=()=>askBtnHTML().replace('Type a country…','Type a capital city…');
@@ -149,7 +153,7 @@ const openSheet0=openSheet;openSheet=function(o){openSheet0(o);const q=$('sq');i
 
 /* ---- the compass: the mystery capital in the middle, clues (gold) and wrong guesses (red) on the rim ---- */
 const RIM=30,LAB=41;   // % of the box: the rim, and where the labels sit
-function compassHTML(q,o){o=o||{};const cl=shown(q),bad=q.tries.map(c=>seen(q,c));
+function compassHTML(q,o){o=o||{};const cl=shown(q).map(x=>Object.assign({},x,{b:dir(q,x.c)})),bad=q.tries.map(c=>seen(q,c));
   // with friends in turns each wrong guess is in the colour of the player who said it (Héctor 2026-11-21; q.by from ../shared/race.js)
   const badCol=x=>q.by&&q.by[x.c]!=null?`var(--p${q.by[x.c]%6})`:'var(--bad)';
   const pt=(a,r)=>[50+Math.sin(a*Math.PI/180)*r,50-Math.cos(a*Math.PI/180)*r];
@@ -184,7 +188,7 @@ function compassHTML(q,o){o=o||{};const cl=shown(q),bad=q.tries.map(c=>seen(q,c)
 // the newest news under the compass, in words
 function newsHTML(q,last){const cl=shown(q);
   if(last&&last.bad){const x=seen(q,last.c);return `<p class="cline bad"><b class="w">✗ Not ${esc(cityBy[x.c].n)}.</b> From the mystery capital, ${esc(cityBy[x.c].n)} is ${km(x.d)} to the <b>${where(x.b)}</b>.</p>`}
-  const x=cl[q.k-1];return `<p class="cline">From the mystery capital, <b>${esc(cityBy[x.c].n)}</b> is <b>${km(x.d)}</b> to the <b>${where(x.b)}</b>.</p>`}
+  const x=Object.assign({},cl[q.k-1]);x.b=dir(q,x.c);return `<p class="cline">From the mystery capital, <b>${esc(cityBy[x.c].n)}</b> is <b>${km(x.d)}</b> to the <b>${where(x.b)}</b>.</p>`}
 
 /* answering: the same box as in the other games, but capital cities (all 197, whatever the day's pool) */
 // a capital already on the compass (a clue or a wrong guess) can't be the answer
@@ -368,7 +372,7 @@ const quickRules=()=>`<section class="panel qrules"><span class="label">Quick ru
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Five mystery capitals, one at a time. Each one hides in the middle of a compass: the <b>?</b>.</li>
   <li>Other capitals appear round it in their real direction, with the distance in km. <b>Rome · 765 km</b> at the bottom left means Rome is 765 km south-west.</li>
-  <li>Any of the ${CITIES.length} national capitals can be the answer. Distances are in a straight line over the globe.</li></ul>
+  <li>Any of the ${CITIES.length} national capitals can be the answer. Distances are real km over the globe; directions are as on a flat world map.</li></ul>
   <h3>How to play</h3><ul>
   <li>Tap <b>Type a capital city…</b>, start typing and tap the capital in the list. Some other names work too (Kiev, La Paz).</li>
   <li>The first clue is far away (2.500 km or more); each next one is closer. <b>Next clue</b> adds one.</li>
@@ -382,7 +386,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. Points only, no km.</li>
   <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Five (well-known) capitals for the whole room. You take turns, 30 s each, and a random player starts. No asking for clues: a wrong guess stays on the compass for everyone, in that player's colour; running out of time opens a closer clue for the next player. Most points win.</li>
   <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, and its km count for that day.</li></ul>`}
-function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Compass: the capitals and their coordinates are the ones of Geomingo's Capitals game; distances and directions are worked out on a round Earth (radius 6.371 km).</li><li>Flags from <a href="https://github.com/hjnilsson/country-flags" target="_blank" rel="noopener">hjnilsson/country-flags</a> (from Wikimedia Commons, public domain).</li></ul>`)}
+function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Compass: the capitals and their coordinates are the ones of Geomingo's Capitals game; distances are worked out on a round Earth (radius 6.371 km), directions as straight lines on a flat world map (Mercator).</li><li>Flags from <a href="https://github.com/hjnilsson/country-flags" target="_blank" rel="noopener">hjnilsson/country-flags</a> (from Wikimedia Commons, public domain).</li></ul>`)}
 
 /* ---- the game opens straight into today's capitals, as the other games ---- */
 let view='home';
