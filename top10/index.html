@@ -37,7 +37,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611221200"></script>
+<script src="../brand/mingo.js?v=202611221500"></script>
 <script src="../brand/account.js?v=202611260100"></script>
 <script src="../brand/party.js?v=202611211900"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -96,7 +96,7 @@ body.kbon .t10list .mini{width:18px;height:18px}
 body.kbon .kbgu{display:flex;flex-direction:column;align-items:center;gap:14px}
 body.kbon .kbgu #src{align-self:center!important}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611221200">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611221500">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -139,7 +139,7 @@ const L=(id,title,get,dir,fmt,src)=>({id,title,get,dir,fmt,src});
 // figures only Top 10 uses (top10/extra-data.js)
 const X=k=>c=>num(XDATA[k][c.c]);
 // Credits: the countries' data, plus the sources of the figures only Top 10 uses
-function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Top 10's other figures, downloaded in November 2026 and each checked against a second source: McDonald's restaurants (McDonald's, with Wikipedia), coffee (FAO via Our World in Data), and Wikipedia lists (CC BY-SA 4.0) for World Cups (FIFA), temperature (World Bank) and Nobel Prizes; capitals' height (Wikipedia, with WorldAtlas); volcanoes (Smithsonian Global Volcanism Program); sheep (FAO, via World Population Review and Worldostats); immigrants (UN, via the World Bank and Wikipedia); nuclear reactors: World Nuclear Association; Olympic golds: Wikipedia and Olympedia. Gaps in Countries' figures used only here: life expectancy (UN World Population Prospects 2024, checked with the World Bank) and CO₂ per person (Global Carbon Project via Our World in Data).</li></ul>`)}
+function creditsHTML(){let own='';try{const l=S&&S.list?listById(S.list):null;if(l&&l.src)own=`<p><b>${esc(l.title)}</b><br>${esc(l.src)}</p><p class="hint">Independent countries only. Countries the source does not measure have no place.</p>`}catch(e){}return own+DATA_CREDITS.replace('</ul>',`<li>Top 10's other figures, downloaded in November 2026 and each checked against a second source: McDonald's restaurants (McDonald's, with Wikipedia), coffee (FAO via Our World in Data), and Wikipedia lists (CC BY-SA 4.0) for World Cups (FIFA), temperature (World Bank) and Nobel Prizes; capitals' height (Wikipedia, with WorldAtlas); volcanoes (Smithsonian Global Volcanism Program); sheep (FAO, via World Population Review and Worldostats); immigrants (UN, via the World Bank and Wikipedia); nuclear reactors: World Nuclear Association; Olympic golds: Wikipedia and Olympedia. Gaps in Countries' figures used only here: life expectancy (UN World Population Prospects 2024, checked with the World Bank) and CO₂ per person (Global Carbon Project via Our World in Data).</li></ul>`)}
 const BEERNOTE='Litres of beer per person in 2022. Source: Kirin Holdings, "Global Beer Consumption by Country in 2022", which gives the top 35 countries and a few others; the rest have no figure.';
 const MCDNOTE='Restaurants open on 31 December 2025. Source: McDonald\'s, "Restaurants by Market 2025" (the same numbers as Wikipedia, "List of countries with McDonald\'s restaurants"). Small markets it does not list separately come from Wikipedia, "List of countries with McDonald\'s restaurants" (Andorra 5, Fiji 5, Monaco 1, Liechtenstein 1, Samoa 1). Countries with no McDonald\'s count as 0 (the one in Cuba is on the US base at Guantánamo, so Cuba counts as 0).';
 const TEMPNOTE=NOTE('World Bank Climate Change Knowledge Portal, average for 1991–2020','List of countries by average yearly temperature');
@@ -527,7 +527,7 @@ function myStatsHTML(){const h=load('t10-hist',{}),so=load('t10-solo',null)||{n:
 const dateLabel=k=>new Date(k+'T12:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
 // the list being played: its title, the lives (or whose turn it is), the search box, the ten rows and the wrong answers
 // "Where the numbers come from": after the wrong answers, before the quick rules
-const srcHTML=`<p class="t10src" style="margin:0;text-align:center"><button class="linkbtn" id="src" style="padding:0">Where the numbers come from</button></p>`;
+const srcHTML='';
 function askHTML(tkt){const l=listById(S.list);
   return `<p class="t10q">${esc(l.title)}</p>${S.top.length>10?`<p class="hint" style="margin:0">${(t=>`${t.g.length} countries are level at #${t.p}: ${t.n>1?'any '+t.n+' of them count':t.g.length>2?'any one of them counts':'either of them counts'}.`)(tail(l,S.top))}</p>`:''}`}
 // the answer box (and Pass / Give up): right under the ten rows, before the wrong answers
@@ -682,7 +682,7 @@ Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&S&&S.mode==='daily'){
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>A top 10 of countries from real figures, for example "The 10 most populous countries". Some lists are for one continent.</li>
   <li>Name the ten, in any order. Each one you find appears in its place, with its figure.</li>
-  <li>Ties for 10th: any of them counts. Only independent countries. <b>Where the numbers come from</b> shows the source.</li></ul>
+  <li>Ties for 10th: any of them counts. Only independent countries. <b>Sources</b> at the bottom shows where the numbers come from.</li></ul>
   <h3>How to play</h3><ul>
   <li>Tap <b>Type a country…</b>, start typing and tap the country in the list. Names in English, one per country (United Kingdom, not UK). Accents and capitals don't matter.</li>
   <li>In the top 10: it appears in its place. Not in it: you lose one of your <b>${LIVES} lives</b> and see where it ranks.</li>
