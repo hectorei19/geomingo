@@ -125,7 +125,7 @@ window.GeoRace=function(cfg){
     try{const res=await ref.transaction(x=>{if(!x||x.status!=='play'||x.round!==round||movesOf(x).length!==n||!x.order)return;
         const who=x.order[x.turn||0];if(timeout?(x.tEnd!==tEnd||now()<x.tEnd):who!==ME)return;
         const mv=movesOf(x);mv.push(timeout?{p:who,a:'-',t:1}:{p:ME,a:a||'-'});x.mv=mv;
-        const g=replay(x);if(g&&g.G.over)x.tEnd=0;else{x.turn=nextTurn(x,x.turn||0);x.tEnd=now()+TURN}
+        const g=replay(x);if(g&&g.G.over)x.tEnd=0;else{x.turn=nextTurn(x,x.turn||0);x.tEnd=now()+TURN+(cfg.hold&&g&&g.last&&g.last.res==='right'?cfg.hold:0)}
         return x},undefined,false);
       return res.committed}
     catch(e){if(!timeout)toast('That did not go through. Check the connection.','bad');return false}}
@@ -136,8 +136,13 @@ window.GeoRace=function(cfg){
     if(sub)sub.textContent=Geomingo.mmss(Math.min(left,TURN));
     // the player whose turn it is passes when the time runs out; if that phone has gone, anyone does, a little later
     if(left<=(r.order[r.turn||0]===ME?-300:-2500)&&T0!==r.tEnd){T0=r.tEnd;push(null,true).then(ok=>{if(!ok)setTimeout(()=>{if(T0===r.tEnd)T0=null},3000)})}}
+  // cfg.hold (ms): a right answer stays on screen that long, for everyone, before the next one (Héctor 2026-11-22, Impostor)
+  let held='';R.hold=null;
+  R.holding=()=>R.hold&&now()<R.hold.until?R.hold:null;
   function sync(){const r=R.room;
     if(r.status==='play'&&r.seed!=null&&r.order&&cfg.move){R.T=replay(r);R.G=R.T&&R.T.G;
+      const L=R.T&&R.T.last,hk=L&&L.res==='right'&&cfg.hold?r.round+':'+movesOf(r).length:'';
+      if(hk&&hk!==held){held=hk;R.hold={i:L.i,p:L.p,pts:L.pts,k:Math.max(0,(r.order||[]).indexOf(L.p))%6,n:((r.players||{})[L.p]||{}).name||'Someone',until:now()+cfg.hold};setTimeout(()=>cfg.render(),cfg.hold+50)}
       if(R.G){R.G.mode='online';R.G.code=R.code;R.G.round=r.round;R.armed=false;R.save()}
       if(!tick&&R.G&&!R.G.over)tick=setInterval(onTick,250)}
     else if(r.status==='play'&&r.seed!=null){R.T=null;
