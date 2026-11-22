@@ -446,15 +446,17 @@ const TURN_MS=30000;
 let TT=null,turnTick=null,turnT0=null;
 const movesOf=r=>{const m=r&&r.mv;return !m?[]:Array.isArray(m)?m.filter(Boolean):Object.keys(m).sort((a,b)=>a-b).map(k=>m[k])};
 function cxReplay(r){const s=newGame('online',r.seed);if(!s)return null;s.code=roomCode;s.round=r.round;
-  const sc={},ok={},mv=movesOf(r);let last=null;
+  const sc={},ok={},mv=movesOf(r);let last=null,dry=0;s.fh=[];const np=Math.max(1,(r.order||[]).length);
+  // three full rounds with no group found: one category is shown, easiest first (Héctor 2026-11-22), and again after three more
+  const clue=()=>{if(++dry%(3*np))return;const g=hintOrder(s).find(i=>!s.found.includes(i)&&!s.fh.includes(i));if(g!=null){s.fh.push(g);last.clue=g}};
   for(const m of mv){if(s.over)break;
-    if(!m.g||m.g==='-'){last={p:m.p,t:!!m.t};continue}
+    if(!m.g||m.g==='-'){last={p:m.p,t:!!m.t};clue();continue}
     const cs=String(m.g).split(','),gs=cs.map(c=>groupOf(s,c)),counts={};gs.forEach(g=>counts[g]=(counts[g]||0)+1);
     const best=Math.max(...Object.values(counts));s.guesses.push(cs);
-    if(best===4){const g=gs[0];s.found.push(g);s.by=s.by||{};s.by[g]=m.p;s.left=s.left.filter(c=>!cs.includes(c));sc[m.p]=(sc[m.p]||0)+25;ok[m.p]=(ok[m.p]||0)+1;last={p:m.p,g};
+    if(best===4){const g=gs[0];s.found.push(g);s.by=s.by||{};s.by[g]=m.p;s.left=s.left.filter(c=>!cs.includes(c));sc[m.p]=(sc[m.p]||0)+25;ok[m.p]=(ok[m.p]||0)+1;last={p:m.p,g};dry=0;
       if(s.found.length===3){const g4=[0,1,2,3].find(i=>!s.found.includes(i));s.found.push(g4);s.left=[];last.auto=g4}
       if(s.found.length===4){s.over=true;s.won=true}}
-    else{s.mistakes++;last={p:m.p,one:best===3,bad:1}}}
+    else{s.mistakes++;last={p:m.p,one:best===3,bad:1};clue()}}
   return {S:s,sc,ok,last,n:mv.length}}
 const nextTurn=(x,from)=>{const o=x.order||[];for(let k=1;k<=o.length;k++){const j=(from+k)%o.length,p=x.players[o[j]];if(p&&p.on!==false)return j}return (from+1)%Math.max(1,o.length)};
 const myTurn=()=>!!(TT&&S&&!S.over&&room&&room.order&&room.order[room.turn||0]===ME);
@@ -486,7 +488,7 @@ const tNm=pid=>((room.players[pid]||{}).name||'Someone');
 // the ticket while playing: whose turn, the clock, what just happened, everyone's points (as in Countries, Capitals, Top 10)
 function turnTicketHTML(){const r=room,o=r.order||[],cur=o[r.turn||0],mine=cur===ME,L=TT.last;let line='';
   if(L){const who=L.p===ME?'You':tNm(L.p);
-    line=L.g!=null?`${who} found ${CATS[S.groups[L.g].k].label}: +25.`+(L.auto!=null?' The last group goes by itself.':''):L.t?`${L.p===ME?'Your':tNm(L.p)+"'s"} time ran out.`:`${who}: ${L.one?'one away':'not a group'}.`;line+=' '}
+    line=L.g!=null?`${who} found ${CATS[S.groups[L.g].k].label}: +25.`+(L.auto!=null?' The last group goes by itself.':''):L.t?`${L.p===ME?'Your':tNm(L.p)+"'s"} time ran out.`:`${who}: ${L.one?'one away':'not a group'}.`;if(L.clue!=null)line+=' Three rounds with no group: a category is shown below.';line+=' '}
   else line=`${mine?'You start':tNm(cur)+' starts'}, chosen at random. `;
   line+=mine?'Pick four countries, then Submit.':'Watch the board and get ready.';
   const stub=o.map((pid,i)=>{const p=r.players[pid]||{};return `<div class="tk-c pl${pid===cur?' on':''}${p.on===false?' off':''}"><i><span class="pin" style="${pinStyle(i)}"></span>${esc(p.name||'Gone')}</i><b>${TT.sc[pid]||0}</b></div>`}).join('')
@@ -607,7 +609,7 @@ function homeHTML(){const key=todayKey(),num=dayNum(key,CX_FIRST),d=dailySaved()
     :Geomingo.hello('pass','GeoPass ready.','Tap a country to start. Every group you find is a stamp. One try, the same 16 for everyone.');
   return header('Connec<span>tions</span>','',true)+`<section class="home">${hi}${Geomingo.account.userHTML()}${daily}${d&&d.over?rankingHTML():''}</section>
     ${rulesPanel()}`}
-const rulesPanel=(on,free)=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something. Pick four and tap <b>Submit</b>. ${on?'With friends you take turns, 30 s each. A group you find: 25 points. Wrong or out of time: the next player goes. Most points win.':`A wrong four costs one of your ${MAX_MISTAKES} lives. ${free?'25 points a group, −10 a mistake or category shown; each group found keeps at least 10.':'25 km a group, −10 km a mistake or category shown; each group found keeps at least 10 km.'}`} Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
+const rulesPanel=(on,free)=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Find four groups of four countries that share something. Pick four and tap <b>Submit</b>. ${on?'With friends you take turns, 30 s each. A group you find: 25 points. Wrong or out of time: the next player goes. Three rounds with no group: a category is shown. Most points win.':`A wrong four costs one of your ${MAX_MISTAKES} lives. ${free?'25 points a group, −10 a mistake or category shown; each group found keeps at least 10.':'25 km a group, −10 km a mistake or category shown; each group found keeps at least 10 km.'}`} Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 // the logo goes home from anywhere; in a room that means leaving it (in the middle of a game, tap twice)
 function goHome(){if(roomRef){if(S&&S.mode==='online'&&!S.over&&!leaveArmed){leaveArmed=true;render();toast('Tap again to leave the room.');return}
     leaveRoom(true);return}
@@ -649,7 +651,7 @@ function render(keepShake){
   if(!S.over){
     if(on&&TT&&!myTurn())h+=`<div class="cx-actions"><button class="ghost" id="shuf">Shuffle</button></div>${rulesPanel(on,false)}`;else
     h+=`<div class="cx-actions"><button class="ghost" id="shuf">Shuffle</button><button class="ghost" id="desel" ${sel.length?'':'disabled'}>Deselect all</button><button class="primary" id="submit" ${sel.length===4?'':'disabled'}>Submit</button></div>${on?'':giveUpHTML()}
-    ${on?'':catsHTML()}${rulesPanel(on,S.mode==='free')}`}
+    ${on?friendCatsHTML():catsHTML()}${rulesPanel(on,S.mode==='free')}`}
   app.innerHTML=h;bind();
 }
 // optional help: the categories, one at a time, easiest (yellow) first. From HINT_COST_FROM each one costs 10 points
@@ -657,11 +659,14 @@ function render(keepShake){
 const HINT_COST_FROM='2026-11-18';
 const hintsShown=()=>S.hint===true?4:+S.hint||0;
 const hintCosts=()=>!(S.mode==='daily'||S.mode==='archive')||S.date>=HINT_COST_FROM;
-function hintOrder(){return S.groups.map((g,i)=>i).sort((a,b)=>S.groups[a].t-S.groups[b].t)}
+function hintOrder(G){G=G||S;return G.groups.map((g,i)=>i).sort((a,b)=>G.groups[a].t-G.groups[b].t)}
 function catsHTML(){const n=hintsShown(),shown=hintOrder().slice(0,n),left=hintOrder().filter(i=>!shown.includes(i)&&!S.found.includes(i));
   const btn=left.length?`<button class="linkbtn cx-hintbtn" id="hint">${n?'Show another category':'Stuck? Show a category'}${hintCosts()?(S.mode==='daily'||S.mode==='archive'?' (−10 km)':' (−10 points)'):''}</button>`:'';
   if(!n)return btn;
   return `<section class="panel cx-cats"><span class="label">Categories shown</span><ul>${shown.map(i=>CATS[S.groups[i].k]).map(k=>`<li>${esc(EUT(k.label))} <button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></li>`).join('')}</ul>${btn}</section>`}
+// with friends: the categories shown after three rounds with no group (not those found since)
+function friendCatsHTML(){const l=(TT&&S&&S.fh||[]).filter(i=>!S.found.includes(i));if(!l.length||S.over)return '';
+  return `<section class="panel cx-cats"><span class="label">Clue: three rounds with no group</span><ul>${l.map(i=>CATS[S.groups[i].k]).map(k=>`<li>${esc(EUT(k.label))} <button class="ib" data-info="${k.id}" aria-label="What this category means">i</button></li>`).join('')}</ul></section>`}
 // Mingo's verdict, for the result panel
 function verdict(){const n=S.mistakes;
   return S.won?(n?{pose:'happy',t:'Visited. All four groups.',s:'All four groups, '+n+' mistake'+(n===1?'':'s')+'.'}:{pose:'happy',t:'Full page. Not a single mistake.',s:'All four groups found.'})
@@ -720,7 +725,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Daily</b>: one puzzle, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
   <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. 5 lives or <b>Unlimited</b>: pick it next to Practice on the home page. Points only, no km.</li>
-  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. One board for the whole room. You take turns, 30 s each, and a random player starts. Four that are a group: 25 points for you. Wrong or out of time: the next player goes, no points lost. When three groups are found, the last one goes by itself. Most points win.</li>
+  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. One board for the whole room. You take turns, 30 s each, and a random player starts. Four that are a group: 25 points for you. Wrong or out of time: the next player goes, no points lost. After three full rounds with no group, one category is shown by itself. When three groups are found, the last one goes by itself. Most points win.</li>
   <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, and its km count for that day.</li></ul>`}
 function bind(){
   Geomingo.where(view==='friends'||view==='room'||S&&S.mode==='online'&&view==='game'?'friends':view==='solo'||view==='game'&&S&&S.mode==='free'?'solo':''); // F5 keeps Practice / With friends
