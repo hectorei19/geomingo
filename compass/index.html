@@ -28,7 +28,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="../shared/style.css?v=202611221830">
+<link rel="stylesheet" href="../shared/style.css?v=202611221840">
 <style>
 /* Compass: the mystery capital in the middle of a compass; clue capitals appear round the rim, each in its real direction with its distance */
 .play{display:flex;flex-direction:column;gap:12px;width:100%}
@@ -62,7 +62,7 @@
 .dsq i.mid{background:var(--p2)}
 .dsq i.bad{background:var(--bad)}
 .arch .dsq{width:64px}
-.desk{display:flex;gap:6px;width:100%}
+.desk{display:flex;flex-wrap:wrap;gap:6px;width:100%}.desk>button{flex:0 0 calc((100% - 24px) / 5)!important}  /* five a row: ten with friends = two rows (Héctor 2026-11-22) */
 .desk button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px 6px;background:var(--sheet);border:2px dashed var(--line);border-radius:10px;color:var(--ink-2);font:inherit;font-size:.72rem;letter-spacing:.04em;cursor:default}
 .desk button b{font-family:var(--mono);font-size:.95rem;color:var(--ink)}
 .desk button img{height:23px;width:auto;max-width:40px;object-fit:contain;border-radius:2px;box-shadow:0 0 0 1px var(--rule)}
@@ -99,7 +99,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
-<script src="../shared/race.js?v=202611221830"></script>
+<script src="../shared/race.js?v=202611221840"></script>
 <script>
 /* ---- Compass: find the mystery capital from the capitals round it (Héctor's idea, 2026-11-10) ----
    The mystery capital is the "?" in the middle of a compass. Clue capitals appear on the rim, each in its real direction
@@ -225,7 +225,7 @@ const wrongOf=G=>G.qs.reduce((n,q)=>n+q.tries.length,0);
 const firstOf=G=>G.qs.filter(q=>q.st==='right'&&lv(q)===CLUES).length;
 // the five capitals of the game in a row: the one on screen in flamingo, the finished ones with their flag and points
 const deskHTML=G=>`<div class="desk" role="group" aria-label="The five capitals">${G.qs.map((q,i)=>{const now=i===G.sel&&!G.over&&G.left==null,cls=[now?'sel':'',q.st==='right'?'right':q.st==='wrong'?'wrong':''].join(' ');
-  return `<button data-tv="${i}" class="${cls}" aria-label="Capital ${i+1}${q.st==='play'?'':': '+esc(cityBy[q.c].n)}"${now?' aria-current="step"':''}>${q.st!=='play'?`<img src="${realFlag(cityBy[q.c].k3)}" alt=""><b>${q.st==='right'?'+'+show(q.p,q):'0'}</b>`:now?`NOW<b>${i+1}</b>`:`#${i+1}<b>–</b>`}</button>`}).join('')}</div>`;
+  return `<button data-tv="${i}" class="${cls}" aria-label="Capital ${i+1}${q.st==='play'?'':': '+esc(cityBy[q.c].n)}"${now?' aria-current="step"':''}${G.mode==='online'&&RACE.turns()?RACE.winStyle(i):''}>${q.st!=='play'?`<img src="${realFlag(cityBy[q.c].k3)}" alt=""><b>${q.st==='right'?'+'+show(q.p,q):'0'}</b>`:now?`NOW<b>${i+1}</b>`:`#${i+1}<b>–</b>`}</button>`}).join('')}</div>`;
 const cluesText=q=>q.k+' clue'+(q.k===1?'':'s')+(q.tries.length?', '+q.tries.length+' wrong':'');
 // a capital that has just finished: the compass with its name in the middle, then Next city
 function leftHTML(G,i){const q=G.qs[i],t=cityBy[q.c],ok=q.st==='right';

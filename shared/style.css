@@ -271,4 +271,4 @@ a.primary{display:block;text-align:center;text-decoration:none}
 /* With friends, end of a game in turns: every item and who got it (shared/race.js recapHTML) */
 .recap{display:flex;flex-direction:column;gap:6px;margin-top:8px}.recap>div{display:flex;align-items:center;gap:10px;padding:6px 10px;border:1px solid var(--rule);border-radius:12px}
 .recap img{width:40px;height:27px;object-fit:cover;border-radius:3px;flex:none}.recap .rn{flex:1;min-width:0}.recap .rn small{display:block;opacity:.6;font-size:.75rem}
-.recap .rw{display:flex;align-items:center;gap:6px;font-size:.9rem;text-align:right}.recap .rw .pin{width:8px;height:8px;border-radius:50%;flex:none}.recap .no{opacity:.55}
+.recap .rw{display:flex;align-items:center;gap:6px;font-size:.9rem;text-align:right}.recap .rw .pin{width:8px;height:8px;border-radius:50%;flex:none}.recap .no{opacity:.55}.recap .rp{font-family:var(--mono);color:var(--gold,#e9c46a);margin-left:4px}

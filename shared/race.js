@@ -111,13 +111,13 @@ window.GeoRace=function(cfg){
   // turns: the room's game, dealt from the seed, with every move played on it; who scored what
   const movesOf=r=>{const m=r&&r.mv;return !m?[]:Array.isArray(m)?m.filter(Boolean):Object.keys(m).sort((a,b)=>a-b).map(k=>m[k])};
   function replay(r){const G=cfg.deal(r.seed);if(!G)return null;if(cfg.prep)cfg.prep(G);
-    const sc={},ok={},win={};let last=null;
+    const sc={},ok={},win={},wp={};let last=null;
     for(const m of movesOf(r)){if(G.over)break;const i=G.sel,a=m.a&&m.a!=='-'?m.a:null,res=cfg.move(G,a)||{};
-      if(res.pts){sc[m.p]=(sc[m.p]||0)+res.pts;ok[m.p]=(ok[m.p]||0)+1;win[i]=m.p}
+      if(res.pts){sc[m.p]=(sc[m.p]||0)+res.pts;ok[m.p]=(ok[m.p]||0)+1;win[i]=m.p;wp[i]=res.pts}
       // who said each wrong answer (their place in the order = their colour), for games that show it (Compass)
       if(a&&res.res==='wrong'&&G.qs&&G.qs[i]){const q=G.qs[i];q.by=q.by||{};q.by[a]=(r.order||[]).indexOf(m.p)}
       last={p:m.p,a,t:!!m.t,res:res.res,pts:res.pts||0,i,done:G.sel!==i||G.over}}
-    G.left=null;return {G,sc,ok,win,last}}
+    G.left=null;return {G,sc,ok,win,wp,last}}
   const nextTurn=(x,from)=>{const o=x.order||[];for(let k=1;k<=o.length;k++){const j=(from+k)%o.length,p=x.players[o[j]];if(p&&p.on!==false)return j}return (from+1)%Math.max(1,o.length)};
   // a move on my turn (or a pass for whoever let the time run out): only if nothing moved since
   async function push(a,timeout){const r=R.room;if(!ref||!r||!r.order)return false;
@@ -184,6 +184,8 @@ window.GeoRace=function(cfg){
   // turns: is it my turn; play my answer (null: pass). Returns the result on a copy of the game, so the page can stamp
   // a right answer or say "try again" (res 'again': nothing is sent and it is still my turn)
   R.turns=()=>!!R.T;
+  // turns: the colour of the player who got item i (their place in the order), or '' (Héctor 2026-11-22: the tiles on top show who got each one)
+  R.winStyle=i=>{const w=R.T&&R.T.win[i];if(!w)return '';const k=Math.max(0,((R.room&&R.room.order)||[]).indexOf(w))%6;return ` style="border-color:var(--p${k});box-shadow:inset 0 0 0 1px var(--p${k})"`};
   R.myTurn=()=>!!(R.T&&R.G&&!R.G.over&&R.room.order&&R.room.order[R.room.turn||0]===ME);
   R.play=a=>{if(!R.myTurn()){toast('Wait for your turn.');return null}
     const G=JSON.parse(JSON.stringify(R.G)),i=G.sel,res=cfg.move(G,a||null)||{};res.q=G.qs&&G.qs[i];
@@ -213,8 +215,8 @@ window.GeoRace=function(cfg){
   </section>${R.recapHTML()}`};
   // turns, at the end: every item, its answer and who got it (Héctor 2026-11-22, like Silhouette)
   R.recapHTML=()=>{const G=R.G,T=R.T;if(!T||!G||!G.over||!G.qs)return '';const o=(R.room&&R.room.order)||[],pl=(R.room&&R.room.players)||{};
-    return `<section class="panel"><span class="label">The ${G.qs.length} ${cfg.items||'questions'}</span><div class="recap">${G.qs.map((q,i)=>{const w=T.win[i],k=o.indexOf(w);
-      return `<div>${cfg.thumb?cfg.thumb(G,i):''}<span class="rn"><small>${esc(cfg.itemName?cfg.itemName(i):'Question '+(i+1))}</small>${esc(cfg.ansName(cfg.sol(G,i)))}</span><span class="rw">${w?`<span class="pin" style="${pinStyle(Math.max(0,k))}"></span>${esc((pl[w]||{}).name||'Gone')}`:'<span class="no">Nobody</span>'}</span></div>`}).join('')}</div></section>`};
+    return `<section class="panel"><span class="label">The ${G.qs.length} ${cfg.items||'questions'}</span><div class="recap">${G.qs.map((q,i)=>{const w=T.win[i],k=Math.max(0,o.indexOf(w))%6;
+      return `<div${w?` style="border-color:var(--p${k})"`:''}>${cfg.thumb?cfg.thumb(G,i):''}<span class="rn"><small>${esc(cfg.itemName?cfg.itemName(i):'Question '+(i+1))}</small>${esc(cfg.ansName(cfg.sol(G,i)))}</span><span class="rw">${w?`<span class="pin" style="${pinStyle(k)}"></span>${esc((pl[w]||{}).name||'Gone')} <b class="rp">+${T.wp[i]||0}</b>`:'<span class="no">Nobody · 0</span>'}</span></div>`}).join('')}</div></section>`};
   // the buttons of these screens (call from the page's bind())
   R.bind=()=>{
     if($('rematch'))$('rematch').onclick=start;
