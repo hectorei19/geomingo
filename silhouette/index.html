@@ -23,8 +23,8 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611221600"></script>
-<script src="../brand/account.js?v=202611260200"></script>
-<script src="../brand/party.js?v=202611221700"></script>
+<script src="../brand/account.js?v=202611260300"></script>
+<script src="../brand/party.js?v=202611221730"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -336,7 +336,7 @@ function turnTry(r,pid,code,t){const k=r.round,a=(((r.ans||{})[k]||{})[pid])||{}
   const right=!!code&&code===r.qs[k].c;
   if(right){a.ok=true;a.ms=Math.max(0,t-r.start);a.pts=10}else a.tries.push(code||'-');
   r.ans=r.ans||{};r.ans[k]=r.ans[k]||{};r.ans[k][pid]=a;r.ev={p:pid,c:code||'-',ok:right?1:0,k};
-  r.tc=(r.tc||0)+1;
+  r.tc=(r.tc||0)+1;r.mc=(r.mc||0)+1;
   if(right||r.tc>=tHere(r).length){r.status='reveal';r.revealEnd=t+REVEAL_MS}
   else{r.turn=tNext(r,r.turn||0);r.tEnd=t+TURN_S*1000;r.end=r.tEnd}
   return r}
@@ -493,7 +493,7 @@ async function onlineAct(kind){
       if(order.length<2)return;
       r.order=order;r.v=ROOM_V;r.qs=dealShapes();r.ans=null;r.round=0;r.status='round';r.start=now()+READY_MS;r.end=r.start+SECS*1000;r.revealEnd=0;
       // turns: a random player starts (Héctor 2026-11-21)
-      r.turns=1;r.turn=Math.floor(Math.random()*order.length);r.tc=0;r.ev=null;r.tEnd=r.start+TURN_S*1000;r.end=r.tEnd;return r}
+      r.turns=1;r.turn=Math.floor(Math.random()*order.length);r.tc=0;r.mc=0;r.ev=null;r.tEnd=r.start+TURN_S*1000;r.end=r.tEnd;return r}
     if(kind==='end'){if(r.host!==ME||r.status==='lobby')return;r.status='over';return r}
     if(kind==='lobby'){if(r.host!==ME)return;r.status='lobby';r.order=null;r.qs=null;r.ans=null;r.round=0;r.turns=null;r.ev=null;return r}
   })}catch(e){console.error(e);toast('That did not go through. Check the connection.','bad')}}
@@ -501,7 +501,7 @@ const ranked=()=>[...O.players].sort((a,b)=>b.total-a.total||a.ms-b.ms||a.i-b.i)
 // the room's own screen (../brand/party.js) shows the players and the code: this game shows only its header there
 function friendsHTML(){return header('Silhou<span>ette</span>','')}
 // the one room for all nine games (../brand/party.js) drives this game's room
-if(Geomingo.party)Geomingo.party.game({points:()=>O?ranked().map(p=>({n:p.name,p:p.total||0})):[],room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
+if(Geomingo.party)Geomingo.party.game({turns:()=>room&&room.mc||0,points:()=>O?ranked().map(p=>({n:p.name,p:p.total||0})):[],room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
   count:()=>room?lobbyOrder(room).length:0,names:()=>room?lobbyOrder(room).map(k=>room.players[k].name):[],create:createRoom,join:joinRoom,start:()=>onlineAct('start')});
 function lobbyHTML(){return header('Silhou<span>ette</span>','')}
 function boardRowsHTML(roundPts){const me=ME;

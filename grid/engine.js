@@ -629,6 +629,7 @@ function syncRoom(){
 }
 function ensureTick(){clearInterval(tick);if(S&&S.timer&&!S.over)tick=setInterval(onTick,250)}
 function advance(r,len){
+  r.mc=(r.mc||0)+1;   // turns played, for the With friends room: a game ended early counts only after 5 rounds
   const filled=Object.keys(r.cells||{}).length;
   // With friends: a wrong answer, a pass or time up are all a turn with no stamp; three full rounds with no stamp
   // from anyone end the game, so nobody stays stuck on a hard grid (Héctor 2026-11-22)
@@ -669,7 +670,7 @@ async function onlineAct(kind){
       if(r.host!==ME)return;
       const order=kind==='start'?lobbyOrder(r):(r.order||lobbyOrder(r)).filter(pid=>r.players[pid]);
       if(order.length<2)return;
-      r.order=order;r.seed=freshSeed(r.cfg.n);{const gg=gridFor(r.cfg.n,r.seed);r.rows=gg.rows;r.cols=gg.cols}r.v=APP_VERSION;r.cells=null;r.passes=0;r.wrong=0;r.turn=Math.floor(Math.random()*order.length);r.status='playing';
+      r.order=order;r.seed=freshSeed(r.cfg.n);{const gg=gridFor(r.cfg.n,r.seed);r.rows=gg.rows;r.cols=gg.cols}r.v=APP_VERSION;r.cells=null;r.passes=0;r.wrong=0;r.mc=0;r.turn=Math.floor(Math.random()*order.length);r.status='playing';
       r.started=Date.now()+offset;
       r.deadline=r.cfg.timer?Date.now()+offset+r.cfg.timer*1000:0;
       r.ev={id:evId(),kind:'',text:(kind==='start'?'Game on. ':'Rematch. New grid. ')+(r.players[order[r.turn]].name)+' starts.'};return r}
@@ -685,7 +686,7 @@ async function tryTimeout(turn,deadline){
     r.passes=(r.passes||0)+1;r.ev={id:evId(),kind:'bad',text:"Time's up for "+nm+'.'};advance(r,r.order.length);return r})}catch(e){}
 }
 // the one room for all nine games (../brand/party.js) drives this game's room
-if(Geomingo.party)Geomingo.party.game({points:()=>S&&S.mode==='online'&&S.players?S.players.map(p=>({n:p.name,p:Math.max(0,Math.round(p.score||0))})):[],room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
+if(Geomingo.party)Geomingo.party.game({turns:()=>room&&room.mc||0,points:()=>S&&S.mode==='online'&&S.players?S.players.map(p=>({n:p.name,p:Math.max(0,Math.round(p.score||0))})):[],room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
   count:()=>room?lobbyOrder(room).length:0,names:()=>room?lobbyOrder(room).map(k=>room.players[k].name):[],create:createRoom,join:joinRoom,start:()=>onlineAct('start')});
 /* ---- new version check ---- */
 let newVersion=false;

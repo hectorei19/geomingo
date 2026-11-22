@@ -38,8 +38,8 @@
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611221600"></script>
-<script src="../brand/account.js?v=202611260200"></script>
-<script src="../brand/party.js?v=202611221700"></script>
+<script src="../brand/account.js?v=202611260300"></script>
+<script src="../brand/party.js?v=202611221730"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -465,7 +465,7 @@ function syncRoom(){const r=room;
   clearInterval(tick);if(S.timer&&!S.over)tick=setInterval(onTick,250);
   render()}
 // next turn: the next player who is online (or simply the next one); the game ends when the ten are found or everyone passed in a row
-function advance(r){const order=r.order,len=order.length;
+function advance(r){const order=r.order,len=order.length;r.mc=(r.mc||0)+1;
   if(Object.keys(r.found||{}).length>=10||(r.passes||0)>=len){r.status='over';r.deadline=0;return}
   const t=r.turn||0;let next=-1;
   for(let s=1;s<=len&&next<0;s++){const i=(t+s)%len;if((r.players[order[i]]||{}).on!==false)next=i}
@@ -500,7 +500,7 @@ async function onlineAct(kind){
     if(kind==='start'||kind==='rematch'){if(r.host!==ME)return;
       const order=(kind==='start'?lobbyOrder(r):(r.order||lobbyOrder(r))).filter(pid=>r.players[pid]&&(kind==='start'||r.players[pid].on!==false));
       if(order.length<2)return;
-      r.order=order;r.list=randomList(r.list);r.v=ROOM_V;r.found=null;r.wrong=null;r.lives=null;r.k=0;r.passes=0;r.turn=Math.floor(Math.random()*order.length);r.status='playing';
+      r.order=order;r.list=randomList(r.list);r.v=ROOM_V;r.found=null;r.wrong=null;r.lives=null;r.k=0;r.passes=0;r.mc=0;r.turn=Math.floor(Math.random()*order.length);r.status='playing';
       r.deadline=r.cfg.timer?now()+r.cfg.timer*1000:0;
       r.ev={id:evId(),kind:'',text:(kind==='start'?'Game on. ':'Rematch: a new list. ')+r.players[order[r.turn]].name+' starts.'};return r}
     if(kind==='lobby'){if(r.host!==ME)return;r.status='lobby';r.order=null;r.list=null;r.found=null;r.wrong=null;r.lives=null;r.deadline=0;return r}
@@ -591,7 +591,7 @@ function goHome(){if(roomCode){if(!confirm('Leave the room and go to the home sc
 // the room's own screen (../brand/party.js) shows the players and the code: this game shows only its header there
 function friendsHTML(){return header('Top <span>10</span>','')}
 // the one room for all nine games (../brand/party.js) drives this game's room
-if(Geomingo.party)Geomingo.party.game({points:()=>S&&S.mode==='online'&&S.players?S.players.map(p=>({n:p.name,p:p.score||0})):[],room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
+if(Geomingo.party)Geomingo.party.game({turns:()=>room&&room.mc||0,points:()=>S&&S.mode==='online'&&S.players?S.players.map(p=>({n:p.name,p:p.score||0})):[],room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
   count:()=>room?lobbyOrder(room).length:0,names:()=>room?lobbyOrder(room).map(k=>room.players[k].name):[],create:createRoom,join:joinRoom,start:()=>onlineAct('start')});
 function lobbyHTML(){return header('Top <span>10</span>','')}
 function onlineHTML(){const cur=S.players[S.turn]||{};
