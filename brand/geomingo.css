@@ -653,7 +653,10 @@ button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
 .gm-dc-ok{margin:0;text-align:center;font-size:13px;color:var(--muted)}
 .gm-dc>svg.mingo{position:absolute;top:10px;right:14px}
 
-.gm-links{display:flex;align-items:center;justify-content:center;margin-top:18px;color:var(--muted);font-size:14px}
-.gm-links button,.gm-links a{display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:10px 4px;font:inherit;color:inherit;text-decoration:none;cursor:pointer}
-.gm-links button:hover,.gm-links a:hover{color:var(--ink);text-decoration:underline}
+.gm-foot{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:18px}
+.gm-ig{display:inline-flex;align-items:center;gap:8px;padding:10px 4px;color:var(--muted);font-size:14px;text-decoration:none}
+.gm-ig:hover{color:var(--ink);text-decoration:underline}
+.gm-links{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px}
+.gm-links button{background:none;border:0;padding:10px 4px;font:inherit;color:inherit;cursor:pointer}
+.gm-links button:hover{color:var(--ink);text-decoration:underline}
 .gm-links i{font-style:normal}
