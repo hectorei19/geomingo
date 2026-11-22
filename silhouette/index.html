@@ -325,7 +325,7 @@ function creditsHTML(){return `<ul style="padding-left:18px">
    SECS seconds and ends early once everyone has named it or used their tries. A right answer scores 10 (a level total
    goes to the faster one). Each phone writes only its own answer (ans/<round>/<player>); whoever is online moves the room on. */
 const FB_OK=()=>typeof firebase!=='undefined'&&typeof firebase.database==='function'&&!!(window.FIREBASE_CONFIG&&/^https:\/\//.test(FIREBASE_CONFIG.databaseURL||''));
-const ROOM_V='sil-202611020600',MAXP=6,ROUNDS=10,SECS=20,READY_MS=3000,REVEAL_MS=6000;
+const ROOM_V='sil-202611020600',MAXP=6,ROUNDS=10,SECS=20,READY_MS=3000,REVEAL_MS=3000;
 /* Turns (Héctor 2026-11-21: every game with friends in turns). A room with turns:1 plays one shape at a time for the
    whole room: a random player starts, then each player in order, TURN_S seconds a turn. Right: 10 points and the shape
    is shown. Wrong or time up: the next player tries the same shape. When everyone here has tried once and missed,
