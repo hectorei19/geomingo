@@ -28,7 +28,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="../shared/style.css?v=202611221840">
+<link rel="stylesheet" href="../shared/style.css?v=202611221900">
 <style>
 /* Customs: one traveller at a time at the desk, five clues opened one by one, the answer box under them */
 .play{display:flex;flex-direction:column;gap:12px;width:100%}
@@ -402,7 +402,7 @@ function goHome(){view='home';toastMsg=null;drawToast();query='';typing=false;re
    The room's game is played with the Solo moves (T is the room's game while view is 'room'). */
 // FR: items in a game with friends (Héctor 2026-11-22: ten, like Silhouette)
 const FR=10;
-const RACE=GeoRace({game:'customs',key:'cu',name:'Customs',total:FR,what:'the same ten travellers',items:'travellers',itemName:i=>'Traveller '+(i+1),thumb:(G,i)=>`<img src="${flagSrc(G.qs[i].c)}" alt="">`,
+const RACE=GeoRace({game:'customs',key:'cu',name:'Customs',total:FR,what:'the same ten travellers',hold:2500,items:'travellers',itemName:i=>'Traveller '+(i+1),thumb:(G,i)=>`<img src="${flagSrc(G.qs[i].c)}" alt="">`,
   deal:seed=>{const pool=SOV.filter(c=>(DATA.pop[c.c]||0)>=1e7).map(c=>c.c).sort();return {qs:shuffle(pool,rngFrom(seed)).slice(0,FR).map(c=>newQ(c,rngFrom(seedOf(seed+':'+c)))),sel:0,over:false,left:null}},
   points:pointsOf,right:rightOf,shareLine:G=>G.qs.map(sq).join(''),header,render:()=>render(),
   // turns: a wrong answer or Next clue opens the next clue for the next player (20, 15, 10, 5, 3)
@@ -413,6 +413,10 @@ function roomPick(code){const r=RACE.play(code);if(!r)return;query='';typing=fal
 function roomPass(){RACE.play(null)}
 function roomHTML(){if(!RACE.inGame())return RACE.lobbyHTML();
   let h=header('Customs','Room '+RACE.code)+RACE.backHTML()+RACE.scoresHTML();
+  // turns: a traveller just named stays a moment, its sentences marked and the points big, before the next one
+  const hd=RACE.turns()&&RACE.holding();
+  if(hd){const L=T.left;T.left=hd.i;const body=playHTML(T).replace(/<button class="primary" id="nexttv">[\s\S]*?<\/button>/,'');T.left=L;
+    return h+RACE.turnTicket()+`<section class="panel turns">${body}</section><div class="bigpts" style="--pc:var(--p${hd.k})"><b>+${hd.pts}</b><span>${esc(hd.n)}</span></div>`}
   if(T.over&&T.left==null)return h+RACE.resultHTML()+(RACE.turns()?'':summaryHTML(T));  // turns: the room's list of who got each one replaces it (race.js recapHTML)
   if(RACE.turns())return h+RACE.turnTicket()+`<section class="panel turns${RACE.myTurn()?'':' turnwait'}">${playHTML(T).replace(giveUpHTML(),'')}</section>`;  // turns: only the player whose turn it is answers, nobody gives up
   return h+ticketHTML(T,'online')+`<section class="panel">${playHTML(T)}</section>`}
