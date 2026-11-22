@@ -44,6 +44,7 @@
 /* phones: the answer sheet shows the shape small next to the question, so you still see it with the keyboard open */
 .sheet .q .ssil{width:64px;height:64px;flex:none;color:var(--ink)}
 .sheet .q .ssil .sil{width:100%;height:100%;display:block}
+.said{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}.said span{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:14px;border:1px solid var(--line,#2a3447);font-size:.85rem}.said s{text-decoration-thickness:1.5px;opacity:.85}.said .pin{width:8px;height:8px;border-radius:50%;display:inline-block}
 .tries{display:flex;align-items:center;gap:8px;font-size:.95rem;color:var(--ink-2)}
 .tries i{width:12px;height:12px;border-radius:50%;background:var(--flamingo)}
 .tries i.off{background:transparent;box-shadow:inset 0 0 0 1.5px var(--rule)}
@@ -309,7 +310,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Daily</b>: nine shapes, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
   <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. 5 lives or <b>Unlimited</b>: pick it next to Practice on the home page. Points only, no km.</li>
-  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Ten shapes, getting harder: 7 north up (the first 3 well known), then 3 turned at a random angle. One shape at a time for the whole room. You take turns, 30 s each, and a random player starts. Right: 10 points and the next shape. Wrong or out of time: the next player tries the same shape. If everyone misses it, it is shown and the next one comes. Most points win.</li>
+  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Ten shapes, getting harder (the first well known); 3 of them, at random places, are turned at a random angle (it says Turned shape). One shape at a time for the whole room. You take turns, 30 s each, and a random player starts. Right: 10 points and the next shape. Wrong or out of time: the next player tries the same shape, and everyone sees what was said. Everyone gets two tries per shape; if nobody names it, it is shown and the next one comes. Most points win.</li>
   <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, and its km count for that day.</li></ul>`}
 function creditsHTML(){return `<ul style="padding-left:18px">
   <li>Borders: <a href="https://github.com/topojson/world-atlas" target="_blank" rel="noopener">world-atlas</a>, from <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> 1:10m (public domain); Vatican City from <a href="https://www.geoboundaries.org" target="_blank" rel="noopener">geoBoundaries</a> (public domain). Each country is drawn on its own map centred on itself, so no shape is stretched or cut by the date line.</li>
@@ -337,7 +338,7 @@ function turnTry(r,pid,code,t){const k=r.round,a=(((r.ans||{})[k]||{})[pid])||{}
   if(right){a.ok=true;a.ms=Math.max(0,t-r.start);a.pts=10}else a.tries.push(code||'-');
   r.ans=r.ans||{};r.ans[k]=r.ans[k]||{};r.ans[k][pid]=a;r.ev={p:pid,c:code||'-',ok:right?1:0,k};
   r.tc=(r.tc||0)+1;r.mc=(r.mc||0)+1;
-  if(right||r.tc>=tHere(r).length){r.status='reveal';r.revealEnd=t+REVEAL_MS}
+  if(right||r.tc>=2*tHere(r).length){r.status='reveal';r.revealEnd=t+REVEAL_MS}
   else{r.turn=tNext(r,r.turn||0);r.tEnd=t+TURN_S*1000;r.end=r.tEnd}
   return r}
 let db=null,room=null,roomRef=null,roomCode=null,joining=false,offset=0,tick=null,O=null;
@@ -360,7 +361,10 @@ function needName(){saveSetup();const an=ACN();if(an){setup.fname=an;return fals
 // the ten shapes of a game, getting harder: three Easy, then four Normal countries not in the Easy list, then three turned
 function dealShapes(){const pick=(pool,n,not)=>shuffled(pool.map(c=>c.c).filter(c=>!not.includes(c)),Math.random).slice(0,n);
   const a=pick(poolOf('easy'),3,[]),b=pick(poolOf('normal').filter(c=>!c.e),4,a),h=pick(poolOf('normal'),3,[...a,...b]);
-  return [...a.map(c=>({c,rot:0,d:'easy'})),...b.map(c=>({c,rot:0,d:'normal'})),...h.map(c=>({c,rot:hardTurn(Math.random),d:'hard'}))]}
+  const out=[...a.map(c=>({c,rot:0,d:'easy'})),...b.map(c=>({c,rot:0,d:'normal'}))];
+  // the three turned shapes go at random places among the ten, not always last (Héctor 2026-11-22)
+  h.forEach(c=>out.splice(Math.floor(Math.random()*(out.length+1)),0,{c,rot:hardTurn(Math.random),d:'hard'}));
+  return out}
 const SIGNED=()=>!!(window.Geomingo&&Geomingo.account&&Geomingo.account.user);
 async function createRoom(){if(!SIGNED()&&!(Geomingo.party&&Geomingo.party.on())){Geomingo.account.signIn();return}  // a game opened from the With friends room: its organiser may have no account
   if(needName())return;
@@ -483,7 +487,7 @@ function onTick(){if(!O){clearInterval(tick);return}const t=now();
       if(bar)bar.style.width=Math.max(0,left/(SECS*1000)*100)+'%';if(sub)sub.textContent=Math.max(0,Math.ceil(left/1000))+' s'}
     // the host moves the room on; if the host has gone, anyone does, a little later
     if(left<=(O.host?0:-2500))moveOn()}
-  else if(O.status==='reveal'){const left=O.revealEnd-t,sub=$('tleft');if(sub)sub.textContent='Next shape in '+Math.max(0,Math.ceil(left/1000))+' s';
+  else if(O.status==='reveal'){const left=O.revealEnd-t,sub=$('tleft');if(sub)sub.textContent=Geomingo.mmss(Math.max(0,left));
     if(left<=(O.host?0:-2500))moveOn()}}
 async function onlineAct(kind){
   try{await roomRef.transaction(r=>{
@@ -528,9 +532,14 @@ function onlineHTML(){const q=O.q,t=now(),ready=O.status==='round'&&t<O.start;
   h+=`</section><div class="row-btns">${O.host?'<button class="ghost" id="oend" style="flex:1">End game</button>':''}<button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;
   return h}
 // a game in turns: the turn ticket (as in Countries, Capitals, Top 10), the shape, the answer box only on my turn
+// every answer said on this shape, with who said it, for everyone in the room (Héctor 2026-11-22)
+function saidHTML(){const a=(room.ans||{})[O.round]||{},o=room.order||[];
+  const said=o.flatMap((pid,i)=>((a[pid]||{}).tries||[]).filter(c=>c&&c!=='-'&&byCode[c]).map(c=>({pid,i,c})));
+  if(!said.length)return '';
+  return '<div class="said">'+said.map(x=>{const p=O.players.find(y=>y.pid===x.pid);return `<span><i class="pin" style="${pinStyle(x.i)}"></i>${esc(p?p.name:'Someone')}: <s>${esc(byCode[x.c].n)}</s></span>`}).join('')+'</div>'}
 function turnPlayHTML(ready){const q=O.q,nm=pid=>{const p=O.players.find(x=>x.pid===pid);return p?p.name:'Someone'},cur=O.cur,mine=O.myTurn,E=O.ev;
   let line='';
-  if(O.status==='reveal')line=O.winner?`${O.winner===ME?'You':nm(O.winner)} named it: +10.`:'Nobody got it this time.';
+  if(O.status==='reveal')line=(O.winner?`${O.winner===ME?'You':nm(O.winner)} named it: +10.`:'Nobody got it this time.')+(O.round+1<O.n?' Next shape soon.':'');
   else if(E&&E.k===O.round){const who=E.p===ME?'You':nm(E.p);line=(E.c==='-'?`${E.p===ME?'Your':nm(E.p)+"'s"} time ran out.`:`${who} said ${byCode[E.c]?byCode[E.c].n:E.c}: no.`)+' '}
   else line=O.round===0?`${mine?'You start':nm(cur)+' starts'}, chosen at random. `:'';
   if(O.status!=='reveal')line+=`Shape ${O.round+1} of ${O.n}, worth 10.`;
@@ -540,8 +549,8 @@ function turnPlayHTML(ready){const q=O.q,nm=pid=>{const p=O.players.find(x=>x.pi
   let h=Geomingo.ticket(Geomingo.hello(O.status==='reveal'&&O.winner===ME?'happy':'think',title,line,{key:'turn'}),stub,{timer:30,color:`var(--p${Math.max(0,(room.order||[]).indexOf(cur))%6})`,mode:'friends'});
   h+=`<section class="panel play">`;
   if(ready)h+=`<div class="silbox ready"><p class="big" style="margin:auto;text-align:center;align-self:center">Get ready</p></div>`;
-  else if(O.status==='reveal'){h+=silBoxHTML({...q,st:q.st==='right'?'right':'wrong'})+revealHTML({...q,st:q.st==='right'?'right':'wrong'},q.st==='right'?'+10':'')+`<span class="label">After shape ${O.round+1}</span>`+boardRowsHTML(true)}
-  else{h+=silBoxHTML(q)+triesHTML(q,false,null)+(mine?answerBoxHTML(q):'')}
+  else if(O.status==='reveal'){h+=silBoxHTML({...q,st:q.st==='right'?'right':'wrong'})+revealHTML({...q,st:q.st==='right'?'right':'wrong'},q.st==='right'?'+10':'')+saidHTML()+`<span class="label">After shape ${O.round+1}</span>`+boardRowsHTML(true)}
+  else{h+=silBoxHTML(q)+triesHTML({...q,tries:[]},false,null)+saidHTML()+(mine?answerBoxHTML(q):'')}
   h+=`</section><div class="row-btns">${O.host?'<button class="ghost" id="oend" style="flex:1">End game</button>':''}<button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;
   return h}
 function bindOnline(){
