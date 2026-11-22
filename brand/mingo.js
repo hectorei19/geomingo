@@ -752,7 +752,7 @@ const withOld=(res,q,pool)=>{const o=oldName(q);if(!o||res.some(c=>c.c===o))retu
   document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-gm-foot]');if(!b)return;const g=window.Geomingo;if(!g)return;
     ({faq:()=>g.openFaq(),contact:()=>g.openFeedback('Contact'),privacy:()=>g.openPrivacy(),sources:()=>{const c=document.getElementById('creditsbtn');c?c.click():g.openCredits()}})[b.dataset.gmFoot]()});
   const IG=LINKS;
-  function put(){q=false;document.querySelectorAll('.gm-done-btns').forEach(b=>{
+  function put(){q=false;document.querySelectorAll('footer.foot').forEach(f=>{if(!f.querySelector('.gm-foot'))f.insertAdjacentHTML('beforeend',LINKS)});document.querySelectorAll('.gm-done-btns').forEach(b=>{
     if(b.classList.contains('gm-solo-btns')||!document.querySelector('.ticket.gm-done')||(b.nextElementSibling&&b.nextElementSibling.classList.contains('gm-foot')))return;
     b.insertAdjacentHTML('afterend',IG)})}
   new MutationObserver(()=>{if(!q){q=true;requestAnimationFrame(put)}}).observe(document.documentElement,{childList:true,subtree:true});
