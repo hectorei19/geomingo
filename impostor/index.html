@@ -66,6 +66,10 @@
 .arch .dsq{width:72px}
 .hflags{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;width:100%;margin-top:4px}
 .hflags img{width:100%;height:auto;align-self:center;border-radius:2px;box-shadow:0 0 0 1px var(--rule)}
+.bigpts{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:50;display:flex;flex-direction:column;align-items:center;gap:4px;padding:18px 30px;border-radius:22px;background:var(--sheet);border:3px solid var(--pc);box-shadow:0 10px 40px rgba(0,0,0,.5);pointer-events:none;animation:bigpts 2.4s ease forwards}
+.bigpts b{font:800 3.2rem/1 var(--display,inherit);color:var(--pc)}.bigpts span{font-weight:700;font-size:1rem}
+@keyframes bigpts{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}25%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%) scale(1)}}
+@media (prefers-reduced-motion:reduce){.bigpts{animation:none}}
 .desk{display:flex;flex-wrap:wrap;gap:6px;width:100%}.desk>button{flex:0 0 calc((100% - 24px) / 5)!important}  /* five a row: ten with friends = two rows (Héctor 2026-11-22) */
 .desk button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px 6px;background:var(--sheet);border:2px dashed var(--line);border-radius:10px;color:var(--ink-2);font:inherit;font-size:.7rem;cursor:default}
 .desk button b{font-family:var(--mono);font-size:.95rem;color:var(--ink)}
@@ -115,7 +119,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
-<script src="../shared/race.js?v=202611221840"></script>
+<script src="../shared/race.js?v=202611221900"></script>
 <script src="facts.js?v=202611141130"></script>
 <script src="lies.js?v=202611221830"></script>
 <script>
@@ -346,7 +350,7 @@ function goHome(){view='home';toastMsg=null;drawToast();chosen=null;render();win
    The room's game is played with the Solo moves (T is the room's game while view is 'room'). */
 // FR: items in a game with friends (Héctor 2026-11-22: ten, like Silhouette)
 const FR=10;
-const RACE=GeoRace({game:'impostor',key:'im',name:'Impostor',total:FR,what:'the same ten rounds',items:'rounds',itemName:i=>'Round '+(i+1)+' · the impostor',
+const RACE=GeoRace({game:'impostor',key:'im',name:'Impostor',total:FR,what:'the same ten rounds',hold:2500,items:'rounds',itemName:i=>'Round '+(i+1)+' · the impostor',
   deal:seed=>{const g=dealLies(rngFrom(seed),null,null,FR);return g?newGame(g):null},
   points:pointsOf,right:rightOf,shareLine:G=>G.qs.map(sq).join(''),header,render:()=>render(),
   // turns: a wrong pick shows that sentence is true and the next player goes on (20, 15, 10, 5, 3); time up changes nothing
@@ -356,6 +360,10 @@ const RACE=GeoRace({game:'impostor',key:'im',name:'Impostor',total:FR,what:'the 
 function roomPick(){if(!chosen)return;const c=chosen;chosen=null;const r=RACE.play(c);if(r&&r.res==='right')feedback(r.q,'right')}
 function roomHTML(){if(!RACE.inGame())return RACE.lobbyHTML();
   let h=header('Impostor','Room '+RACE.code)+RACE.backHTML()+RACE.scoresHTML();
+  // turns: a round just caught stays a moment, its sentences marked and the points big, before the next one
+  const hd=RACE.turns()&&RACE.holding();
+  if(hd){const L=T.left;T.left=hd.i;const body=playHTML(T).replace(/<button class="primary" id="nexttv">[\s\S]*?<\/button>/,'');T.left=L;
+    return h+RACE.turnTicket()+`<section class="panel turns">${body}</section><div class="bigpts" style="--pc:var(--p${hd.k})"><b>+${hd.pts}</b><span>${esc(hd.n)}</span></div>`}
   if(T.over&&T.left==null)return h+RACE.resultHTML()+(RACE.turns()?'':summaryHTML(T));  // turns: the room's list of who got each one replaces it (race.js recapHTML)
   if(RACE.turns())return h+RACE.turnTicket()+`<section class="panel turns${RACE.myTurn()?'':' turnwait'}">${playHTML(T).replace(giveUpHTML(),'')}</section>`;  // turns: only the player whose turn it is answers, nobody gives up
   return h+ticketHTML(T,'online')+`<section class="panel">${playHTML(T)}</section>`}
