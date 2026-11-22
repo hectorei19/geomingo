@@ -1,5 +1,5 @@
 {
-"_about": "Hand checks that build.js applies on top of the measured pies (2026-11-16). lay: the design clue for every flag, written by hand after looking at each one (the measured stripes were wrong for flags with a big star or emblem, e.g. Myanmar). Rules: count every stripe you can see, thin ones too; 'and a design' = anything that is not a stripe (star, emblem, triangle, band at the side, small box in the corner). names: colour names that the hue rule got wrong (light blues and greens called Turquoise, gold called Olive).",
+"_about": "Hand checks that build.js applies on top of the measured pies (2026-11-16). lay: the design clue for every flag, written by hand after looking at each one (the measured stripes were wrong for flags with a big star or emblem, e.g. Myanmar). Rules: count every stripe you can see, thin ones too; 'and a design' = anything that is not a stripe (star, emblem, triangle, band at the side, small box in the corner). names: colour names that the hue rule got wrong (light blues and greens called Turquoise, gold called Olive, gold called Orange: Kosovo, South Africa, Montenegro, San Marino, 2026-11-22).",
 "names": {
  "AZE": {"Turquoise": "Light blue"},
  "CMR": {"Turquoise": "Green"},
@@ -10,12 +10,15 @@
  "LCA": {"Turquoise": "Light blue"},
  "LKA": {"Turquoise": "Green"},
  "LUX": {"Turquoise": "Light blue"},
+ "MNE": {"Yellow": "Gold", "Orange": "Dark gold"},
  "MOZ": {"Turquoise": "Green"},
  "PLW": {"Turquoise": "Light blue"},
  "RWA": {"Turquoise": "Light blue"},
- "SMR": {"Dark light blue": "Light blue", "Light light blue": "Pale blue"},
+ "SMR": {"Dark light blue": "Light blue", "Light light blue": "Pale blue", "Yellow": "Gold", "Orange": "Dark gold"},
  "TUV": {"Turquoise": "Light blue"},
- "TZA": {"Turquoise": "Light blue"}
+ "TZA": {"Turquoise": "Light blue"},
+ "UNK": {"Orange": "Gold"},
+ "ZAF": {"Orange": "Gold"}
 },
 "lay": {
  "AFG": "3 vertical stripes and a design",
