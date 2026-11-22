@@ -34,7 +34,7 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .chip.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
 .chip b{font-family:var(--mono);font-weight:500}
 
-.board-wrap{overflow-x:auto}
+.board-wrap{overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.board-wrap::-webkit-scrollbar{display:none}  /* no scroll bars around the grid (Héctor 2026-11-22) */
 .board{display:grid;gap:0;background:var(--sheet);border:1.5px solid var(--ink);border-radius:4px;box-shadow:var(--shadow)}
 .hd{padding:6px 5px;font-size:.8rem;font-weight:600;line-height:1.15;display:flex;flex-direction:column;justify-content:center;gap:3px;border-color:var(--rule);border-style:dashed;border-width:0;text-wrap:balance;overflow-wrap:anywhere;hyphens:auto}
 .hd .ref{font-family:var(--mono);font-size:.62rem;color:var(--sea);font-weight:500;letter-spacing:.05em}
@@ -257,6 +257,7 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .flagbox{width:100%;height:100%;border-radius:4px;background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:flex-end;overflow:hidden;border:3px solid var(--pc,var(--sea));box-shadow:0 0 0 2px var(--pc-soft,transparent)}
 .flagbox .nm{width:100%;background:rgba(8,16,26,.66);color:#fff;padding:2px 3px 3px;font-weight:600;text-align:center;overflow-wrap:normal;line-height:1.05}
 .b5 .cell.flag{padding:3.5px}
+.cs{--pc:var(--coral-deep);--pc-soft:color-mix(in srgb,var(--coral-deep) 22%,transparent)}  /* Solo / daily squares keep the Geomingo coral */
 .c0{--pc:var(--p0);--pc-soft:color-mix(in srgb,var(--p0) 22%,transparent)}.c1{--pc:var(--p1);--pc-soft:color-mix(in srgb,var(--p1) 22%,transparent)}.c2{--pc:var(--p2);--pc-soft:color-mix(in srgb,var(--p2) 22%,transparent)}.c3{--pc:var(--p3);--pc-soft:color-mix(in srgb,var(--p3) 22%,transparent)}
 .mini{width:20px;height:20px;border-radius:3px;object-fit:cover;flex:none;vertical-align:-5px;box-shadow:0 0 0 1px var(--rule)}
 /* Mingo's bubble over the grid, and the result panel */

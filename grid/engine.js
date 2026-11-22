@@ -845,7 +845,7 @@ function dailyBoard(saved){
   rows.forEach((rk,i)=>{
     h+=`<div class="hd rowh" data-info="${rk}" role="button" tabindex="0" aria-label="${esc(EUT(CATS[rk].label))}: explain"><span class="ref">${rowRef(i)}</span><span class="ht">${titleWithInfo(CATS[rk].short)}</span></div>`;
     for(let j=0;j<n;j++){const ci=i*n+j,cell=saved&&saved.cells[ci];
-      if(cell&&cell.o>=0){const c=byCode[cell.c];h+=`<div class="cell taken flag">${stampCell(c,cell,'c0')}</div>`}
+      if(cell&&cell.o>=0){const c=byCode[cell.c];h+=`<div class="cell taken flag">${stampCell(c,cell,'cs')}</div>`}
       else h+=`<button class="cell" data-dcell="${ci}" aria-label="Square ${colRef(j)+rowRef(i)}: start today's grid"><span class="plus"></span></button>`}
   });
   return h+`</div></div>`;
@@ -923,7 +923,7 @@ function gameView(){
       if(cell.o>=0){const c=byCode[cell.c];
         // a fresh stamp drops onto the square, leaves a gold ring and its points float up (Héctor 2026-11-21, idea 1)
         const fly=ui.fresh===ci?`<span class="gm-ring" aria-hidden="true"></span><span class="gm-fly" aria-hidden="true">+${(cell.p||0)+(cell.sb||0)}${kmsq()&&S.daily?' km':''}</span>`:'';
-        h+=`<button class="cell taken flag ${ui.fresh===ci?'new':''}" data-cell="${ci}" aria-label="${ref}: ${esc(c.n)}">${stampCell(c,cell,S.mode==='solo'?'c0':'c'+cell.o)}${fly}</button>`;
+        h+=`<button class="cell taken flag ${ui.fresh===ci?'new':''}" data-cell="${ci}" aria-label="${ref}: ${esc(c.n)}">${stampCell(c,cell,S.mode==='solo'?'cs':'c'+cell.o)}${fly}</button>`;
       }else if(S.over){
         h+=`<button class="cell miss" data-cell="${ci}" aria-label="${ref}: show answers"><span class="nm">${S.answers[ci].length} possible</span></button>`;
       }else h+=`<button class="cell ${ui.sel===ci?'sel':''}${ui.bad===ci?' bad':''}" data-cell="${ci}" aria-label="Square ${ref}"><span class="plus"></span>${ui.bad===ci?'<span class="gm-x" aria-hidden="true">✕</span>':''}</button>`;

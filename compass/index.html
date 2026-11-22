@@ -28,7 +28,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="../shared/style.css?v=202611221900">
+<link rel="stylesheet" href="../shared/style.css?v=202611221905">
 <style>
 /* Compass: the mystery capital in the middle of a compass; clue capitals appear round the rim, each in its real direction with its distance */
 .play{display:flex;flex-direction:column;gap:12px;width:100%}
@@ -83,7 +83,7 @@
 .hcmp .mini{width:52px;height:52px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;color:var(--gold);font-size:1.3rem;background:var(--bg)}
 .hcmp img{width:52px;height:auto;align-self:center;border-radius:3px}
 </style>
-<link rel="stylesheet" href="../brand/geomingo.css?v=202611221530">
+<link rel="stylesheet" href="../brand/geomingo.css?v=202611222000">
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -99,7 +99,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
-<script src="../shared/race.js?v=202611221900"></script>
+<script src="../shared/race.js?v=202611222000"></script>
 <script>
 /* ---- Compass: find the mystery capital from the capitals round it (Héctor's idea, 2026-11-10) ----
    The mystery capital is the "?" in the middle of a compass. Clue capitals appear on the rim, each in its real direction
@@ -230,7 +230,7 @@ const cluesText=q=>q.k+' clue'+(q.k===1?'':'s')+(q.tries.length?', '+q.tries.len
 // a capital that has just finished: the compass with its name in the middle, then Next city
 function leftHTML(G,i){const q=G.qs[i],t=cityBy[q.c],ok=q.st==='right';
   return `<div class="reveal${ok?'':' wrong'}"><span class="label">City ${i+1} of ${G.qs.length}</span>${compassHTML(q,{done:1})}<b class="ln">${esc(t.n)}</b><span class="ls">Capital of ${esc(coName(t))}</span><span class="lst">${ok?'STAMPED':'MISSED'}</span>
-    <span class="ls">${ok?'+'+show(q.p,q)+' points · '+cluesText(q):'0 points'+(q.tries.length?' · you said '+q.tries.map(x=>esc(cityBy[x].n)).join(', '):'')}</span>
+    <span class="ls">${ok?'+'+show(q.p,q)+' points · '+cluesText(q):'0 points'+(q.tries.length?(G.mode==='online'?' · tried ':' · you said ')+q.tries.map(x=>esc(cityBy[x].n)).join(', '):'')}</span>
     <button class="primary" id="nexttv">${G.over?'See your result':'Next city →'}</button></div>`}
 // the play area: the five capitals, the compass, the latest news, the next-clue line, the answer box
 function playHTML(G){let h=deskHTML(G);
@@ -415,7 +415,7 @@ function roomHTML(){if(!RACE.inGame())return RACE.lobbyHTML();
   // turns: a capital just named stays a moment, its sentences marked and the points big, before the next one
   const hd=RACE.turns()&&RACE.holding();
   if(hd){const L=T.left;T.left=hd.i;const body=playHTML(T).replace(/<button class="primary" id="nexttv">[\s\S]*?<\/button>/,'');T.left=L;
-    return h+RACE.turnTicket()+`<section class="panel turns">${body}</section><div class="bigpts" style="--pc:var(--p${hd.k})"><b>+${hd.pts}</b><span>${esc(hd.n)}</span></div>`}
+    return h+RACE.turnTicket()+`<section class="panel turns">${body}</section>${hd.ok?`<div class="bigpts" style="--pc:var(--p${hd.k})"><b>+${hd.pts}</b><span>${esc(hd.n)}</span></div>`:''}`}
   if(T.over&&T.left==null)return h+RACE.resultHTML()+(RACE.turns()?'':summaryHTML(T));  // turns: the room's list of who got each one replaces it (race.js recapHTML)
   if(RACE.turns())return h+RACE.turnTicket()+`<section class="panel turns${RACE.myTurn()?'':' turnwait'}">${playHTML(T).replace(giveUpHTML(),'')}</section>`;  // turns: only the player whose turn it is answers, nobody gives up
   return h+ticketHTML(T,'online')+`<section class="panel">${playHTML(T)}</section>`}

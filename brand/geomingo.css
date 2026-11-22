@@ -30,7 +30,7 @@
   --pink-soft:color-mix(in srgb,var(--coral) 15%,var(--page)); --lagoon:var(--blue); --lagoon-soft:var(--sea-soft); --on-lagoon:var(--page);
   --leaf:var(--green); --leaf-text:var(--green); --sun:var(--gold); --sky:var(--blue); --sand:var(--page);
   /* player and group colours: stamp inks */
-  --p0:var(--coral-deep); --p1:var(--blue); --p2:var(--gold); --p3:var(--violet); --p4:var(--green); --p5:var(--clay);
+  --p0:var(--blue); --p1:var(--gold); --p2:var(--violet); --p3:#4CC3C3; --p4:var(--clay); --p5:#D77BD6;  /* players: never red or green, those mean wrong and right (Héctor 2026-11-22) */
   --p0-soft:color-mix(in srgb,var(--p0) 18%,var(--page)); --p1-soft:color-mix(in srgb,var(--p1) 18%,var(--page));
   --p2-soft:color-mix(in srgb,var(--p2) 24%,var(--page)); --p3-soft:color-mix(in srgb,var(--p3) 18%,var(--page));
   --p4-soft:color-mix(in srgb,var(--p4) 18%,var(--page)); --p5-soft:color-mix(in srgb,var(--p5) 18%,var(--page));
