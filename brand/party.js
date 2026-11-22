@@ -142,7 +142,7 @@ function share(){const link=location.origin+'/?party='+code();
   const t='Play Geomingo with me: room '+code()+'\n'+link;
   if(navigator.share&&matchMedia('(pointer:coarse)').matches){navigator.share({text:t}).catch(()=>{});return}
   try{navigator.clipboard.writeText(link).then(()=>H.toast('Link copied.','good'),()=>H.toast(link))}catch(e){H.toast(link)}}
-const RULES='<p class="pt-rules">Every game uses the daily\'s rules with a new random puzzle (never today\'s). No lives. All nine are played in turns, 30&nbsp;s each. After each game the host picks: play again or another game. <b>End room</b> shows the final ranking.</p>';
+const RULES='<p class="pt-rules">Every game uses the daily\'s rules with a new random puzzle (never today\'s). No lives. All nine are played in turns, 30&nbsp;s each. After each game the host picks: play again or another game. If the host ends a game early, it counts once 5 rounds are played. <b>End room</b> shows the final ranking.</p>';
 function startHTML(){const sg=SIGNED();
   return '<div class="pt-card"><h3>Create a room</h3><p>'+(sg?'You get a code to send to your friends. Then you pick the games, one after another.':'Sign in to create a room. Your friends join with your code, no account needed.')+'</p>'+
     '<button class="pt-btn" id="pcreate">'+(sg?'Create room':'Sign in to create a room')+'</button></div>'+
@@ -324,15 +324,18 @@ function again(){const n=PG.n,id=R&&R.res&&R.res[n]&&R.res[n].g||(R&&R.cur&&R.cu
 function other(){const n=PG.n,go=()=>{location.href=homeURL()};if(!ref){go();return}
   ref.child('cur').transaction(x=>{if(!x||x.n!==n)return;x.home=true;return x},undefined,false).then(go,go)}
 // Exit: a friend leaves this game (it goes on without them, they can rejoin from the room); the organiser ends it for everyone
-function exitAsk(){const host=R&&R.host===PID;
+// a game ended early counts once 5 rounds are played (every player had 5 turns), Héctor 2026-11-22; before that it is left out
+const ROUNDS=5;
+const roundsDone=()=>{if(!A||!A.turns||!ours())return 0;const n=Math.max(1,(A.points?A.points():[]).length||(R.cur&&R.cur.exp)||2);return Math.floor(A.turns()/n)};
+function exitAsk(){const host=R&&R.host===PID,rd=roundsDone(),counts=rd>=ROUNDS;
   sheet('<div class="pt-sh-h"><h3>'+(host?'End this game?':'Leave this game?')+'</h3><button class="pt-x" data-pclose>Close</button></div>'+
-    '<p class="pt-sh-p">'+(host?'Everyone goes back to the room. The points so far count.':'You go back to the room. The others keep playing, and you can rejoin.')+'</p>'+
+    '<p class="pt-sh-p">'+(host?(counts?'Everyone goes back to the room. The points so far count.':'Everyone goes back to the room. Only '+rd+' of '+ROUNDS+' rounds played, so this game does not count.'):'You go back to the room. The others keep playing, and you can rejoin.')+'</p>'+
     '<button class="pt-btn pt-red" data-pgo>'+(host?'End game for everyone':'Leave game')+'</button>',()=>{
     if(!host){left=true;ss.set('gm-pleft',PG.code+':'+PG.n);location.href=homeURL();return}
     // the points so far count (Héctor 2026-11-21): they go into the room's table like a finished game's
     const n=PG.n,go=()=>{location.href=homeURL()},
-      s=(A&&A.points&&ours()?A.points():[]).filter(x=>x&&x.n).map(x=>({n:String(x.n).slice(0,16),p:Math.max(0,Math.round(+x.p||0))}));
-    const saved=R.res&&R.res[n]?Promise.resolve():ref.child('res/'+n).transaction(x=>x?undefined:{g:(R.cur&&R.cur.g)||'',s},undefined,false);
+      s=(counts&&A&&A.points&&ours()?A.points():[]).filter(x=>x&&x.n).map(x=>({n:String(x.n).slice(0,16),p:Math.max(0,Math.round(+x.p||0))}));
+    const saved=R.res&&R.res[n]||!s.length?Promise.resolve():ref.child('res/'+n).transaction(x=>x?undefined:{g:(R.cur&&R.cur.g)||'',s},undefined,false);
     saved.catch(()=>{}).then(()=>ref.child('cur').transaction(x=>{if(!x||x.n!==n)return;x.end=true;return x},undefined,false)).then(go,go)})}
 // every half second: make the game's room, join it, count down 3·2·1 together, start it, then step out of the way
 function drive(){if(!PG||!A||!R)return;const c=R.cur||{},g=gameOf(c.g),rc=(A.room&&A.room())||'';
