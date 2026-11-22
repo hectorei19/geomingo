@@ -273,7 +273,7 @@ a.primary{display:block;text-align:center;text-decoration:none}
 .recap img{width:40px;height:27px;object-fit:cover;border-radius:3px;flex:none}.recap .rn{flex:1;min-width:0}.recap .rn small{display:block;opacity:.6;font-size:.75rem}
 .recap .rw{display:flex;align-items:center;gap:6px;font-size:.9rem;text-align:right}.recap .rw .pin{width:8px;height:8px;border-radius:50%;flex:none}.recap .no{opacity:.55}.recap .rp{font-family:var(--mono);color:var(--gold,#e9c46a);margin-left:4px}
 /* With friends in turns: a right answer stays a moment with the points big (race.js cfg.hold) */
-.bigpts{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:50;display:flex;flex-direction:column;align-items:center;gap:4px;padding:18px 30px;border-radius:22px;background:var(--sheet);border:3px solid var(--pc);box-shadow:0 10px 40px rgba(0,0,0,.5);pointer-events:none;animation:bigpts 2.4s ease forwards}
-.bigpts b{font:800 3.2rem/1 var(--display,inherit);color:var(--pc)}.bigpts span{font-weight:700;font-size:1rem}
+.bigpts{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:50;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 20px;border-radius:16px;background:var(--sheet);border:3px solid var(--pc);box-shadow:0 10px 40px rgba(0,0,0,.5);pointer-events:none;animation:bigpts 2.4s ease forwards}
+.bigpts b{font:800 2.1rem/1 var(--display,inherit);color:var(--pc)}.bigpts span{font-weight:700;font-size:.85rem}
 @keyframes bigpts{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}25%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%) scale(1)}}
 @media (prefers-reduced-motion:reduce){.bigpts{animation:none}}
