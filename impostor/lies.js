@@ -1068,7 +1068,7 @@ const LIES_BANK=[
 ['HRV',0,'science','Nikola Tesla was born in me.','In Smiljan, in 1856.','2026-11-21'],
 ['GBR',0,'science','Charles Darwin was born in me.','In Shrewsbury, in 1809.','2026-11-21'],
 ['ITA',0,'science','Galileo was born in me.','In Pisa, in 1564.','2026-11-21'],
-['PER',0,'writer','The writer Isabel Allende was born in me.','In Lima. She is Chilean.','2026-11-21'],
+['PER',0,'writer','The writer Isabel Allende was born in me.','She was born in Lima, Peru, although she is a Chilean writer.','2026-11-21'],
 ['RUS',0,'writer','Leo Tolstoy was born in me.','He wrote "War and Peace".','2026-11-21'],
 ['POL',0,'pope','Pope John Paul II was born in me.','In Wadowice, in 1920.','2026-11-21'],
 ['DEU',0,'pope','Pope Benedict XVI was born in me.','In Bavaria, in 1927.','2026-11-21'],
