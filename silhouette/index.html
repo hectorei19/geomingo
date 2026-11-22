@@ -310,7 +310,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Daily</b>: nine shapes, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
   <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. 5 lives or <b>Unlimited</b>: pick it next to Practice on the home page. Points only, no km.</li>
-  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Ten shapes, getting harder (the first well known); 3 of them, at random places, are turned at a random angle (it says Turned shape). One shape at a time for the whole room. You take turns, 30 s each, and a random player starts. Right: 10 points and the next shape. Wrong or out of time: the next player tries the same shape, and everyone sees what was said. If everyone misses it, it is shown and the next one comes. Most points win.</li>
+  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Ten shapes, getting harder (the first well known); 3 of them, at random places, are turned at a random angle (it says Turned shape). One shape at a time for the whole room. You take turns, 30 s each, and a random player starts. Right: 10 points and the next shape. Wrong or out of time: the next player tries the same shape, and everyone sees what was said. Everyone gets two tries per shape; if nobody names it, it is shown and the next one comes. Most points win.</li>
   <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, and its km count for that day.</li></ul>`}
 function creditsHTML(){return `<ul style="padding-left:18px">
   <li>Borders: <a href="https://github.com/topojson/world-atlas" target="_blank" rel="noopener">world-atlas</a>, from <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> 1:10m (public domain); Vatican City from <a href="https://www.geoboundaries.org" target="_blank" rel="noopener">geoBoundaries</a> (public domain). Each country is drawn on its own map centred on itself, so no shape is stretched or cut by the date line.</li>
@@ -338,7 +338,7 @@ function turnTry(r,pid,code,t){const k=r.round,a=(((r.ans||{})[k]||{})[pid])||{}
   if(right){a.ok=true;a.ms=Math.max(0,t-r.start);a.pts=10}else a.tries.push(code||'-');
   r.ans=r.ans||{};r.ans[k]=r.ans[k]||{};r.ans[k][pid]=a;r.ev={p:pid,c:code||'-',ok:right?1:0,k};
   r.tc=(r.tc||0)+1;r.mc=(r.mc||0)+1;
-  if(right||r.tc>=tHere(r).length){r.status='reveal';r.revealEnd=t+REVEAL_MS}
+  if(right||r.tc>=2*tHere(r).length){r.status='reveal';r.revealEnd=t+REVEAL_MS}
   else{r.turn=tNext(r,r.turn||0);r.tEnd=t+TURN_S*1000;r.end=r.tEnd}
   return r}
 let db=null,room=null,roomRef=null,roomCode=null,joining=false,offset=0,tick=null,O=null;
