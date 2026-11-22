@@ -746,6 +746,15 @@ const withOld=(res,q,pool)=>{const o=oldName(q);if(!o||res.some(c=>c.c===o))retu
     .observe(document.documentElement,{childList:true,subtree:true});
 })();
 
+/* Follow us on Instagram: one small link under Share on the daily done screen of every game (Héctor 2026-11-22) */
+(function(){let q=false;
+  const IG='<a class="gm-ig" href="https://www.instagram.com/geomingogames/" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6" fill="currentColor"/></svg>Follow us on Instagram</a>';
+  function put(){q=false;document.querySelectorAll('.gm-done-btns').forEach(b=>{
+    if(b.classList.contains('gm-solo-btns')||!document.querySelector('.ticket.gm-done')||(b.nextElementSibling&&b.nextElementSibling.classList.contains('gm-ig')))return;
+    b.insertAdjacentHTML('afterend',IG)})}
+  new MutationObserver(()=>{if(!q){q=true;requestAnimationFrame(put)}}).observe(document.documentElement,{childList:true,subtree:true});
+})();
+
 window.Geomingo={HOME,GAMES,live,game,dayKey,madridParts,msToMidnight,dateText,result,playedToday,nextGame,
   days,streak,streakInfo,openDay,dayInfo,pass,stamp,stamps,stampHTML,openPass,atlas,atlasFromList,country,countriesMine,countriesSeen,countriesKnown,EXPERT,CORE,TIERS,gameVisas,specialVisas,challengeVisas,ATLAS,GBIT,ABIT,LEVELS,ALL5,ALLN,ALLW,pts,cxPts,clPts,soloTicket,archTicket,archListBtn,KM,KM_FROM,KMSQ_FROM,newKm,imp3,impNew,IMP3,impRound,imp5,IMP5_FROM,cl3,clNew,CL3,clFlag,ledger,ARL,archDone,rowKm,dayTotal,level,geo,visas,clock,secText,mmss,mingo,hello,tk,ticket,doneTicket,traveller,header,passBtn,
   openWindow,closeWindow,esc,refreshPass,room,where,mode,askedDay,ARCH_FROM,archNo,lives,setLives,stat,statTo,PAGE,oldName,withOld,onStamp:f=>stampHooks.push(f),share:name=>'Geomingo · '+name,fresh:FRESH};
