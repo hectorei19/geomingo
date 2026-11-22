@@ -125,7 +125,7 @@ function sheet(html,go){if(sh){sh.remove();sh=null}if(!html)return;
 async function pick(id){if(!ref||!R||R.host!==PID)return;
   const n=((R.cur&&R.cur.n)||0)+1;
   try{const res=await ref.transaction(x=>{if(!x||x.host!==PID)return;const c=x.cur||{};
-      x.cur={n,g:id,room:'',exp:here(x).length,t:now()};return x});
+      x.cur={n,g:id,room:'',exp:here(x).length,t:now()};return x},undefined,false);
     sheet('');if(res.committed)location.href=gameURL(id,n)}
   catch(e){sheet('');H.toast('That did not go through. Check the connection.','bad')}}
 function open(){if(!code())return;whenFB(()=>listen(code(),(r,was,gone)=>{
@@ -187,7 +187,10 @@ function bind(){const $=id=>document.getElementById(id);
   if($('pinvite'))$('pinvite').onclick=share;
   if($('pleave'))$('pleave').onclick=()=>{if(R&&R.host===PID)endAsk();else if(confirm('Leave the room?'))leave()};
   if($('pdone'))$('pdone').onclick=()=>{stop();keepMine(null);draw()};
-  H.el.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>ask(b.dataset.pick))}
+  // a tap on a game starts it for everyone at once, no window in between (Héctor 2026-11-22)
+  H.el.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{if(!R||busy)return;
+    if(here(R).length<2){H.toast('Wait for at least one friend: send them the code.','bad');return}
+    busy=true;b.style.opacity='.6';pick(b.dataset.pick).finally(()=>{busy=false;b.style.opacity=''})})}
 // the home page hands over the box to draw in and how to draw a game tile; ?party=ABCD (an invite link) joins that room
 function home(o){H=o;addCSS();H.toast=H.toast||toast;ss.set('gm-pg',null);
   const q=INVITE;INVITE='';
