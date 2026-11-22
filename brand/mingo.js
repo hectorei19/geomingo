@@ -748,10 +748,12 @@ const withOld=(res,q,pool)=>{const o=oldName(q);if(!o||res.some(c=>c.c===o))retu
 
 /* Follow us on Instagram: one small link under Share on the daily done screen of every game (Héctor 2026-11-22) */
 (function(){let q=false;
-  const TIP='<div class="gm-tip"><p>Enjoying Geomingo? It\'s free and ad-free.</p><a href="https://ko-fi.com/geomingo" target="_blank" rel="noopener"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h13v4a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H16M8 3v3M12 3v3"/></svg>Buy me a coffee</a></div>';
-  const IG=TIP+'<a class="gm-ig" href="https://www.instagram.com/geomingogames/" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6" fill="currentColor"/></svg>Follow us on Instagram</a>';
+  const LINKS='<nav class="gm-links" aria-label="About Geomingo"><button data-gm-foot="faq">FAQ</button><i aria-hidden="true">·</i><button data-gm-foot="contact">Contact</button><i aria-hidden="true">·</i><button data-gm-foot="privacy">Privacy</button><i aria-hidden="true">·</i><button data-gm-foot="sources">Sources</button></nav>';
+  document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-gm-foot]');if(!b)return;const g=window.Geomingo;if(!g)return;
+    ({faq:()=>g.openFaq(),contact:()=>g.openFeedback('Contact'),privacy:()=>g.openPrivacy(),sources:()=>g.openCredits()})[b.dataset.gmFoot]()});
+  const IG='<a class="gm-ig" href="https://www.instagram.com/geomingogames/" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6" fill="currentColor"/></svg>Follow us on Instagram</a>'+LINKS;
   function put(){q=false;document.querySelectorAll('.gm-done-btns').forEach(b=>{
-    if(b.classList.contains('gm-solo-btns')||!document.querySelector('.ticket.gm-done')||(b.nextElementSibling&&b.nextElementSibling.classList.contains('gm-tip')))return;
+    if(b.classList.contains('gm-solo-btns')||!document.querySelector('.ticket.gm-done')||(b.nextElementSibling&&b.nextElementSibling.classList.contains('gm-ig')))return;
     b.insertAdjacentHTML('afterend',IG)})}
   new MutationObserver(()=>{if(!q){q=true;requestAnimationFrame(put)}}).observe(document.documentElement,{childList:true,subtree:true});
 })();
