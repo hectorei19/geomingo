@@ -44,6 +44,7 @@
 /* phones: the answer sheet shows the shape small next to the question, so you still see it with the keyboard open */
 .sheet .q .ssil{width:64px;height:64px;flex:none;color:var(--ink)}
 .sheet .q .ssil .sil{width:100%;height:100%;display:block}
+.recap{display:flex;flex-direction:column;gap:6px;margin-top:8px}.recap div{display:flex;align-items:center;gap:10px;padding:6px 10px;border:1px solid var(--line,#2a3447);border-radius:12px}.recap svg{width:40px;height:40px;flex:none}.recap .rn{flex:1;min-width:0}.recap .rn small{display:block;opacity:.6;font-size:.75rem}.recap .rw{display:flex;align-items:center;gap:6px;font-size:.9rem;text-align:right}.recap .rw .pin{width:8px;height:8px;border-radius:50%}.recap .no{opacity:.55}
 .said{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}.said span{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:14px;border:1px solid var(--line,#2a3447);font-size:.85rem}.said s{text-decoration-thickness:1.5px;opacity:.85}.said .pin{width:8px;height:8px;border-radius:50%;display:inline-block}
 .tries{display:flex;align-items:center;gap:8px;font-size:.95rem;color:var(--ink-2)}
 .tries i{width:12px;height:12px;border-radius:50%;background:var(--flamingo)}
@@ -324,7 +325,7 @@ function creditsHTML(){return `<ul style="padding-left:18px">
    SECS seconds and ends early once everyone has named it or used their tries. A right answer scores 10 (a level total
    goes to the faster one). Each phone writes only its own answer (ans/<round>/<player>); whoever is online moves the room on. */
 const FB_OK=()=>typeof firebase!=='undefined'&&typeof firebase.database==='function'&&!!(window.FIREBASE_CONFIG&&/^https:\/\//.test(FIREBASE_CONFIG.databaseURL||''));
-const ROOM_V='sil-202611020600',MAXP=6,ROUNDS=10,SECS=20,READY_MS=3000,REVEAL_MS=6000;
+const ROOM_V='sil-202611020600',MAXP=6,ROUNDS=10,SECS=20,READY_MS=3000,REVEAL_MS=3000;
 /* Turns (Héctor 2026-11-21: every game with friends in turns). A room with turns:1 plays one shape at a time for the
    whole room: a random player starts, then each player in order, TURN_S seconds a turn. Right: 10 points and the shape
    is shown. Wrong or time up: the next player tries the same shape. When everyone here has tried once and missed,
@@ -512,6 +513,10 @@ function boardRowsHTML(roundPts){const me=ME;
   return `<table class="sttab rank"><tr><th>#</th><th>Player</th>${roundPts?'<th>Shape</th>':''}<th>Total</th></tr>${ranked().map((p,k)=>`<tr class="${p.pid===me?'me':''}"><td>${k+1}</td><td><span class="pin" style="${pinStyle(p.i)}"></span> ${esc(p.name)}${p.on?'':' <span class="tag">offline</span>'}</td>${roundPts?`<td>${p.cur.ok?'+'+p.cur.pts:p.cur.tries&&p.cur.tries.length?'✗':'–'}</td>`:''}<td>${p.total}</td></tr>`).join('')}</table>`}
 // a chip per player: total so far, a tick once they are done with this shape
 const chipsHTML=()=>O.players.map(p=>`<div class="tk-c pl ${doneOf(p.cur)?'on':''} ${p.on?'':'off'}"><i><span class="pin" style="${pinStyle(p.i)}"></span>${esc(p.name)}</i><b>${p.total}${p.cur.ok?' ✓':''}</b></div>`).join('');
+// the end of a friends game: every shape, what it was and who named it (Héctor 2026-11-22)
+function recapHTML(){const r=room,ans=r.ans||{},pl=O.players;
+  return `<section class="panel recap-p"><span class="label">The ${r.qs.length} shapes</span><div class="recap">${r.qs.map((q,k)=>{const by=pl.filter(p=>((ans[k]||{})[p.pid]||{}).ok);
+    return `<div>${silSVG(q.c,q.rot)}<span class="rn"><small>Shape ${k+1}</small>${esc(byCode[q.c]?byCode[q.c].n:q.c)}</span><span class="rw">${by.length?by.map(p=>`<span class="pin" style="${pinStyle(p.i)}"></span>${esc(p.name)}`).join(' '):'<span class="no">Nobody</span>'}</span></div>`}).join('')}</div></section>`}
 function onlineHTML(){const q=O.q,t=now(),ready=O.status==='round'&&t<O.start;
   let h=header('Silhou<span>ette</span>','room '+roomCode);
   if(O.status==='over'){const rk=ranked(),best=rk[0],tie=rk.length>1&&rk[1].total===best.total,mine=rk.find(p=>p.pid===ME);
@@ -519,7 +524,7 @@ function onlineHTML(){const q=O.q,t=now(),ready=O.status==='round'&&t<O.start;
     if(mine&&room&&room.qs)logFriends('sil-friends',roomCode+':'+room.qs.map(q=>q.c).join(''),1+rk.filter(p=>p.total>mine.total).length,mine.total);
     h+=`<section class="panel"><span class="label">Room ${roomCode} · final ranking</span><p class="big">${tie?"It's a tie":esc(best.name)+' wins'}</p>${boardRowsHTML(false)}
       ${O.host?`<div class="row-btns"><button class="primary" id="orematch" style="flex:1">Rematch</button><button class="ghost" id="olobby" style="flex:1">Back to room</button></div>`:(Geomingo.party&&Geomingo.party.on()?'':'<p class="hint">Waiting for the host to start a rematch.</p>')}</section>
-      <div class="row-btns"><button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;return h}
+      ${recapHTML()}<div class="row-btns"><button class="ghost" id="leave" style="flex:1">Leave room</button></div>`;return h}
   if(O.turns)return h+turnPlayHTML(ready);
   const say=Geomingo.hello('pass','Shape '+(O.round+1)+' of '+O.n+'.',(DIFF_NAME[q.d]||'')+' level. '+'No lives: keep trying. If points are level, the faster one wins.');
   h+=Geomingo.ticket(say,`<div id="ochips" style="display:contents">${chipsHTML()}</div>`+tk('Time',`<span id="tleft">${ready?'Get ready…':O.status==='reveal'?'':Math.max(0,Math.ceil((O.end-t)/1000))+' s'}</span>`,'tk-name'),{timer:O.status==='round'&&!ready,mode:'friends'});
