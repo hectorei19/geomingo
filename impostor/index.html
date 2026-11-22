@@ -28,7 +28,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="../shared/style.css?v=202611221830">
+<link rel="stylesheet" href="../shared/style.css?v=202611221840">
 <style>
 /* Impostor: six countries in a 3 x 2 grid, the clues of the round under them, then Next clue */
 .play{display:flex;flex-direction:column;gap:12px;width:100%}
@@ -66,7 +66,7 @@
 .arch .dsq{width:72px}
 .hflags{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;width:100%;margin-top:4px}
 .hflags img{width:100%;height:auto;align-self:center;border-radius:2px;box-shadow:0 0 0 1px var(--rule)}
-.desk{display:flex;gap:6px;width:100%}
+.desk{display:flex;flex-wrap:wrap;gap:6px;width:100%}.desk>button{flex:0 0 calc((100% - 24px) / 5)!important}  /* five a row: ten with friends = two rows (Héctor 2026-11-22) */
 .desk button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px 6px;background:var(--sheet);border:2px dashed var(--line);border-radius:10px;color:var(--ink-2);font:inherit;font-size:.7rem;cursor:default}
 .desk button b{font-family:var(--mono);font-size:.95rem;color:var(--ink)}
 .desk button img{height:20px;width:auto;max-width:36px;object-fit:contain;border-radius:2px;box-shadow:0 0 0 1px var(--rule)}
@@ -115,7 +115,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
-<script src="../shared/race.js?v=202611221830"></script>
+<script src="../shared/race.js?v=202611221840"></script>
 <script src="facts.js?v=202611141130"></script>
 <script src="lies.js?v=202611221830"></script>
 <script>
@@ -155,7 +155,7 @@ const firstOf=G=>G.qs.filter(q=>q.st==='right'&&q.k===1).length;
 
 // the six rounds in a row: the one on screen in flamingo, the finished ones with the impostor's flag and the points
 const deskHTML=G=>`<div class="desk" role="group" aria-label="The rounds">${G.qs.map((q,i)=>{const now=i===G.sel&&!G.over&&G.left==null,cls=[now?'now':'',q.st==='right'?'right':q.st==='wrong'?'wrong':''].join(' ');
-  return `<button data-tv="${i}" class="${cls}" aria-label="Round ${i+1}${q.st==='play'?'':': '+esc(nameOf(q.c))}"${now?' aria-current="step"':''}>${q.st!=='play'?`<img src="${flagOf(q.c)}" alt=""><b>${q.st==='right'?'+'+worth(q):'0'}</b>`:now?`NOW<b>${i+1}</b>`:`#${i+1}<b>–</b>`}</button>`}).join('')}</div>`;
+  return `<button data-tv="${i}" class="${cls}" aria-label="Round ${i+1}${q.st==='play'?'':': '+esc(nameOf(q.c))}"${now?' aria-current="step"':''}${G.mode==='online'&&RACE.turns()?RACE.winStyle(i):''}>${q.st!=='play'?`<img src="${flagOf(q.c)}" alt=""><b>${q.st==='right'?'+'+worth(q):'0'}</b>`:now?`NOW<b>${i+1}</b>`:`#${i+1}<b>–</b>`}</button>`}).join('')}</div>`;
 // the six countries: buttons while the round is on, then the impostor in red and the others in green
 function sixHTML(G,q,done){return `<div class="six" role="group" aria-label="The six countries">${setOf(G,q).map(c=>{
     let cls='',tag='';
