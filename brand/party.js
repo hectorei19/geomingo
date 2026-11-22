@@ -140,7 +140,7 @@ function share(){const link=location.origin+'/?party='+code();
   const t='Play Geomingo with me: room '+code()+'\n'+link;
   if(navigator.share&&matchMedia('(pointer:coarse)').matches){navigator.share({text:t}).catch(()=>{});return}
   try{navigator.clipboard.writeText(link).then(()=>H.toast('Link copied.','good'),()=>H.toast(link))}catch(e){H.toast(link)}}
-const RULES='<p class="pt-rules">Every game uses the daily\'s rules with a new random puzzle (never today\'s). No lives. Countries, Capitals and Top 10: 30&nbsp;s per turn.</p>';
+const RULES='<p class="pt-rules">Every game uses the daily\'s rules with a new random puzzle (never today\'s). No lives. All nine are played in turns, 30&nbsp;s each. After each game the host picks: play again or another game. <b>End room</b> shows the final ranking.</p>';
 function startHTML(){const sg=SIGNED();
   return '<div class="pt-card"><h3>Create a room</h3><p>'+(sg?'You get a code to send to your friends. Then you pick the games, one after another.':'Sign in to create a room. Your friends join with your code, no account needed.')+'</p>'+
     '<button class="pt-btn" id="pcreate">'+(sg?'Create room':'Sign in to create a room')+'</button></div>'+
