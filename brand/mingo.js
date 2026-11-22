@@ -504,11 +504,13 @@ function ticket(say,stub,o){o=o||{};const m=o.mode,n=o.num!=null?' '+archNo(o.nu
   // With friends with turns (Countries, Capitals, Top 10; Héctor 2026-11-17, option C1): all in the blue of With friends.
   // One line says whose turn it is, the clock (0:27) on its right, a thin blue line under it that runs down,
   // then the players as small pills, the one playing with a blue edge. The game's "Time" box moves up next to the line.
+  // a new draw (a tap on a country redraws the game) keeps the time bar where it was, so it does not jump back to full (Héctor 2026-11-22)
+  const tw=(()=>{try{const b=document.querySelector('.ticket .tbar');return b&&b.style.width||'100%'}catch(e){return '100%'}})();
   if(o.color&&o.timer&&(m==='friends'||m==='online')){let clock='';
     stub=stub.replace(/<div class="tk-c[^"]*"><i>Time<\/i><b>([\s\S]*?)<\/b><\/div>/,(x,v)=>{clock=v;return ''});
     return '<section class="ticket tk-friends tk-turn">'+strip+'<div class="tk-sayrow">'+say+(clock?'<span class="tk-clock">'+clock+'</span>':'')+'</div>'+
-      '<div class="tk-track"><span class="tbar" style="width:100%"></span></div><div class="tk-stub">'+stub+'</div></section>'}
-  return '<section class="ticket'+(m==='practice'||m==='archive'?' tk-practice':m==='friends'||m==='online'?' tk-friends':'')+(o.color?' tk-turn" style="--pc:'+o.color:'')+'">'+strip+say+'<div class="tk-tear" aria-hidden="true"></div><div class="tk-stub">'+stub+'</div>'+(o.timer?'<span class="tbar" style="width:100%'+(o.color?';background:'+o.color:'')+'"></span>':'')+'</section>'}
+      '<div class="tk-track"><span class="tbar" style="width:'+tw+'"></span></div><div class="tk-stub">'+stub+'</div></section>'}
+  return '<section class="ticket'+(m==='practice'||m==='archive'?' tk-practice':m==='friends'||m==='online'?' tk-friends':'')+(o.color?' tk-turn" style="--pc:'+o.color:'')+'">'+strip+say+'<div class="tk-tear" aria-hidden="true"></div><div class="tk-stub">'+stub+'</div>'+(o.timer?'<span class="tbar" style="width:'+tw+(o.color?';background:'+o.color:'')+'"></span>':'')+'</section>'}
 // the traveller's name on the ticket: the account's, else the one played with in Countries or Capitals
 function traveller(){const a=window.Geomingo&&window.Geomingo.account;return ((a&&a.name)||store.get('bl-user')||store.get('cc-user')||'Guest').trim().slice(0,16)||'Guest'}
 
