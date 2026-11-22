@@ -326,7 +326,7 @@ function exitAsk(){const host=R&&R.host===PID;
     if(!host){left=true;ss.set('gm-pleft',PG.code+':'+PG.n);location.href=homeURL();return}
     // the points so far count (Héctor 2026-11-21): they go into the room's table like a finished game's
     const n=PG.n,go=()=>{location.href=homeURL()},
-      s=(A&&A.points?A.points():[]).filter(x=>x&&x.n).map(x=>({n:String(x.n).slice(0,16),p:Math.max(0,Math.round(+x.p||0))}));
+      s=(A&&A.points&&ours()?A.points():[]).filter(x=>x&&x.n).map(x=>({n:String(x.n).slice(0,16),p:Math.max(0,Math.round(+x.p||0))}));
     const saved=R.res&&R.res[n]?Promise.resolve():ref.child('res/'+n).transaction(x=>x?undefined:{g:(R.cur&&R.cur.g)||'',s},undefined,false);
     saved.catch(()=>{}).then(()=>ref.child('cur').transaction(x=>{if(!x||x.n!==n)return;x.end=true;return x},undefined,false)).then(go,go)})}
 // every half second: make the game's room, join it, count down 3·2·1 together, start it, then step out of the way
@@ -365,7 +365,10 @@ function game(a){A=a;if(!PG)return;addCSS();
   whenFB(()=>listen(PG.code,r=>{if(!r){ss.set('gm-pg',null);location.href=homeURL();return}drive()}));
   clearInterval(tickT);tickT=setInterval(drive,250)}
 // the points of this game, once everyone has finished: [{n:name, p:points}] (the first phone to send them wins)
-function result(list){if(!PG||!ref||done)return;done=true;
+// only the points of this game's own room count: a game page may first reopen its last room (a finished game from
+// before), and those old points must not land in the new game (Héctor 2026-11-22, room ZDNL)
+const ours=()=>{const rc=A&&A.room&&A.room();return !!(R&&R.cur&&R.cur.n===PG.n&&R.cur.room&&rc===R.cur.room)};
+function result(list){if(!PG||!ref||done||!ours())return;done=true;
   const s=(list||[]).filter(x=>x&&x.n).map(x=>({n:String(x.n).slice(0,16),p:Math.max(0,Math.round(+x.p||0))}));
   ref.child('res/'+PG.n).transaction(x=>x?undefined:{g:(R&&R.cur&&R.cur.g)||'',s}).catch(()=>{done=false});
   setTimeout(()=>{try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){}},400)}
