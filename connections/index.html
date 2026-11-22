@@ -24,7 +24,7 @@
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
 <script src="../brand/mingo.js?v=202611221600"></script>
 <script src="../brand/account.js?v=202611260300"></script>
-<script src="../brand/party.js?v=202611221800"></script>
+<script src="../brand/party.js?v=202611222045"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -706,7 +706,7 @@ function roomResultHTML(){const list=ranked(),cur=list.filter(p=>p.cur),pos=cur.
     ${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="rematch" style="flex:1" ${waiting?'disabled':''}>${waiting?'Waiting for the others…':'Play again'}</button></div>
   </section>`}
 // the one room for all nine games (../brand/party.js) drives this game's room
-if(Geomingo.party)Geomingo.party.game({turns:()=>movesOf(room).length,points:()=>room?roomPlayers().filter(p=>p.cur).map(p=>({n:p.name,p:Geomingo.cxPts(p.done&&p.won?4:p.f||0,p.m||0)})):[],room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
+if(Geomingo.party)Geomingo.party.game({stats:pos=>room&&S&&logFriends('cx-friends',roomCode+':'+S.round+':'+(room.startAt||''),pos,TT&&TT.ok[ME]||0,0),turns:()=>movesOf(room).length,points:()=>room?roomPlayers().filter(p=>p.cur).map(p=>({n:p.name,p:Geomingo.cxPts(p.done&&p.won?4:p.f||0,p.m||0)})):[],room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
   count:()=>room?lobbyOrder(room).length:0,names:()=>room?lobbyOrder(room).map(k=>room.players[k].name):[],create:createRoom,join:joinRoom,start:startRound});
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>16 countries make <b>four groups of four</b>. Each group shares something, for example "Uses the euro".</li>
