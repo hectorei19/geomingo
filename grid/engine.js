@@ -630,7 +630,10 @@ function syncRoom(){
 function ensureTick(){clearInterval(tick);if(S&&S.timer&&!S.over)tick=setInterval(onTick,250)}
 function advance(r,len){
   const filled=Object.keys(r.cells||{}).length;
-  if(filled>=r.cfg.n*r.cfg.n||(r.passes||0)>=len){r.status='over';r.deadline=0;return}
+  // With friends: a wrong answer, a pass or time up are all a turn with no stamp; three full rounds with no stamp
+  // from anyone end the game, so nobody stays stuck on a hard grid (Héctor 2026-11-22)
+  if(filled>=r.cfg.n*r.cfg.n){r.status='over';r.deadline=0;return}
+  if((r.passes||0)>=3*len){r.status='over';r.deadline=0;r.ev={id:evId(),kind:'',text:'Three rounds with no stamp: game over.'};return}
   r.turn=((r.turn||0)+1)%len;
   r.started=Date.now()+offset;
   r.deadline=r.cfg.timer?Date.now()+offset+r.cfg.timer*1000:0;
@@ -649,7 +652,7 @@ async function onlineGuess(ci,cid){
       const nm=(r.players[ME]||{}).name||'Someone';
       if(ok){const pts=plainValues(g.answers,true)[ci],sb=0;
         r.cells[ci]={o:r.turn||0,c:cid,p:pts,sb};r.passes=0;fit=true;r.ev={id:evId(),kind:'good',ci,text:nm+': '+c.n+' fits. +'+pts+(sb?' +'+sb+' speed':'')}}
-      else{r.wrong=(r.wrong||0)+1;r.ev={id:evId(),kind:'bad',text:nm+': '+c.n+" doesn't fit there."}}
+      else{r.wrong=(r.wrong||0)+1;r.passes=(r.passes||0)+1;r.ev={id:evId(),kind:'bad',text:nm+': '+c.n+" doesn't fit there."}}
       advance(r,order.length);return r;
     });
     if(res.committed&&fit&&GRID.onlineStamp)Geomingo.stamp(GRID.id,c.n,'',GRID.code(c));
@@ -679,7 +682,7 @@ async function tryTimeout(turn,deadline){
     if(!r)return r;
     if(r.status!=='playing'||(r.turn||0)!==turn||r.deadline!==deadline||Date.now()+offset<deadline)return;
     const nm=(r.players[r.order[turn]]||{}).name||'Someone';
-    r.ev={id:evId(),kind:'bad',text:"Time's up for "+nm+'.'};advance(r,r.order.length);return r})}catch(e){}
+    r.passes=(r.passes||0)+1;r.ev={id:evId(),kind:'bad',text:"Time's up for "+nm+'.'};advance(r,r.order.length);return r})}catch(e){}
 }
 // the one room for all nine games (../brand/party.js) drives this game's room
 if(Geomingo.party)Geomingo.party.game({points:()=>S&&S.mode==='online'&&S.players?S.players.map(p=>({n:p.name,p:Math.max(0,Math.round(p.score||0))})):[],room:()=>roomCode,host:()=>!!room&&room.host===ME,lobby:()=>!!room&&room.status==='lobby',
@@ -896,7 +899,7 @@ function gameView(){
     // one ticket: Mingo's message on top, the game's numbers on the stub below the tear line
     const m=mood&&mood.g===gameKey()?mood:null,p=S.players[S.turn];
     const say=m?Geomingo.hello(m.pose,m.t,m.s)
-      :S.mode==='online'?Geomingo.hello('pass',S.turn===S.me?'Your turn':p.name+"'s turn",'Name a '+GRID.one+' that fits its row and its column.')
+      :S.mode==='online'?Geomingo.hello('pass',S.turn===S.me?'Your turn':p.name+"'s turn",S.passes>=2*S.players.length?'Two rounds with no stamp. If nobody stamps this round, the game ends.':'Name a '+GRID.one+' that fits its row and its column.')
       :Geomingo.hello('pass',S.n*S.n+' stamps to win.','Each '+GRID.one+' must match its row and its column.');
     const cell=Geomingo.tk;
     const time=S.timer?cell('Time',`<span id="tleft">${Geomingo.mmss(S.deadline?S.deadline-now():S.timer*1000)}</span>`):'';
