@@ -12,3 +12,8 @@ https://geomingo.com/ does not grant any of these rights.
 Third-party material used by the games (map and border data, country data,
 flags and fonts) remains under its own licence, as listed in each game's
 README and in the games' "Credits & data sources".
+
+Data adapted from third parties stays under the licence of its source: the
+country data adapted from mledoze/countries under the Open Database License
+(ODbL) 1.0, and the figures taken from Wikipedia under CC BY-SA 4.0. Anyone
+reusing that data must follow those licences.

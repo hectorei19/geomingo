@@ -570,7 +570,9 @@ function openFaq(){mwin('FAQ','<div class="faq"><div class="fqa"><h3>What is Geo
 function openCredits(){mwin('Sources','<div class="credits"><ul>'+
   '<li>Country data (names, borders, regions, area, languages, currencies, capitals): <a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a>, under the Open Database License (ODbL) 1.0, with a few corrections by hand.</li>'+
   '<li>Population, development, economy, politics, geography and sport figures: Wikipedia lists (CC BY-SA 4.0), which cite the UN, the UNDP, the World Bank and the CIA World Factbook among others.</li>'+
-  '<li>Flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a> (MIT License).</li>'+
+  '<li>Flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a>, Copyright (c) 2013 Panayiotis Lipiridis, MIT License; Flag Pie, Impostor and Compass flags: <a href="https://github.com/hjnilsson/country-flags" target="_blank" rel="noopener">hjnilsson/country-flags</a> (Wikimedia Commons, public domain).</li>'+
+  '<li>Borders (Silhouette): <a href="https://www.naturalearthdata.com" target="_blank" rel="noopener">Natural Earth</a> (public domain) and <a href="https://www.geoboundaries.org" target="_blank" rel="noopener">geoBoundaries</a>. Cities (Capitals): <a href="https://www.geonames.org" target="_blank" rel="noopener">GeoNames</a>, CC BY 4.0.</li>'+
+  '<li>Adapted data keeps the licence of its source: the country data stays under ODbL 1.0 and the Wikipedia-based figures under CC BY-SA 4.0.</li>'+
   '<li>Fonts: Archivo, Public Sans and Courier Prime (Google Fonts, SIL Open Font License).</li>'+
   '<li>Accounts, online play and rankings: <a href="https://firebase.google.com" target="_blank" rel="noopener">Firebase</a>.</li></ul>'+
   '<p>Each game\'s Menu lists its own extra sources.</p></div>')}
