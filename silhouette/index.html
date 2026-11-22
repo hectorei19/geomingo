@@ -28,7 +28,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="../shared/style.css?v=202611211800">
+<link rel="stylesheet" href="../shared/style.css?v=202611221830">
 <style>
 /* Silhouette: one big shape in a square frame, the answer box under it; the daily nine as a 3 x 3 board of small frames */
 .silbox{position:relative;width:100%;max-width:340px;align-self:center;aspect-ratio:1;background:var(--sheet);border:2px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:14px;
@@ -36,6 +36,7 @@
 .silbox .sil{width:100%;height:100%;display:block;color:var(--ink)}
 .silbox.right{border-color:var(--good)}.silbox.right .sil{color:var(--good)}
 .silbox.wrong{border-color:var(--bad)}.silbox.wrong .sil{color:var(--bad)}
+.silbox .ncomp{position:absolute;top:10px;right:10px;width:38px;height:38px}.ncomp circle{fill:var(--sheet);stroke:var(--line);stroke-width:1.5}.ncomp .nn{fill:var(--ink-2)}.ncomp .ns{fill:var(--line)}.ncomp text{font:700 8px var(--mono,monospace);fill:var(--ink-2)}.ncomp.on text{fill:var(--coral)}.ncomp.on .nn{fill:var(--coral,#f07167)}.ncomp.on circle{stroke:var(--coral,#f07167)}
 .silbox .turn{position:absolute;top:6px;right:8px;font-family:var(--mono);font-size:.7rem;color:var(--ink-2)}
 .play{display:flex;flex-direction:column;gap:10px;width:100%}
 .ans{display:flex;flex-direction:column;gap:6px}
@@ -129,8 +130,10 @@ function answerBoxHTML(q,extra){
   return `<div class="ans"><input id="q" placeholder="Type a country…" autocomplete="off" autocapitalize="words" spellcheck="false" value="${esc(query)}" aria-label="Type a country"><ul class="sugg" id="sugg">${suggHTML(q)}</ul></div>${extra||''}`}
 function revealHTML(q,note){const c=byCode[q.c],ok=q.st==='right';
   return `<div class="reveal ${ok?'':'wrong'}"><img class="flag" src="${flagSrc(q.c)}" alt=""><span class="rn"><b>${esc(c.n)}</b><small>${ok?(q.tries.length?'Right, at try '+(q.tries.length+1):'Right, first try'):'The answer'} · ${contName[c.r]||''}</small></span>${note?`<span class="rpts">${note}</span>`:''}</div>`}
+// a small compass in the corner: its N points where north is on the shape, so a turned shape shows at a glance (Héctor 2026-11-22)
+const compassHTML=rot=>`<svg class="ncomp${rot?' on':''}" viewBox="-20 -20 40 40" aria-label="${rot?'Turned shape: north is where the N points':'North is up'}" role="img"><circle r="19"/><g transform="rotate(${rot||0})"><path d="M0-9 4 0H-4Z" class="nn"/><path d="M0 9 4 0H-4Z" class="ns"/><text y="-11" text-anchor="middle">N</text></g></svg>`;
 function silBoxHTML(q,big){const cls=q.st==='right'?'right':q.st==='wrong'?'wrong':'';
-  return `<div class="silbox ${cls}${big?' pop':''}">${silSVG(q.c,q.rot)}</div>`}
+  return `<div class="silbox ${cls}${big?' pop':''}">${silSVG(q.c,q.rot)}${compassHTML(q.rot)}</div>`}
 // the answer box: typing filters the list; a tap or Enter (first match) answers
 function bindAnswer(q,onPick){
   // phones: the button opens the answer sheet, as in Countries; answering closes it with the keyboard

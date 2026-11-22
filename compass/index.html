@@ -28,7 +28,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="../shared/style.css?v=202611211800">
+<link rel="stylesheet" href="../shared/style.css?v=202611221830">
 <style>
 /* Compass: the mystery capital in the middle of a compass; clue capitals appear round the rim, each in its real direction with its distance */
 .play{display:flex;flex-direction:column;gap:12px;width:100%}
@@ -99,7 +99,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
-<script src="../shared/race.js?v=202611221700"></script>
+<script src="../shared/race.js?v=202611221830"></script>
 <script>
 /* ---- Compass: find the mystery capital from the capitals round it (Héctor's idea, 2026-11-10) ----
    The mystery capital is the "?" in the middle of a compass. Clue capitals appear on the rim, each in its real direction
@@ -229,7 +229,7 @@ const deskHTML=G=>`<div class="desk" role="group" aria-label="The five capitals"
 const cluesText=q=>q.k+' clue'+(q.k===1?'':'s')+(q.tries.length?', '+q.tries.length+' wrong':'');
 // a capital that has just finished: the compass with its name in the middle, then Next city
 function leftHTML(G,i){const q=G.qs[i],t=cityBy[q.c],ok=q.st==='right';
-  return `<div class="reveal${ok?'':' wrong'}"><span class="label">City ${i+1} of ${PER}</span>${compassHTML(q,{done:1})}<b class="ln">${esc(t.n)}</b><span class="ls">Capital of ${esc(coName(t))}</span><span class="lst">${ok?'STAMPED':'MISSED'}</span>
+  return `<div class="reveal${ok?'':' wrong'}"><span class="label">City ${i+1} of ${G.qs.length}</span>${compassHTML(q,{done:1})}<b class="ln">${esc(t.n)}</b><span class="ls">Capital of ${esc(coName(t))}</span><span class="lst">${ok?'STAMPED':'MISSED'}</span>
     <span class="ls">${ok?'+'+show(q.p,q)+' points · '+cluesText(q):'0 points'+(q.tries.length?' · you said '+q.tries.map(x=>esc(cityBy[x].n)).join(', '):'')}</span>
     <button class="primary" id="nexttv">${G.over?'See your result':'Next city →'}</button></div>`}
 // the play area: the five capitals, the compass, the latest news, the next-clue line, the answer box
@@ -330,7 +330,7 @@ function ticketHTML(G,mode){const lf=G.left!=null,i=lf?G.left:G.sel,q=G.qs[i];
     :q.k>1?['think','A new capital on the compass.','Every clue lowers the points. Which capital sits in the middle?']
     :['pass','Where am I?','The mystery capital is in the middle. The city on the rim shows how far it is, and which way.'];
   return Geomingo.ticket(Geomingo.hello(m[0],m[1],m[2]),
-    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('City',(i+1)+'/'+PER)+tk(mode==='daily'?'km':'Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+show(q.p,q):'0'):'+'+show(worth(q),q),'tk-pts'),{mode,num:G.num})}
+    tk('Traveller',esc(mode==='online'?RACE.me():Geomingo.traveller()),'tk-name')+tk('City',(i+1)+'/'+G.qs.length)+tk(mode==='daily'?'km':'Points',pointsOf(G),'tk-pts')+tk('Worth',lf?(q.st==='right'?'+'+show(q.p,q):'0'):'+'+show(worth(q),q),'tk-pts'),{mode,num:G.num})}
 function dailyHTML(){const arch=D.mode==='archive';let h=header('Compass',(arch?'Archive ':'Daily ')+Geomingo.archNo(D.num));
   // today's finished daily: no ← Back line, the "‹ geomingo" on top already goes back (Héctor 2026-11-14)
   if(D.over&&D.left==null)return h+resultHTML(D)+(D.mode==='archive'?'':rankingHTML());
@@ -384,7 +384,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Daily</b>: five capitals, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
   <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. Points only, no km.</li>
-  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Five (well-known) capitals for the whole room. You take turns, 30 s each, and a random player starts. No asking for clues: a wrong guess stays on the compass for everyone, in that player's colour; running out of time opens a closer clue for the next player. Most points win.</li>
+  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. Ten (well-known) capitals for the whole room. You take turns, 30 s each, and a random player starts. No asking for clues: a wrong guess stays on the compass for everyone, in that player's colour; running out of time opens a closer clue for the next player. Most points win.</li>
   <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, and its km count for that day.</li></ul>`}
 function creditsHTML(){return DATA_CREDITS.replace('</ul>',`<li>Compass: the capitals and their coordinates are the ones of Geomingo's Capitals game; distances are worked out on a round Earth (radius 6.371 km), directions as straight lines on a flat world map (Mercator).</li><li>Flags from <a href="https://github.com/hjnilsson/country-flags" target="_blank" rel="noopener">hjnilsson/country-flags</a> (from Wikimedia Commons, public domain).</li></ul>`)}
 
@@ -397,20 +397,22 @@ const toHub=()=>{location.href='../'};
 function goHome(){view='home';toastMsg=null;drawToast();query='';typing=false;render();window.scrollTo(0,0)}
 /* ---- With friends: online rooms (../shared/race.js), one game for the room, played in turns ----
    The room's game is played with the Solo moves (T is the room's game while view is 'room'). */
-const RACE=GeoRace({game:'compass',key:'cm',name:'Compass',total:PER,what:'the same five capitals',
-  deal:seed=>newGame(shuffle(DECK.filter(c=>cityBy[c]).sort(),rngFrom(seed)).slice(0,PER)),
+// FR: items in a game with friends (Héctor 2026-11-22: ten, like Silhouette)
+const FR=10;
+const RACE=GeoRace({game:'compass',key:'cm',name:'Compass',total:FR,what:'the same ten capitals',items:'capitals',itemName:i=>'Capital '+(i+1),thumb:(G,i)=>`<img src="${realFlag(cityBy[G.qs[i].c].k3)}" alt="">`,
+  deal:seed=>newGame(shuffle(DECK.filter(c=>cityBy[c]).sort(),rngFrom(seed)).slice(0,FR)),
   points:pointsOf,right:rightOf,shareLine:G=>G.qs.map(sq).join(''),header,render:()=>render(),
   // turns: a wrong guess stays on the compass for everyone (it is the next player's new clue); time up opens a closer clue
   move:(G,a)=>{const q=G.qs[G.sel];let res='pass';if(a)res=answer(q,a);else if(shown(q).length<CLUES)nextClue(q);else{q.k++;if(left(q)<=0)q.st='wrong'}if(res==='same')return {res:'again'};
     // no asking for clues (Héctor 2026-11-21): a wrong guess shows on the compass in that player's colour, no clue; time up opens a closer clue
     const pts=res==='right'?worth(q):0;advance(G);return {res,pts}},
-  ansName:c=>cityBy[c].n,item:G=>'Capital '+(G.sel+1)+' of '+PER,sol:(G,i)=>G.qs[i].c,worth:G=>worth(G.qs[G.sel])});
+  ansName:c=>cityBy[c].n,item:G=>'Capital '+(G.sel+1)+' of '+G.qs.length,sol:(G,i)=>G.qs[i].c,worth:G=>worth(G.qs[G.sel])});
 // turns with friends (../shared/race.js): my answer or my pass goes to the room; a right one is stamped here
 function roomPick(code){const r=RACE.play(code);if(!r)return;query='';typing=false;if(r.res==='right')feedback(r.q,'right')}
 function roomPass(){RACE.play(null)}
 function roomHTML(){if(!RACE.inGame())return RACE.lobbyHTML();
   let h=header('Compass','Room '+RACE.code)+RACE.backHTML()+RACE.scoresHTML();
-  if(T.over&&T.left==null)return h+RACE.resultHTML()+summaryHTML(T);
+  if(T.over&&T.left==null)return h+RACE.resultHTML()+(RACE.turns()?'':summaryHTML(T));  // turns: the room's list of who got each one replaces it (race.js recapHTML)
   if(RACE.turns())return h+RACE.turnTicket()+`<section class="panel turns${RACE.myTurn()?'':' turnwait'}">${playHTML(T).replace(giveUpHTML(),'')}</section>`;  // turns: only the player whose turn it is answers, nobody gives up
   return h+ticketHTML(T,'online')+`<section class="panel">${playHTML(T)}</section>`}
 function render(){

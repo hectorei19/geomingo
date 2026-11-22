@@ -111,13 +111,13 @@ window.GeoRace=function(cfg){
   // turns: the room's game, dealt from the seed, with every move played on it; who scored what
   const movesOf=r=>{const m=r&&r.mv;return !m?[]:Array.isArray(m)?m.filter(Boolean):Object.keys(m).sort((a,b)=>a-b).map(k=>m[k])};
   function replay(r){const G=cfg.deal(r.seed);if(!G)return null;if(cfg.prep)cfg.prep(G);
-    const sc={},ok={};let last=null;
+    const sc={},ok={},win={};let last=null;
     for(const m of movesOf(r)){if(G.over)break;const i=G.sel,a=m.a&&m.a!=='-'?m.a:null,res=cfg.move(G,a)||{};
-      if(res.pts){sc[m.p]=(sc[m.p]||0)+res.pts;ok[m.p]=(ok[m.p]||0)+1}
+      if(res.pts){sc[m.p]=(sc[m.p]||0)+res.pts;ok[m.p]=(ok[m.p]||0)+1;win[i]=m.p}
       // who said each wrong answer (their place in the order = their colour), for games that show it (Compass)
       if(a&&res.res==='wrong'&&G.qs&&G.qs[i]){const q=G.qs[i];q.by=q.by||{};q.by[a]=(r.order||[]).indexOf(m.p)}
       last={p:m.p,a,t:!!m.t,res:res.res,pts:res.pts||0,i,done:G.sel!==i||G.over}}
-    G.left=null;return {G,sc,ok,last}}
+    G.left=null;return {G,sc,ok,win,last}}
   const nextTurn=(x,from)=>{const o=x.order||[];for(let k=1;k<=o.length;k++){const j=(from+k)%o.length,p=x.players[o[j]];if(p&&p.on!==false)return j}return (from+1)%Math.max(1,o.length)};
   // a move on my turn (or a pass for whoever let the time run out): only if nothing moved since
   async function push(a,timeout){const r=R.room;if(!ref||!r||!r.order)return false;
@@ -210,7 +210,11 @@ window.GeoRace=function(cfg){
     <div class="players">${list.map((p,k)=>`<div class="lp${p.pid===ME?' me':''}${p.on===false?' off':''}"><span class="rk">${p.cur?k+1:''}</span><span class="pin" style="${pinStyle(p.i)}"></span>${esc(p.name)}<span class="tag">${!p.cur?'joining':p.done?`${p.s||0} pts · ${p.ok||0} of ${cfg.total}${R.T?'':' · '+fmtTime(p.ms)}`:p.on===false?'left':`${p.s||0} pts · playing…`}</span></div>`).join('')}</div>
     <pre class="sharebox" id="share">${esc(R.shareText())}</pre>
     ${SHARE_BTN}<div class="row-btns sharerow"><button class="primary" id="rematch" style="flex:1" ${waiting?'disabled':''}>${waiting?'Waiting for the others…':'Play again'}</button></div>
-  </section>`};
+  </section>${R.recapHTML()}`};
+  // turns, at the end: every item, its answer and who got it (Héctor 2026-11-22, like Silhouette)
+  R.recapHTML=()=>{const G=R.G,T=R.T;if(!T||!G||!G.over||!G.qs)return '';const o=(R.room&&R.room.order)||[],pl=(R.room&&R.room.players)||{};
+    return `<section class="panel"><span class="label">The ${G.qs.length} ${cfg.items||'questions'}</span><div class="recap">${G.qs.map((q,i)=>{const w=T.win[i],k=o.indexOf(w);
+      return `<div>${cfg.thumb?cfg.thumb(G,i):''}<span class="rn"><small>${esc(cfg.itemName?cfg.itemName(i):'Question '+(i+1))}</small>${esc(cfg.ansName(cfg.sol(G,i)))}</span><span class="rw">${w?`<span class="pin" style="${pinStyle(Math.max(0,k))}"></span>${esc((pl[w]||{}).name||'Gone')}`:'<span class="no">Nobody</span>'}</span></div>`}).join('')}</div></section>`};
   // the buttons of these screens (call from the page's bind())
   R.bind=()=>{
     if($('rematch'))$('rematch').onclick=start;
