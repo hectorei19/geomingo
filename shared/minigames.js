@@ -63,7 +63,7 @@ const DATA_CREDITS=`<ul style="padding-left:18px">
   <li>Country data (names, borders, regions, area, languages, currencies, capitals): <a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a>, under the Open Database License (ODbL) 1.0, with a few corrections by hand.</li>
   <li>Population, development, economy, politics, geography and sport figures: Wikipedia lists (CC BY-SA 4.0), downloaded in October 2026, which cite the UN, the UNDP, the World Bank and the CIA World Factbook among others.</li>
   <li>Flag colours and symbols, seas, memberships and sporting hosts: compiled by hand from public sources, correct as of October 2026.</li>
-  <li>Flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a> (MIT License).</li>
+  <li>Flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a>, Copyright (c) 2013 Panayiotis Lipiridis, MIT License.</li>
   <li>Fonts: Archivo, Public Sans and Courier Prime (Google Fonts, SIL Open Font License).</li>
   <li>Online play and rankings: <a href="https://firebase.google.com" target="_blank" rel="noopener">Firebase</a>. Only room codes, player names, results and moves are stored.</li></ul>`;
 function openCredits(){dialog('Credits &amp; data sources',typeof creditsHTML==='function'?creditsHTML():DATA_CREDITS)}
