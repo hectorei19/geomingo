@@ -652,3 +652,12 @@ button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
 .gm-dc-sh{background:var(--gold);color:#16202F;font:900 16px var(--display);text-transform:uppercase;letter-spacing:.06em}
 .gm-dc-ok{margin:0;text-align:center;font-size:13px;color:var(--muted)}
 .gm-dc>svg.mingo{position:absolute;top:10px;right:14px}
+
+.gm-foot{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:18px}
+.gm-ig{display:inline-flex;align-items:center;gap:8px;padding:10px 4px;color:var(--muted);font-size:14px;text-decoration:none}
+.gm-ig:hover{color:var(--ink);text-decoration:underline}
+.gm-links{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px}
+.gm-links button{background:none;border:0;padding:10px 4px;font:inherit;color:inherit;cursor:pointer}
+.gm-links button:hover{color:var(--ink);text-decoration:underline}
+.gm-links i{font-style:normal}
+body:has(.ticket.gm-done) .foot{display:none}
