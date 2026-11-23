@@ -376,7 +376,7 @@ function challengeVisas(){const H=k=>json(k)||{},vals=o=>Object.values(o).filter
 function visas(){const G=gameVisas(),V=specialVisas(),C=challengeVisas();return {game:G,special:V,challenge:C,got:G.filter(x=>x.tier).length+V.filter(v=>v[4]).length+C.filter(v=>v[4]).length,of:G.length+V.length+C.length}}
 const stamps=()=>pass().n;
 // a stamp: name, small line, optional flag picture; a player class (c0…c5) gives the player's ink instead
-function stampHTML(t,sub,cls,flag){const r=(hsh(t)%15)-7,own=/\bc\d\b/.test(cls||'');
+function stampHTML(t,sub,cls,flag){const r=(hsh(t)%15)-7,own=/\bc[\ds]\b/.test(cls||'');
   const L=Math.max(...String(t).split(' ').map(w=>w.length)),fs=L>11?10:L>8?12:14; // long names get smaller, never cut in half
   return '<span class="gm-stamp '+(cls||'')+'" style="'+(own?'':'color:'+INK[hsh(t)%4]+';')+'--r:'+r+'deg">'+(flag?'<img class="sf" src="'+esc(flag)+'" alt="">':'')+'<b class="sn" style="font-size:'+fs+'px">'+esc(t)+'</b>'+(sub?'<small>'+esc(sub)+'</small>':'')+'</span>'}
 function refreshPass(){const n=geo().km;document.querySelectorAll('[data-gm-pass]').forEach(b=>{const x=b.querySelector('b');if(x)x.textContent=fmt(n)+' km';b.setAttribute('aria-label','Open your GeoPass: '+fmt(n)+' km')})}
