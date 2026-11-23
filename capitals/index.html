@@ -62,7 +62,7 @@
 <div id="layer"></div>
 
 <script src="../data/countries.js?v=202611181400"></script>
-<script src="data.js?v=202611211600"></script>
+<script src="data.js?v=202611231100"></script>
 <script>
 const N = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z]/g,'');
 // country names come from the Geomingo country database (../data/countries.js, C): one name per country
@@ -133,6 +133,15 @@ add('pol','EU member',inCoList('pol_eu'));
 add('pol','Monarchy',inCoList('pol_mon'));
 add('sport','Won the men\'s World Cup',inCoList('sp_wcwin'));
 ['Spanish','French','Arabic'].forEach(L=>add('lang','Official language: '+L,c=>!!c.cap&&!!CLG[c.k3]&&CLG[c.k3].lg.includes(L)));
+// added 2026-11-23 (Héctor: categories should be about the CITY, not the country). The six country ones above stay in CATS, so old
+// saved games and old daily grids still work, but they are in NOT_IN_GRIDS: no grid after that uses them any more.
+// ISLAND = capitals whose city lies on an island (list below; checked in Wikipedia and Britannica)
+const ISLAND=SETOF('ISL IRL GBR DNK MLT CYP TWN JPN LKA MDV BHR SGP IDN PHL BRN TLS MUS MDG SYC COM STP CPV GNQ CUB JAM HTI DOM BHS TTO BRB LCA KNA ATG DMA VCT GRD NZL FJI PNG WSM TON SLB VUT KIR MHL FSM NRU PLW TUV');
+add('size','Over 5 million people',c=>c.pop>=5e6);
+add('size','Under 500,000 people',c=>c.pop<5e5);
+add('lat','Northern hemisphere',c=>c.lat>0);
+add('lon','Eastern hemisphere',c=>c.lon>0);
+add('island','On an island',c=>!!c.cap&&ISLAND.has(c.k3));
 // Since ONLY_COUNTRIES_FROM Capitals has all 197 countries of the other Geomingo games: Jerusalem (Israel, Tel Aviv also accepted)
 // and Ramallah (Palestine) were added (nw). Daily grids before that day leave them out (setOld), so those days stay as they were.
 const ONLY_COUNTRIES_FROM='2026-11-10';
@@ -182,6 +191,11 @@ function describe(k){
     'Name has 10+ letters':'The city name has 10 letters or more, not counting spaces. '+NAMEWORD,
     'Name contains Z':'The city name contains the letter Z anywhere. '+NAMEWORD,
     'Name ends in A':'The city name ends in the letter A, like Vienna or Lima. '+NAMEWORD,
+    'Over 5 million people':'At least 5 million people live in the city itself. Source: GeoNames.',
+    'Under 500,000 people':'Fewer than 500,000 people live in the city itself. Source: GeoNames.',
+    'Northern hemisphere':'The city is north of the Equator. Coordinates from GeoNames.',
+    'Eastern hemisphere':'The city is east of the Greenwich meridian (0° longitude), like Rome, Nairobi or Tokyo. The opposite of "West of Greenwich". Coordinates from GeoNames.',
+    'On an island':'The city itself lies on an island, like Havana, Tokyo, London, Dublin or Copenhagen. Capitals of island countries count, and so does Manama. Stockholm and Abu Dhabi, only partly on islands, do not. Checked in Wikipedia and Britannica.',
     'EU member':'The city\'s country is a member state of the European Union (27 members).',
     'Monarchy':'The city\'s country has a monarch as head of state: a king, queen, emperor, emir, sultan, grand duke, prince or the Pope. Commonwealth realms with King Charles III count, like Canberra or Ottawa.',
     'Won the men\'s World Cup':'The city\'s country has won the men\'s FIFA World Cup, up to Spain\'s win in 2026. England counts as the United Kingdom, so London counts.',
@@ -193,7 +207,7 @@ function describe(k){
   return L+'.';
 }
 const SHORT={'In North or Central America':'In N. & Central America','Over 1,000 m above sea level':'Over 1,000 m high','Over 2,000 m above sea level':'Over 2,000 m high',
-  'Over 1 million people':'Over 1M people','Under 100,000 people':'Under 100K people','Megacity (10 million+)':'Mega­city (10M+)','Not its country\'s biggest city':'Not its country\'s biggest city',
+  'Over 1 million people':'Over 1M people','Over 5 million people':'Over 5M people','Under 500,000 people':'Under 500K people','Under 100,000 people':'Under 100K people','Megacity (10 million+)':'Mega­city (10M+)','Not its country\'s biggest city':'Not its country\'s biggest city',
   'Hosted the Summer Olympics':'Summer Olympics host','Hosted a men\'s World Cup final':'World Cup final host','On the Mediterranean':'Medi­terranean',
   'Name has 5 letters or fewer':'5 letters or fewer','Name has 10+ letters':'10+ letters','Name of 2+ words':'2+ words','Same first letter as its country':'Same letter as country','100,000 to 1 million people':'100K to 1M people','On the Atlantic Ocean':'On the Atlantic','On the Pacific Ocean':'On the Pacific','On the Indian Ocean':'On the Indian Ocean',
   'Another capital less than 100 km away':'Another capital within 100 km','A quarter of the country lives there':'¼ of the country lives here','Won the men\'s World Cup':'Won World Cup','Official language: Spanish':'Official: Spanish','Official language: French':'Official: French','Official language: Arabic':'Official: Arabic'};
@@ -212,7 +226,9 @@ function canBlock(ans,c){const A=ans[c];const own=new Map();
 const isSafe=ans=>ans.every((_,c)=>!canBlock(ans,c));
 /* ---- grid rules: every square has at least 2 answers ---- */
 // specialist categories: never used in grids (they were only in the old Hard level)
-const NOT_IN_GRIDS=new Set(['Over 2,000 m above sea level','On the Danube','Hosted a men\'s World Cup final','Name contains Z']);
+const NOT_IN_GRIDS=new Set(['Over 2,000 m above sea level','On the Danube','Hosted a men\'s World Cup final','Name contains Z',
+  // about the country, not the city (Héctor, 23 Nov 2026)
+  'EU member','Monarchy','Won the men\'s World Cup','Official language: Spanish','Official language: French','Official language: Arabic']);
 function evalGrid(rows,cols){
   const answers=[];let bad=0;
   for(const rk of rows)for(const ck of cols){const a=inter(rk,ck);answers.push(a);
@@ -235,7 +251,7 @@ let FAMS=null;
 function famsFor(){if(!FAMS){const pool=POOL.filter(k=>!/^Name starts with/.test(k.label)&&!NOT_IN_GRIDS.has(k.label));const f={};pool.forEach(k=>(f[k.fam]=f[k.fam]||[]).push(k));FAMS={pool,fams:Object.values(f),rare:pool.filter(k=>RARE.has(k.fam))}}return FAMS}
 // CATW evens out the search: categories that fit with almost anything were kept far more often than narrow ones
 // (a border, a small sea), so each has a weight (the four categories added on 2026-11-12 and the six of 2026-11-21 were set by hand, from how often they came up) measured over 4,000 Normal 4 × 4 grids (labels missing here weigh 1).
-const CATW={"Monarchy":0.2,"Official language: French":0.4,"Official language: Arabic":0.6,"Official language: Spanish":0.6,"Won the men's World Cup":2,"Has a metro":0.12,"A quarter of the country lives there":0.2,"Another capital less than 100 km away":0.3,"100,000 to 1 million people":0.2,"West of Greenwich":0.3,"East of 100°E":0.6,"South of 20°S":1.5,"In Africa":0.53,"In Europe":2.45,"In Asia":0.97,"In Oceania":6,"In North or Central America":2.78,"In South America":6,"On the coast":0.52,"Inland":0.62,"Over 1,000 m above sea level":0.87,"South of the Equator":0.46,"North of 50°N":6,"In the tropics":0.44,"Over 1 million people":0.38,"Under 100,000 people":0.99,"Megacity (10 million+)":4.29,"Not its country's biggest city":0.23,"Hosted the Summer Olympics":6,"On the Mediterranean":6,"Name of 2+ words":0.43,"Name has 5 letters or fewer":0.19,"Name has 10+ letters":0.19,"Name ends in A":0.11,"Same first letter as its country":0.21};
+const CATW={"Northern hemisphere":0.2,"Eastern hemisphere":0.2,"Over 5 million people":1.5,"Under 500,000 people":0.25,"On an island":0.3,"Monarchy":0.2,"Official language: French":0.4,"Official language: Arabic":0.6,"Official language: Spanish":0.6,"Won the men's World Cup":2,"Has a metro":0.12,"A quarter of the country lives there":0.2,"Another capital less than 100 km away":0.3,"100,000 to 1 million people":0.2,"West of Greenwich":0.3,"East of 100°E":0.6,"South of 20°S":1.5,"In Africa":0.53,"In Europe":2.45,"In Asia":0.97,"In Oceania":6,"In North or Central America":2.78,"In South America":6,"On the coast":0.52,"Inland":0.62,"Over 1,000 m above sea level":0.87,"South of the Equator":0.46,"North of 50°N":6,"In the tropics":0.44,"Over 1 million people":0.38,"Under 100,000 people":0.99,"Megacity (10 million+)":4.29,"Not its country's biggest city":0.23,"Hosted the Summer Olympics":6,"On the Mediterranean":6,"Name of 2+ words":0.43,"Name has 5 letters or fewer":0.19,"Name has 10+ letters":0.19,"Name ends in A":0.11,"Same first letter as its country":0.21};
 const catWeight=k=>AVOID&&AVOID.has(k.label)?0:(CATW[k.label]||1)*(WILD.has(k.label)?0.5:1);
 function pickCat(r){const P=famsFor().pool;let t=0;for(const k of P)t+=catWeight(k);let x=r()*t;
   for(const k of P){x-=catWeight(k);if(x<0)return k}return P[P.length-1]}
