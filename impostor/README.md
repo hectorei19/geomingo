@@ -7,7 +7,7 @@ Geography quiz: six countries each say something about themselves, and one of th
 **Who's lying?** (since 2026-11-15, `LIES_FROM` in `lies.js`; Solo and With friends too). Six rounds per game, each with six new countries (no country twice in a game). Every country says one sentence about itself: five are true, one is a lie that sounds true. Tap the liar: right first time 5 points, then 4, 3, 2, 1 (each wrong pick shows that sentence is true); five wrong picks score 0. Best game 30. After each round every sentence shows a short note.
 
 - The sentences are hand-written in `lies.js` (`LIES_BANK`): `[code, kind, topic, sentence, note, first day]`, kind 0 = true, 1–3 = lie (easy to hard). Two sentences of the same topic never meet in a round, and the six lies of a day all have different topics.
-- Never about what you can see on the flag; nothing that can change soon (no "won the World Cup N times").
+- Never about what you can see on the flag (the flag is on screen; the 2026-11-20/21 flag sentences were taken out from 2026-11-24, field 7 of an entry); nothing that can change soon (no "won the World Cup N times").
 - Daily: dealt day after day from `LIES_FROM`, each day taking the lies and truths used longest ago (seeded by `impostor-YYYY-MM-DD`), easy lies first. Add new entries **at the end**, with a first day of tomorrow or later, so past days stay as they were.
 
 Each daily game uses the rules of the day it was made, so the archive keeps old days as they were.
