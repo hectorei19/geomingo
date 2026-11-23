@@ -106,7 +106,7 @@ const uid=()=>user&&user.uid;
 // signing out (here, or from Countries' menu) leaves the device clean, as Countries always did:
 // the stats, today's games, the GeoPass and the name go; the account keeps them for the next sign-in
 const DEVICE_KEYS=['bl-daily','bl-hist','bl-games','bl-arch','bl-user','cc-daily','cc-hist','cc-games','cc-arch','cc-user',
-  'cx-daily','cx-hist','t10-daily','t10-hist','sil-daily','sil-hist','sil-miss','sil-train','gm-pass','gm-days','gm-acct','gm-lbc','gm-ranks','cx-solo','cx-friends','t10-solo','t10-friends','sil-friends','gm-feats','cu-daily','cu-hist','cu-arch','cu-solo','cu-diff','fp-daily','fp-hist','fp-arch','fp-solo','fp-solo5','fp-diff','im-daily','im-hist','im-arch','im-solo','im-diff','gm-ms'];
+  'cx-daily','cx-hist','t10-daily','t10-hist','sil-daily','sil-hist','sil-miss','sil-train','gm-pass','gm-days','gm-acct','gm-lbc','gm-ranks','cx-solo','cx-friends','t10-solo','t10-friends','sil-friends','gm-feats','cu-daily','cu-hist','cu-arch','cu-solo','cu-diff','fp-daily','fp-hist','fp-arch','fp-solo','fp-solo5','fp-diff','im-daily','im-hist','im-arch','cx-arch','t10-arch','sil-arch','cm-arch','im-solo','im-diff','gm-ms'];
 function onUser(u){const was=user;user=u||null;if(!user)holdOff();if(!seen){seen=1;count(G.PAGE,user?'in':'guest')}
   if(was&&!user){DEVICE_KEYS.forEach(k=>ls.set(k,null));ls.set('gm-acct',null);location.reload();return}
   if(user){if(!(LAST&&LAST.u===user.uid))name='';loadName()}
@@ -244,7 +244,7 @@ function changeMyName(){const id=uid();if(!id||!db){say('One moment, signing you
   db.ref('pnames/'+id).once('value').then(s=>{if(uid()!==id)return;MYP=s.val();nameWindow(false)}).catch(()=>nameWindow(false))}
 
 /* ---- keeping the account and this device in step ---- */
-function syncAll(){if(!uid()||!db)return;syncPass();syncDays();archRank();if(!OWN){Object.keys(ADAPT).forEach(syncGame);syncGrid('daily','bl-hist');syncGrid('capitals/daily','cc-hist')}}
+function syncAll(){if(!uid()||!db)return;syncPass();syncDays();archRank();if(!OWN){Object.keys(ADAPT).forEach(syncGame);syncGrid('daily','bl-hist');syncGrid('capitals/daily','cc-hist')}syncArch()}
 // Countries and Capitals keep their days in the account themselves (users/<uid>/daily, users/<uid>/capitals/daily), but only
 // when you open them: here (the home page, the other games) the account's days are copied to this device too,
 // so a grid played on another device shows as played everywhere at once. Only the stats line, never the whole game (j).
@@ -253,6 +253,28 @@ function syncGrid(path,key){const id=uid();
     for(const [d,v] of Object.entries(R)){if(!v||typeof v!=='object')continue;const {j,...e}=v;
       if(JSON.stringify(h[d])!==JSON.stringify(e)){h[d]=e;moved=true}}
     if(moved){put(key,h);changed('adopt')}}).catch(()=>{})}
+/* ---- Archive games in the account (Héctor 2026-11-23: "en archive tengo que poder ver todas las partidas jugadas de todos
+   los juegos en mi usuario"): a past day played from the Archive shows as played on every device you sign in on.
+   Connections, Top 10, Silhouette, Customs, Flag Pie, Impostor, Compass: until now their archive games stayed on the device
+   that played them (cx-arch, t10-arch…); now each finished one is also kept in users/<uid>/arch/<game>/<day> ({j: the whole
+   game, pd: the day it was played}) and comes back from there. The account's game wins (one try each per account).
+   Countries and Capitals already keep theirs in users/<uid>(/capitals)/archive (grid/engine.js), but read them only when the
+   game is opened: here they come to this device too, so the home page's Archive calendar shows them at once. */
+function syncArch(){const id=uid();if(!id||!db||TEST)return;const k=T();
+  G.GAMES.forEach(g=>{if(!g.arch||g.id==='borderline'||g.id==='citygrid')return;const ref=db.ref('users/'+id+'/arch/'+g.id);
+    ref.once('value').then(s=>{if(uid()!==id)return;const R=s.val()||{},a=json(g.arch)||{},up={};let moved=false;
+      for(const [d,v] of Object.entries(R)){if(!v||typeof v.j!=='string')continue;
+        try{const x=JSON.parse(v.j);if(!G.archDone(x)||JSON.stringify(a[d])===v.j)continue;a[d]=x;moved=true}catch(e){}}
+      for(const d in a){const x=a[d];if(!R[d]&&/^\d{4}-\d{2}-\d{2}$/.test(d)&&d<k&&G.archDone(x))
+        up[d]=Object.assign({j:JSON.stringify(x)},/^\d{4}-\d{2}-\d{2}$/.test(x.pd||'')?{pd:x.pd}:{})}
+      if(moved){put(g.arch,a);changed('adopt')}
+      // each day once: a day already in the account is never written over
+      for(const d in up)ref.child(d).transaction(cur=>cur?undefined:up[d]).catch(()=>{})}).catch(()=>{})});
+  if(!OWN)[['','bl-arch'],['/capitals','cc-arch']].forEach(([fb,key])=>{
+    db.ref('users/'+id+fb+'/archive').once('value').then(s=>{if(uid()!==id)return;const R=s.val()||{},a=json(key)||{};let moved=false;
+      for(const [d,v] of Object.entries(R)){if(!v||v.f!==1||typeof v.j!=='string'||a[d]&&a[d].over&&(a[d].adopted===v.d+v.s||!a[d].adopted&&v.d===ls.get(key.slice(0,2)+'-pid')))continue;
+        try{const x=JSON.parse(v.j);if(!x||!x.over)continue;x.adopted=v.d+v.s;a[d]=x;moved=true}catch(e){}}
+      if(moved){put(key,a);changed('adopt')}}).catch(()=>{})})}
 // GeoPass: the account's stamps, plus the ones collected here as a guest (once)
 const asList=x=>Array.isArray(x)?x.filter(Boolean):x?Object.values(x):[];
 function syncPass(){const id=uid(),ref=db.ref('users/'+id+'/pass');
