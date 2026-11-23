@@ -417,7 +417,7 @@ function guess(ci,cid){
   if(ok){
     const pts=plain()?plainValues(S.answers,kmsq())[ci]:valuesFor(S.answers)[ci],sb=kmsq()?0:plain()?Math.max(0,Math.floor(PLAIN_SPEED-(now()-(S.turnStart||now()))/1000)):speedPts(now()-(S.turnStart||now()),S.timer);
     const before=lineCounts()[S.turn];
-    S.cells[ci]={o:S.turn,c:cid,p:pts,sb};S.used.push(cid);S.passes=0;ui.fresh=ci;
+    S.cells[ci]={o:S.turn,c:cid,p:pts,sb};S.used.push(cid);S.passes=0;ui.fresh=ci;ui.freshAt=Date.now();
     const nl=lineCounts()[S.turn]-before;
     Geomingo.stamp(GRID.id,c.n,'',GRID.code(c));
     say('happy','Stamped: '+c.n+'.','+'+pts+(kmsq()&&S.daily?' km':' pts')+(sb?' · +'+sb+' speed':'')+(nl&&!plain()?' · +'+nl*LINE_BONUS+' for the line':'')+(S.mode==='solo'?'':' for '+p.name+'.'));
@@ -618,7 +618,7 @@ function syncRoom(){
      me:order.indexOf(ME),host:r.host===ME};
   if(S.over){computeScores();clearInterval(tick)}
   if(r.ev&&r.ev.id!==seenEv){
-    if(!firstSync){toast(r.ev.text,r.ev.kind);if(r.ev.ci!=null&&r.ev.kind==='good')ui.fresh=r.ev.ci;
+    if(!firstSync){toast(r.ev.text,r.ev.kind);if(r.ev.ci!=null&&r.ev.kind==='good'){ui.fresh=r.ev.ci;ui.freshAt=Date.now()};
       if(r.ev.kind==='good'||r.ev.kind==='bad')say(r.ev.kind==='good'?'happy':'sad',r.ev.kind==='good'?'Stamped.':'Denied entry.',r.ev.text)}
     seenEv=r.ev.id;
   }
@@ -923,14 +923,15 @@ function gameView(){
       if(cell.o>=0){const c=byCode[cell.c];
         // a fresh stamp drops onto the square, leaves a gold ring and its points float up (Héctor 2026-11-21, idea 1)
         const fly=ui.fresh===ci?`<span class="gm-ring" aria-hidden="true"></span><span class="gm-fly" aria-hidden="true">+${(cell.p||0)+(cell.sb||0)}${kmsq()&&S.daily?' km':''}</span>`:'';
-        h+=`<button class="cell taken flag ${ui.fresh===ci?'new':''}" data-cell="${ci}" aria-label="${ref}: ${esc(c.n)}">${stampCell(c,cell,S.mode==='solo'?'cs':'c'+cell.o)}${fly}</button>`;
+        h+=`<button class="cell taken flag ${ui.fresh===ci?'new':''}"${ui.fresh===ci?` style="--el:-${Math.max(0,Date.now()-(ui.freshAt||Date.now()))}ms"`:''} data-cell="${ci}" aria-label="${ref}: ${esc(c.n)}">${stampCell(c,cell,S.mode==='solo'?'cs':'c'+cell.o)}${fly}</button>`;
       }else if(S.over){
         h+=`<button class="cell miss" data-cell="${ci}" aria-label="${ref}: show answers"><span class="nm">${S.answers[ci].length} possible</span></button>`;
       }else h+=`<button class="cell ${ui.sel===ci?'sel':''}${ui.bad===ci?' bad':''}" data-cell="${ci}" aria-label="Square ${ref}"><span class="plus"></span>${ui.bad===ci?'<span class="gm-x" aria-hidden="true">✕</span>':''}</button>`;
     }
   });
   h+=`</div></div>`;
-  ui.fresh=-1;ui.bad=-1;
+  // the new-stamp animation survives a quick re-render (sync, flags arriving) for 1.5 s, then it is cleared
+  if(Date.now()-(ui.freshAt||0)>1500)ui.fresh=-1;ui.bad=-1;
   if(!S.over)h+=(S.mode==='solo'||(S.mode==='online'&&S.turn!==S.me)?'':'<div class="actions"><button class="ghost" id="pass">Pass turn</button></div>')+`<button class="linkbtn giveup" id="giveup">${S.mode==='solo'?'Give up':'End game'}</button>`+QRULES;
   else if(done||solo)h=h.slice(0,mark)+resultsView(h.slice(mark)+answersView())+(done?lbView(null):'');
   else h+=answersView()+(S.daily&&!S.archive&&!S.dayof?lbView(null):'');
