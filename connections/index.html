@@ -109,7 +109,7 @@
 <script src="../shared/data.js?v=202611141100"></script>
 <script src="../shared/games.js?v=202611141100"></script>
 <script src="../shared/minigames.js?v=202611262100"></script>
-<script src="daily.js?v=202611181400"></script>
+<script src="daily.js?v=202611231700"></script>
 <!-- With friends: online rooms in Countries' Firebase Realtime Database -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -194,6 +194,11 @@ function prepRule(old){neighbourRule(old);const key=old?'old':'new';
       MEMBERS:new Map(CATS.map(k=>[k,SOV.filter(i=>k.set[i])])),GAME:GM,GAME_OF:new Map(SOV.map(i=>[i,GM.filter(k=>k.set[i])])),
       POOLS3:P.map(p=>p.filter(k=>GM.includes(k))),NARROW:CATS.filter(k=>!k.v7&&!SKIP.has(k.label)).sort((a,b)=>sizeOf(a)-sizeOf(b))}})());
   ({POOLS,CHECKED,CHECKED_OF,POOLS2,MEMBERS,GAME,GAME_OF,POOLS3,NARROW}=R)}
+// Mauritius has no official language in its constitution (English is the language of parliament, French may be used there):
+// from the daily of MUS_FROM it no longer counts for "Official language: English / French". Only the new puzzles use this
+// (the saved dailies keep their groups); the fixed list in daily.js is made from 2026-11-24 with it.
+const MUS_FROM='2026-11-24';
+{const m=C.find(c=>c.c==='MUS').i;CATS.forEach(k=>{if(k.label==='Official language: English'||k.label==='Official language: French')k.setNew[m]=false})}
 prepRule(false);
 /* ---- version 7 (dailies from EASY_FROM, and every Solo / With friends puzzle): easier, better-known categories ----
    Players found Connections too hard. Version 7 only uses categories most people know or can see on the flag, plus a
@@ -237,8 +242,8 @@ const EASY=new Set([...EASY0,
   'Name has 5 letters or fewer','Starts and ends with the same letter','Capital starts with same letter','Capital name has 2+ words']);
 // colours: yellow = EASY0; green = flags, seas, borders, languages; blue = politics, size, people, sport; purple = names, capitals
 const TIER7={flagc:1,flags:1,flag7:1,sea:1,border:1,lang:1,money:1,region:1,geo:2,geo2:2,pol:2,pol2:2,mon7:2,cw7:2,people:2,sport:2,sport2:2,name:3,name7:3,cap:3};
-// the categories checked for "no other four share one": everything the game knows (old GAME) plus the new ones
-const CHECK7=[...GAME,...CATS.filter(k=>k.v7)],CHECK7_OF=new Map(SOV.map(i=>[i,CHECK7.filter(k=>k.set[i])]));
+// the categories checked for "no other four share one": everything the game knows (old GAME) plus the new ones and "Flag has a star" (from 2026-11-24 the star makes no hidden second four; 23 Nov players found one)
+const CHECK7=[...GAME,...CATS.filter(k=>k.v7),...CATS.filter(k=>k.label==='Flag has a star')],CHECK7_OF=new Map(SOV.map(i=>[i,CHECK7.filter(k=>k.set[i])]));
 CATS.filter(k=>k.v7).forEach(k=>MEMBERS.set(k,SOV.filter(i=>k.set[i])));
 function pools7(){const P=[{},{},{},{}];
   CATS.forEach(k=>{if(!EASY.has(k.label)||CX_AVOID&&CX_AVOID.has(k.label))return;if(SOV.filter(i=>k.set[i]).length<4)return;
