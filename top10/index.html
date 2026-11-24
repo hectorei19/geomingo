@@ -37,7 +37,7 @@
 <link rel="icon" href="../brand/icons/favicon-32.png?v=202611101235" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../brand/icons/apple-touch-icon.png?v=202611101235">
 <link rel="manifest" href="../brand/site.webmanifest?v=5">
-<script src="../brand/mingo.js?v=202611240900"></script>
+<script src="../brand/mingo.js?v=202611242240"></script>
 <script src="../brand/account.js?v=202611231500"></script>
 <script src="../brand/party.js?v=202611222045"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -464,9 +464,9 @@ function syncRoom(){const r=room;
   if(S.over||S.turn!==S.me)query='';
   clearInterval(tick);if(S.timer&&!S.over)tick=setInterval(onTick,250);
   render()}
-// next turn: the next player who is online (or simply the next one); the game ends when the ten are found or everyone passed in a row
+// next turn: the next player who is online (or simply the next one); the game ends when the ten are found, everyone passed in a row, or the wrong answers reach 5 for each player
 function advance(r){const order=r.order,len=order.length;r.mc=(r.mc||0)+1;
-  if(Object.keys(r.found||{}).length>=10||(r.passes||0)>=len){r.status='over';r.deadline=0;return}
+  if(Object.keys(r.found||{}).length>=10||(r.passes||0)>=len||Object.keys(r.wrong||{}).length>=5*len){r.status='over';r.deadline=0;return}
   const t=r.turn||0;let next=-1;
   for(let s=1;s<=len&&next<0;s++){const i=(t+s)%len;if((r.players[order[i]]||{}).on!==false)next=i}
   if(next<0)next=(t+1)%len;
@@ -693,7 +693,7 @@ function rulesHTML(){return `<h3>The idea</h3><ul>
   <h3>Modes</h3><ul>
   <li><b>Daily</b>: one list, the same for everyone, new every day at midnight CET. One try. Your points are your km for the GeoPass.</li>
   <li><b>Practice</b>: a random one with the daily rules (never today's), as many as you like. 5 lives or <b>Unlimited</b>: pick it next to Practice on the home page. Points only, no km.</li>
-  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. You take turns, 30 s each, and a random player starts. A country in the top 10 scores 10; one outside, <b>Pass</b> or running out of time passes the turn. The game ends when the ten are found or everyone passes in a row. Most points win.</li>
+  <li><b>With friends</b>: create a room on the home page and share its code. One room for all nine games, 2 to 6 players, each on their own phone. The host picks the game. No lives. You take turns, 30 s each, and a random player starts. A country in the top 10 scores 10; one outside, <b>Pass</b> or running out of time passes the turn. The game ends when the ten are found, everyone passes in a row, or the wrong answers add up to 5 for each player, and then the full list shows. Most points win.</li>
   <li><b>Archive</b>: missed a day? <b>Menu → Archive</b>. One try each, and its km count for that day.</li></ul>`}
 // tapping a suggestion does not take the focus from the box, so the phone keyboard stays open
 function drawSugg(){const u=$('sugg');if(u){u.innerHTML=suggHTML();u.querySelectorAll('[data-g]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>guess(b.dataset.g)})}}
