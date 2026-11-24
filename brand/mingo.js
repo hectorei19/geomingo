@@ -714,7 +714,7 @@ const room={seen:roomSeen,forget:roomForget,saved:roomSaved,resume:roomResume,st
 const OLD_NAMES={turkey:'TUR',usa:'USA',us:'USA',america:'USA',unitedstatesofamerica:'USA',uk:'GBR',britain:'GBR',greatbritain:'GBR',
   england:'GBR',scotland:'GBR',wales:'GBR',northernireland:'GBR',holland:'NLD',thenetherlands:'NLD',burma:'MMR',swaziland:'SWZ',
   czechrepublic:'CZE',easttimor:'TLS',macedonia:'MKD',drc:'COD',zaire:'COD',congokinshasa:'COD',congobrazzaville:'COG',uae:'ARE',
-  emirates:'ARE',cotedivoire:'CIV',caboverde:'CPV',holysee:'VAT'};
+  emirates:'ARE',cotedivoire:'CIV',caboverde:'CPV',holysee:'VAT',car:'CAF',png:'PNG',nz:'NZL',prc:'CHN',rok:'KOR',dprk:'PRK',ksa:'SAU',rsa:'ZAF',bih:'BIH'};
 const oldName=q=>OLD_NAMES[String(q||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z]/g,'')]||null;
 // adds that country to a game's answer list (pool: the game's countries, with .c codes), if it isn't there yet
 const withOld=(res,q,pool)=>{const o=oldName(q);if(!o||res.some(c=>c.c===o))return res;const c=pool.find(x=>x.c===o);return c?[...res,c]:res};
