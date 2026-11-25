@@ -384,7 +384,7 @@ function matches(q){
   const k=N(q);if(!k)return[];
   const starts=[],words=[]; // words: the name from its 2nd, 3rd… word on, so "Korea" finds North and South Korea
   const terr=S&&oldDay(S.daily); // territories can only be typed in daily grids from before ONLY_COUNTRIES_FROM
-  for(const c of C){if(c.t&&!terr)continue;if(c.ak.some(a=>a.startsWith(k))||c.k.startsWith(k))starts.push(c);else if(k.length>=3&&wordKeys(c).some(w=>w.startsWith(k)))words.push(c)}
+  for(const c of C){if(c.t&&!terr)continue;if(c.ak.some(a=>a.startsWith(k))||c.k.startsWith(k))starts.push(c);else if(k.length>=2&&wordKeys(c).some(w=>w.startsWith(k)))words.push(c)}
   return (window.Geomingo&&Geomingo.withOld||(r=>r))([...starts,...words].slice(0,8),q,C.filter(c=>!c.t||terr));
 }
 /* ---- what the shared grid engine (../grid/engine.js, used by Countries and Capitals) needs from this game ----

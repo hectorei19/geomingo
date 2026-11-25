@@ -46,7 +46,7 @@ function searchCountries(q, pool, max) {
   for (const c of list) {
     if (c.k === k || c.ak.includes(k)) exact.push(c);
     else if (c.k.startsWith(k) || c.ak.some(a => a.startsWith(k))) starts.push(c);
-    else if (k.length >= 3 && wkeys(c).some(w => w.startsWith(k))) words.push(c);
+    else if (k.length >= 2 && wkeys(c).some(w => w.startsWith(k))) words.push(c);
     else if (k.length >= 3 && (c.k.includes(k) || c.ak.some(a => a.includes(k)))) inside.push(c);
   }
   const res = [...exact, ...starts, ...words, ...inside].slice(0, max || 6);

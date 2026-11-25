@@ -337,7 +337,7 @@ const archiveView=()=>header('Top <span>10</span>','Archive')+archiveHTML({first
 // a name matches from its first letters, or from the start of one of its words ("Korea" finds North and South Korea);
 // a common older name ("USA", "Turkey") adds the country with its official name (brand/mingo.js withOld)
 const wordKeys=c=>c.wk||(c.wk=c.n.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().split(/[^a-z]+/).filter(Boolean).map((w,i,a)=>a.slice(i).join('')).slice(1));
-const hit=(c,k)=>c.k.startsWith(k)||c.ak.some(a=>a.startsWith(k))||(k.length>=3&&wordKeys(c).some(w=>w.startsWith(k)));
+const hit=(c,k)=>c.k.startsWith(k)||c.ak.some(a=>a.startsWith(k))||(k.length>=2&&wordKeys(c).some(w=>w.startsWith(k)));
 const WO=(r,q,p)=>window.Geomingo&&Geomingo.withOld?Geomingo.withOld(r,q,p):r;
 function matches(q){const k=N(q),l=listById(S.list);if(!k)return[];const pool=SOVC.filter(c=>!l.reg||l.reg.in(c));return WO(pool.filter(c=>hit(c,k)).slice(0,8),q,pool)}
 function suggHTML(){if(!query)return KB?'<li class="hint">Type the first letters of a country, then tap it here.</li>':'';const res=matches(query);
