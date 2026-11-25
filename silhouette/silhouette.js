@@ -41,13 +41,15 @@ function silSVG(code, rot, cls) {
 function searchCountries(q, pool, max) {
   const k = norm(q);
   if (!k) return [];
-  const list = pool || COUNTRIES, exact = [], starts = [], inside = [];
+  const list = pool || COUNTRIES, exact = [], starts = [], words = [], inside = [];
+  const wkeys = c => c.wk || (c.wk = c.n.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(/[^a-z]+/).filter(Boolean).map((w, i, a) => a.slice(i).join('')).slice(1));
   for (const c of list) {
     if (c.k === k || c.ak.includes(k)) exact.push(c);
     else if (c.k.startsWith(k) || c.ak.some(a => a.startsWith(k))) starts.push(c);
+    else if (k.length >= 3 && wkeys(c).some(w => w.startsWith(k))) words.push(c);
     else if (k.length >= 3 && (c.k.includes(k) || c.ak.some(a => a.includes(k)))) inside.push(c);
   }
-  const res = [...exact, ...starts, ...inside].slice(0, max || 6);
+  const res = [...exact, ...starts, ...words, ...inside].slice(0, max || 6);
   return window.Geomingo && Geomingo.withOld ? Geomingo.withOld(res, q, list) : res;
 }
 

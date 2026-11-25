@@ -203,9 +203,10 @@ function cluesHTML(q){const done=q.st!=='play';
     return `<li class="clue${!done&&i===q.k-1?' new':''}${i>=q.k?' off':''}"><span class="ci">${x.ico}</span><span class="ct"><span>${x.lab}</span>${x.main?`<b>${esc(x.main)}</b>`:''}${x.sub?`<small>${esc(x.sub)}</small>`:''}${x.flag?`<img class="fl" src="${flagSrc(x.flag)}" alt="A flag">`:''}</span></li>`}).join('')}</ol>`}
 
 /* answering: the same box as in the other games */
+const wkeys=c=>c.wk||(c.wk=c.n.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().split(/[^a-z]+/).filter(Boolean).map((w,i,a)=>a.slice(i).join('')).slice(1));
 function matches(t){const k=N(t);if(!k)return [];
-  const ex=[],st=[],ins=[];for(const c of SOV){if(c.k===k||c.ak.includes(k))ex.push(c);else if(c.k.startsWith(k)||c.ak.some(a=>a.startsWith(k)))st.push(c);else if(k.length>=3&&(c.k.includes(k)||c.ak.some(a=>a.includes(k))))ins.push(c)}
-  return (window.Geomingo&&Geomingo.withOld||(r=>r))([...ex,...st,...ins].slice(0,6),t,SOV)}
+  const ex=[],st=[],wd=[],ins=[];for(const c of SOV){if(c.k===k||c.ak.includes(k))ex.push(c);else if(c.k.startsWith(k)||c.ak.some(a=>a.startsWith(k)))st.push(c);else if(k.length>=3&&wkeys(c).some(w=>w.startsWith(k)))wd.push(c);else if(k.length>=3&&(c.k.includes(k)||c.ak.some(a=>a.includes(k))))ins.push(c)}
+  return (window.Geomingo&&Geomingo.withOld||(r=>r))([...ex,...st,...wd,...ins].slice(0,6),t,SOV)}
 function suggHTML(q){if(!query)return SHEETS?'<li class="hint" style="padding:8px 2px">Start typing, then tap the country.</li>':'';const res=matches(query);
   if(!res.length)return `<li class="hint" style="padding:8px 2px">No country matches “${esc(query)}”.</li>`;
   return res.map(c=>{const t=q.tries.includes(c.c);return `<li><button data-g="${c.c}" ${t?'disabled':''}>${esc(c.n)}${t?'<span class="tag">not it</span>':''}</button></li>`}).join('')}
