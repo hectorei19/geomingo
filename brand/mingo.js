@@ -470,8 +470,7 @@ async function shareDay(D){stat('share');const line='I did '+fmt(D.km)+' km on G
   if(b){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='geomingo-'+D.k+'.png';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
   try{await navigator.clipboard.writeText(line)}catch(e){}
   const t=document.querySelector('#gm-window .gm-dc-ok');if(t)t.hidden=false}
-const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
-function openDay(D){D=D||dayInfo();const box=openWindow('<div class="gm-res gm-dcw"><div class="gm-rbody"><div class="dlg-head"><h2>'+cap(ALLW)+' trips. '+fmt(D.km)+' km.</h2><button class="dlg-x" data-gm-act="close">Close</button></div>'+
+function openDay(D){D=D||dayInfo();const box=openWindow('<div class="gm-res gm-dcw"><div class="gm-rbody"><div class="dlg-head"><h2>Your day is complete</h2><button class="dlg-x" data-gm-act="close">Close</button></div>'+
   dayCardHTML(D)+'<p class="gm-dc-ask"><b>Beat that!</b>Challenge your friends: same '+ALLW+' games, free, no sign-up.</p><button class="gm-big gm-dc-sh" data-gm-act="shareday">'+ICO.share+' Challenge my friends</button><p class="gm-dc-ok" hidden>Picture saved and line copied. Paste it in any chat.</p></div></div>','Your day is complete');
   box._acts={shareday:()=>shareDay(D)};const c=box.querySelector('[data-gm-act="close"]');if(c)c.focus()}
 function dayDone(){const k=dayKey();if(store.get('gm-dayfull')===k||document.getElementById('gm-window'))return;const D=dayInfo(k);if(!D.all)return;
