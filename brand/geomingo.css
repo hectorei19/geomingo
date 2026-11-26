@@ -649,9 +649,32 @@ button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
 .gm-dc-g{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .gm-dc-g b{border-radius:8px;padding:6px 2px;font:700 10px/1.35 var(--type);color:#16202F;text-align:center;text-transform:uppercase;overflow-wrap:anywhere}
 .gm-dc-f{margin:12px 0 0;font:400 12px var(--type);color:var(--muted);text-align:center}
-.gm-dc-sh{background:var(--gold);color:#16202F;font:900 16px var(--display);text-transform:uppercase;letter-spacing:.06em}
+.gm-dc-sh{background:var(--coral);color:#16202F;font:900 16px var(--display);text-transform:uppercase;letter-spacing:.06em}
 .gm-dc-ok{margin:0;text-align:center;font-size:13px;color:var(--muted)}
-.gm-dc>svg.mingo{position:absolute;top:10px;right:14px}
+.gm-dc>svg.mingo{position:absolute;top:10px;right:22px}
+.gm-dc-f b{color:#F3D98B;font-weight:400}
+.gm-dc-ask{margin:0;text-align:center;font:400 14px/1.45 var(--type);color:#CFD6E0}
+.gm-dc-ask b{display:block;font:900 22px/1.15 var(--display);color:#F3D98B;text-transform:uppercase}
+/* the day card comes alive: tiles and km pop in, Mingo nods, winks and gives a thumbs up, the button beats (Héctor 2026-11-26) */
+.gm-dc .hd{transform-box:view-box;transform-origin:44px 40px;animation:gm-nod 3.2s ease-in-out infinite}
+.gm-dc .th{transform-box:view-box;transform-origin:88px 74px;opacity:0;animation:gm-thumb 3.6s infinite cubic-bezier(.3,1.5,.5,1)}
+.gm-dc .sp{transform-box:view-box;transform-origin:110px 20px;opacity:0;animation:gm-spark 3.6s infinite}
+.gm-dc>svg.mingo{animation:gm-bob 3s ease-in-out infinite}
+.gm-dc .mg-eye,.gm-dc .mg-eyel{transform-box:fill-box;transform-origin:center;animation:gm-wink 3.6s infinite}
+.gm-dc-k{animation:gm-dcpop .8s both cubic-bezier(.3,1.6,.5,1)}
+.gm-dc-g b{animation:gm-tile .5s both ease-out}
+.gm-dc-g b:nth-child(2){animation-delay:70ms}.gm-dc-g b:nth-child(3){animation-delay:140ms}.gm-dc-g b:nth-child(4){animation-delay:210ms}.gm-dc-g b:nth-child(5){animation-delay:280ms}.gm-dc-g b:nth-child(6){animation-delay:350ms}.gm-dc-g b:nth-child(7){animation-delay:420ms}.gm-dc-g b:nth-child(8){animation-delay:490ms}.gm-dc-g b:nth-child(9){animation-delay:560ms}
+.gm-dc-ask b{animation:gm-dcpop .7s .3s both cubic-bezier(.3,1.6,.5,1)}
+.gm-dc-sh{animation:gm-beat 1.6s ease-in-out infinite}
+@keyframes gm-bob{0%,100%{transform:none}50%{transform:translateY(-2px)}}
+@keyframes gm-nod{0%,100%{transform:none}30%,40%{transform:rotate(-7deg)}70%{transform:rotate(5deg) translateY(1px)}}
+@keyframes gm-thumb{0%,8%{transform:scale(.1) rotate(40deg);opacity:0}20%{transform:none;opacity:1}26%{transform:rotate(-8deg)}32%{transform:rotate(6deg)}38%,80%{transform:none;opacity:1}92%,100%{transform:scale(.1) rotate(40deg);opacity:0}}
+@keyframes gm-spark{0%,18%{opacity:0;transform:scale(.3)}26%{opacity:1;transform:scale(1.2)}34%,100%{opacity:0}}
+@keyframes gm-wink{0%,22%,40%,100%{transform:none}28%,34%{transform:scaleY(.1)}}
+@keyframes gm-dcpop{from{transform:scale(.3) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes gm-tile{from{transform:translateY(8px) scale(.85);opacity:0}to{transform:none;opacity:1}}
+@keyframes gm-beat{0%,100%{transform:none}50%{transform:scale(1.04)}}
+@media (prefers-reduced-motion:reduce){.gm-dc *,.gm-dc,.gm-dc-sh,.gm-dc-ask b{animation:none!important}.gm-dc .th{opacity:1}}
 
 .gm-foot{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:18px}
 .gm-ig{display:inline-flex;align-items:center;gap:8px;padding:10px 4px;color:var(--muted);font-size:14px;text-decoration:none}
