@@ -110,7 +110,7 @@ body.kbon .kbgu #src{align-self:center!important}
 <script src="../data/countries.js?v=202611181400"></script>
 <script src="../data/flag-files.js?v=c66e702f29"></script>
 <script src="../shared/data.js?v=202611141100"></script>
-<script src="extra-data.js?v=202611162100"></script>
+<script src="extra-data.js?v=202611261100"></script>
 <script src="../shared/games.js?v=202611141100"></script>
 <script src="../shared/minigames.js?v=202611262100"></script>
 <script>
@@ -199,6 +199,7 @@ const WORLD_LISTS=[
   L('mcdpc-hi','The 10 countries with the most McDonald\'s per person',c=>X('mcd')(c)&&D('pop')(c)?X('mcd')(c)/D('pop')(c)*1e6:undefined,-1,v=>d1(v)+' per M','Restaurants per million (M) people: restaurants divided by population. '+MCDNOTE+' '+POPNOTE),
   L('temp-lo','The 10 coldest countries (average yearly temperature)',X('temp'),1,v=>d1(v)+' °C',TEMPNOTE),
   L('nobel-hi','The 10 countries with the most Nobel Prize winners',Z(X('nobel')),-1,PL('winner'),'Nobel Prize winners up to October 2026. Source: Wikipedia, "List of Nobel laureates by country" (the top 15 updated with the 2026 prizes, as in Business Today, 19 October 2026). A winner linked to two countries counts for both; the Soviet Union counts for Russia.'),
+  L('spanish-hi','The 10 countries with the most Spanish speakers',X('spanish'),-1,v=>d1(v)+' million','Spanish speakers in 2025: native speakers plus people with limited competence. Source: Instituto Cervantes, "Spanish: a language to the world" 2025 (Table 1, the Spanish-speaking countries, and Table 2, other countries). Countries in neither table have no figure. The Cervantes 2024 report gives the same top 10.'),
   L('gold-hi','The 10 countries with the biggest gold reserves',X('gold'),-1,v=>n0(v)+' tonnes',NOTE('World Gold Council (IMF figures), August 2026, top 50 countries','Gold reserve')+' The World Gold Council\'s May 2026 table gives the same top 10.'),
   L('wine-hi','The 10 countries that make the most wine',X('wine'),-1,v=>v>=10?EU(v/10,2)+' bn litres':n0(v*100)+' M litres','Wine made in 2023. Source: International Organisation of Vine and Wine (OIV), "2024 World Wine Production Outlook", which lists 29 countries; the others have no figure.'),
   L('coffee-hi','The 10 countries that grow the most coffee',Z(X('coffee')),-1,v=>v>=1e6?EU(v/1e6,2)+' M t':n0(v)+' t','Green coffee grown in 2023. Source: FAO (FAOSTAT), as published by Our World in Data, "Coffee bean production"; Wikipedia, "List of countries by coffee production", gives the same top 10.'),
@@ -239,7 +240,7 @@ const REGIONS=[
 // lists that come up in Solo and With friends but never as the daily list. Empty for now: every list is also a daily one.
 // Lists added once a daily round has begun can go here, so they don't change the order of that round's daily lists.
 const SOLO_ONLY=[];
-const WORLD_ONLY=['ll-area-hi','temp-hi','capel-hi','volc-hi','imm-hi','sheeppc-hi','beer-hi','tour-hi','wc-hi','mcd-hi','mcdpc-hi','temp-lo','nobel-hi','gold-hi','wine-hi','coffee-hi','rice-hi','oil-hi','gas-hi','steel-hi','cars-hi','nuke-hi','mil-hi','ogold-hi','tower-hi'];
+const WORLD_ONLY=['ll-area-hi','temp-hi','capel-hi','volc-hi','imm-hi','sheeppc-hi','beer-hi','tour-hi','wc-hi','mcd-hi','mcdpc-hi','temp-lo','nobel-hi','spanish-hi','gold-hi','wine-hi','coffee-hi','rice-hi','oil-hi','gas-hi','steel-hi','cars-hi','nuke-hi','mil-hi','ogold-hi','tower-hi'];
 // the twist lists come in a world version only
 WORLD_ONLY.push('popvow-hi','popnoa-hi','areashort-hi');
 const ALL_LISTS=[...WORLD_LISTS,...REGIONS.flatMap(g=>WORLD_LISTS.filter(l=>!WORLD_ONLY.includes(l.id)).map(l=>({...l,id:l.id+'-'+g.k,reg:g,
@@ -287,7 +288,7 @@ const ROUND2_ORDER=["beer-hi","forest-lo-as","age-lo-af","cpi-hi-af","dens-lo-eu
 let R2=null;
 const TWIST=['popvow-hi','popnoa-hi','areashort-hi'];
 // the six lists added on 16 November 2026 join the daily round from NEW6_FROM (after the easier two months), one every 5 days
-const NEW6_FROM='2027-01-17',NEW6=['capel-hi','temp-hi','ll-area-hi','volc-hi','sheeppc-hi','imm-hi'];
+const NEW6_FROM='2027-01-17',NEW6=['capel-hi','temp-hi','ll-area-hi','volc-hi','sheeppc-hi','imm-hi','spanish-hi'];
 function round2(){if(R2)return R2;const k=dayNum(R2_CHANGE,T10_FIRST)-1-FIRST_ROUND.length,ok=new Set(DAILY_LISTS.map(l=>l.id));
   R2=[...ROUND2_ORDER.slice(0,k),...ROUND2_ORDER.slice(k).filter(id=>ok.has(id)&&!NEW6.includes(id))];
   const k6=dayNum(NEW6_FROM,T10_FIRST)-1-FIRST_ROUND.length;NEW6.filter(id=>ok.has(id)).forEach((id,i)=>R2.splice(k6+i*5,0,id));
@@ -574,6 +575,7 @@ function noFigure(l,code){const id=l.id.replace(/-(eu|as|af|am)$/,''),c=byCode[c
   if(id==='popvow-hi'&&!/^[aeiou]/.test(c.letters))return 'starts with a consonant';
   if(id==='popnoa-hi'&&c.letters.includes('a'))return 'has an A';
   if(id==='areashort-hi'&&c.letters.length>5)return 'name too long';
+  if(id==='spanish-hi')return 'not in report';
   return 'not measured'}
 function wrongsHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries(r.map(x=>[x.c,x.v])),on=S.mode==='online';
   const who=c=>on&&S.by[c]!=null&&S.players[S.by[c]]?S.players[S.by[c]].name:'',pc=c=>`--pc:var(--p${S.by[c]%6})`;let h='';
