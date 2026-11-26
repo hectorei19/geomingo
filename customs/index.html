@@ -95,10 +95,10 @@
 <footer class="foot"><button class="linkbtn" id="creditsbtn">Credits &amp; data sources</button></footer>
 <div id="layer"></div>
 
-<script src="../data/countries.js?v=202611181400"></script>
+<script src="../data/countries.js?v=202611262300"></script>
 <script src="../shared/data.js?v=202611141100"></script>
 <script src="../shared/games.js?v=202611141100"></script>
-<script src="../shared/minigames.js?v=202611262100"></script>
+<script src="../shared/minigames.js?v=202611262330"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../brand/firebase-config.js?v=202611151700"></script>
@@ -121,7 +121,9 @@ const raw=q=>CLUES+1-q.k,worth=q=>q.x3?Geomingo.CL3[q.k-1]||0:15+raw(q);
 const ptsOf=q=>Geomingo.clFlag(q);
 const isNew=G=>G.qs.some(q=>q.x3);
 // v: which clue of each group this traveller gives (picked once, so a saved game keeps its clues)
-const newQ=(c,rand,day)=>{rand=rand||Math.random;return Object.assign({c,k:1,tries:[],st:'play',v:GROUPS.map(()=>Math.floor(rand()*1e6))},Geomingo.cl3(day)?{x3:1}:{})};   // day: a daily's day (none: Practice, With friends)
+const newQ=(c,rand,day)=>{rand=rand||Math.random;return Object.assign({c,k:1,tries:[],st:'play',v:GROUPS1.map(()=>Math.floor(rand()*1e6))},Geomingo.cl3(day)?{x3:1}:{},!day||day>=CL5_FROM?{g2:1}:{})};   // day: a daily's day (none: Practice, With friends)
+// new clue order from CL5_FROM (Héctor 2026-11-26): passport stamp, size, daily life, the map, the obvious. Travellers made before (g2 missing) keep GROUPS1.
+const CL5_FROM='2026-11-27';
 let query='',typing=false;
 
 /* ---- the clues: five groups, from not obvious to obvious ----
@@ -148,7 +150,7 @@ const FACTS=[['ind_uk','Became independent from the United Kingdom'],['ind_es','
   ['pol_ussr','Was part of the Soviet Union'],['arab','A member of the Arab League'],['asean','A member of ASEAN, in Southeast Asia'],['nukes','Has nuclear weapons'],['noarmy','Has no army of its own'],
   ['nuclear','Makes electricity in nuclear power plants'],['sp_summer','Has hosted the Summer Olympics'],['sp_winter','Has hosted the Winter Olympics'],['sp_wchost','Has hosted the men\'s football World Cup'],
   ['sp_wcwin','Has won the men\'s football World Cup'],['sp_f1','Has a Formula 1 race'],['euro','Takes part in Eurovision'],['metro','Has a metro system'],['wc','Has played at the men\'s football World Cup']];
-const GROUPS=[
+const GROUPS1=[
   // 1 Curiosities
   ['Curiosity',c=>{const d=c.c,o=[],V=k=>DATA[k][d];
     if(V('life'))o.push(['Life expectancy: '+num(V('life'))+' years','How long people live on average']);
@@ -191,8 +193,38 @@ const GROUPS=[
     if(c.cap&&!giveaway(c,c.cap))o.push(['The capital starts with '+c.cap[0].toUpperCase(),c.cap.replace(/[ \-'.]/g,'').length+' letters']);
     o.push(['','',true]);
     return o}]];
+// ---- the clues from CL5_FROM: always the same five steps, from hard to obvious. Easy giveaways (euro, road side, web ending,
+// language) never come before clue 3 (Héctor 2026-11-26). Phone codes, web endings and currency names: data/countries.js ----
+const GROUPS2=[
+  // 1 Passport stamp: the hard ones
+  ['Passport stamp',c=>{const d=c.c,o=[],V=k=>DATA[k][d];
+    if(DATA.dial[d]){const x=['Calling code: '+DATA.dial[d],'What you dial first when you phone from abroad'];o.push(x,x,x)}
+    if(V('life'))o.push(['Life expectancy: '+num(V('life'))+' years','How long people live on average']);
+    if(V('age'))o.push(['Median age: '+num(V('age'))+' years','Half the people are younger than this']);
+    if(V('forest')!=null)o.push(['Forest covers '+Math.round(V('forest'))+'% of the land','']);
+    if(V('elev'))o.push(['Highest point: '+num(V('elev'))+' m above the sea','']);
+    o.push(V('olymp')?['Has won '+num(V('olymp'))+' Olympic medal'+(V('olymp')===1?'':'s'),'Summer and Winter Games, all time']:['Has never won an Olympic medal','Summer and Winter Games, all time']);
+    return o}],
+  // 2 Size
+  ['Size',GROUPS1[1][1]],
+  // 3 Daily life: money, web, language, road, clubs
+  ['Daily life',c=>{const d=c.c,o=[],V=k=>DATA[k][d];
+    if(c.cu.length===1&&DATA.curname[c.cu[0]])o.push(['Money: '+DATA.curname[c.cu[0]],'']);
+    if(DATA.tld[d])o.push(['Web addresses end in '+DATA.tld[d],'']);
+    o.push(['Drives on the '+(LEFT.has(d)?'left':'right'),'']);
+    const lg=c.lg.filter(l=>!giveaway(c,l));
+    if(lg.length===c.lg.length&&lg.length)o.push([(lg.length>1?'Languages: ':'Language: ')+listText(lg.slice(0,3))+(lg.length>3?' and '+(lg.length-3)+' more':''),'']);
+    return o.concat(GROUPS1[2][1](c))}],
+  // 4 The map
+  ['On the map',c=>{const d=c.c,nb=nbOf(c),o=[],ct=contName[c.r];
+    o.push([ct+', '+latText(c.lat),'']);
+    o.push([ct+(c.ll?', landlocked: no coast':!nb.length?', an island country':', with a coast'),nb.length?nb.length+' land neighbour'+(nb.length===1?'':'s'):'No land borders']);
+    const sea=SEAS.filter(([k])=>isIn(k,d)).map(x=>x[1]);if(sea.length)o.push([ct+', on '+listText(sea),'']);
+    return o}],
+  // 5 The obvious
+  GROUPS1[4]];
 // daily and archive games before FIX_FROM (data/countries.js) use the data as it was then, so their clues stay the same
-function clue(q,i){const c=cByCode[q.c],[lab,f]=GROUPS[i],o=D&&D.date&&!fixedDay(D.date)?dataAsBefore(()=>f(c)):f(c),v=(q.v||[])[i];
+function clue(q,i){const c=cByCode[q.c],[lab,f]=(q.g2?GROUPS2:GROUPS1)[i],o=D&&D.date&&!fixedDay(D.date)?dataAsBefore(()=>f(c)):f(c),v=(q.v||[])[i];
   // old saves without v: always the same pick for the country
   const x=o[(v!=null?v:seedOf(q.c+i))%o.length];
   return x[2]?{ico:i+1,lab:'Flag',main:'',sub:'',flag:q.c}:{ico:i+1,lab,main:x[0],sub:x[1]}}
@@ -363,7 +395,7 @@ const G0=()=>view==='daily'?D:view==='train'||view==='room'?T:null;
 const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name each traveller's country. Five clues each, from hard to easy; a wrong answer opens the next one. Fewer clues, more points: ${G0()&&!isNew(G0())?'20, 19, 18, 17, 16':'20, 15, 10, 5, 3'}. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Five travellers come to the customs desk, one at a time. Name the country each one comes from.</li>
-  <li>Each has five clues, from not obvious to obvious: <b>1</b> a curiosity, <b>2</b> numbers, <b>3</b> history and clubs, <b>4</b> on the map, <b>5</b> the obvious (neighbours, flag…).</li>
+  <li>Each has five clues, from not obvious to obvious: <b>1</b> a passport stamp (calling code or a curiosity), <b>2</b> size, <b>3</b> daily life (money, web, language, road), <b>4</b> on the map, <b>5</b> the obvious (neighbours, flag…).</li>
   <li>Only the 197 independent countries, never territories.</li></ul>
   <h3>How to play</h3><ul>
   <li>Tap <b>Type a country…</b>, start typing and tap the country in the list. Names in English, one per country (United Kingdom, not UK). Accents and capitals don't matter.</li>

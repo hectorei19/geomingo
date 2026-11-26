@@ -62,6 +62,7 @@ const allPlayedHTML=cur=>Geomingo.nextGame(cur)?'':`<p class="hint">You have pla
 const DATA_CREDITS=`<ul style="padding-left:18px">
   <li>Country data (names, borders, regions, area, languages, currencies, capitals): <a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a>, under the Open Database License (ODbL) 1.0, with a few corrections by hand.</li>
   <li>Population, development, economy, politics, geography and sport figures: Wikipedia lists (CC BY-SA 4.0), downloaded in October 2026, which cite the UN, the UNDP, the World Bank and the CIA World Factbook among others.</li>
+  <li>Phone codes (ITU, via Wikipedia's list of country calling codes), internet endings (IANA root zone database) and currency names (ISO 4217), checked in November 2026.</li>
   <li>Flag colours and symbols, seas, memberships and sporting hosts: compiled by hand from public sources, correct as of October 2026.</li>
   <li>Flags: <a href="https://github.com/lipis/flag-icons" target="_blank" rel="noopener">flag-icons</a>, Copyright (c) 2013 Panayiotis Lipiridis, MIT License.</li>
   <li>Fonts: Archivo, Public Sans and Courier Prime (Google Fonts, SIL Open Font License).</li>
