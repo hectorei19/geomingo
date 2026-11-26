@@ -435,10 +435,14 @@ const DCOL={borderline:'#F07884',citygrid:'#D4AD4B',connections:'#7FA2F0',top10:
 function dayInfo(k){k=k||dayKey();const day=ledger()[k]||{},g=live();let st=0;try{st=streak()}catch(e){}
   return {k,km:dayTotal(day),st,games:g.map(x=>({id:x.id,name:x.name,km:day[x.id]})),all:g.every(x=>day[x.id]!=null)}}
 const dayDate=k=>dateText(k,{weekday:'short',day:'numeric',month:'short'}).toUpperCase();
-function dayCardHTML(D){return '<div class="gm-dc">'+mingo('happy',58)+'<div class="gm-dc-l">geo<span>mingo</span></div><div class="gm-dc-d">'+esc(dayDate(D.k))+(D.st>=2?' · 🔥 '+D.st+' DAYS':'')+'</div>'+
+// Mingo giving a thumbs up (the day card's popup): the head, the raised wing and the sparkles are groups the CSS moves (.gm-dc .hd / .th / .sp)
+function mingoThumb(){return mingo('happy',84).replace('<svg ','<svg style="overflow:visible" ').replace('<circle class="mg-body" cx="46"','<g class="hd"><circle class="mg-body" cx="46"').replace('</svg>','</g>'+
+  '<g class="th"><path d="M86 74 C96 72 102 66 104 56" style="fill:none;stroke:#D85C69" stroke-width="9" stroke-linecap="round"/><rect class="mg-deep" x="92" y="38" width="30" height="22" rx="10"/><rect class="mg-deep" x="95" y="23" width="10" height="18" rx="5" transform="rotate(-12 100 40)"/><path d="M110 44h10M110 50h10M110 56h8" stroke="#C04A57" stroke-width="1.6" stroke-linecap="round"/></g>'+
+  '<g class="sp"><path d="M124 22v8M120 26h8M96 8v6M93 11h6" stroke="#F3D98B" stroke-width="2.4" stroke-linecap="round"/></g></svg>')}
+function dayCardHTML(D){return '<div class="gm-dc">'+mingoThumb()+'<div class="gm-dc-l">geo<span>mingo</span></div><div class="gm-dc-d">'+esc(dayDate(D.k))+(D.st>=2?' · 🔥 '+D.st+' DAYS':'')+'</div>'+
   '<p class="gm-dc-k">'+fmt(D.km)+' <small>km</small></p><p class="gm-dc-s">All '+ALLW+' trips · +'+ALL5+' Grand tour</p>'+
   '<div class="gm-dc-g">'+D.games.map(x=>'<b style="background:'+(DCOL[x.id]||'#9AA6B6')+'">'+esc(x.name)+'<br>'+fmt(x.km||0)+' km</b>').join('')+'</div>'+
-  '<p class="gm-dc-f">Play today\'s trips at geomingo.com</p></div>'}
+  '<p class="gm-dc-f">Can you beat <b>'+fmt(D.km)+' km</b>? geomingo.com</p></div>'}
 // the same card drawn as a 1080 × 1350 picture
 function dayCardPNG(D){return new Promise(res=>{const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
   const disp='"Archivo","Arial Narrow",Impact,sans-serif',type='"Courier Prime","Courier New",monospace';
@@ -453,12 +457,12 @@ function dayCardPNG(D){return new Promise(res=>{const W=1080,H=1350,c=document.c
   const cw=(W-220-2*24)/3,ch=150;D.games.forEach((g,i)=>{const X=110+(i%3)*(cw+24),Y=630+Math.floor(i/3)*(ch+24);
     x.fillStyle=DCOL[g.id]||'#9AA6B6';rr(X,Y,cw,ch,22);x.fill();x.fillStyle='#16202F';x.textAlign='center';
     x.font='800 34px '+type;x.fillText(g.name.toUpperCase(),X+cw/2,Y+64);x.font='800 40px '+type;x.fillText(fmt(g.km||0)+' km',X+cw/2,Y+116);x.textAlign='left'});
-  x.font='400 38px '+type;x.fillStyle='#9AA6B6';x.textAlign='center';x.fillText("Play today's trips at geomingo.com",W/2,H-110);
+  x.font='400 38px '+type;x.fillStyle='#9AA6B6';x.textAlign='center';x.fillText('Can you beat '+fmt(D.km)+' km?  geomingo.com',W/2,H-110);
   // Mingo, happy with his GeoPass, top right (Héctor 2026-11-17: "¿y Mingo no sale?")
   const svg=mingo('happy',300).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" ').replace('aria-hidden="true" focusable="false">','aria-hidden="true" focusable="false"><style>'+MG_CSS+'</style>');
   const im=new Image();im.onload=()=>{x.drawImage(im,W-110-260,70,260,Math.round(260*160/120));c.toBlob(b=>res(b),'image/png')};
   im.onerror=()=>c.toBlob(b=>res(b),'image/png');im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)})}
-async function shareDay(D){stat('share');const line='Geomingo · '+dateText(D.k,{day:'numeric',month:'short'})+' · '+fmt(D.km)+' km'+(D.st>=2?' · 🔥 '+D.st:'')+'\nhttps://geomingo.com';
+async function shareDay(D){stat('share');const line='I did '+fmt(D.km)+' km on Geomingo today'+(D.st>=2?' · 🔥 '+D.st:'')+'. Can you beat me?\nhttps://geomingo.com';
   try{if(document.fonts&&document.fonts.ready)await document.fonts.ready}catch(e){}
   const b=await dayCardPNG(D),f=b&&typeof File==='function'?new File([b],'geomingo-'+D.k+'.png',{type:'image/png'}):null;
   try{if(f&&navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:line});return}}catch(e){if(e&&e.name==='AbortError')return}
@@ -466,8 +470,9 @@ async function shareDay(D){stat('share');const line='Geomingo · '+dateText(D.k,
   if(b){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='geomingo-'+D.k+'.png';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
   try{await navigator.clipboard.writeText(line)}catch(e){}
   const t=document.querySelector('#gm-window .gm-dc-ok');if(t)t.hidden=false}
-function openDay(D){D=D||dayInfo();const box=openWindow('<div class="gm-res gm-dcw"><div class="gm-rbody"><div class="dlg-head"><h2>Your day is complete</h2><button class="dlg-x" data-gm-act="close">Close</button></div>'+
-  dayCardHTML(D)+'<button class="gm-big gm-dc-sh" data-gm-act="shareday">'+ICO.share+' Share my day</button><p class="gm-dc-ok" hidden>Picture saved and line copied. Paste it in any chat.</p></div></div>','Your day is complete');
+const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
+function openDay(D){D=D||dayInfo();const box=openWindow('<div class="gm-res gm-dcw"><div class="gm-rbody"><div class="dlg-head"><h2>'+cap(ALLW)+' trips. '+fmt(D.km)+' km.</h2><button class="dlg-x" data-gm-act="close">Close</button></div>'+
+  dayCardHTML(D)+'<p class="gm-dc-ask"><b>Beat that!</b>Challenge your friends: same '+ALLW+' games, free, no sign-up.</p><button class="gm-big gm-dc-sh" data-gm-act="shareday">'+ICO.share+' Challenge my friends</button><p class="gm-dc-ok" hidden>Picture saved and line copied. Paste it in any chat.</p></div></div>','Your day is complete');
   box._acts={shareday:()=>shareDay(D)};const c=box.querySelector('[data-gm-act="close"]');if(c)c.focus()}
 function dayDone(){const k=dayKey();if(store.get('gm-dayfull')===k||document.getElementById('gm-window'))return;const D=dayInfo(k);if(!D.all)return;
   store.set('gm-dayfull',k);openDay(D)}
