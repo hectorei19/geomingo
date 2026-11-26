@@ -276,7 +276,7 @@ function easyList(key){const ok=EASY_IDS.filter(id=>LISTS.some(l=>l.id===id)).so
 // counted back from the day before List #1
 function beforeList(key){const ok=EASY_IDS.filter(id=>LISTS.some(l=>l.id===id)).sort(),n=dayNum(T10_FIRST,key)-2;
   return listById(shuffle(ok,rngFrom(seedOf('top10-before')))[n%ok.length])}
-function dailyList(key){if(key>=EASY_FROM&&key<=EASY_TO)return easyList(key);if(key<T10_FIRST)return beforeList(key);const n=dayNum(key,T10_FIRST)-1;
+function dailyList(key){if(TWIST_DAYS[key]&&LISTS.some(l=>l.id===TWIST_DAYS[key]))return listById(TWIST_DAYS[key]);if(key>=EASY_FROM&&key<=EASY_TO)return easyList(key);if(key<T10_FIRST)return beforeList(key);const n=dayNum(key,T10_FIRST)-1;
   if(n<FIRST_ROUND.length)return shuffle(FIRST_ROUND,rngFrom(seedOf('top10-cycle-0')))[Math.max(n,0)];
   const m=n-FIRST_ROUND.length,r2=round2();
   if(m<r2.length)return listById(r2[m]);
@@ -286,14 +286,13 @@ function dailyList(key){if(key>=EASY_FROM&&key<=EASY_TO)return easyList(key);if(
 const R2_CHANGE='2026-11-07';
 const ROUND2_ORDER=["beer-hi","forest-lo-as","age-lo-af","cpi-hi-af","dens-lo-eu","hdi-hi-eu","elev-hi-eu","elev-lo-am","lat-lo-am","landb-hi-as","co2tot-hi-as","gdptot-hi-eu","life-hi-af","name-hi-eu","area-lo-eu","life-lo","name-lo-as","pop-hi-af","wine-hi","forestkm-hi-as","rice-hi","capshare-hi-am","urban-hi-as","area-hi-af","age-lo","nuke-hi","capshare-hi-eu","dens-hi-af","olympc-hi-as","age-lo-eu","hdi-hi-as","area-lo-am","coffee-hi","olymp-hi-as","cap-hi-eu","urban-lo-am","pop-lo-eu","pop-lo-as","elev-hi-am","mil-hi","landb-lo","urban-hi-eu","pop-hi","gdptot-lo-as","pop-hi-am","life-lo-as","gdptot-hi-am","olymp-hi-af","urban-hi-am","co2-hi","lat-hi-eu","life-hi-as","coast-hi-eu","age-hi-am","gdptot-lo-eu","cap-hi-as","hdi-hi-af","hdi-hi","forest-hi","lat-lo-as","coast-lo-as","cars-hi","landb-lo-eu","co2-lo-as","forestkm-hi-am","elev-lo-eu","lat-hi-as","mcdpc-hi","olympc-hi","forest-lo","nb-hi","cap-lo-as","dens-hi-as","tour-hi","life-lo-eu","gdptot-lo-af","hdi-lo-as","life-hi-eu","forest-hi-as","gas-hi","elev-lo","cpi-lo-eu","name-hi","life-lo-af","mcd-hi","tower-hi","age-hi-as","cap-lo-eu","co2-lo","forest-hi-eu","hdi-hi-am","lat-lo-eu","lat-lo-af","nb-hi-am","olymp-hi","gdp-lo-as","forestkm-hi","age-hi-af","area-hi-am","pop-lo","landb-lo-as","dens-lo","age-lo-as","forestkm-hi-af","gdptot-lo-am","gdp-lo","forest-hi-am","pop-lo-af","elev-lo-af","area-hi-as","co2-hi-as","forest-lo-am","life-lo-am","coast-hi-as","hdi-lo-af","cpi-hi-as","coast-hi-am","olympc-hi-af","urban-lo-as","coast-lo","urban-lo-eu","dens-hi","gdp-lo-am","olymp-hi-am","capshare-hi","forest-lo-af","gdp-hi-af","cap-lo-af","cpi-hi-eu","urban-lo-af","forest-hi-af","area-lo","area-lo-af","landb-lo-af","capshare-hi-as","capshare-hi-af","dens-hi-eu","elev-lo-as","hdi-lo-eu","age-hi-eu","cap-lo-am","landb-hi-af","gold-hi","co2tot-hi-am","gdp-hi-am","cap-hi-af","co2-hi-af","elev-hi-as","hdi-lo-am","area-lo-as","area-hi-eu","co2tot-hi","cpi-lo-af","gdp-hi-as","cap-hi-am","temp-lo","nobel-hi","forest-lo-eu","cpi-hi-am","forestkm-hi-eu","cpi-lo-as","landb-lo-am","cap-hi","ogold-hi","olympc-hi-eu","landb-hi-am","gdp-hi-eu","co2tot-hi-eu","steel-hi","coast-hi","dens-lo-af","landb-hi","elev-hi-af","landb-hi-eu","elev-hi","coast-hi-af","co2-lo-am","gdptot-hi-as","gdptot-lo","area-hi","gdptot-hi","gdp-hi","lat-hi-am","wc-hi","hdi-lo","lat-lo","life-hi","pop-hi-as","co2tot-hi-af","name-lo","co2-lo-eu","pop-lo-am","urban-hi-af","name-lo-am","gdp-lo-eu","age-lo-am","coast-lo-am","co2-hi-am","coast-lo-af","pop-hi-eu","gdptot-hi-af","olymp-hi-eu","cpi-lo-am","cap-lo","coast-lo-eu","name-lo-af","cpi-lo","lat-hi-af","oil-hi","urban-hi","urban-lo","age-hi","dens-hi-am","gdp-lo-af","dens-lo-am","dens-lo-as","life-hi-am","lat-hi","cpi-hi","olympc-hi-am","co2-hi-eu","co2-lo-af"];
 let R2=null;
-const TWIST=['popvow-hi','popnoa-hi','areashort-hi'];
+// the twist lists (Héctor 2026-11-26) come up early, on these days; every other day keeps its list
+const TWIST_DAYS={'2026-11-29':'popvow-hi','2026-12-01':'popnoa-hi','2026-12-03':'areashort-hi'};
 // the six lists added on 16 November 2026 join the daily round from NEW6_FROM (after the easier two months), one every 5 days
 const NEW6_FROM='2027-01-17',NEW6=['capel-hi','temp-hi','ll-area-hi','volc-hi','sheeppc-hi','imm-hi','spanish-hi'];
 function round2(){if(R2)return R2;const k=dayNum(R2_CHANGE,T10_FIRST)-1-FIRST_ROUND.length,ok=new Set(DAILY_LISTS.map(l=>l.id));
   R2=[...ROUND2_ORDER.slice(0,k),...ROUND2_ORDER.slice(k).filter(id=>ok.has(id)&&!NEW6.includes(id))];
   const k6=dayNum(NEW6_FROM,T10_FIRST)-1-FIRST_ROUND.length;NEW6.filter(id=>ok.has(id)).forEach((id,i)=>R2.splice(k6+i*5,0,id));
-  // the twist lists (26 November 2026) follow the new lists, one every 5 days, so no earlier day moves
-  TWIST.filter(id=>ok.has(id)).forEach((id,i)=>R2.splice(k6+(NEW6.length+i)*5,0,id));
   return R2}
 // Solo: a random list you have not played on this device yet (never today's daily); when all were played, they all come back
 function soloList(){const seen=new Set(load('t10-seen',[])),cur=S&&S.list,today=(dailyList(todayKey())||{}).id;
