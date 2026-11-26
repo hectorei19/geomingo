@@ -110,7 +110,7 @@ body.kbon .kbgu #src{align-self:center!important}
 <script src="../data/countries.js?v=202611181400"></script>
 <script src="../data/flag-files.js?v=c66e702f29"></script>
 <script src="../shared/data.js?v=202611141100"></script>
-<script src="extra-data.js?v=202611162100"></script>
+<script src="extra-data.js?v=202611261100"></script>
 <script src="../shared/games.js?v=202611141100"></script>
 <script src="../shared/minigames.js?v=202611262100"></script>
 <script>
@@ -195,6 +195,7 @@ const WORLD_LISTS=[
   L('mcdpc-hi','The 10 countries with the most McDonald\'s per person',c=>X('mcd')(c)&&D('pop')(c)?X('mcd')(c)/D('pop')(c)*1e6:undefined,-1,v=>d1(v)+' per M','Restaurants per million (M) people: restaurants divided by population. '+MCDNOTE+' '+POPNOTE),
   L('temp-lo','The 10 coldest countries (average yearly temperature)',X('temp'),1,v=>d1(v)+' °C',TEMPNOTE),
   L('nobel-hi','The 10 countries with the most Nobel Prize winners',Z(X('nobel')),-1,PL('winner'),'Nobel Prize winners up to October 2026. Source: Wikipedia, "List of Nobel laureates by country" (the top 15 updated with the 2026 prizes, as in Business Today, 19 October 2026). A winner linked to two countries counts for both; the Soviet Union counts for Russia.'),
+  L('spanish-hi','The 10 countries with the most Spanish speakers',X('spanish'),-1,v=>d1(v)+' million','Spanish speakers in 2025: native speakers plus people with limited competence. Source: Instituto Cervantes, "Spanish: a language to the world" 2025 (Table 1, the Spanish-speaking countries, and Table 2, other countries). Countries in neither table have no figure. The Cervantes 2024 report gives the same top 10.'),
   L('gold-hi','The 10 countries with the biggest gold reserves',X('gold'),-1,v=>n0(v)+' tonnes',NOTE('World Gold Council (IMF figures), August 2026, top 50 countries','Gold reserve')+' The World Gold Council\'s May 2026 table gives the same top 10.'),
   L('wine-hi','The 10 countries that make the most wine',X('wine'),-1,v=>v>=10?EU(v/10,2)+' bn litres':n0(v*100)+' M litres','Wine made in 2023. Source: International Organisation of Vine and Wine (OIV), "2024 World Wine Production Outlook", which lists 29 countries; the others have no figure.'),
   L('coffee-hi','The 10 countries that grow the most coffee',Z(X('coffee')),-1,v=>v>=1e6?EU(v/1e6,2)+' M t':n0(v)+' t','Green coffee grown in 2023. Source: FAO (FAOSTAT), as published by Our World in Data, "Coffee bean production"; Wikipedia, "List of countries by coffee production", gives the same top 10.'),
@@ -235,7 +236,7 @@ const REGIONS=[
 // lists that come up in Solo and With friends but never as the daily list. Empty for now: every list is also a daily one.
 // Lists added once a daily round has begun can go here, so they don't change the order of that round's daily lists.
 const SOLO_ONLY=[];
-const WORLD_ONLY=['ll-area-hi','temp-hi','capel-hi','volc-hi','imm-hi','sheeppc-hi','beer-hi','tour-hi','wc-hi','mcd-hi','mcdpc-hi','temp-lo','nobel-hi','gold-hi','wine-hi','coffee-hi','rice-hi','oil-hi','gas-hi','steel-hi','cars-hi','nuke-hi','mil-hi','ogold-hi','tower-hi'];
+const WORLD_ONLY=['ll-area-hi','temp-hi','capel-hi','volc-hi','imm-hi','sheeppc-hi','beer-hi','tour-hi','wc-hi','mcd-hi','mcdpc-hi','temp-lo','nobel-hi','spanish-hi','gold-hi','wine-hi','coffee-hi','rice-hi','oil-hi','gas-hi','steel-hi','cars-hi','nuke-hi','mil-hi','ogold-hi','tower-hi'];
 const ALL_LISTS=[...WORLD_LISTS,...REGIONS.flatMap(g=>WORLD_LISTS.filter(l=>!WORLD_ONLY.includes(l.id)).map(l=>({...l,id:l.id+'-'+g.k,reg:g,
   title:l.title.replace(' countries',' countries in '+g.name),
   src:'Only countries in '+g.name+', as the country data used in Countries groups them. '+l.src})))];
@@ -280,7 +281,7 @@ const R2_CHANGE='2026-11-07';
 const ROUND2_ORDER=["beer-hi","forest-lo-as","age-lo-af","cpi-hi-af","dens-lo-eu","hdi-hi-eu","elev-hi-eu","elev-lo-am","lat-lo-am","landb-hi-as","co2tot-hi-as","gdptot-hi-eu","life-hi-af","name-hi-eu","area-lo-eu","life-lo","name-lo-as","pop-hi-af","wine-hi","forestkm-hi-as","rice-hi","capshare-hi-am","urban-hi-as","area-hi-af","age-lo","nuke-hi","capshare-hi-eu","dens-hi-af","olympc-hi-as","age-lo-eu","hdi-hi-as","area-lo-am","coffee-hi","olymp-hi-as","cap-hi-eu","urban-lo-am","pop-lo-eu","pop-lo-as","elev-hi-am","mil-hi","landb-lo","urban-hi-eu","pop-hi","gdptot-lo-as","pop-hi-am","life-lo-as","gdptot-hi-am","olymp-hi-af","urban-hi-am","co2-hi","lat-hi-eu","life-hi-as","coast-hi-eu","age-hi-am","gdptot-lo-eu","cap-hi-as","hdi-hi-af","hdi-hi","forest-hi","lat-lo-as","coast-lo-as","cars-hi","landb-lo-eu","co2-lo-as","forestkm-hi-am","elev-lo-eu","lat-hi-as","mcdpc-hi","olympc-hi","forest-lo","nb-hi","cap-lo-as","dens-hi-as","tour-hi","life-lo-eu","gdptot-lo-af","hdi-lo-as","life-hi-eu","forest-hi-as","gas-hi","elev-lo","cpi-lo-eu","name-hi","life-lo-af","mcd-hi","tower-hi","age-hi-as","cap-lo-eu","co2-lo","forest-hi-eu","hdi-hi-am","lat-lo-eu","lat-lo-af","nb-hi-am","olymp-hi","gdp-lo-as","forestkm-hi","age-hi-af","area-hi-am","pop-lo","landb-lo-as","dens-lo","age-lo-as","forestkm-hi-af","gdptot-lo-am","gdp-lo","forest-hi-am","pop-lo-af","elev-lo-af","area-hi-as","co2-hi-as","forest-lo-am","life-lo-am","coast-hi-as","hdi-lo-af","cpi-hi-as","coast-hi-am","olympc-hi-af","urban-lo-as","coast-lo","urban-lo-eu","dens-hi","gdp-lo-am","olymp-hi-am","capshare-hi","forest-lo-af","gdp-hi-af","cap-lo-af","cpi-hi-eu","urban-lo-af","forest-hi-af","area-lo","area-lo-af","landb-lo-af","capshare-hi-as","capshare-hi-af","dens-hi-eu","elev-lo-as","hdi-lo-eu","age-hi-eu","cap-lo-am","landb-hi-af","gold-hi","co2tot-hi-am","gdp-hi-am","cap-hi-af","co2-hi-af","elev-hi-as","hdi-lo-am","area-lo-as","area-hi-eu","co2tot-hi","cpi-lo-af","gdp-hi-as","cap-hi-am","temp-lo","nobel-hi","forest-lo-eu","cpi-hi-am","forestkm-hi-eu","cpi-lo-as","landb-lo-am","cap-hi","ogold-hi","olympc-hi-eu","landb-hi-am","gdp-hi-eu","co2tot-hi-eu","steel-hi","coast-hi","dens-lo-af","landb-hi","elev-hi-af","landb-hi-eu","elev-hi","coast-hi-af","co2-lo-am","gdptot-hi-as","gdptot-lo","area-hi","gdptot-hi","gdp-hi","lat-hi-am","wc-hi","hdi-lo","lat-lo","life-hi","pop-hi-as","co2tot-hi-af","name-lo","co2-lo-eu","pop-lo-am","urban-hi-af","name-lo-am","gdp-lo-eu","age-lo-am","coast-lo-am","co2-hi-am","coast-lo-af","pop-hi-eu","gdptot-hi-af","olymp-hi-eu","cpi-lo-am","cap-lo","coast-lo-eu","name-lo-af","cpi-lo","lat-hi-af","oil-hi","urban-hi","urban-lo","age-hi","dens-hi-am","gdp-lo-af","dens-lo-am","dens-lo-as","life-hi-am","lat-hi","cpi-hi","olympc-hi-am","co2-hi-eu","co2-lo-af"];
 let R2=null;
 // the six lists added on 16 November 2026 join the daily round from NEW6_FROM (after the easier two months), one every 5 days
-const NEW6_FROM='2027-01-17',NEW6=['capel-hi','temp-hi','ll-area-hi','volc-hi','sheeppc-hi','imm-hi'];
+const NEW6_FROM='2027-01-17',NEW6=['capel-hi','temp-hi','ll-area-hi','volc-hi','sheeppc-hi','imm-hi','spanish-hi'];
 function round2(){if(R2)return R2;const k=dayNum(R2_CHANGE,T10_FIRST)-1-FIRST_ROUND.length,ok=new Set(DAILY_LISTS.map(l=>l.id));
   R2=[...ROUND2_ORDER.slice(0,k),...ROUND2_ORDER.slice(k).filter(id=>ok.has(id)&&!NEW6.includes(id))];
   const k6=dayNum(NEW6_FROM,T10_FIRST)-1-FIRST_ROUND.length;NEW6.filter(id=>ok.has(id)).forEach((id,i)=>R2.splice(k6+i*5,0,id));
@@ -562,6 +563,7 @@ function noFigure(l,code){const id=l.id.replace(/-(eu|as|af|am)$/,''),c=byCode[c
   if(id==='landb-lo'&&D('landb')(c)===0)return 'no land border';
   if((id==='cap-hi'||id==='cap-lo'||id==='capshare-hi')&&DATA.cap_skip.includes(code))return 'two capitals';
   if(id==='capshare-hi'&&D('pop')(c)&&num(DATA.cappop[code]))return 'city-state';
+  if(id==='spanish-hi')return 'not in report';
   return 'not measured'}
 function wrongsHTML(){const l=listById(S.list),r=ranking(l),val=Object.fromEntries(r.map(x=>[x.c,x.v])),on=S.mode==='online';
   const who=c=>on&&S.by[c]!=null&&S.players[S.by[c]]?S.players[S.by[c]].name:'',pc=c=>`--pc:var(--p${S.by[c]%6})`;let h='';
