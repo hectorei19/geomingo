@@ -139,7 +139,7 @@ function lbView(date){if(!FB_OK||TESTDAY)return '';
   const list=rows.slice(0,10).map(row).join('')+(i>=10?`<li class="gap">…</li>`+row(rows[i],i):'');
   const guest=!USER&&!MAYBE_IN()&&AUTH_OK,cv=Geomingo.account.curveHTML(GRID.id);
   const foot=!USER&&!MAYBE_IN()?(AUTH_OK?`<button class="primary" id="signin2">${guest&&cv?'Sign in to see the ranking':'See my place'}</button>${carryable(loadDaily())?'<p class="hint">Your result is added when you sign in.</p>':''}`:''):i<0?`<p class="hint">Your result joins the ranking when you finish today's grid signed in.</p>`:'';
-  return `<section class="panel lb"><span class="label">Today's ranking${i>=0?`<b>You: #${i+1} of ${rows.length}</b>`:rows.length?` · ${rows.length} player${rows.length===1?'':'s'}`:''}</span>${cv}${guest&&cv?'':rows.length?(guest?Geomingo.account.lockList(rows.slice(0,10).map(row)):`<ol class="lbl">${list}</ol>`)+lbHow():`<p class="hint">Nobody in today's ranking yet.</p>`}${foot}</section>`}
+  return `<section class="panel lb"><span class="label">Today's ranking${i>=0?`<b>You: #${i+1}</b>`:''}</span>${cv}${guest&&cv?'':rows.length?(guest?Geomingo.account.lockList(rows.slice(0,10).map(row)):`<ol class="lbl">${list}</ol>`)+lbHow():`<p class="hint">Nobody in today's ranking yet.</p>`}${foot}</section>`}
 function lbMine(){const id=USER?USER.uid:MAYBE_IN()&&(Geomingo.account.user||{}).uid;if(!id||!LB)return null;const rows=lbRows(),i=rows.findIndex(r=>r.uid===id);
   return i<0?null:{rank:i+1,total:rows.length,top:Math.max(1,Math.round((i+1)/rows.length*100))}}
 function dailyStats(){return dailyStatsFrom(loadHist())}

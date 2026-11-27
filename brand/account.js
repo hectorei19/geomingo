@@ -415,7 +415,7 @@ function rankingHTML(g,o){const u=who();if(TEST||u===undefined)return '';o=o||{}
   const cv=curveHTML(g),podium=u===null&&cv;   // a guest with the curve sees no names: the names are for signed-in players
   const foot=!u?'<button class="primary" data-gm-signin>'+(podium?'Sign in to see the ranking':'See my place')+'</button>'+(ADAPT[g]&&ADAPT[g].today()?'<p class="hint">Your result is added when you sign in.</p>':'')
     :i<0?'<p class="hint">Your result joins the ranking when you finish today\'s '+esc(o.what||'game')+' signed in. Only your first try counts.</p>':'';
-  return '<section class="panel lb"><span class="label">'+esc(title)+(i>=0?'<b>You: #'+(i+1)+' of '+rows.length+'</b>':rows.length?' · '+rows.length+' player'+(rows.length===1?'':'s'):'')+'</span>'+cv+
+  return '<section class="panel lb"><span class="label">'+esc(title)+(i>=0?'<b>You: #'+(i+1)+'</b>':'')+'</span>'+cv+
     (podium?'':rows.length?(u===null?lockList(rows.slice(0,10).map(row)):'<ol class="lbl">'+list+'</ol>')+(o.how?'<p class="hint">'+esc(o.how)+'</p>':''):'<p class="hint">Nobody in today\'s ranking yet.</p>')+foot+'</section>'}
 
 /* ---- the ranking visas of the GeoPass (Gold medal, First to arrive, Fastest of the day…) ----
