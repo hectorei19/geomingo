@@ -350,10 +350,7 @@ a.primary{text-decoration:none;text-align:center}
 .ghost{min-height:44px;background:var(--page);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-weight:600;color:var(--ink)}
 .ghost:hover:not(:disabled){border-color:var(--ink)}
 .linkbtn{min-height:44px;color:var(--muted);font-weight:600;font-size:14px;padding:8px 4px}
-.helpbtn{min-height:44px;background:var(--page);border:1px solid var(--line);border-radius:10px;padding:6px 14px;font-weight:600;font-size:15px;color:var(--ink)}
-.helpbtn:hover{border-color:var(--ink)}
-.code-in,.nameinp,.namecard input,.field #fname,.field input,.t10in input,.ans input,.sheet input{min-height:50px;border:1.5px solid var(--ink);border-radius:8px;background:var(--bg);color:var(--ink);padding:10px 14px;font-family:var(--type);font-size:18px;font-weight:400}
-.code-in{letter-spacing:.18em;font-weight:700}
+.nameinp,.namecard input,.field #fname,.field input,.t10in input,.ans input,.sheet input{min-height:50px;border:1.5px solid var(--ink);border-radius:8px;background:var(--bg);color:var(--ink);padding:10px 14px;font-family:var(--type);font-size:18px;font-weight:400}
 /* phones: the button that opens the answer sheet looks like the box you type in (see askBtnHTML in shared/minigames.js) */
 .askbtn{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;border:1.5px solid var(--ink);border-radius:8px;background:var(--bg);color:var(--muted);padding:10px 14px;font-family:var(--type);font-size:18px;font-weight:400;text-align:left;cursor:text;touch-action:manipulation}
 .askbtn svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
@@ -375,7 +372,6 @@ button.hcard:hover,button.hcard:active{border-color:var(--ink);background:var(--
 .chip.on{border-color:var(--ink);box-shadow:none}
 .chip b{font-family:var(--type);font-weight:700}
 .pin{border-radius:50%;transform:none}
-.roomcode{font-family:var(--type);font-weight:700;font-size:34px;letter-spacing:.18em;color:var(--ink);background:none;border:2px solid var(--ink);border-radius:8px;text-align:center;padding:8px}
 .lp{border:0;border-bottom:1px dashed var(--line);border-radius:0;background:none;font-weight:600}
 .lp .tag{font-family:var(--type);font-weight:400}
 .st{border:1px solid var(--line);border-radius:10px;background:var(--page)}
@@ -508,13 +504,6 @@ button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
 .infobox h2{font-family:var(--display);font-weight:900;font-stretch:90%;text-transform:uppercase;font-size:24px}
 .infobox .meta{font-family:var(--type);font-weight:400}
 .helpbox h3{font-family:var(--display);font-weight:800;font-stretch:90%;font-size:17px;letter-spacing:.02em;text-transform:uppercase;color:var(--ink)}
-.ptable{font-family:var(--body)}
-.menubox .mitem{min-height:48px;background:var(--page);border:1px solid var(--line);border-top-width:0;font-weight:600}
-.menubox .mitem:first-child{border-top-width:1px;border-radius:12px 12px 0 0}
-.menubox .mitem:last-child{border-radius:0 0 12px 12px}
-.menubox .mitem:hover{background:var(--guil)}
-.menubox .mitem .ico{color:var(--coral-text)}
-.menubox .mitem.out{border-top:1px solid var(--line)}
 .toast{background:var(--cover);color:var(--cover-ink);border-radius:8px;font-family:var(--type);font-weight:400;font-size:14px;top:auto;bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 .toast.bad{background:var(--red);color:var(--page)}
 .toast.good{background:var(--green);color:var(--page)}
@@ -576,7 +565,6 @@ button.cell:not(.taken):not(.miss):hover{background:var(--guil)}
   .tk-stub:not(:has(.pl)) .tk-c i{letter-spacing:0;font-size:9px}
   .tk-stub:not(:has(.pl)) .tk-c b{font-size:15px}
 }
-
 
 /* ---------- the Menu window (brand/account.js openMenu) and the other home windows ---------- */
 .hw .gm-rbody{gap:10px}

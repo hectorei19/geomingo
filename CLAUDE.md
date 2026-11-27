@@ -27,7 +27,7 @@ Plain static HTML/CSS/JS: no build step, no framework, no tests. Each game is on
   `race.js` (With friends rooms for Customs, Flag Pie, Impostor, Compass), `data.js` (category rules only, no data)
 - Connections, Top 10, Customs, Flag Pie, Impostor load `data/countries.js` before `shared/data.js`; Silhouette's
   `countries.js` is built from `data/` by `silhouette/tools/build-countries.js` (run it after changing `data/`).
-- `silhouette/tools/`, `flagpie/tools/` – Node scripts that regenerate data files; `capitals/tools/` – the one-off Firebase move
+- `silhouette/tools/`, `flagpie/tools/` – Node scripts that regenerate data files
 - `README.md` – longer description (brand, account, Firebase paths)
 
 ## Big data files: do not read them whole
@@ -49,7 +49,7 @@ Plain static HTML/CSS/JS: no build step, no framework, no tests. Each game is on
 - Never rename localStorage keys (`bl-*`, `cc-*`, `gm-*`…), game ids in `GAMES`
   (`borderline`, `citygrid`…) or Firebase paths: saves and rankings depend on them.
   Firebase project is `geomingogames` (moved from the old `borderline-90920` on 14 Nov 2026; the old one is kept only as a backup). (Capitals' Firebase paths were moved once, on Héctor's request, from
-  `users/<uid>/cities`, `lb/citygrid`, `gprofiles/citygrid` to `…/capitals` by `capitals/tools/move-to-capitals.js`.)
+  `users/<uid>/cities`, `lb/citygrid`, `gprofiles/citygrid` to `…/capitals` by a one-off script, since removed.)
 - After changing a shared file (`brand/`, `shared/`, a game's `.js`), bump its `?v=` number in
   every page that loads it, so phones pick up the new file.
 - If Firebase rules change, say so: they must be pasted by hand in the Firebase console.
