@@ -424,7 +424,11 @@ function doneTicket(id,num,score,next,body){setTimeout(refreshPass,0);setTimeout
   const g=GAMES.find(x=>x.id===id);
   return '<section class="ticket gm-done"><div class="tk-mode daily"><span>★ '+(g?'Trip '+g.gate+' · ':'')+'Daily #'+esc(String(num))+'</span><span>Done</span></div>'+
     '<div class="gm-done-c"><p class="big">'+esc(String(score))+'</p><p class="gm-done-s">'+(km!=null?'<b>+'+fmt(km)+' km</b>':'')+streakSpan()+'<span>'+esc(next)+'</span></p></div>'+
-    (body?'<div class="tk-tear"></div><div class="gm-done-a">'+body+'</div>':'')+'</section>'}
+    (body?'<div class="tk-tear"></div><div class="gm-done-a">'+body+'</div>':'')+progressHTML()+'</section>'}
+// under the done ticket's answers: the nine trips of today as small squares in their colours (played ones filled) and "N OF 9 TODAY";
+// a guest who has just played the first one also gets one line about keeping the km (Héctor 2026-11-27)
+function progressHTML(){let D;try{D=dayInfo()}catch(e){return ''}const n=D.games.filter(x=>x.km!=null).length,N=D.games.length;if(!N)return '';
+  return '<div class="tk-tear"></div><div class="gm-done-p"><div class="gm-pd">'+D.games.map(x=>'<i'+(x.km!=null?' class="on"':'')+' style="--c:'+(DCOL[x.id]||'#9AA6B6')+'">'+(x.km!=null?'✓':'')+'</i>').join('')+'</div><p>'+n+' OF '+N+' TRIPS DONE TODAY</p>'+'</div>'}
 /* ---------- the day complete (Héctor 2026-11-17) ----------
    When today's last daily is done (all of them played on their day), a window pops up once, with the day's card:
    date, streak, the day's km and the nine games in their colours. "Share my day" shares the card as a picture
