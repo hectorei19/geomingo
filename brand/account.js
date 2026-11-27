@@ -97,7 +97,7 @@ function statsOn(){if(!COUNT||!G.statTo)return;G.statTo((p,k)=>{count(p,k);if(k=
 const CLUEKEY={customs:'cu-daily',flagpie:'fp-daily',compass:'cm-daily',impostor:'im-daily'};
 function dayDone(){const p=G.PAGE,g=(G.GAMES.find(x=>x.path.replace(/\/$/,'')===p)||{}).id,k=T();if(!g||!G.playedToday(g))return;
   let x=json('gm-stx');if(!x||x.d!==k||!Array.isArray(x.g))x={d:k,g:[]};if(x.g.includes(g))return;x.g.push(g);put('gm-stx',x);
-  const km=+((G.geo().today||{})[g])||0;count(p,'km'+Math.min(100,25*Math.floor(km/25)));if(km>100)count(p,'perfect');
+  const km=+((G.geo().today||{})[g])||0;count(p,'km'+Math.min(100,25*Math.floor(km/25)));if(km>100)count(p,'perfect');distPut(g);
   const d=CLUEKEY[g]&&json(CLUEKEY[g]);if(d&&d.date===k&&d.S&&Array.isArray(d.S.qs))d.S.qs.forEach(q=>count(p,q.st==='right'&&q.k>=1&&q.k<=5?'c'+q.k:'cx'));
   count('_day','g'+Math.min(9,x.g.length));
   if(x.g.length===1){const n=G.streak();if(n>=3)count('_day','s3');if(n>=7)count('_day','s7')}}
@@ -384,15 +384,39 @@ function rankLine(g){if(TEST||who()===undefined)return '';watch(g);const m=mine(
 // a guest sees the top 3 and the rest blurred behind a lock, so the sign-in button is "See my place" (Héctor 2026-11-27)
 function lockList(rows){return '<ol class="lbl">'+rows.slice(0,3).join('')+'</ol>'+(rows.length>3?'<div class="lbblur"><ol class="lbl">'+rows.slice(3).join('')+'</ol><span class="lbk" aria-hidden="true">🔒</span></div>':'')}
 // today's ranking: the top 10, plus your own row further down. o: {title, what ("list"), score: r=>[main, small], how: one line on how the km are counted}
+/* ---- the curve: where today's km put you among ALL players, guests included (Héctor 2026-11-27) ----
+   dist/<day>/<game id>/b0…b10 = how many players finished today's daily with 0-9, 10-19 … 100+ km (one count per player and game;
+   gm-dist {d, g: [ids]} remembers which ones this device already sent). Anyone can read it; nothing in it names anyone. */
+const DIST={},distRef={},bucketOf=km=>Math.min(10,Math.floor(km/10));
+const DISTID={'sil-normal':'silhouette',leaderboard:'borderline','lb/capitals':'citygrid'};
+function distPut(id){if(!COUNT||!db||!G.playedToday(id))return;const k=T();let x=json('gm-dist');if(!x||x.d!==k||!Array.isArray(x.g))x={d:k,g:[]};if(x.g.includes(id))return;x.g.push(id);put('gm-dist',x);
+  const km=+((G.geo().today||{})[id])||0;db.ref('dist/'+k+'/'+id+'/b'+bucketOf(km)).set(firebase.database.ServerValue.increment(1)).catch(()=>{})}
+function distWatch(id){if(!ok||TEST)return;const k=T();if(distRef[id]&&distRef[id].day===k)return;if(distRef[id])distRef[id].off();
+  distRef[id]=db.ref('dist/'+k+'/'+id);distRef[id].day=k;
+  distRef[id].on('value',s=>{const v=s.val()||{},b=[];for(let i=0;i<=10;i++)b.push(+v['b'+i]||0);DIST[id]={date:k,b};changed()},()=>{})}
+// the card's top: "You beat 83% of players today" and a bell curve with you on it. Nothing until at least 5 players have finished.
+function curveHTML(id){id=DISTID[id]||id;if(TEST||!ok||!G.playedToday(id))return '';distWatch(id);distPut(id);
+  const D=DIST[id];if(!D||D.date!==T())return '';const b=D.b,tot=b.reduce((a,c)=>a+c,0);if(tot<5)return '';
+  const km=Math.min(110,+((G.geo().today||{})[id])||0),mb=bucketOf(km);let below=0;for(let i=0;i<mb;i++)below+=b[i];
+  const pct=Math.max(1,Math.min(99,Math.round(100*(below+b[mb]/2)/tot)));
+  const W=330,H=104,B=H-4,X=v=>6+v/110*(W-12),dens=v=>{let d=0;b.forEach((c,i)=>{const u=(v-(i*10+5))/9;d+=c*Math.exp(-u*u/2)});return d};
+  const pts=[];for(let v=0;v<=110;v+=2)pts.push([v,dens(v)]);const mx=Math.max(...pts.map(q=>q[1]))||1,Y=d=>B-d/mx*(H-30);
+  const line=pts.map((q,i)=>(i?'L':'M')+X(q[0]).toFixed(1)+' '+Y(q[1]).toFixed(1)).join(''),my=Y(dens(km));
+  const area='M'+X(0)+' '+B+pts.filter(q=>q[0]<=km).map(q=>'L'+X(q[0]).toFixed(1)+' '+Y(q[1]).toFixed(1)).join('')+'L'+X(km).toFixed(1)+' '+my.toFixed(1)+'L'+X(km).toFixed(1)+' '+B+'Z';
+  return '<div class="crv"><p class="crv-t">You beat <b>'+pct+'%</b> of players today</p><svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Where you stand among today\'s players">'+
+    '<path d="'+area+'" class="crv-a"/><path d="'+line+'" class="crv-l"/><line x1="'+X(km).toFixed(1)+'" x2="'+X(km).toFixed(1)+'" y1="'+my.toFixed(1)+'" y2="'+B+'" class="crv-m"/>'+
+    '<circle cx="'+X(km).toFixed(1)+'" cy="'+my.toFixed(1)+'" r="5" class="crv-d"/><text x="'+X(km).toFixed(1)+'" y="'+(my-10).toFixed(1)+'" text-anchor="middle" class="crv-y">YOU</text></svg>'+
+    '<div class="crv-x"><span>0 km</span><span>50</span><span>100</span></div></div>'}
 function rankingHTML(g,o){const u=who();if(TEST||u===undefined)return '';o=o||{};watch(g);const L=LB[g],title=o.title||"Today's ranking";
   if(!L||!L.rows)return '<section class="panel lb"><span class="label">'+esc(title)+'</span><p class="hint">'+(L&&L.off?'The ranking is not available right now.':'Loading…')+'</p></section>';
   const rows=sorted(g),me=meId(),i=rows.findIndex(r=>r.id===me),sc=o.score||(r=>[String(r.s),'']);
   const row=(r,k)=>{const [a,b]=sc(r);return '<li class="'+(r.id===me?'me':'')+'"><span class="rk">'+(k+1)+'</span><span class="nm">'+esc(nameOf(r.id,r.name))+'</span><span class="sq">'+esc(b)+'</span><span class="pt">'+esc(a)+'</span></li>'};
   const list=rows.slice(0,10).map(row).join('')+(i>=10?'<li class="gap">…</li>'+row(rows[i],i):'');
-  const foot=!u?'<button class="primary" data-gm-signin>See my place</button>'+(ADAPT[g]&&ADAPT[g].today()?'<p class="hint">Your result is added when you sign in.</p>':'')
+  const cv=curveHTML(g),podium=u===null&&cv;   // a guest with the curve sees no names: the names are for signed-in players
+  const foot=!u?'<button class="primary" data-gm-signin>'+(podium?'Sign in to see the ranking':'See my place')+'</button>'+(ADAPT[g]&&ADAPT[g].today()?'<p class="hint">Your result is added when you sign in.</p>':'')
     :i<0?'<p class="hint">Your result joins the ranking when you finish today\'s '+esc(o.what||'game')+' signed in. Only your first try counts.</p>':'';
-  return '<section class="panel lb"><span class="label">'+esc(title)+(i>=0?'<b>You: #'+(i+1)+' of '+rows.length+'</b>':rows.length?' · '+rows.length+' player'+(rows.length===1?'':'s'):'')+'</span>'+
-    (rows.length?(u===null?lockList(rows.slice(0,10).map(row)):'<ol class="lbl">'+list+'</ol>')+(o.how?'<p class="hint">'+esc(o.how)+'</p>':''):'<p class="hint">Nobody in today\'s ranking yet.</p>')+foot+'</section>'}
+  return '<section class="panel lb"><span class="label">'+esc(title)+(i>=0?'<b>You: #'+(i+1)+'</b>':'')+'</span>'+cv+
+    (podium?'':rows.length?(u===null?lockList(rows.slice(0,10).map(row)):'<ol class="lbl">'+list+'</ol>')+(o.how?'<p class="hint">'+esc(o.how)+'</p>':''):'<p class="hint">Nobody in today\'s ranking yet.</p>')+foot+'</section>'}
 
 /* ---- the ranking visas of the GeoPass (Gold medal, First to arrive, Fastest of the day…) ----
    For every daily you played, once its day is over, that day's whole ranking is read once and what you did in it is kept
@@ -617,6 +641,6 @@ G.acctHTML=acctHTML;G.openMenu=openMenu;G.openFaq=openFaq;G.openCredits=openCred
 // ready/user: known for sure, or the last account seen on this device until Firebase answers (wasSignedIn: that last one)
 G.account={get ready(){return who()!==undefined},get user(){return who()||null},get name(){return name},
   wasSignedIn:!!(LAST&&LAST.u),get trial(){return trialState()},trialLine,
-  signIn,signOut,done,archRank,userHTML,changeName,nameOf,fmtName,backfill,firstName,nameProblem,nameFree,changeMyName,rankingHTML,lockList,rankLine,mine,statsPage,bestRun,onChange:f=>watchers.push(f)};
+  signIn,signOut,done,archRank,userHTML,changeName,nameOf,fmtName,backfill,firstName,nameProblem,nameFree,changeMyName,rankingHTML,curveHTML,lockList,rankLine,mine,statsPage,bestRun,onChange:f=>watchers.push(f)};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
