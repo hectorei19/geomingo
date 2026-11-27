@@ -1,8 +1,0 @@
-{
-  "name": "capitals-tools",
-  "private": true,
-  "description": "Only for moving Capitals' Firebase data to its new names (move-to-capitals.js); the game itself needs no install.",
-  "dependencies": {
-    "firebase-admin": "14.5.1"
-  }
-}

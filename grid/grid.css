@@ -87,9 +87,6 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .cell.taken{cursor:default}
 .cell .cnt{position:absolute;right:4px;bottom:3px;font-family:var(--mono);font-size:.6rem;color:var(--ink-2)}
 .cell.miss .nm{color:var(--ink-2);font-weight:500}
-.o0{background:var(--p0-soft)}.o1{background:var(--p1-soft)}.o2{background:var(--p2-soft)}.o3{background:var(--p3-soft)}.o4{background:var(--p4-soft)}.o5{background:var(--p5-soft)}
-.o0::after,.o1::after,.o2::after,.o3::after,.o4::after,.o5::after{content:"";position:absolute;left:0;top:0;width:6px;height:6px;border-radius:0 0 6px 0}
-.o0::after{background:var(--p0)}.o1::after{background:var(--p1)}.o2::after{background:var(--p2)}.o3::after{background:var(--p3)}.o4::after{background:var(--p4)}.o5::after{background:var(--p5)}
 .b4 .hd{font-size:.74rem}.b4 .cell .fl{font-size:1.35rem}.b4 .cell .nm{font-size:.66rem}
 .b5 .hd{font-size:.66rem;padding:5px 3px}.b5 .cell .fl{font-size:1.15rem}.b5 .cell .nm{font-size:.58rem}
 .actions{display:flex;gap:8px;flex-wrap:wrap}
@@ -123,16 +120,12 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .infoscrim{position:fixed;inset:0;background:rgba(10,20,30,.45);z-index:30}
 /* guessed square: points in the top-right corner, name centred at the bottom */
 .pts{position:absolute;top:0;right:0;border-radius:0 0 0 3px;font-family:var(--mono);font-size:.62rem;background:rgba(8,16,26,.78);color:#fff;padding:1px 4px;line-height:1.2;white-space:nowrap}
-.flagbox{position:relative}
 .cell .val{position:absolute;right:4px;bottom:3px;font-family:var(--mono);font-size:.66rem;color:var(--ink-2)}
 .b5 .cell .val,.b5 .pts{font-size:.55rem}
 .bd{margin:-6px 0 0 38px}.bdline{font-family:var(--mono);font-size:.75rem!important}
 .helpbox{max-height:calc(100% - 48px);overflow-y:auto;top:24px;transform:translateX(-50%)}
 .helpbox h3{font-size:.8rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);margin:6px 0 0}
 .helpbox ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
-.ptable{border-collapse:collapse;font-family:var(--mono);font-size:.85rem}
-.ptable td{border-top:1px solid var(--rule);padding:4px 10px 4px 0}
-.helpbtn{background:transparent;border:1px solid var(--rule);border-radius:999px;padding:5px 12px;font-weight:600;font-size:.9rem;white-space:nowrap}
 .foot{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:0 28px;display:flex;justify-content:center}
 .linkbtn{background:transparent;border:0;color:var(--ink-2);font-size:.85rem;text-decoration:underline;text-underline-offset:3px;padding:6px}
 .credits dl{margin:0;display:flex;flex-direction:column;gap:10px}
@@ -156,23 +149,12 @@ header.top{display:flex;align-items:baseline;justify-content:space-between;gap:1
 .answers p{margin:0;font-size:.95rem}
 .sharebtns{display:flex;flex-direction:column;gap:8px}
 .sharebtns a{display:block;text-align:center;text-decoration:none}
-.sep{border:0;border-top:1px solid var(--rule);margin:2px 0;width:100%}
 /* home: three big cards */
 .home{display:flex;flex-direction:column;gap:12px}
 .hcard{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;text-align:left;background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:16px;box-shadow:var(--shadow)}
 .hcard.ac{border:2px solid var(--sea);padding:15px}
 button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--sea-soft)}
 .hcard .dboard{width:100%;margin-top:8px}
-.menuscrim{position:fixed;inset:0;z-index:28}
-.menubox{position:fixed;z-index:29;top:calc(58px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);width:min(560px,100%);padding:0 16px;display:flex;flex-direction:column;align-items:flex-end;pointer-events:none}
-.menubox .mitem{pointer-events:auto;width:min(280px,100%);text-align:left;background:var(--sheet);border:1px solid var(--rule);border-top-width:0;padding:13px 16px;font-weight:600;font-size:1rem}
-.menubox .mitem:first-child{border-top-width:1px;border-radius:8px 8px 0 0}
-.menubox .mitem:last-child{border-radius:0 0 8px 8px;box-shadow:var(--shadow)}
-.menubox .mitem:hover{background:var(--sea-soft)}
-.menubox .mitem{display:flex;align-items:center;gap:14px}
-.menubox .mitem .ico{width:20px;height:20px;color:var(--sea)}
-.menubox .mitem.out{color:var(--ink-2);border-top:1px solid var(--ink-2)}
-.menubox .mitem.out .ico{color:var(--ink-2)}
 .ico{flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #menu{display:inline-flex;align-items:center;gap:6px}
 #menu .ico{width:18px;height:18px}
@@ -201,8 +183,6 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .st span{font-size:.8rem;color:var(--ink-2)}
 [data-stats]{cursor:pointer}
 .lbl li[data-stats]:hover{background:var(--sea-soft)}
-.orline{display:flex;align-items:center;gap:10px;color:var(--ink-2);font-size:.9rem}
-.orline::before,.orline::after{content:"";flex:1;border-top:1px solid var(--rule)}
 .acct{margin-left:auto;font-family:var(--mono);font-size:.75rem;color:var(--good)}
 .gbanner{display:flex;align-items:center;gap:10px;background:var(--sea-soft);border:1px solid var(--sea);border-radius:8px;padding:10px 12px;font-weight:600}
 .gbanner span{flex:1}
@@ -238,7 +218,6 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 .hcard>.hs{color:var(--ink-2);font-size:1rem}
 .hcard>.hm{font-family:var(--mono);font-size:.75rem;color:var(--sea);letter-spacing:.04em}
 .backline{display:flex;align-items:center;gap:10px}.backline .linkbtn{padding:4px 0}.backline .ht{font-size:1.4rem}
-.dres{margin:0;font-size:1.05rem}
 .answers .hdr{font-weight:700;display:flex;align-items:baseline;gap:12px}
 .answers .nsol{margin-left:auto;color:var(--ink-2);font-weight:500;white-space:nowrap}
 /* every answer on its own line, two columns, so a long list still reads easily (Héctor 2026-11-12) */
@@ -254,8 +233,6 @@ button.hcard:hover,button.hcard:active{border-color:var(--sea);background:var(--
 
 .cell.flag{padding:5px;background:transparent}
 .cell.flag::after{display:none}
-.flagbox{width:100%;height:100%;border-radius:4px;background-size:cover;background-position:center;background-repeat:no-repeat;display:flex;align-items:flex-end;overflow:hidden;border:3px solid var(--pc,var(--sea));box-shadow:0 0 0 2px var(--pc-soft,transparent)}
-.flagbox .nm{width:100%;background:rgba(8,16,26,.66);color:#fff;padding:2px 3px 3px;font-weight:600;text-align:center;overflow-wrap:normal;line-height:1.05}
 .b5 .cell.flag{padding:3.5px}
 .cs{--pc:var(--coral-deep);--pc-soft:color-mix(in srgb,var(--coral-deep) 22%,transparent)}  /* Solo / daily squares keep the Geomingo coral */
 .c0{--pc:var(--p0);--pc-soft:color-mix(in srgb,var(--p0) 22%,transparent)}.c1{--pc:var(--p1);--pc-soft:color-mix(in srgb,var(--p1) 22%,transparent)}.c2{--pc:var(--p2);--pc-soft:color-mix(in srgb,var(--p2) 22%,transparent)}.c3{--pc:var(--p3);--pc-soft:color-mix(in srgb,var(--p3) 22%,transparent)}
