@@ -689,7 +689,7 @@ body:has(.ticket.gm-done) .foot{display:none}
 
 .gm-done-p{padding:2px 16px 14px;text-align:center}
 .gm-pd{display:flex;gap:6px;justify-content:center;margin-top:10px}
-.gm-pd i{width:22px;height:22px;border-radius:6px;border:2px solid var(--c);opacity:.55}
+.gm-pd i{display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:800;font-size:13px;color:#16202F;width:24px;height:24px;border-radius:6px;border:2px solid var(--c);opacity:.55}
 .gm-pd i.on{background:var(--c);opacity:1}
 .gm-done-p p{margin:6px 0 0;font-family:var(--type);font-size:11px;letter-spacing:.12em;color:var(--muted)}
 .gm-done-p small{display:block;margin-top:10px;font-size:13px;line-height:1.45;color:var(--muted)}

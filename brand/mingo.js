@@ -429,7 +429,7 @@ function doneTicket(id,num,score,next,body){setTimeout(refreshPass,0);setTimeout
 // a guest who has just played the first one also gets one line about keeping the km (Héctor 2026-11-27)
 function progressHTML(){let D;try{D=dayInfo()}catch(e){return ''}const n=D.games.filter(x=>x.km!=null).length,N=D.games.length;if(!N)return '';
   let guest=false;try{const a=json('gm-acct');guest=!(a&&a.u)}catch(e){}
-  return '<div class="tk-tear"></div><div class="gm-done-p"><div class="gm-pd">'+D.games.map(x=>'<i'+(x.km!=null?' class="on"':'')+' style="--c:'+(DCOL[x.id]||'#9AA6B6')+'"></i>').join('')+'</div><p>'+n+' OF '+N+' TODAY</p>'+
+  return '<div class="tk-tear"></div><div class="gm-done-p"><div class="gm-pd">'+D.games.map(x=>'<i'+(x.km!=null?' class="on"':'')+' style="--c:'+(DCOL[x.id]||'#9AA6B6')+'">'+(x.km!=null?'✓':'')+'</i>').join('')+'</div><p>'+n+' OF '+N+' TRIPS DONE TODAY</p>'+
     (guest&&n===1?'<small>Your km are saved on this device. <a data-gm-signin>Sign in with Google</a> to keep them everywhere.</small>':'')+'</div>'}
 /* ---------- the day complete (Héctor 2026-11-17) ----------
    When today's last daily is done (all of them played on their day), a window pops up once, with the day's card:
