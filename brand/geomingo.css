@@ -688,3 +688,8 @@ body:has(.ticket.gm-done) .foot{display:none}
 .foot>#creditsbtn{display:none}
 .foot .gm-foot{margin-top:0}
 .foot .gm-ig{display:none}
+
+/* a guest sees the top 3 of a ranking; the rest is blurred behind a lock (see my place → sign in) */
+.lbblur{position:relative}
+.lbblur>ol{filter:blur(7px);pointer-events:none;user-select:none;-webkit-user-select:none;margin:0;padding:0;list-style:none}
+.lbblur .lbk{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px}

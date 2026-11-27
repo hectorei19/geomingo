@@ -24,9 +24,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="brand/geomingo.css?v=202611262130">
+<link rel="stylesheet" href="brand/geomingo.css?v=202611271400">
 <script src="brand/mingo.js?v=202611262130"></script>
-<script src="brand/account.js?v=202611231500"></script>
+<script src="brand/account.js?v=202611271400"></script>
 <script src="brand/party.js?v=202611222045"></script>
 <style>
 /* Home page: Sign in and Menu on top, today's games as colour tiles, Practice and With friends, then the GeoPass
@@ -527,10 +527,10 @@ function drawWeek(){const el=document.getElementById('week'),acc=A();loadRank();
   const me=acc.user&&acc.user.uid,rows=rankRows(TAB),i=rows.findIndex(r=>r.id===me),tab=TABS.find(x=>x[0]===TAB);
   const row=(r,k)=>{const o=r.id===OPEN;return '<li class="'+(r.id===me?'me':'')+(k<3?' m'+(k+1):'')+(o?' open':'')+'" data-who="'+esc(r.id)+'" role="button" tabindex="0" aria-expanded="'+o+'"><span class="rk">'+(k+1)+'</span><span class="av" style="--c:'+AV[k%AV.length]+'">'+esc((r.name.trim()[0]||'·').toUpperCase())+'</span><span class="nm">'+esc(r.id===me?r.name+' (you)':r.name)+'</span><span class="pt">'+fmt(r.mi)+' km</span><span class="chev" aria-hidden="true">'+(o?'▲':'▼')+'</span></li>'+(o?duelHTML(r,me):'')};
   const list=rows.slice(0,10).map(row).join('')+(i>=10?'<li class="gap">…</li>'+row(rows[i],i):'');
-  const foot=!me?'<p>Sign in and play to join the ranking.</p>':i<0&&rows.length?'<p>Finish a daily game signed in to join this ranking.</p>':'';
+  const foot=!me?'<button class="gbtn" data-gm-signin><i aria-hidden="true">G</i>See my place</button>':i<0&&rows.length?'<p>Finish a daily game signed in to join this ranking.</p>':'';
   const tabs='<div class="rtabs" role="tablist">'+TABS.map(([k,l])=>'<button type="button" role="tab" data-rtab="'+k+'" aria-selected="'+(k===TAB)+'">'+l+'</button>').join('')+'</div>';
   el.hidden=false;if(wantRank){wantRank=false;setTimeout(()=>el.scrollIntoView({behavior:'smooth'}),60)}
-  const h='<h3>Ranking'+(i>=0?'<b>You: #'+(i+1)+' of '+rows.length+'</b>':'')+'</h3>'+tabs+(rows.length?'<ol>'+list+'</ol>':'<p>'+tab[2]+'</p>')+foot;
+  const h='<h3>Ranking'+(i>=0?'<b>You: #'+(i+1)+' of '+rows.length+'</b>':'')+'</h3>'+tabs+(rows.length?(!me?'<ol>'+rows.slice(0,10).map(row).slice(0,3).join('')+'</ol>'+(rows.length>3?'<div class="lbblur"><ol>'+rows.slice(0,10).map(row).slice(3).join('')+'</ol><span class="lbk" aria-hidden="true">🔒</span></div>':''):'<ol>'+list+'</ol>'):'<p>'+tab[2]+'</p>')+foot;
   if(el.innerHTML!==h)el.innerHTML=h}
 document.getElementById('week').addEventListener('keydown',e=>{const w=e.target.closest('li[data-who]');
   if(w&&(e.key==='Enter'||e.key===' ')){e.preventDefault();OPEN=OPEN===w.dataset.who?null:w.dataset.who;drawWeek();const n=document.querySelector('#week li[data-who="'+CSS.escape(w.dataset.who)+'"]');if(n)n.focus()}});
