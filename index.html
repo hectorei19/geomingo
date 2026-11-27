@@ -24,7 +24,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,800;62..125,900&family=Public+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="brand/geomingo.css?v=202611271500">
+<link rel="stylesheet" href="brand/geomingo.css?v=202611271900">
 <script src="brand/mingo.js?v=202611262130"></script>
 <script src="brand/account.js?v=202611271400"></script>
 <script src="brand/party.js?v=202611222045"></script>
@@ -238,7 +238,7 @@ footer .links i{font-style:normal}
     <span class="gm-acctslot" data-gm-acctslot></span>
   </header>
   <main>
-    <p class="gm-betaline">Still testing. Official launch 1 January. Thanks for playing!</p>
+    <div class="gm-cd" id="cd" role="timer" aria-label="Time to the official launch, 1 January 2027"><span class="gm-cd-l">Official launch in</span><div class="gm-cd-b"><span><b id="cdd">0</b><i>days</i></span><span><b id="cdh">00</b><i>hrs</i></span><span><b id="cdm">00</b><i>min</i></span><span><b id="cds">00</b><i>sec</i></span></div></div>
     <div class="hrow" id="todayhead"><span class="hmingo"></span><div class="gm-head"><span class="gm-lab" id="dep">Today</span><h2>Today's itinerary</h2></div><button class="mypass" id="mypass" type="button" aria-label="Open my GeoPass"></button></div>
     <div class="pkhead" id="pkhead" hidden></div>
     <ul class="tiles c3" id="games"></ul>
@@ -543,6 +543,12 @@ draw();
 if(G.party)G.party.home({el:document.getElementById('party'),tile:partyTile});
 if(G.account)G.account.onChange((why,typing)=>{if(!typing)draw()});
 setInterval(draw,30000);
+// countdown to the official launch: midnight CET at the start of 1 January 2027 (= 23:00 UTC on 31 December); gone once it has started
+(function(){const T=Date.UTC(2026,11,31,23,0,0),el=document.getElementById('cd');if(!el)return;
+const two=n=>String(n).padStart(2,'0'),$=i=>document.getElementById(i);
+function tick(){let ms=T-Date.now();if(ms<=0){el.remove();clearInterval(iv);return}
+const s=Math.floor(ms/1000);$('cdd').textContent=Math.floor(s/86400);$('cdh').textContent=two(Math.floor(s%86400/3600));$('cdm').textContent=two(Math.floor(s%3600/60));$('cds').textContent=two(s%60)}
+const iv=setInterval(tick,1000);tick()})();
 // coming back from a game in the same tab, or a new day while the page is open
 addEventListener('pageshow',draw);addEventListener('focus',draw);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)draw()});
