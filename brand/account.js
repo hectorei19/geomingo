@@ -381,16 +381,18 @@ function mine(g){const me=meId();if(!me)return null;watch(g);const rows=sorted(g
 function rankLine(g){if(TEST||who()===undefined)return '';watch(g);const m=mine(g),n=sorted(g).length;
   return m?'<span class="hrank"><b>#'+m.rank+'</b> of '+m.total+' today · top '+m.top+'%</span>'
     :n?'<span class="hrank">'+n+' player'+(n===1?'':'s')+' in today\'s ranking</span>':''}
+// a guest sees the top 3 and the rest blurred behind a lock, so the sign-in button is "See my place" (Héctor 2026-11-27)
+function lockList(rows){return '<ol class="lbl">'+rows.slice(0,3).join('')+'</ol>'+(rows.length>3?'<div class="lbblur"><ol class="lbl">'+rows.slice(3).join('')+'</ol><span class="lbk" aria-hidden="true">🔒</span></div>':'')}
 // today's ranking: the top 10, plus your own row further down. o: {title, what ("list"), score: r=>[main, small], how: one line on how the km are counted}
 function rankingHTML(g,o){const u=who();if(TEST||u===undefined)return '';o=o||{};watch(g);const L=LB[g],title=o.title||"Today's ranking";
   if(!L||!L.rows)return '<section class="panel lb"><span class="label">'+esc(title)+'</span><p class="hint">'+(L&&L.off?'The ranking is not available right now.':'Loading…')+'</p></section>';
   const rows=sorted(g),me=meId(),i=rows.findIndex(r=>r.id===me),sc=o.score||(r=>[String(r.s),'']);
   const row=(r,k)=>{const [a,b]=sc(r);return '<li class="'+(r.id===me?'me':'')+'"><span class="rk">'+(k+1)+'</span><span class="nm">'+esc(nameOf(r.id,r.name))+'</span><span class="sq">'+esc(b)+'</span><span class="pt">'+esc(a)+'</span></li>'};
   const list=rows.slice(0,10).map(row).join('')+(i>=10?'<li class="gap">…</li>'+row(rows[i],i):'');
-  const foot=!u?'<button class="ghost" data-gm-signin>Sign in to join today\'s ranking</button>'+(ADAPT[g]&&ADAPT[g].today()?'<p class="hint">Your result is added when you sign in.</p>':'')
+  const foot=!u?'<button class="primary" data-gm-signin>See my place</button>'+(ADAPT[g]&&ADAPT[g].today()?'<p class="hint">Your result is added when you sign in.</p>':'')
     :i<0?'<p class="hint">Your result joins the ranking when you finish today\'s '+esc(o.what||'game')+' signed in. Only your first try counts.</p>':'';
   return '<section class="panel lb"><span class="label">'+esc(title)+(i>=0?'<b>You: #'+(i+1)+' of '+rows.length+'</b>':rows.length?' · '+rows.length+' player'+(rows.length===1?'':'s'):'')+'</span>'+
-    (rows.length?'<ol class="lbl">'+list+'</ol>'+(o.how?'<p class="hint">'+esc(o.how)+'</p>':''):'<p class="hint">Nobody in today\'s ranking yet.</p>')+foot+'</section>'}
+    (rows.length?(u===null?lockList(rows.slice(0,10).map(row)):'<ol class="lbl">'+list+'</ol>')+(o.how?'<p class="hint">'+esc(o.how)+'</p>':''):'<p class="hint">Nobody in today\'s ranking yet.</p>')+foot+'</section>'}
 
 /* ---- the ranking visas of the GeoPass (Gold medal, First to arrive, Fastest of the day…) ----
    For every daily you played, once its day is over, that day's whole ranking is read once and what you did in it is kept
@@ -615,6 +617,6 @@ G.acctHTML=acctHTML;G.openMenu=openMenu;G.openFaq=openFaq;G.openCredits=openCred
 // ready/user: known for sure, or the last account seen on this device until Firebase answers (wasSignedIn: that last one)
 G.account={get ready(){return who()!==undefined},get user(){return who()||null},get name(){return name},
   wasSignedIn:!!(LAST&&LAST.u),get trial(){return trialState()},trialLine,
-  signIn,signOut,done,archRank,userHTML,changeName,nameOf,fmtName,backfill,firstName,nameProblem,nameFree,changeMyName,rankingHTML,rankLine,mine,statsPage,bestRun,onChange:f=>watchers.push(f)};
+  signIn,signOut,done,archRank,userHTML,changeName,nameOf,fmtName,backfill,firstName,nameProblem,nameFree,changeMyName,rankingHTML,lockList,rankLine,mine,statsPage,bestRun,onChange:f=>watchers.push(f)};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
