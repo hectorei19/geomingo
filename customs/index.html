@@ -121,9 +121,9 @@ const raw=q=>CLUES+1-q.k,worth=q=>q.x3?Geomingo.CL3[q.k-1]||0:15+raw(q);
 const ptsOf=q=>Geomingo.clFlag(q);
 const isNew=G=>G.qs.some(q=>q.x3);
 // v: which clue of each group this traveller gives (picked once, so a saved game keeps its clues)
-const newQ=(c,rand,day)=>{rand=rand||Math.random;return Object.assign({c,k:1,tries:[],st:'play',v:GROUPS1.map(()=>Math.floor(rand()*1e6))},Geomingo.cl3(day)?{x3:1}:{},!day||day>=CL5_FROM?{g2:1}:{})};   // day: a daily's day (none: Practice, With friends)
+const newQ=(c,rand,day)=>{rand=rand||Math.random;return Object.assign({c,k:1,tries:[],st:'play',v:GROUPS1.map(()=>Math.floor(rand()*1e6))},Geomingo.cl3(day)?{x3:1}:{},!day||day>=CL6_FROM?{g2:2}:day>=CL5_FROM?{g2:1}:{})};   // day: a daily's day (none: Practice, With friends)
 // new clue order from CL5_FROM (Héctor 2026-11-26): passport stamp, size, daily life, the map, the obvious. Travellers made before (g2 missing) keep GROUPS1.
-const CL5_FROM='2026-11-27';
+const CL5_FROM='2026-11-27',CL6_FROM='2026-11-28';   // g2 2: step 1 without life expectancy, median age and forest (Héctor 2026-11-27)
 let query='',typing=false;
 
 /* ---- the clues: five groups, from not obvious to obvious ----
@@ -197,8 +197,9 @@ const GROUPS1=[
 // language) never come before clue 3 (Héctor 2026-11-26). Phone codes, web endings and currency names: data/countries.js ----
 const GROUPS2=[
   // 1 Passport stamp: the hard ones
-  ['Passport stamp',c=>{const d=c.c,o=[],V=k=>DATA[k][d];
+  ['Passport stamp',(c,g)=>{const d=c.c,o=[],V=k=>DATA[k][d];
     if(DATA.dial[d]){const x=['Calling code: '+DATA.dial[d],'What you dial first when you phone from abroad'];o.push(x,x,x)}
+    if(g>1){if(V('elev'))o.push(['Highest point: '+num(V('elev'))+' m above the sea','']);o.push(V('olymp')?['Has won '+num(V('olymp'))+' Olympic medal'+(V('olymp')===1?'':'s'),'Summer and Winter Games, all time']:['Has never won an Olympic medal','Summer and Winter Games, all time']);return o}
     if(V('life'))o.push(['Life expectancy: '+num(V('life'))+' years','How long people live on average']);
     if(V('age'))o.push(['Median age: '+num(V('age'))+' years','Half the people are younger than this']);
     if(V('forest')!=null)o.push(['Forest covers '+Math.round(V('forest'))+'% of the land','']);
@@ -224,7 +225,7 @@ const GROUPS2=[
   // 5 The obvious
   GROUPS1[4]];
 // daily and archive games before FIX_FROM (data/countries.js) use the data as it was then, so their clues stay the same
-function clue(q,i){const c=cByCode[q.c],[lab,f]=(q.g2?GROUPS2:GROUPS1)[i],o=D&&D.date&&!fixedDay(D.date)?dataAsBefore(()=>f(c)):f(c),v=(q.v||[])[i];
+function clue(q,i){const c=cByCode[q.c],[lab,f]=(q.g2?GROUPS2:GROUPS1)[i],o=D&&D.date&&!fixedDay(D.date)?dataAsBefore(()=>f(c,q.g2)):f(c,q.g2),v=(q.v||[])[i];
   // old saves without v: always the same pick for the country
   const x=o[(v!=null?v:seedOf(q.c+i))%o.length];
   return x[2]?{ico:i+1,lab:'Flag',main:'',sub:'',flag:q.c}:{ico:i+1,lab,main:x[0],sub:x[1]}}
@@ -395,7 +396,7 @@ const G0=()=>view==='daily'?D:view==='train'||view==='room'?T:null;
 const quickRules=()=>`<section class="panel qrules"><span class="label">Quick rules</span><p class="hint">Name each traveller's country. Five clues each, from hard to easy; a wrong answer opens the next one. Fewer clues, more points: ${G0()&&!isNew(G0())?'20, 19, 18, 17, 16':'20, 15, 10, 5, 3'}. Full rules in <button type="button" class="qhelp">How to play</button>.</p></section>`;
 function rulesHTML(){return `<h3>The idea</h3><ul>
   <li>Five travellers come to the customs desk, one at a time. Name the country each one comes from.</li>
-  <li>Each has five clues, from not obvious to obvious: <b>1</b> a passport stamp (calling code or a curiosity), <b>2</b> size, <b>3</b> daily life (money, web, language, road), <b>4</b> on the map, <b>5</b> the obvious (neighbours, flag…).</li>
+  <li>Each has five clues, from not obvious to obvious: <b>1</b> a passport stamp (calling code, highest point or Olympic medals), <b>2</b> size, <b>3</b> daily life (money, web, language, road), <b>4</b> on the map, <b>5</b> the obvious (neighbours, flag…).</li>
   <li>Only the 197 independent countries, never territories.</li></ul>
   <h3>How to play</h3><ul>
   <li>Tap <b>Type a country…</b>, start typing and tap the country in the list. Names in English, one per country (United Kingdom, not UK). Accents and capitals don't matter.</li>
