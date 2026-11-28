@@ -688,7 +688,7 @@ function resultHTML(body){const v=verdict();
     :`${SHARE_BTN}<div class="row-btns sharerow"><button class="ghost" id="again" style="flex:1">New list</button></div>`}
     ${S.mode==='daily'?`<span class="label">Your daily lists</span>${statsHTML()}`:''}</section>${S.mode==='daily'?rankingHTML():''}`}
 // today's ranking (signed-in players, first try of the day): countries found, then fewer misses, then who finished first
-const rankingHTML=()=>Geomingo.account.rankingHTML('top10',{what:'list',score:r=>[EU(Geomingo.rowKm('top10',r,todayKey()))+' km',r.s+'/10'+(r.s>=10&&!r.m?' +20':'')],how:'10 km an answer; +20 km for all 10 with no misses.'});
+const rankingHTML=()=>Geomingo.account.rankingHTML('top10',{what:'list',score:r=>[EU(Geomingo.rowKm('top10',r,todayKey()))+' km',r.s+'/10'+(r.s>=10&&!r.m?' +20':'')]});
 // signed in or out, today's result arrived from another device, the ranking moved: show it (not while typing)
 Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&S&&S.mode==='daily'){const d=dailySaved();if(d){S=d;liveKey=''}}
   if(!typing&&!roomCode&&(view==='home'||view==='game'&&S&&S.over))render()});

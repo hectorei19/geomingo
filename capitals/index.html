@@ -344,6 +344,7 @@ const GRID={id:'citygrid',name:'Capitals',key:'cc-',userKeys:['bl-user','cc-user
       <h3>Km</h3><ul>
       <li><b>Square</b>: the ${DAILY_N*DAILY_N} squares share ${KMSQ_TOTAL} km. Hard squares (few capitals fit) are worth more, up to three times an easy one.</li>
       <li><b>Perfect grid</b> (all ${DAILY_N*DAILY_N}, no life lost): +20 km.</li>
+      <li><b>Tie</b> in the ranking: the faster one goes first.</li>
       <li><b>Practice</b>: the same, counted as points.</li>
       <li><b>With friends</b>: the same square values, counted as points, and +${LINE_BONUS} for every full row or column that is all yours.</li></ul>
       <h3>Example</h3>
@@ -364,6 +365,6 @@ const GRID={id:'citygrid',name:'Capitals',key:'cc-',userKeys:['bl-user','cc-user
     while((nm.scrollWidth>nm.clientWidth+0.5||tall())&&f>6&&k++<60){f-=.5;nm.style.fontSize=f+'px'}
     if(sm){sm.style.fontSize='';let g=parseFloat(getComputedStyle(sm).fontSize),j=0;while(sm.scrollWidth>st.clientWidth-4&&g>6&&j++<20){g-=.5;sm.style.fontSize=g+'px'}}});}};
 </script>
-<script src="../grid/engine.js?v=202611271500"></script>
+<script src="../grid/engine.js?v=202611281300"></script>
 </body>
 </html>

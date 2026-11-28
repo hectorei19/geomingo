@@ -695,7 +695,7 @@ function resultHTML(body){const v=verdict(),dated=S.mode==='daily'||S.mode==='ar
     :`${SHARE_BTN}<div class="row-btns sharerow"><button class="ghost" id="again" style="flex:1">New puzzle</button></div>`}
     ${S.mode==='daily'?`<span class="label">Your daily puzzles</span>${statsHTML()}`:''}</section>${S.mode==='daily'?rankingHTML():''}`}
 // today's ranking (signed-in players, first try of the day): groups found, then fewer mistakes, then who finished first
-const rankingHTML=()=>Geomingo.account.rankingHTML('connections',{what:'puzzle',score:r=>[EU(Geomingo.rowKm('connections',r,todayKey()))+' km',r.s+'/4'+(r.s>=4&&!r.m&&!r.h?' +20':'')],how:'25 km a group, −10 km a mistake or hint'+(todayKey()>='2026-11-19'?' (each group found keeps at least 10 km)':'')+'; +20 km with no mistakes.'});
+const rankingHTML=()=>Geomingo.account.rankingHTML('connections',{what:'puzzle',score:r=>[EU(Geomingo.rowKm('connections',r,todayKey()))+' km',r.s+'/4'+(r.s>=4&&!r.m&&!r.h?' +20':'')]+(todayKey()>='2026-11-19'?' (each group found keeps at least 10 km)':'')+'; +20 km with no mistakes.'});
 // signed in or out, today's result arrived from another device, the ranking moved: show it (not while typing)
 Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&S&&S.mode==='daily'){const d=dailySaved();if(d){S=d;sel=[];liveKey=''}}
   if(!typing&&(view==='home'||view==='game'&&S&&S.over))render()});
