@@ -62,7 +62,7 @@
 <div id="layer"></div>
 
 <script src="../data/countries.js?v=202611262300"></script>
-<script src="data.js?v=202611231100"></script>
+<script src="data.js?v=202611281000"></script>
 <script>
 const N = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z]/g,'');
 // country names come from the Geomingo country database (../data/countries.js, C): one name per country
@@ -229,12 +229,14 @@ const isSafe=ans=>ans.every((_,c)=>!canBlock(ans,c));
 const NOT_IN_GRIDS=new Set(['Over 2,000 m above sea level','On the Danube','Hosted a men\'s World Cup final','Name contains Z',
   // about the country, not the city (Héctor, 23 Nov 2026)
   'EU member','Monarchy','Won the men\'s World Cup','Official language: Spanish','Official language: French','Official language: Arabic']);
+// share of the smaller category that the other one also holds, from which the square is a giveaway
+const GIVEAWAY=0.95;
 function evalGrid(rows,cols){
   const answers=[];let bad=0;
   for(const rk of rows)for(const ck of cols){const a=inter(rk,ck);answers.push(a);
     if(a.length<2)bad+=10;if(a.length>CITIES.length*0.5)bad+=10;
     // a square where one category holds the other (Megacity × Over 1 million people, Mediterranean × On the coast) is no puzzle: never used
-    if(a.length===rk.count||a.length===ck.count)bad+=10;}
+    if(a.length>=GIVEAWAY*Math.min(rk.count,ck.count))bad+=10;}
   if(bad)return{answers,score:bad+100};
   let u=0;for(let c=0;c<answers.length;c++)if(canBlock(answers,c))u++;
   return{answers,score:u};
