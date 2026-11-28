@@ -320,7 +320,7 @@ function resultHTML(G){const p=pointsOf(G),v=verdict(G);
   return `${Geomingo.doneTicket('compass',G.num,p+' points','next in '+nextIn(),summaryHTML(G))}<pre class="sharebox" id="share" hidden>${esc(dailyShareText(G))}</pre>
     <div class="gm-done-btns">${nextGameBtn('compass')}${SHARE_BTN.replace('Share result','Share')}</div>`}
 // today's ranking (signed-in players, first try of the day): points, then fewer wrong guesses, then who finished first
-const rankingHTML=()=>Geomingo.account.rankingHTML('compass',{what:'game',score:r=>[EU(Geomingo.rowKm('compass',r,todayKey()))+' km',(r.r||0)+'/5'+((+r.s||0)>=100?' +20':'')],how:'20, 15, 10, 5 or 3 km an answer, by the clues and guesses you needed; +20 km if all 5 at the first clue.'});
+const rankingHTML=()=>Geomingo.account.rankingHTML('compass',{what:'game',score:r=>[EU(Geomingo.rowKm('compass',r,todayKey()))+' km',(r.r||0)+'/5'+((+r.s||0)>=100?' +20':'')]});
 Geomingo.account.onChange((why,typing)=>{if(why==='adopt'&&D&&D.mode==='daily'&&D.date===todayKey()){D=dailyGame();liveKey=''}
   if(!typing&&(view==='home'||view==='daily'&&D&&D.over))render()});
 function openDaily(){D=dailyGame();query='';view='daily';render();window.scrollTo(0,0)}
