@@ -47,7 +47,7 @@ function silhouette(L){return {
     if(JSON.stringify(x[L])===JSON.stringify(j))return false;x[L]=j;x.over=true;put('sil-daily',x);return true}}}
 // ranking score: s more is better, m fewer is better (then whoever finished first)
 const ADAPT={
-  connections:simple('cx-hist','cx-daily',S=>({s:(S.found||[]).length,m:S.mistakes||0,h:+S.hc||0})),
+  connections:simple('cx-hist','cx-daily',S=>({s:(S.found||[]).length,m:(S.mistakes||0)+(+S.hc||0)})),
   top10:simple('t10-hist','t10-daily',S=>({s:(S.found||[]).length,m:(S.wrong||[]).length})),
   'sil-easy':silhouette('easy'),'sil-normal':silhouette('normal'),'sil-hard':silhouette('hard'),
   customs:simple('cu-hist','cu-daily',S=>({x3:(S.qs||[]).some(q=>q.x3)?1:0,s:(S.qs||[]).reduce((n,q)=>n+G.clFlag(q),0),r:(S.qs||[]).filter(q=>q.st==='right').length,m:(S.qs||[]).reduce((n,q)=>n+(q.tries||[]).length,0)})),
