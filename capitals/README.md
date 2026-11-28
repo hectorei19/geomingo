@@ -35,3 +35,5 @@ Categories about the city, not the country (Héctor, 2026-11-23): the six countr
 - Coasts, seas, rivers, heights, hosts: compiled by hand from Wikipedia (CC BY-SA 4.0), coasts checked against [Natural Earth](https://www.naturalearthdata.com) (public domain), October 2026.
 - Megacities: UN World Urbanization Prospects 2018 (Wikipedia, "Megacity").
 - Fonts: Archivo, Public Sans and Courier Prime (Google Fonts, SIL Open Font License), as in every Geomingo game.
+
+No giveaway squares (Héctor, 2026-11-28, after "Won the World Cup" × "Played the World Cup"): a square is never used when one of its two categories holds 95% or more of the other (`GIVEAWAY` in `index.html`; Capitals already blocked exact matches, now it uses the same 95% rule). Daily grids from 2026-11-29 on that had such a square were made again (3 days in Capitals: 2027-01-13, 2027-01-16, 2027-04-01); other days are unchanged.
