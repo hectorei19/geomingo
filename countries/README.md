@@ -32,6 +32,8 @@ for(let d=0;d<366;d++){const key=new Date(Date.parse('2027-10-16T12:00Z')+d*864e
 copy(JSON.stringify({labels,days}))
 ```
 
+No giveaway squares (Héctor, 2026-11-28, after "Won the World Cup" × "Played the World Cup"): a square is never used when one of its two categories holds 95% or more of the other (`GIVEAWAY` in `index.html`; Capitals already blocked exact matches, now it uses the same 95% rule). Daily grids from 2026-11-29 on that had such a square were made again (23 days in Countries, from 2026-12-07 to 2027-09-14); other days are unchanged.
+
 How categories are picked: every category has the same chance, then `CATW` (measured weights) holds back the ones that fit with almost anything, and `WILD` halves the chance of the two broadest ("Drives on the left", "Independence from the UK"). The weights only apply up to 4 × 4.
 
 ## Credits
