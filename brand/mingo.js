@@ -475,7 +475,7 @@ async function shareDay(D){stat('share');const line='I did '+fmt(D.km)+' km on G
   try{await navigator.clipboard.writeText(line)}catch(e){}
   const t=document.querySelector('#gm-window .gm-dc-ok');if(t)t.hidden=false}
 function openDay(D){D=D||dayInfo();const box=openWindow('<div class="gm-res gm-dcw"><div class="gm-rbody"><div class="dlg-head"><h2>Your day is complete</h2><button class="dlg-x" data-gm-act="close">Close</button></div>'+
-  dayCardHTML(D)+'<p class="gm-dc-ask"><b>Beat that!</b>Challenge your friends: same '+ALLW+' games, free, no sign-up.</p><button class="gm-big gm-dc-sh" data-gm-act="shareday">'+ICO.share+' Challenge my friends</button><p class="gm-dc-ok" hidden>Picture saved and line copied. Paste it in any chat.</p></div></div>','Your day is complete');
+  dayCardHTML(D)+'<p class="gm-dc-ask"><b>Think you can beat it?</b>Send your day to a friend. Same '+ALLW+' games, free.</p><button class="gm-big gm-dc-sh" data-gm-act="shareday">'+ICO.share+' Challenge a friend</button><p class="gm-dc-ok" hidden>Picture saved and line copied. Paste it in any chat.</p></div></div>','Your day is complete');
   box._acts={shareday:()=>shareDay(D)};const c=box.querySelector('[data-gm-act="close"]');if(c)c.focus()}
 function dayDone(){const k=dayKey();if(store.get('gm-dayfull')===k||document.getElementById('gm-window'))return;const D=dayInfo(k);if(!D.all)return;
   store.set('gm-dayfull',k);openDay(D)}
