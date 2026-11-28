@@ -251,7 +251,8 @@ const clRow=S=>({x3:x3Of(S),s:qsOf(S).reduce((n,q)=>n+clFlag(q),0),r:rightN(S),m
 const ARL={
   borderline:[()=>'leaderboard',gridRow],
   citygrid:[()=>'lb/capitals',gridRow],
-  connections:[()=>'lb/connections',S=>({s:(S.found||[]).length,m:+S.mistakes||0})],
+  /* a hint counts like a mistake in the ranking row (same −10, no +20); the rules have no field for hints */
+  connections:[()=>'lb/connections',S=>({s:(S.found||[]).length,m:(+S.mistakes||0)+(+S.hc||0)})],
   top10:[()=>'lb/top10',S=>({s:(S.found||[]).length,m:(S.wrong||[]).length})],
   silhouette:[S=>'lb/sil-'+(S.diff||'normal'),S=>({s:rightN(S),m:triesN(S)})],
   customs:[()=>'lb/customs',clRow],
